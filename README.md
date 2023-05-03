@@ -7,3 +7,5 @@ To get started, check out the [documentation][1].
 
 [0]: https://github.com/apple/swift-openapi-generator
 [1]: https://swiftpackageindex.com/apple/swift-openapi-generator/documentation
+
+
