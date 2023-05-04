@@ -20,6 +20,7 @@ fatal() { error "$@"; exit 1; }
 
 CURRENT_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 NUM_CHECKS_FAILED=0
+export DOCC_TARGET=OpenAPIRuntime
 
 SCRIPT_PATHS=(
   "${CURRENT_SCRIPT_DIR}/check-for-broken-symlinks.sh"
