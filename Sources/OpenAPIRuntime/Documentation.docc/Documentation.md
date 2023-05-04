@@ -13,7 +13,7 @@ This library provides common abstractions and helper functions used by all clien
 
 ### Getting started
 
-To depend on the runtime API package, add the dependency in your `Package.swift`:
+Add the package dependency in your `Package.swift`:
 
 ```swift
 .package(url: "https://github.com/apple/swift-openapi-runtime", from: "0.1.0"),
