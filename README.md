@@ -24,10 +24,24 @@ and in your target, add `OpenAPIRuntime` to your dependencies:
 ],
 ```
 
-Next step depends on your use case:
+The next step depends on your use case.
 
-1. Use the types from this library with your generated client and server code. To learn more, review the adoption guides in the [Swift OpenAPI Generator documentation][1], which explains how the packages fit together.
-2. Implement a custom transport or middleware to extend your generated client and server. For client code, check out `ClientTransport` and `ClientMiddleware`. For server code, check out `ServerTransport` and `ServerMiddleware`. You can also publish your transport or middleware to allow others to use it with their generated code.
+### Using Swift OpenAPI Generator for code generation
+
+The generated code depends on types from this library. Check out the adoption guides in the [Swift OpenAPI Generator documentation][1] to see how the packages fit together.
+
+### Implementing transports and middlewares
+
+Swift OpenAPI Generator generates client and server code that is designed to be used with pluggable transports and middlewares.
+
+Implement a new transport or middleware by providing a type that adopts one of the protocols from the runtime library:
+
+* `ClientTransport`
+* `ClientMiddleware`
+* `ServerTransport`
+* `ServerMiddleware`
+
+You can also publish your transport or middleware as a Swift package to allow others to use it with their generated code.
 
 ## Documentation
 
