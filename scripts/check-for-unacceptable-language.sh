@@ -28,8 +28,7 @@ PATHS_WITH_UNACCEPTABLE_LANGUAGE=$(git -C "${REPO_ROOT}" grep \
   -f "${UNACCEPTABLE_LANGUAGE_PATTERNS_PATH}" \
   -- \
   ":(exclude)${UNACCEPTABLE_LANGUAGE_PATTERNS_PATH}" \
-  | paste -s -d " "
-) ||:
+) || true | /usr/bin/paste -s -d " " -
 
 if [ -n "${PATHS_WITH_UNACCEPTABLE_LANGUAGE}" ]; then
   fatal "❌ Found unacceptable language in files: ${PATHS_WITH_UNACCEPTABLE_LANGUAGE}."
