@@ -43,6 +43,10 @@ Implement a new transport or middleware by providing a type that adopts one of t
 
 You can also publish your transport or middleware as a Swift package to allow others to use it with their generated code.
 
+## Reporting issues
+
+Please report any issues related to this library in the [swift-openapi-generator](https://github.com/apple/swift-openapi-generator/issues) repository.
+
 ## Documentation
 
 To learn more, check out the full [documentation][2].

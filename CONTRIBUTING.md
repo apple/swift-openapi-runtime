@@ -7,7 +7,9 @@ that your contributions are licensed under the Apache 2.0 license (see
 
 ## How to submit a bug report
 
-Please ensure to specify the following:
+Please report any issues related to this library in the [swift-openapi-generator](https://github.com/apple/swift-openapi-generator/issues) repository.
+
+Specify the following:
 
 * Commit hash
 * Contextual information (e.g. what you were trying to achieve with swift-openapi-runtime)
