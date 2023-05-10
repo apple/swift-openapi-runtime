@@ -13,10 +13,15 @@ It contains:
 Add the package dependency in your `Package.swift`:
 
 ```swift
-.package(url: "https://github.com/apple/swift-openapi-runtime", from: "0.1.0"),
+.package(
+    url: "https://github.com/apple/swift-openapi-runtime",
+    .upToNextMinor(from: "0.1.0")
+),
 ```
 
-and in your target, add `OpenAPIRuntime` to your dependencies:
+Note that this repository does not have a 1.0 tag yet, so the API is not stable.
+
+Next, in your target, add `OpenAPIRuntime` to your dependencies:
 
 ```swift
 .target(name: "MyTarget", dependencies: [
