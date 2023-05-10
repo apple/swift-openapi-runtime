@@ -19,7 +19,9 @@ Add the package dependency in your `Package.swift`:
 ),
 ```
 
-and in your target, add `OpenAPIRuntime` to your dependencies:
+Note that this repository does not have a 1.0 tag yet, so the API is not stable.
+
+Next, in your target, add `OpenAPIRuntime` to your dependencies:
 
 ```swift
 .target(name: "MyTarget", dependencies: [
