@@ -54,6 +54,14 @@ class Test_Runtime: XCTestCase {
         "2023-01-18T10:04:11Z"
     }
 
+    var testString: String {
+        "hello"
+    }
+
+    var testStringData: Data {
+        "hello".data(using: .utf8)!
+    }
+    
     var testStruct: TestPet {
         .init(name: "Fluffz")
     }

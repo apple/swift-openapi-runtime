@@ -90,7 +90,18 @@ extension Converter {
         from data: Data,
         transforming transform: (T) -> C
     ) throws -> C {
-        let decoded = try decoder.decode(type, from: data)
+        let decoded: T
+        if let myType = T.self as? _StringParameterConvertible.Type {
+            guard
+                let stringValue = String(data: data, encoding: .utf8),
+                let decodedValue = myType.init(stringValue)
+            else {
+                throw RuntimeError.failedToDecodePrimitiveBodyFromData
+            }
+            decoded = decodedValue as! T
+        } else {
+            decoded = try decoder.decode(type, from: data)
+        }
         return transform(decoded)
     }
 
@@ -128,6 +139,12 @@ extension Converter {
     ) throws -> Data {
         let body = transform(value)
         headerFields.add(name: "content-type", value: body.contentType)
+        if let value = value as? _StringParameterConvertible {
+            guard let data = value.description.data(using: .utf8) else {
+                throw RuntimeError.failedToEncodePrimitiveBodyIntoData
+            }
+            return data
+        }
         return try encoder.encode(body.value)
     }
 

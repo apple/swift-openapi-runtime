@@ -537,6 +537,38 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             ]
         )
     }
+    
+    func testBodyAddString() throws {
+        var headers: [HeaderField] = []
+        let data = try converter.bodyAdd(
+            testString,
+            headerFields: &headers,
+            transforming: { .init(value: $0, contentType: "text/plain") }
+        )
+        XCTAssertEqual(String(data: data, encoding: .utf8)!, testString)
+        XCTAssertEqual(
+            headers,
+            [
+                .init(name: "content-type", value: "text/plain")
+            ]
+        )
+    }
+    
+    func testBodyAddData() throws {
+        var headers: [HeaderField] = []
+        let data = try converter.bodyAdd(
+            testStructPrettyData,
+            headerFields: &headers,
+            transforming: { .init(value: $0, contentType: "application/octet-stream") }
+        )
+        XCTAssertEqual(data, testStructPrettyData)
+        XCTAssertEqual(
+            headers,
+            [
+                .init(name: "content-type", value: "application/octet-stream")
+            ]
+        )
+    }
 
     func testBodyGetComplexOptional_success() throws {
         let body = try converter.bodyGetOptional(
@@ -583,5 +615,41 @@ final class Test_ServerConverterExtensions: Test_Runtime {
                 }
             }
         )
+    }
+    
+    func testBodyGetDataOptional_success() throws {
+        let body = try converter.bodyGetOptional(
+            Data.self,
+            from: testStructPrettyData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testStructPrettyData)
+    }
+
+    func testBodyGetDataRequired_success() throws {
+        let body = try converter.bodyGetOptional(
+            Data.self,
+            from: testStructPrettyData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testStructPrettyData)
+    }
+
+    func testBodyGetStringOptional_success() throws {
+        let body = try converter.bodyGetOptional(
+            String.self,
+            from: testStringData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testString)
+    }
+
+    func testBodyGetStringRequired_success() throws {
+        let body = try converter.bodyGetOptional(
+            String.self,
+            from: testStringData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testString)
     }
 }

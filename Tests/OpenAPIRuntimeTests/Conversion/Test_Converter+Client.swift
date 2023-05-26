@@ -72,6 +72,24 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         )
         XCTAssertEqual(body, testStruct)
     }
+    
+    func testBodyGetData_success() throws {
+        let body = try converter.bodyGet(
+            Data.self,
+            from: testStructData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testStructData)
+    }
+
+    func testBodyGetString_success() throws {
+        let body = try converter.bodyGet(
+            String.self,
+            from: testStringData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testString)
+    }
 
     func testBodyAddComplexOptional_success() throws {
         var headerFields: [HeaderField] = []
@@ -113,6 +131,70 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             headerFields,
             [
                 .init(name: "content-type", value: "application/json")
+            ]
+        )
+    }
+    
+    func testBodyAddDataOptional_success() throws {
+        var headerFields: [HeaderField] = []
+        let data = try converter.bodyAddOptional(
+            testStructPrettyData,
+            headerFields: &headerFields,
+            transforming: { .init(value: $0, contentType: "application/octet-stream") }
+        )
+        XCTAssertEqual(data, testStructPrettyData)
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "content-type", value: "application/octet-stream")
+            ]
+        )
+    }
+
+    func testBodyAddDataRequired_success() throws {
+        var headerFields: [HeaderField] = []
+        let data = try converter.bodyAddRequired(
+            testStructPrettyData,
+            headerFields: &headerFields,
+            transforming: { .init(value: $0, contentType: "application/octet-stream") }
+        )
+        XCTAssertEqual(data, testStructPrettyData)
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "content-type", value: "application/octet-stream")
+            ]
+        )
+    }
+    
+    func testBodyAddStringOptional_success() throws {
+        var headerFields: [HeaderField] = []
+        let data = try converter.bodyAddOptional(
+            testString,
+            headerFields: &headerFields,
+            transforming: { .init(value: $0, contentType: "text/plain") }
+        )
+        XCTAssertEqual(data, testStringData)
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "content-type", value: "text/plain")
+            ]
+        )
+    }
+
+    func testBodyAddStringRequired_success() throws {
+        var headerFields: [HeaderField] = []
+        let data = try converter.bodyAddRequired(
+            testString,
+            headerFields: &headerFields,
+            transforming: { .init(value: $0, contentType: "text/plain") }
+        )
+        XCTAssertEqual(data, testStringData)
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "content-type", value: "text/plain")
             ]
         )
     }
