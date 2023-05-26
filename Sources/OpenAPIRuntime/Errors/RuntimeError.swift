@@ -36,6 +36,8 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 
     // Body
     case missingRequiredRequestBody
+    case failedToEncodePrimitiveBodyIntoData
+    case failedToDecodePrimitiveBodyFromData
 
     // Transport/Handler
     case transportFailed(Error)
@@ -69,6 +71,10 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
             return "Failed to decode query parameter named '\(name)' to type \(type)."
         case .missingRequiredRequestBody:
             return "Missing required request body"
+        case .failedToEncodePrimitiveBodyIntoData:
+            return "Failed to encode a primitive body into data"
+        case .failedToDecodePrimitiveBodyFromData:
+            return "Failed to decode a primitive body from data"
         case .transportFailed(let underlyingError):
             return "Transport failed with error: \(underlyingError.localizedDescription)"
         case .handlerFailed(let underlyingError):
