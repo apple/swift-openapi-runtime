@@ -162,15 +162,29 @@ public extension Converter {
         guard let value else {
             return
         }
-        if let value = value as? _StringParameterConvertible {
-            headerFields.add(name: name, value: value.description)
-            return
-        }
         let data = try headerFieldEncoder.encode(value)
         guard let stringValue = String(data: data, encoding: .utf8) else {
             throw RuntimeError.failedToEncodeJSONHeaderIntoString(name: name)
         }
         headerFields.add(name: name, value: stringValue)
+    }
+
+    /// Adds a header field with the provided name and encodable value.
+    ///
+    /// Encodes the value into minimized JSON.
+    /// - Parameters:
+    ///   - headerFields: Collection of header fields to add to.
+    ///   - name: Header name.
+    ///   - value: Encodable header value.
+    func headerFieldAdd<T: Encodable & _StringParameterConvertible>(
+        in headerFields: inout [HeaderField],
+        name: String,
+        value: T?
+    ) throws {
+        guard let value else {
+            return
+        }
+        headerFields.add(name: name, value: value.description)
     }
 
     /// Returns the value of the first header field for the given name.
@@ -189,11 +203,26 @@ public extension Converter {
         guard let stringValue = headerFields.firstValue(name: name) else {
             return nil
         }
-        if let myType = T.self as? _StringParameterConvertible.Type {
-            return myType.init(stringValue).map { $0 as! T }
+        return try decoder.decode(T.self, from: Data(stringValue.utf8))
+    }
+
+    /// Returns the value of the first header field for the given name.
+    ///
+    /// Decodes the value from JSON.
+    /// - Parameters:
+    ///   - headerFields: Collection of header fields to retrieve the field from.
+    ///   - name: Header name (case-insensitive).
+    ///   - type: Date type.
+    /// - Returns: First value for the given name, if one exists.
+    func headerFieldGetOptional<T: Decodable & _StringParameterConvertible>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: T.Type
+    ) throws -> T? {
+        guard let stringValue = headerFields.firstValue(name: name) else {
+            return nil
         }
-        let data = Data(stringValue.utf8)
-        return try decoder.decode(T.self, from: data)
+        return T(stringValue)
     }
 
     /// Returns the first header value for the given (case-insensitive) name.
@@ -205,6 +234,31 @@ public extension Converter {
     ///   - type: Date type.
     /// - Returns: First value for the given name.
     func headerFieldGetRequired<T: Decodable>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: T.Type
+    ) throws -> T {
+        guard
+            let value = try headerFieldGetOptional(
+                in: headerFields,
+                name: name,
+                as: type
+            )
+        else {
+            throw RuntimeError.missingRequiredHeader(name)
+        }
+        return value
+    }
+
+    /// Returns the first header value for the given (case-insensitive) name.
+    ///
+    /// Decodes the value from JSON.
+    /// - Parameters:
+    ///   - headerFields: Collection of header fields to retrieve the field from.
+    ///   - name: Header name (case-insensitive).
+    ///   - type: Date type.
+    /// - Returns: First value for the given name.
+    func headerFieldGetRequired<T: Decodable & _StringParameterConvertible>(
         in headerFields: [HeaderField],
         name: String,
         as type: T.Type

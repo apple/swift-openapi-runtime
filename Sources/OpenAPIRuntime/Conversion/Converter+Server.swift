@@ -262,19 +262,30 @@ public extension Converter {
         guard let data else {
             return nil
         }
-        let decoded: T
-        if let myType = T.self as? _StringParameterConvertible.Type {
-            guard
-                let stringValue = String(data: data, encoding: .utf8),
-                let decodedValue = myType.init(stringValue)
-            else {
-                throw RuntimeError.failedToDecodePrimitiveBodyFromData
-            }
-            decoded = decodedValue as! T
-        } else {
-            decoded = try decoder.decode(type, from: data)
+        return transform(try decoder.decode(type, from: data))
+    }
+
+    /// Gets a deserialized value from body data, if present.
+    /// - Parameters:
+    ///   - type: Type used to decode the data.
+    ///   - data: Encoded body data.
+    ///   - transform: Closure for transforming the Decodable type into a final type.
+    /// - Returns: Deserialized body value, if present.
+    func bodyGetOptional<T: Decodable & _StringParameterConvertible, C>(
+        _ type: T.Type,
+        from data: Data?,
+        transforming transform: (T) -> C
+    ) throws -> C? {
+        guard let data else {
+            return nil
         }
-        return transform(decoded)
+        guard
+            let stringValue = String(data: data, encoding: .utf8),
+            let decodedValue = T(stringValue)
+        else {
+            throw RuntimeError.failedToDecodePrimitiveBodyFromData
+        }
+        return transform(decodedValue)
     }
 
     /// Gets a deserialized value from body data.
@@ -308,14 +319,26 @@ public extension Converter {
     ) throws -> Data {
         let body = transform(value)
         headerFields.add(name: "content-type", value: body.contentType)
-        let bodyValue = body.value
-        if let value = bodyValue as? _StringParameterConvertible {
-            guard let data = value.description.data(using: .utf8) else {
-                throw RuntimeError.failedToEncodePrimitiveBodyIntoData
-            }
-            return data
+        return try encoder.encode(body.value)
+    }
+
+    /// Provides a serialized value for the provided body value.
+    /// - Parameters:
+    ///   - value: Encodable value to turn into data.
+    ///   - headerFields: Header fields container where to add the Content-Type header.
+    ///   - transform: Closure for transforming the Encodable value into body content.
+    /// - Returns: Data for the serialized body value.
+    func bodyAdd<T: Encodable & _StringParameterConvertible, C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>
+    ) throws -> Data {
+        let body = transform(value)
+        headerFields.add(name: "content-type", value: body.contentType)
+        guard let data = body.value.description.data(using: .utf8) else {
+            throw RuntimeError.failedToEncodePrimitiveBodyIntoData
         }
-        return try encoder.encode(bodyValue)
+        return data
     }
 
     // MARK: Body - Data

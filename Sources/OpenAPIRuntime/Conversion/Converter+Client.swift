@@ -90,19 +90,27 @@ extension Converter {
         from data: Data,
         transforming transform: (T) -> C
     ) throws -> C {
-        let decoded: T
-        if let myType = T.self as? _StringParameterConvertible.Type {
-            guard
-                let stringValue = String(data: data, encoding: .utf8),
-                let decodedValue = myType.init(stringValue)
-            else {
-                throw RuntimeError.failedToDecodePrimitiveBodyFromData
-            }
-            decoded = decodedValue as! T
-        } else {
-            decoded = try decoder.decode(type, from: data)
+        return transform(try decoder.decode(type, from: data))
+    }
+
+    /// Gets a deserialized value from body data.
+    /// - Parameters:
+    ///   - type: Type used to decode the data.
+    ///   - data: Encoded body data.
+    ///   - transform: Closure for transforming the Decodable type into a final type.
+    /// - Returns: Deserialized body value.
+    public func bodyGet<T: Decodable & _StringParameterConvertible, C: _StringParameterConvertible>(
+        _ type: T.Type,
+        from data: Data,
+        transforming transform: (T) -> C
+    ) throws -> C {
+        guard
+            let stringValue = String(data: data, encoding: .utf8),
+            let decodedValue = T(stringValue)
+        else {
+            throw RuntimeError.failedToDecodePrimitiveBodyFromData
         }
-        return transform(decoded)
+        return transform(decodedValue)
     }
 
     /// Provides an optional serialized value for the body value.
@@ -112,6 +120,27 @@ extension Converter {
     ///   - transform: Closure for transforming the Encodable value into body content.
     /// - Returns: Data for the serialized body value, or nil if `value` was nil.
     public func bodyAddOptional<T: Encodable, C>(
+        _ value: C?,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>
+    ) throws -> Data? {
+        guard let value else {
+            return nil
+        }
+        return try bodyAddRequired(
+            value,
+            headerFields: &headerFields,
+            transforming: transform
+        )
+    }
+
+    /// Provides an optional serialized value for the body value.
+    /// - Parameters:
+    ///   - value: Encodable value to turn into data.
+    ///   - headerFields: Headers container where to add the Content-Type header.
+    ///   - transform: Closure for transforming the Encodable value into body content.
+    /// - Returns: Data for the serialized body value, or nil if `value` was nil.
+    public func bodyAddOptional<T: Encodable & _StringParameterConvertible, C: _StringParameterConvertible>(
         _ value: C?,
         headerFields: inout [HeaderField],
         transforming transform: (C) -> EncodableBodyContent<T>
@@ -139,13 +168,26 @@ extension Converter {
     ) throws -> Data {
         let body = transform(value)
         headerFields.add(name: "content-type", value: body.contentType)
-        if let value = value as? _StringParameterConvertible {
-            guard let data = value.description.data(using: .utf8) else {
-                throw RuntimeError.failedToEncodePrimitiveBodyIntoData
-            }
-            return data
-        }
         return try encoder.encode(body.value)
+    }
+
+    /// Provides a required serialized value for the body value.
+    /// - Parameters:
+    ///   - value: Encodable value to turn into data.
+    ///   - headerFields: Headers container where to add the Content-Type header.
+    ///   - transform: Closure for transforming the Encodable value into body content.
+    /// - Returns: Data for the serialized body value.
+    public func bodyAddRequired<T: Encodable & _StringParameterConvertible, C: _StringParameterConvertible>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>
+    ) throws -> Data where C: _StringParameterConvertible {
+        let body = transform(value)
+        headerFields.add(name: "content-type", value: body.contentType)
+        guard let data = body.value.description.data(using: .utf8) else {
+            throw RuntimeError.failedToEncodePrimitiveBodyIntoData
+        }
+        return data
     }
 
     // MARK: Body - Primivite - Data
