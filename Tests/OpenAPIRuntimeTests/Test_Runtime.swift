@@ -61,7 +61,7 @@ class Test_Runtime: XCTestCase {
     var testStringData: Data {
         "hello".data(using: .utf8)!
     }
-    
+
     var testStruct: TestPet {
         .init(name: "Fluffz")
     }

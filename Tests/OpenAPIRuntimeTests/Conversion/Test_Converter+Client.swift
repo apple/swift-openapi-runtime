@@ -72,7 +72,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         )
         XCTAssertEqual(body, testStruct)
     }
-    
+
     func testBodyGetData_success() throws {
         let body = try converter.bodyGet(
             Data.self,
@@ -134,7 +134,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             ]
         )
     }
-    
+
     func testBodyAddDataOptional_success() throws {
         var headerFields: [HeaderField] = []
         let data = try converter.bodyAddOptional(
@@ -166,7 +166,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             ]
         )
     }
-    
+
     func testBodyAddStringOptional_success() throws {
         var headerFields: [HeaderField] = []
         let data = try converter.bodyAddOptional(
