@@ -59,7 +59,15 @@ class Test_Runtime: XCTestCase {
     }
 
     var testStringData: Data {
-        "hello".data(using: .utf8)!
+        testString.data(using: .utf8)!
+    }
+
+    var testQuotedString: String {
+        "\"hello\""
+    }
+
+    var testQuotedStringData: Data {
+        testQuotedString.data(using: .utf8)!
     }
 
     var testStruct: TestPet {

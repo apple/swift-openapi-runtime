@@ -22,9 +22,21 @@ public struct EncodableBodyContent<T: Encodable & Equatable>: Equatable {
     /// The header value of the content type, for example `application/json`.
     public var contentType: String
 
-    /// Creates a new content wrapper around the specified value and content type.
-    public init(value: T, contentType: String) {
+    /// A hint about which coding strategy to use.
+    public var strategy: CodingStrategy
+
+    /// Creates a new content wrapper.
+    /// - Parameters:
+    ///   - value: An encodable body value.
+    ///   - contentType: The header value of the content type.
+    ///   - strategy: A hint about which coding strategy to use.
+    public init(
+        value: T,
+        contentType: String,
+        strategy: CodingStrategy
+    ) {
         self.value = value
         self.contentType = contentType
+        self.strategy = strategy
     }
 }

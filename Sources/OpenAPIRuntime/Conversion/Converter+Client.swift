@@ -83,20 +83,25 @@ extension Converter {
     /// - Parameters:
     ///   - type: Type used to decode the data.
     ///   - data: Encoded body data.
-    ///   - transform: Closure for transforming the Decodable type into a final type.
+    ///   - strategy: A hint about which coding strategy to use.
+    ///   - transform: Closure for transforming the Decodable type into a final
+    ///   type.
     /// - Returns: Deserialized body value.
     public func bodyGet<T: Decodable, C>(
         _ type: T.Type,
         from data: Data,
+        strategy: CodingStrategy,
         transforming transform: (T) -> C
     ) throws -> C {
         let decoded: T
-        if let myType = T.self as? _StringParameterConvertible.Type {
+        if let myType = T.self as? _StringParameterConvertible.Type,
+            strategy == .string
+        {
             guard
                 let stringValue = String(data: data, encoding: .utf8),
                 let decodedValue = myType.init(stringValue)
             else {
-                throw RuntimeError.failedToDecodePrimitiveBodyFromData
+                throw RuntimeError.failedToDecodeBody(type: T.self)
             }
             decoded = decodedValue as! T
         } else {
@@ -139,9 +144,11 @@ extension Converter {
     ) throws -> Data {
         let body = transform(value)
         headerFields.add(name: "content-type", value: body.contentType)
-        if let value = value as? _StringParameterConvertible {
+        if let value = value as? _StringParameterConvertible,
+            body.strategy == .string
+        {
             guard let data = value.description.data(using: .utf8) else {
-                throw RuntimeError.failedToEncodePrimitiveBodyIntoData
+                throw RuntimeError.failedToEncodeBody(type: T.self)
             }
             return data
         }
@@ -154,11 +161,13 @@ extension Converter {
     /// - Parameters:
     ///   - type: Type used to decode the data.
     ///   - data: Encoded body data.
+    ///   - strategy: A hint about which coding strategy to use.
     ///   - transform: Closure for transforming the Decodable type into a final type.
     /// - Returns: Deserialized body value.
     public func bodyGet<C>(
         _ type: Data.Type,
         from data: Data,
+        strategy: CodingStrategy,
         transforming transform: (Data) -> C
     ) throws -> C {
         return transform(data)

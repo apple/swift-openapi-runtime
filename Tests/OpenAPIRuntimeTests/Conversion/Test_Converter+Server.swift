@@ -527,7 +527,13 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let data = try converter.bodyAdd(
             testStruct,
             headerFields: &headers,
-            transforming: { .init(value: $0, contentType: "application/json") }
+            transforming: {
+                .init(
+                    value: $0,
+                    contentType: "application/json",
+                    strategy: .deferredToType
+                )
+            }
         )
         XCTAssertEqual(data, testStructPrettyData)
         XCTAssertEqual(
@@ -538,14 +544,64 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         )
     }
 
-    func testBodyAddString() throws {
+    func testBodyAddString_strategyDeferredToType() throws {
         var headers: [HeaderField] = []
         let data = try converter.bodyAdd(
             testString,
             headerFields: &headers,
-            transforming: { .init(value: $0, contentType: "text/plain") }
+            transforming: {
+                .init(
+                    value: $0,
+                    contentType: "text/plain",
+                    strategy: .deferredToType
+                )
+            }
+        )
+        XCTAssertEqual(String(data: data, encoding: .utf8)!, testQuotedString)
+        XCTAssertEqual(
+            headers,
+            [
+                .init(name: "content-type", value: "text/plain")
+            ]
+        )
+    }
+
+    func testBodyAddString_strategyString() throws {
+        var headers: [HeaderField] = []
+        let data = try converter.bodyAdd(
+            testString,
+            headerFields: &headers,
+            transforming: {
+                .init(
+                    value: $0,
+                    contentType: "text/plain",
+                    strategy: .string
+                )
+            }
         )
         XCTAssertEqual(String(data: data, encoding: .utf8)!, testString)
+        XCTAssertEqual(
+            headers,
+            [
+                .init(name: "content-type", value: "text/plain")
+            ]
+        )
+    }
+
+    func testBodyAddString_strategyCodable() throws {
+        var headers: [HeaderField] = []
+        let data = try converter.bodyAdd(
+            testString,
+            headerFields: &headers,
+            transforming: {
+                .init(
+                    value: $0,
+                    contentType: "text/plain",
+                    strategy: .codable
+                )
+            }
+        )
+        XCTAssertEqual(String(data: data, encoding: .utf8)!, testQuotedString)
         XCTAssertEqual(
             headers,
             [
@@ -559,7 +615,13 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let data = try converter.bodyAdd(
             testStructPrettyData,
             headerFields: &headers,
-            transforming: { .init(value: $0, contentType: "application/octet-stream") }
+            transforming: {
+                .init(
+                    value: $0,
+                    contentType: "application/octet-stream",
+                    strategy: .deferredToType
+                )
+            }
         )
         XCTAssertEqual(data, testStructPrettyData)
         XCTAssertEqual(
@@ -574,6 +636,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let body = try converter.bodyGetOptional(
             TestPet.self,
             from: testStructData,
+            strategy: .deferredToType,
             transforming: { $0 }
         )
         XCTAssertEqual(body, testStruct)
@@ -583,6 +646,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let body = try converter.bodyGetOptional(
             TestPet.self,
             from: nil,
+            strategy: .deferredToType,
             transforming: { _ -> TestPet in fatalError("Unreachable") }
         )
         XCTAssertNil(body)
@@ -592,6 +656,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let body = try converter.bodyGetOptional(
             TestPet.self,
             from: testStructData,
+            strategy: .deferredToType,
             transforming: { $0 }
         )
         XCTAssertEqual(body, testStruct)
@@ -602,6 +667,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             try converter.bodyGetRequired(
                 TestPet.self,
                 from: nil,
+                strategy: .deferredToType,
                 transforming: { _ -> TestPet in fatalError("Unreachable") }
             ),
             "Was expected to throw error on missing required body",
@@ -621,33 +687,98 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let body = try converter.bodyGetOptional(
             Data.self,
             from: testStructPrettyData,
+            strategy: .deferredToType,
             transforming: { $0 }
         )
         XCTAssertEqual(body, testStructPrettyData)
     }
 
     func testBodyGetDataRequired_success() throws {
-        let body = try converter.bodyGetOptional(
+        let body = try converter.bodyGetRequired(
             Data.self,
             from: testStructPrettyData,
+            strategy: .deferredToType,
             transforming: { $0 }
         )
         XCTAssertEqual(body, testStructPrettyData)
     }
 
-    func testBodyGetStringOptional_success() throws {
+    func testBodyGetDataRequired_missing() throws {
+        XCTAssertThrowsError(
+            try converter.bodyGetRequired(
+                Data.self,
+                from: nil,
+                strategy: .deferredToType,
+                transforming: { $0 }
+            ),
+            "Was expected to throw error on missing required body",
+            { error in
+                guard
+                    let err = error as? RuntimeError,
+                    case .missingRequiredRequestBody = err
+                else {
+                    XCTFail("Unexpected kind of error thrown")
+                    return
+                }
+            }
+        )
+    }
+
+    func testBodyGetStringOptional_strategyDeferredToType_success() throws {
         let body = try converter.bodyGetOptional(
             String.self,
-            from: testStringData,
+            from: testQuotedStringData,
+            strategy: .deferredToType,
             transforming: { $0 }
         )
         XCTAssertEqual(body, testString)
     }
 
-    func testBodyGetStringRequired_success() throws {
+    func testBodyGetStringOptional_strategyString_success() throws {
         let body = try converter.bodyGetOptional(
             String.self,
             from: testStringData,
+            strategy: .string,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testString)
+    }
+
+    func testBodyGetStringOptional_strategyCodable_success() throws {
+        let body = try converter.bodyGetOptional(
+            String.self,
+            from: testQuotedStringData,
+            strategy: .codable,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testString)
+    }
+
+    func testBodyGetStringRequired_strategyDeferredToType_success() throws {
+        let body = try converter.bodyGetRequired(
+            String.self,
+            from: testQuotedStringData,
+            strategy: .deferredToType,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testString)
+    }
+
+    func testBodyGetStringRequired_strategyString_success() throws {
+        let body = try converter.bodyGetRequired(
+            String.self,
+            from: testStringData,
+            strategy: .string,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testString)
+    }
+
+    func testBodyGetStringRequired_strategyCodable_success() throws {
+        let body = try converter.bodyGetRequired(
+            String.self,
+            from: testQuotedStringData,
+            strategy: .codable,
             transforming: { $0 }
         )
         XCTAssertEqual(body, testString)

@@ -252,23 +252,27 @@ public extension Converter {
     /// - Parameters:
     ///   - type: Type used to decode the data.
     ///   - data: Encoded body data.
+    ///   - strategy: A hint about which coding strategy to use.
     ///   - transform: Closure for transforming the Decodable type into a final type.
     /// - Returns: Deserialized body value, if present.
     func bodyGetOptional<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
+        strategy: CodingStrategy,
         transforming transform: (T) -> C
     ) throws -> C? {
         guard let data else {
             return nil
         }
         let decoded: T
-        if let myType = T.self as? _StringParameterConvertible.Type {
+        if let myType = T.self as? _StringParameterConvertible.Type,
+            strategy == .string
+        {
             guard
                 let stringValue = String(data: data, encoding: .utf8),
                 let decodedValue = myType.init(stringValue)
             else {
-                throw RuntimeError.failedToDecodePrimitiveBodyFromData
+                throw RuntimeError.failedToDecodeBody(type: T.self)
             }
             decoded = decodedValue as! T
         } else {
@@ -281,17 +285,32 @@ public extension Converter {
     /// - Parameters:
     ///   - type: Type used to decode the data.
     ///   - data: Encoded body data.
+    ///   - strategy: A hint about which coding strategy to use.
     ///   - transform: Closure for transforming the Decodable type into a final type.
     /// - Returns: Deserialized body value.
     func bodyGetRequired<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
+        strategy: CodingStrategy,
         transforming transform: (T) -> C
     ) throws -> C {
         guard let data else {
             throw RuntimeError.missingRequiredRequestBody
         }
-        let decoded = try decoder.decode(type, from: data)
+        let decoded: T
+        if let myType = T.self as? _StringParameterConvertible.Type,
+            strategy == .string
+        {
+            guard
+                let stringValue = String(data: data, encoding: .utf8),
+                let decodedValue = myType.init(stringValue)
+            else {
+                throw RuntimeError.failedToDecodeBody(type: T.self)
+            }
+            decoded = decodedValue as! T
+        } else {
+            decoded = try decoder.decode(type, from: data)
+        }
         return transform(decoded)
     }
 
@@ -309,9 +328,11 @@ public extension Converter {
         let body = transform(value)
         headerFields.add(name: "content-type", value: body.contentType)
         let bodyValue = body.value
-        if let value = bodyValue as? _StringParameterConvertible {
+        if let value = bodyValue as? _StringParameterConvertible,
+            body.strategy == .string
+        {
             guard let data = value.description.data(using: .utf8) else {
-                throw RuntimeError.failedToEncodePrimitiveBodyIntoData
+                throw RuntimeError.failedToEncodeBody(type: T.self)
             }
             return data
         }
@@ -324,11 +345,13 @@ public extension Converter {
     /// - Parameters:
     ///   - type: Type used to decode the data.
     ///   - data: Encoded body data.
+    ///   - strategy: A hint about which coding strategy to use.
     ///   - transform: Closure for transforming the Decodable type into a final type.
     /// - Returns: Deserialized body value, if present.
     func bodyGetOptional<C>(
         _ type: Data.Type,
         from data: Data?,
+        strategy: CodingStrategy,
         transforming transform: (Data) -> C
     ) throws -> C? {
         guard let data else {
@@ -341,11 +364,13 @@ public extension Converter {
     /// - Parameters:
     ///   - type: Type used to decode the data.
     ///   - data: Encoded body data.
+    ///   - strategy: A hint about which coding strategy to use.
     ///   - transform: Closure for transforming the Decodable type into a final type.
     /// - Returns: Deserialized body value.
     func bodyGetRequired<C>(
         _ type: Data.Type,
         from data: Data?,
+        strategy: CodingStrategy,
         transforming transform: (Data) -> C
     ) throws -> C {
         guard let data else {

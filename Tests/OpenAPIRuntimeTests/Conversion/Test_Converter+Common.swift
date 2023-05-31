@@ -145,12 +145,11 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         )
     }
 
-    // MARK: [HeaderField] - _StringParameterConvertible
-
-    func testHeaderAdd_string() throws {
+    func testHeaderFieldsAdd_string_strategyDeferredToType() throws {
         var headerFields: [HeaderField] = []
         try converter.headerFieldAdd(
             in: &headerFields,
+            strategy: .deferredToType,
             name: "foo",
             value: "bar"
         )
@@ -162,45 +161,107 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         )
     }
 
-    func testHeaderGetOptional_string() throws {
+    func testHeaderFieldsAdd_string_strategyString() throws {
+        var headerFields: [HeaderField] = []
+        try converter.headerFieldAdd(
+            in: &headerFields,
+            strategy: .string,
+            name: "foo",
+            value: "bar"
+        )
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "foo", value: "bar")
+            ]
+        )
+    }
+
+    func testHeaderFieldsAdd_string_strategyCodable() throws {
+        var headerFields: [HeaderField] = []
+        try converter.headerFieldAdd(
+            in: &headerFields,
+            strategy: .codable,
+            name: "foo",
+            value: "bar"
+        )
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "foo", value: "\"bar\"")
+            ]
+        )
+    }
+
+    func testHeaderFieldsGetOptional_string_strategyDeferredToType() throws {
         let headerFields: [HeaderField] = [
             .init(name: "foo", value: "bar")
         ]
         let value = try converter.headerFieldGetOptional(
             in: headerFields,
+            strategy: .deferredToType,
             name: "foo",
             as: String.self
         )
         XCTAssertEqual(value, "bar")
     }
 
-    func testHeaderGetOptional_missing() throws {
+    func testHeaderFieldsGetOptional_string_strategyString() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: "bar")
+        ]
+        let value = try converter.headerFieldGetOptional(
+            in: headerFields,
+            strategy: .deferredToType,
+            name: "foo",
+            as: String.self
+        )
+        XCTAssertEqual(value, "bar")
+    }
+
+    func testHeaderFieldsGetOptional_string_strategyCodable() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: "bar")
+        ]
+        let value = try converter.headerFieldGetOptional(
+            in: headerFields,
+            strategy: .deferredToType,
+            name: "foo",
+            as: String.self
+        )
+        XCTAssertEqual(value, "bar")
+    }
+
+    func testHeaderFieldsGetOptional_missing() throws {
         let headerFields: [HeaderField] = []
         let value = try converter.headerFieldGetOptional(
             in: headerFields,
+            strategy: .deferredToType,
             name: "foo",
             as: String.self
         )
         XCTAssertNil(value)
     }
 
-    func testHeaderGetRequired_string() throws {
+    func testHeaderFieldsGetRequired_string() throws {
         let headerFields: [HeaderField] = [
             .init(name: "foo", value: "bar")
         ]
         let value = try converter.headerFieldGetRequired(
             in: headerFields,
+            strategy: .deferredToType,
             name: "foo",
             as: String.self
         )
         XCTAssertEqual(value, "bar")
     }
 
-    func testHeaderGetRequired_missing() throws {
+    func testHeaderFieldsGetRequired_missing() throws {
         let headerFields: [HeaderField] = []
         XCTAssertThrowsError(
             try converter.headerFieldGetRequired(
                 in: headerFields,
+                strategy: .deferredToType,
                 name: "foo",
                 as: String.self
             ),
@@ -220,10 +281,11 @@ final class Test_CommonConverterExtensions: Test_Runtime {
 
     // MARK: [HeaderField] -  (Date)
 
-    func testHeaderAdd_date() throws {
+    func testHeaderFieldsAdd_date() throws {
         var headerFields: [HeaderField] = []
         try converter.headerFieldAdd(
             in: &headerFields,
+            strategy: .deferredToType,
             name: "since",
             value: testDate
         )
@@ -235,56 +297,61 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         )
     }
 
-    func testHeaderAdd_date_nil() throws {
+    func testHeaderFieldsAdd_date_nil() throws {
         var headerFields: [HeaderField] = []
         let date: Date? = nil
         try converter.headerFieldAdd(
             in: &headerFields,
+            strategy: .deferredToType,
             name: "since",
             value: date
         )
         XCTAssertEqual(headerFields, [])
     }
 
-    func testHeaderGetOptional_date() throws {
+    func testHeaderFieldsGetOptional_date() throws {
         let headerFields: [HeaderField] = [
             .init(name: "since", value: testDateString)
         ]
         let value = try converter.headerFieldGetOptional(
             in: headerFields,
+            strategy: .deferredToType,
             name: "since",
             as: Date.self
         )
         XCTAssertEqual(value, testDate)
     }
 
-    func testHeaderGetOptional_date_missing() throws {
+    func testHeaderFieldsGetOptional_date_missing() throws {
         let headerFields: [HeaderField] = []
         let value = try converter.headerFieldGetOptional(
             in: headerFields,
+            strategy: .deferredToType,
             name: "since",
             as: Date.self
         )
         XCTAssertNil(value)
     }
 
-    func testHeaderGetRequired_date() throws {
+    func testHeaderFieldsGetRequired_date() throws {
         let headerFields: [HeaderField] = [
             .init(name: "since", value: testDateString)
         ]
         let value = try converter.headerFieldGetRequired(
             in: headerFields,
+            strategy: .deferredToType,
             name: "since",
             as: Date.self
         )
         XCTAssertEqual(value, testDate)
     }
 
-    func testHeaderGetRequired_date_missing() throws {
+    func testHeaderFieldsGetRequired_date_missing() throws {
         let headerFields: [HeaderField] = []
         XCTAssertThrowsError(
             try converter.headerFieldGetRequired(
                 in: headerFields,
+                strategy: .deferredToType,
                 name: "since",
                 as: Date.self
             ),
@@ -304,10 +371,11 @@ final class Test_CommonConverterExtensions: Test_Runtime {
 
     // MARK: [HeaderField] - Complex
 
-    func testHeaderAddComplex_struct() throws {
+    func testHeaderFieldsAddComplex_struct() throws {
         var headerFields: [HeaderField] = []
         try converter.headerFieldAdd(
             in: &headerFields,
+            strategy: .deferredToType,
             name: "foo",
             value: testStruct
         )
@@ -319,56 +387,61 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         )
     }
 
-    func testHeaderAddComplex_nil() throws {
+    func testHeaderFieldsAddComplex_nil() throws {
         var headerFields: [HeaderField] = []
         let value: TestPet? = nil
         try converter.headerFieldAdd(
             in: &headerFields,
+            strategy: .deferredToType,
             name: "foo",
             value: value
         )
         XCTAssertEqual(headerFields, [])
     }
 
-    func testHeaderGetComplexOptional_struct() throws {
+    func testHeaderFieldsGetComplexOptional_struct() throws {
         let headerFields: [HeaderField] = [
             .init(name: "pet", value: testStructString)
         ]
         let value = try converter.headerFieldGetOptional(
             in: headerFields,
+            strategy: .deferredToType,
             name: "pet",
             as: TestPet.self
         )
         XCTAssertEqual(value, testStruct)
     }
 
-    func testHeaderGetComplexOptional_missing() throws {
+    func testHeaderFieldsGetComplexOptional_missing() throws {
         let headerFields: [HeaderField] = []
         let value = try converter.headerFieldGetOptional(
             in: headerFields,
+            strategy: .deferredToType,
             name: "pet",
             as: TestPet.self
         )
         XCTAssertNil(value)
     }
 
-    func testHeaderGetComplexRequired_struct() throws {
+    func testHeaderFieldsGetComplexRequired_struct() throws {
         let headerFields: [HeaderField] = [
             .init(name: "pet", value: testStructString)
         ]
         let value = try converter.headerFieldGetRequired(
             in: headerFields,
+            strategy: .deferredToType,
             name: "pet",
             as: TestPet.self
         )
         XCTAssertEqual(value, testStruct)
     }
 
-    func testHeaderGetComplexRequired_missing() throws {
+    func testHeaderFieldsGetComplexRequired_missing() throws {
         let headerFields: [HeaderField] = []
         XCTAssertThrowsError(
             try converter.headerFieldGetRequired(
                 in: headerFields,
+                strategy: .deferredToType,
                 name: "pet",
                 as: TestPet.self
             ),

@@ -55,7 +55,7 @@ public extension Array where Element == HeaderField {
     }
 }
 
-public extension Converter {
+extension Converter {
 
     // MARK: Miscs
 
@@ -68,13 +68,14 @@ public extension Converter {
     ///   - headerFields: Header fields to inspect for a content type.
     ///   - substring: Expected content type.
     /// - Throws: If the response's Content-Type value is not compatible with the provided substring.
-    func validateContentTypeIfPresent(
+    public func validateContentTypeIfPresent(
         in headerFields: [HeaderField],
         substring: String
     ) throws {
         guard
             let contentType = try headerFieldGetOptional(
                 in: headerFields,
+                strategy: .string,
                 name: "content-type",
                 as: String.self
             )
@@ -91,10 +92,12 @@ public extension Converter {
     /// Adds a header field with the provided name and Date value.
     /// - Parameters:
     ///   - headerFields: Collection of header fields to add to.
+    ///   - strategy: A hint about which coding strategy to use.
     ///   - name: The name of the header field.
     ///   - value: Date value. If nil, header is not added.
-    func headerFieldAdd(
+    public func headerFieldAdd(
         in headerFields: inout [HeaderField],
+        strategy: CodingStrategy,
         name: String,
         value: Date?
     ) throws {
@@ -108,11 +111,13 @@ public extension Converter {
     /// Returns the value for the first header field with given name.
     /// - Parameters:
     ///   - headerFields: Collection of header fields to retrieve the field from.
+    ///   - strategy: A hint about which coding strategy to use.
     ///   - name: The name of the header field (case-insensitive).
     ///   - type: Date type.
     /// - Returns: First value for the given name, if one exists.
-    func headerFieldGetOptional(
+    public func headerFieldGetOptional(
         in headerFields: [HeaderField],
+        strategy: CodingStrategy,
         name: String,
         as type: Date.Type
     ) throws -> Date? {
@@ -125,17 +130,20 @@ public extension Converter {
     /// Returns the value for the first header field with the given name.
     /// - Parameters:
     ///   - headerFields: Collection of header fields to retrieve the field from.
+    ///   - strategy: A hint about which coding strategy to use.
     ///   - name: Header name (case-insensitive).
     ///   - type: Date type.
     /// - Returns: First value for the given name.
-    func headerFieldGetRequired(
+    public func headerFieldGetRequired(
         in headerFields: [HeaderField],
+        strategy: CodingStrategy,
         name: String,
         as type: Date.Type
     ) throws -> Date {
         guard
             let value = try headerFieldGetOptional(
                 in: headerFields,
+                strategy: strategy,
                 name: name,
                 as: type
             )
@@ -152,17 +160,21 @@ public extension Converter {
     /// Encodes the value into minimized JSON.
     /// - Parameters:
     ///   - headerFields: Collection of header fields to add to.
+    ///   - strategy: A hint about which coding strategy to use.
     ///   - name: Header name.
     ///   - value: Encodable header value.
-    func headerFieldAdd<T: Encodable>(
+    public func headerFieldAdd<T: Encodable>(
         in headerFields: inout [HeaderField],
+        strategy: CodingStrategy,
         name: String,
         value: T?
     ) throws {
         guard let value else {
             return
         }
-        if let value = value as? _StringParameterConvertible {
+        if let value = value as? _StringParameterConvertible,
+            strategy != .codable
+        {
             headerFields.add(name: name, value: value.description)
             return
         }
@@ -178,18 +190,22 @@ public extension Converter {
     /// Decodes the value from JSON.
     /// - Parameters:
     ///   - headerFields: Collection of header fields to retrieve the field from.
+    ///   - strategy: A hint about which coding strategy to use.
     ///   - name: Header name (case-insensitive).
     ///   - type: Date type.
     /// - Returns: First value for the given name, if one exists.
-    func headerFieldGetOptional<T: Decodable>(
+    public func headerFieldGetOptional<T: Decodable>(
         in headerFields: [HeaderField],
+        strategy: CodingStrategy,
         name: String,
         as type: T.Type
     ) throws -> T? {
         guard let stringValue = headerFields.firstValue(name: name) else {
             return nil
         }
-        if let myType = T.self as? _StringParameterConvertible.Type {
+        if let myType = T.self as? _StringParameterConvertible.Type,
+            strategy != .codable
+        {
             return myType.init(stringValue).map { $0 as! T }
         }
         let data = Data(stringValue.utf8)
@@ -201,17 +217,20 @@ public extension Converter {
     /// Decodes the value from JSON.
     /// - Parameters:
     ///   - headerFields: Collection of header fields to retrieve the field from.
+    ///   - strategy: A hint about which coding strategy to use.
     ///   - name: Header name (case-insensitive).
     ///   - type: Date type.
     /// - Returns: First value for the given name.
-    func headerFieldGetRequired<T: Decodable>(
+    public func headerFieldGetRequired<T: Decodable>(
         in headerFields: [HeaderField],
+        strategy: CodingStrategy,
         name: String,
         as type: T.Type
     ) throws -> T {
         guard
             let value = try headerFieldGetOptional(
                 in: headerFields,
+                strategy: strategy,
                 name: name,
                 as: type
             )
