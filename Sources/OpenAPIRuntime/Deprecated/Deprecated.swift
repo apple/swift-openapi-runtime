@@ -263,13 +263,13 @@ extension Converter {
 @_spi(Generated)
 @available(*, deprecated, renamed: "EncodableBodyContent")
 public struct LegacyEncodableBodyContent<T: Encodable & Equatable>: Equatable {
-    
+
     /// An encodable body value.
     public var value: T
-    
+
     /// The header value of the content type, for example `application/json`.
     public var contentType: String
-    
+
     /// Creates a new content wrapper.
     /// - Parameters:
     ///   - value: An encodable body value.
