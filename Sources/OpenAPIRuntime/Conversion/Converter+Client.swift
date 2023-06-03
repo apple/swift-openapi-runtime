@@ -90,7 +90,7 @@ extension Converter {
     public func bodyGet<T: Decodable, C>(
         _ type: T.Type,
         from data: Data,
-        strategy: CodingStrategy,
+        strategy: BodyCodingStrategy,
         transforming transform: (T) -> C
     ) throws -> C {
         let decoded: T
@@ -167,7 +167,7 @@ extension Converter {
     public func bodyGet<C>(
         _ type: Data.Type,
         from data: Data,
-        strategy: CodingStrategy,
+        strategy: BodyCodingStrategy,
         transforming transform: (Data) -> C
     ) throws -> C {
         return transform(data)

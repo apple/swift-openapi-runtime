@@ -74,21 +74,21 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(body, testStruct)
     }
 
-    func testBodyGetData_strategyDeferredToType_success() throws {
+    func testBodyGetData_strategyData_success() throws {
         let body = try converter.bodyGet(
             Data.self,
             from: testStructData,
-            strategy: .deferredToType,
+            strategy: .data,
             transforming: { $0 }
         )
         XCTAssertEqual(body, testStructData)
     }
 
-    func testBodyGetString_strategyDeferredToType_success() throws {
+    func testBodyGetString_strategyData_success() throws {
         let body = try converter.bodyGet(
             String.self,
             from: testQuotedStringData,
-            strategy: .deferredToType,
+            strategy: .data,
             transforming: { $0 }
         )
         XCTAssertEqual(body, testString)
@@ -145,7 +145,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
                 .init(
                     value: $0,
                     contentType: "application/json",
-                    strategy: .deferredToType
+                    strategy: .codable
                 )
             }
         )
@@ -179,7 +179,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
                 .init(
                     value: $0,
                     contentType: "application/json",
-                    strategy: .deferredToType
+                    strategy: .codable
                 )
             }
         )
@@ -201,7 +201,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
                 .init(
                     value: $0,
                     contentType: "application/octet-stream",
-                    strategy: .deferredToType
+                    strategy: .data
                 )
             }
         )
@@ -235,7 +235,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
                 .init(
                     value: $0,
                     contentType: "application/octet-stream",
-                    strategy: .deferredToType
+                    strategy: .data
                 )
             }
         )
@@ -244,28 +244,6 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             headerFields,
             [
                 .init(name: "content-type", value: "application/octet-stream")
-            ]
-        )
-    }
-
-    func testBodyAddStringOptional_strategyDeferredToType_success() throws {
-        var headerFields: [HeaderField] = []
-        let data = try converter.bodyAddOptional(
-            testString,
-            headerFields: &headerFields,
-            transforming: {
-                .init(
-                    value: $0,
-                    contentType: "text/plain",
-                    strategy: .deferredToType
-                )
-            }
-        )
-        XCTAssertEqual(data, testQuotedStringData)
-        XCTAssertEqual(
-            headerFields,
-            [
-                .init(name: "content-type", value: "text/plain")
             ]
         )
     }
@@ -302,28 +280,6 @@ final class Test_ClientConverterExtensions: Test_Runtime {
                     value: $0,
                     contentType: "text/plain",
                     strategy: .codable
-                )
-            }
-        )
-        XCTAssertEqual(data, testQuotedStringData)
-        XCTAssertEqual(
-            headerFields,
-            [
-                .init(name: "content-type", value: "text/plain")
-            ]
-        )
-    }
-
-    func testBodyAddStringRequired_strategyDeferredToType_success() throws {
-        var headerFields: [HeaderField] = []
-        let data = try converter.bodyAddRequired(
-            testString,
-            headerFields: &headerFields,
-            transforming: {
-                .init(
-                    value: $0,
-                    contentType: "text/plain",
-                    strategy: .deferredToType
                 )
             }
         )

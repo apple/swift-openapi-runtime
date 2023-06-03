@@ -259,20 +259,140 @@ extension Converter {
     }
 }
 
-extension EncodableBodyContent {
+/// A wrapper of a body value with its content type.
+@_spi(Generated)
+@available(*, deprecated, renamed: "EncodableBodyContent")
+public struct LegacyEncodableBodyContent<T: Encodable & Equatable>: Equatable {
+    
+    /// An encodable body value.
+    public var value: T
+    
+    /// The header value of the content type, for example `application/json`.
+    public var contentType: String
+    
     /// Creates a new content wrapper.
     /// - Parameters:
     ///   - value: An encodable body value.
     ///   - contentType: The header value of the content type.
-    @available(*, deprecated, renamed: "init(value:contentType:strategy:)")
     public init(
         value: T,
         contentType: String
     ) {
-        self.init(
-            value: value,
-            contentType: contentType,
-            strategy: .deferredToType
+        self.value = value
+        self.contentType = contentType
+    }
+}
+
+extension Converter {
+    /// Provides an optional serialized value for the body value.
+    /// - Parameters:
+    ///   - value: Encodable value to turn into data.
+    ///   - headerFields: Headers container where to add the Content-Type header.
+    ///   - transform: Closure for transforming the Encodable value into body content.
+    /// - Returns: Data for the serialized body value, or nil if `value` was nil.
+    @available(*, deprecated, message: "Use the variant with EncodableBodyContent")
+    public func bodyAddOptional<T: Encodable, C>(
+        _ value: C?,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> LegacyEncodableBodyContent<T>
+    ) throws -> Data? {
+        guard let value else {
+            return nil
+        }
+        return try bodyAddRequired(
+            value,
+            headerFields: &headerFields,
+            transforming: transform
         )
+    }
+
+    /// Provides a required serialized value for the body value.
+    /// - Parameters:
+    ///   - value: Encodable value to turn into data.
+    ///   - headerFields: Headers container where to add the Content-Type header.
+    ///   - transform: Closure for transforming the Encodable value into body content.
+    /// - Returns: Data for the serialized body value.
+    @available(*, deprecated, message: "Use the variant with EncodableBodyContent")
+    public func bodyAddRequired<T: Encodable, C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> LegacyEncodableBodyContent<T>
+    ) throws -> Data {
+        let body = transform(value)
+        headerFields.add(name: "content-type", value: body.contentType)
+        return try encoder.encode(body.value)
+    }
+
+    /// Provides an optional serialized value for the body value.
+    /// - Parameters:
+    ///   - value: Encodable value to turn into data.
+    ///   - headerFields: Headers container where to add the Content-Type header.
+    ///   - transform: Closure for transforming the Encodable value into body content.
+    /// - Returns: Data for the serialized body value, or nil if `value` was nil.
+    @available(*, deprecated, message: "Use the variant with EncodableBodyContent")
+    public func bodyAddOptional<C>(
+        _ value: C?,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> LegacyEncodableBodyContent<Data>
+    ) throws -> Data? {
+        guard let value else {
+            return nil
+        }
+        return try bodyAddRequired(
+            value,
+            headerFields: &headerFields,
+            transforming: transform
+        )
+    }
+
+    /// Provides a required serialized value for the body value.
+    /// - Parameters:
+    ///   - value: Encodable value to turn into data.
+    ///   - headerFields: Headers container where to add the Content-Type header.
+    ///   - transform: Closure for transforming the Encodable value into body content.
+    /// - Returns: Data for the serialized body value.
+    @available(*, deprecated, message: "Use the variant with EncodableBodyContent")
+    public func bodyAddRequired<C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> LegacyEncodableBodyContent<Data>
+    ) throws -> Data {
+        let body = transform(value)
+        headerFields.add(name: "content-type", value: body.contentType)
+        return body.value
+    }
+
+    /// Provides a serialized value for the provided body value.
+    /// - Parameters:
+    ///   - value: Encodable value to turn into data.
+    ///   - headerFields: Header fields container where to add the Content-Type header.
+    ///   - transform: Closure for transforming the Encodable value into body content.
+    /// - Returns: Data for the serialized body value.
+    @available(*, deprecated, message: "Use the variant with EncodableBodyContent")
+    func bodyAdd<T: Encodable, C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> LegacyEncodableBodyContent<T>
+    ) throws -> Data {
+        let body = transform(value)
+        headerFields.add(name: "content-type", value: body.contentType)
+        return try encoder.encode(body.value)
+    }
+
+    /// Provides a serialized value for the provided body value.
+    /// - Parameters:
+    ///   - value: Encodable value to turn into data.
+    ///   - headers: Headers container where to add the Content-Type header.
+    ///   - transform: Closure for transforming the Encodable value into body content.
+    /// - Returns: Data for the serialized body value.
+    @available(*, deprecated, message: "Use the variant with EncodableBodyContent")
+    func bodyAdd<C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> LegacyEncodableBodyContent<Data>
+    ) throws -> Data {
+        let body = transform(value)
+        headerFields.add(name: "content-type", value: body.contentType)
+        return body.value
     }
 }

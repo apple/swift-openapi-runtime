@@ -23,7 +23,7 @@ public struct EncodableBodyContent<T: Encodable & Equatable>: Equatable {
     public var contentType: String
 
     /// A hint about which coding strategy to use.
-    public var strategy: CodingStrategy
+    public var strategy: BodyCodingStrategy
 
     /// Creates a new content wrapper.
     /// - Parameters:
@@ -33,7 +33,7 @@ public struct EncodableBodyContent<T: Encodable & Equatable>: Equatable {
     public init(
         value: T,
         contentType: String,
-        strategy: CodingStrategy
+        strategy: BodyCodingStrategy
     ) {
         self.value = value
         self.contentType = contentType

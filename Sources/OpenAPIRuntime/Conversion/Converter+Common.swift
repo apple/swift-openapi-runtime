@@ -97,7 +97,7 @@ extension Converter {
     ///   - value: Date value. If nil, header is not added.
     public func headerFieldAdd(
         in headerFields: inout [HeaderField],
-        strategy: CodingStrategy,
+        strategy: ParameterCodingStrategy,
         name: String,
         value: Date?
     ) throws {
@@ -117,7 +117,7 @@ extension Converter {
     /// - Returns: First value for the given name, if one exists.
     public func headerFieldGetOptional(
         in headerFields: [HeaderField],
-        strategy: CodingStrategy,
+        strategy: ParameterCodingStrategy,
         name: String,
         as type: Date.Type
     ) throws -> Date? {
@@ -136,7 +136,7 @@ extension Converter {
     /// - Returns: First value for the given name.
     public func headerFieldGetRequired(
         in headerFields: [HeaderField],
-        strategy: CodingStrategy,
+        strategy: ParameterCodingStrategy,
         name: String,
         as type: Date.Type
     ) throws -> Date {
@@ -165,7 +165,7 @@ extension Converter {
     ///   - value: Encodable header value.
     public func headerFieldAdd<T: Encodable>(
         in headerFields: inout [HeaderField],
-        strategy: CodingStrategy,
+        strategy: ParameterCodingStrategy,
         name: String,
         value: T?
     ) throws {
@@ -196,7 +196,7 @@ extension Converter {
     /// - Returns: First value for the given name, if one exists.
     public func headerFieldGetOptional<T: Decodable>(
         in headerFields: [HeaderField],
-        strategy: CodingStrategy,
+        strategy: ParameterCodingStrategy,
         name: String,
         as type: T.Type
     ) throws -> T? {
@@ -223,7 +223,7 @@ extension Converter {
     /// - Returns: First value for the given name.
     public func headerFieldGetRequired<T: Decodable>(
         in headerFields: [HeaderField],
-        strategy: CodingStrategy,
+        strategy: ParameterCodingStrategy,
         name: String,
         as type: T.Type
     ) throws -> T {

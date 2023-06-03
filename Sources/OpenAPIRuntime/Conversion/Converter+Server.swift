@@ -258,7 +258,7 @@ public extension Converter {
     func bodyGetOptional<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
-        strategy: CodingStrategy,
+        strategy: BodyCodingStrategy,
         transforming transform: (T) -> C
     ) throws -> C? {
         guard let data else {
@@ -291,7 +291,7 @@ public extension Converter {
     func bodyGetRequired<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
-        strategy: CodingStrategy,
+        strategy: BodyCodingStrategy,
         transforming transform: (T) -> C
     ) throws -> C {
         guard let data else {
@@ -351,7 +351,7 @@ public extension Converter {
     func bodyGetOptional<C>(
         _ type: Data.Type,
         from data: Data?,
-        strategy: CodingStrategy,
+        strategy: BodyCodingStrategy,
         transforming transform: (Data) -> C
     ) throws -> C? {
         guard let data else {
@@ -370,7 +370,7 @@ public extension Converter {
     func bodyGetRequired<C>(
         _ type: Data.Type,
         from data: Data?,
-        strategy: CodingStrategy,
+        strategy: BodyCodingStrategy,
         transforming transform: (Data) -> C
     ) throws -> C {
         guard let data else {
