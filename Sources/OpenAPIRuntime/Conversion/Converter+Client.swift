@@ -15,14 +15,14 @@ import Foundation
 
 extension Converter {
 
-    // MARK: Query - _StringParameterConvertible
+    // MARK: Query - _StringConvertible
 
     /// Adds a query item with a string-convertible value to the request.
     /// - Parameters:
     ///   - request: Request to add the query item.
     ///   - name: Query item name.
     ///   - value: Query item string-convertible value.
-    public func queryAdd<T: _StringParameterConvertible>(
+    public func queryAdd<T: _StringConvertible>(
         in request: inout Request,
         name: String,
         value: T?
@@ -57,14 +57,14 @@ extension Converter {
         }
     }
 
-    // MARK: Query - Array of _StringParameterConvertible
+    // MARK: Query - Array of _StringConvertible
 
     /// Adds a query item with a list of string-convertible values to the request.
     /// - Parameters:
     ///   - request: Request to add the query item.
     ///   - name: Query item name.
     ///   - value: Query item string-convertible values.
-    public func queryAdd<T: _StringParameterConvertible>(
+    public func queryAdd<T: _StringConvertible>(
         in request: inout Request,
         name: String,
         value: [T]?
@@ -94,7 +94,7 @@ extension Converter {
         transforming transform: (T) -> C
     ) throws -> C {
         let decoded: T
-        if let myType = T.self as? _StringParameterConvertible.Type,
+        if let myType = T.self as? _StringConvertible.Type,
             strategy == .string
         {
             guard
@@ -144,7 +144,7 @@ extension Converter {
     ) throws -> Data {
         let body = transform(value)
         headerFields.add(name: "content-type", value: body.contentType)
-        if let value = value as? _StringParameterConvertible,
+        if let value = value as? _StringConvertible,
             body.strategy == .string
         {
             guard let data = value.description.data(using: .utf8) else {

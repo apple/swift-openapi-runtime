@@ -45,7 +45,7 @@ extension URLComponents {
     /// - Parameters:
     ///   - name: Query name.
     ///   - value: Typed value.
-    mutating func addQueryItem<T: _StringParameterConvertible>(
+    mutating func addQueryItem<T: _StringConvertible>(
         name: String,
         value: T?
     ) {
@@ -62,7 +62,7 @@ extension URLComponents {
     /// - Parameters:
     ///   - name: Query name.
     ///   - value: Array of typed values.
-    mutating func addQueryItem<T: _StringParameterConvertible>(
+    mutating func addQueryItem<T: _StringConvertible>(
         name: String,
         value: [T]?
     ) {

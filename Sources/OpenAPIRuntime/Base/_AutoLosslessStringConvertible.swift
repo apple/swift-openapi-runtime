@@ -20,7 +20,7 @@
 /// Cannot be marked as SPI, as it's added on public types, but should be
 /// considered an internal implementation detail of the generator.
 public protocol _AutoLosslessStringConvertible:
-    RawRepresentable, LosslessStringConvertible, _StringParameterConvertible
+    RawRepresentable, LosslessStringConvertible, _StringConvertible
 where RawValue == String {}
 
 extension _AutoLosslessStringConvertible {

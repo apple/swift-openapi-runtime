@@ -13,17 +13,17 @@
 //===----------------------------------------------------------------------===//
 import Foundation
 
-/// This marker protocol represents types used in parameters
-/// (headers, path parameters, query items, ...).
+/// This marker protocol represents types that are representable as a string,
+/// usable in headers, path parameters, query items, and text bodies.
 ///
 /// Cannot be marked as SPI, as it's added on public types, but should be
 /// considered an internal implementation detail of the generator.
-public protocol _StringParameterConvertible: LosslessStringConvertible {}
+public protocol _StringConvertible: LosslessStringConvertible {}
 
-extension String: _StringParameterConvertible {}
-extension Bool: _StringParameterConvertible {}
-extension Int: _StringParameterConvertible {}
-extension Int64: _StringParameterConvertible {}
-extension Int32: _StringParameterConvertible {}
-extension Float: _StringParameterConvertible {}
-extension Double: _StringParameterConvertible {}
+extension String: _StringConvertible {}
+extension Bool: _StringConvertible {}
+extension Int: _StringConvertible {}
+extension Int64: _StringConvertible {}
+extension Int32: _StringConvertible {}
+extension Float: _StringConvertible {}
+extension Double: _StringConvertible {}
