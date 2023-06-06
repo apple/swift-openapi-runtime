@@ -145,7 +145,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         )
     }
 
-    // MARK: [HeaderField] - _StringParameterConvertible
+    // MARK: [HeaderField] - _StringConvertible
 
     func testHeaderAdd_string() throws {
         var headerFields: [HeaderField] = []
