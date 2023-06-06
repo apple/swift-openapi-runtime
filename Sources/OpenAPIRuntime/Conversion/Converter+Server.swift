@@ -298,7 +298,7 @@ public extension Converter {
             throw RuntimeError.missingRequiredRequestBody
         }
         let decoded: T
-        if let myType = T.self as? _StringParameterConvertible.Type,
+        if let myType = T.self as? _StringConvertible.Type,
             strategy == .string
         {
             guard
