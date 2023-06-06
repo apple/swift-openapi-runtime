@@ -27,6 +27,7 @@
 /// If no `content` is provided, only `schema`, the case `.deferredToType` is
 /// used to let the compiler choose the best converter method based on the
 /// Swift type of the parameter (for example: `Int`, `Date`, and so on).
+@available(*, deprecated, message: "stop using")
 @_spi(Generated)
 public struct ParameterCodingStrategy: Equatable, Hashable, Sendable {
 
@@ -70,6 +71,7 @@ public struct ParameterCodingStrategy: Equatable, Hashable, Sendable {
 /// in the case of ``ParameterCodingStrategy``, there is no `.deferredToType`
 /// case for bodies, only explicit strategies for the three fundamental ways
 /// bodies can be treated: as a stringly type, a codable type, or raw data.
+@available(*, deprecated, message: "stop using")
 @_spi(Generated)
 public struct BodyCodingStrategy: Equatable, Hashable, Sendable {
 
