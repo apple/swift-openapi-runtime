@@ -65,7 +65,7 @@ public extension Converter {
     ///   - name: Path variable name.
     ///   - type: Path variable type.
     /// - Returns: Deserialized path variable value, if present.
-    func pathGetOptional<T: _StringParameterConvertible>(
+    func pathGetOptional<T: _StringConvertible>(
         in pathParameters: [String: String],
         name: String,
         as type: T.Type
@@ -85,7 +85,7 @@ public extension Converter {
     ///   - name: Path variable name.
     ///   - type: Path variable type.
     /// - Returns: Deserialized path variable value.
-    func pathGetRequired<T: _StringParameterConvertible>(
+    func pathGetRequired<T: _StringConvertible>(
         in pathParameters: [String: String],
         name: String,
         as type: T.Type
@@ -111,7 +111,7 @@ public extension Converter {
     ///   - name: Query item name.
     ///   - type: Query item value type.
     /// - Returns: Deserialized query item value, if present.
-    func queryGetOptional<T: _StringParameterConvertible>(
+    func queryGetOptional<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: T.Type
@@ -135,7 +135,7 @@ public extension Converter {
     ///   - name: Query item name.
     ///   - type: Query item value type.
     /// - Returns: Deserialized query item value.
-    func queryGetRequired<T: _StringParameterConvertible>(
+    func queryGetRequired<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: T.Type
@@ -187,7 +187,7 @@ public extension Converter {
         return try self.configuration.dateTranscoder.decode(dateString)
     }
 
-    // MARK: Query - Array of _StringParameterConvertible
+    // MARK: Query - Array of _StringConvertible
 
     /// Returns an array of deserialized values for all the query items
     /// found under the provided name.
@@ -196,7 +196,7 @@ public extension Converter {
     ///   - name: Query item name.
     ///   - type: Query item value type.
     /// - Returns: Deserialized query item value, if present.
-    func queryGetOptional<T: _StringParameterConvertible>(
+    func queryGetOptional<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: [T].Type
@@ -226,7 +226,7 @@ public extension Converter {
     ///   - name: Query item name.
     ///   - type: Query item value type.
     /// - Returns: Deserialized query item value.
-    func queryGetRequired<T: _StringParameterConvertible>(
+    func queryGetRequired<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: [T].Type
@@ -263,7 +263,7 @@ public extension Converter {
             return nil
         }
         let decoded: T
-        if let myType = T.self as? _StringParameterConvertible.Type {
+        if let myType = T.self as? _StringConvertible.Type {
             guard
                 let stringValue = String(data: data, encoding: .utf8),
                 let decodedValue = myType.init(stringValue)
@@ -309,7 +309,7 @@ public extension Converter {
         let body = transform(value)
         headerFields.add(name: "content-type", value: body.contentType)
         let bodyValue = body.value
-        if let value = bodyValue as? _StringParameterConvertible {
+        if let value = bodyValue as? _StringConvertible {
             guard let data = value.description.data(using: .utf8) else {
                 throw RuntimeError.failedToEncodePrimitiveBodyIntoData
             }
