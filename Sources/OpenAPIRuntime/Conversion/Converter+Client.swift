@@ -13,63 +13,6 @@
 //===----------------------------------------------------------------------===//
 import Foundation
 
-/*
- TODO: Optional value getters need a separate override.
- 
- Client:
- 
- - request
-    - set request path
-        - text
-            - string-convertible
-                - optional/required
-    - set request query
-        - text
-            - string-convertible
-                - optional/required
-            - array of string-convertibles
-                - optional/required
-    - set request headers
-        - text
-            - string-convertible
-                - optional/required
-            - array of string-convertibles
-                - optional/required
-        - structured
-            - codable
-                - optional/required
-    - set request body
-        - text
-            - string-convertible
-                - optional
-                - required
-        - structured
-            - codable
-                - optional
-                - required
-        - data
-            - data
-                - optional
-                - required
- - response
-    - get response headers
-        - text
-            - string-convertible
-                - optional
-                - required
-            - array of string-convertibles
-                - optional
-                - required
-        - structured
-            - codable
-                - optional
-                - required
-    - get response body
-   
- 
- 
- */
-
 extension Converter {
 
     // MARK: Query - _StringConvertible
