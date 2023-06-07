@@ -13,48 +13,6 @@
 //===----------------------------------------------------------------------===//
 import Foundation
 
-@_spi(Generated)
-public extension Array where Element == HeaderField {
-
-    /// Adds a header for the provided name and value.
-    /// - Parameters:
-    ///   - name: Header name.
-    ///   - value: Header value. If nil, the header is not added.
-    @_spi(Generated)
-    mutating func add(name: String, value: String?) {
-        guard let value = value else {
-            return
-        }
-        append(.init(name: name, value: value))
-    }
-
-    /// Removes all headers matching the provided (case-insensitive) name.
-    /// - Parameters:
-    ///   - name: Header name.
-    @_spi(Generated)
-    mutating func removeAll(named name: String) {
-        removeAll {
-            $0.name.caseInsensitiveCompare(name) == .orderedSame
-        }
-    }
-
-    /// Returns the first header value for the provided (case-insensitive) name.
-    /// - Parameter name: Header name.
-    /// - Returns: First value for the given name. Nil if one does not exist.
-    @_spi(Generated)
-    func firstValue(name: String) -> String? {
-        first { $0.name.caseInsensitiveCompare(name) == .orderedSame }?.value
-    }
-
-    /// Returns all header values for the given (case-insensitive) name.
-    /// - Parameter name: Header name.
-    /// - Returns: All values for the given name, might be empty if none are found.
-    @_spi(Generated)
-    func values(name: String) -> [String] {
-        filter { $0.name.caseInsensitiveCompare(name) == .orderedSame }.map { $0.value }
-    }
-}
-
 extension Converter {
 
     // MARK: Miscs
@@ -87,8 +45,46 @@ extension Converter {
         }
     }
 
-    // MARK: Headers - Date
+    // method name: {set,get}{location}As{strategy}{required/optional/omit if both}
+    // method parameters: value or type of value
+    
+    
+    
+//    | common | set | header field | text | string-convertible | both | TODO |
+    public func setHeaderFieldAsText<T: _StringConvertible>(
+        in headerFields: inout [HeaderField],
+        name: String,
+        value: T?
+    ) throws {
+        guard let value else {
+            return
+        }
+        headerFields.add(name: name, value: value.description)
+    }
+    
+//    | common | set | header field | text | array of string-convertibles | both | TODO |
+    public func setHeaderFieldAsText<T: _StringConvertible>(
+        in headerFields: inout [HeaderField],
+        name: String,
+        value values: [T]?
+    ) throws {
+        guard let values else {
+            return
+        }
+        headerFields.add(name: name, values: values.map(\.description))
+    }
+    
+//    | common | set | header field | text | date | both | TODO |
+//    | common | set | header field | text | array of dates | both | TODO |
+//    | common | set | header field | JSON | codable | both | TODO |
 
+    
+    
+    
+    
+    
+    
+    
     /// Adds a header field with the provided name and Date value.
     /// - Parameters:
     ///   - headerFields: Collection of header fields to add to.
