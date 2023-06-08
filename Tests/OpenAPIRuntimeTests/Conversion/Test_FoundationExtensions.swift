@@ -16,29 +16,9 @@ import XCTest
 
 final class Test_FoundationExtensions: Test_Runtime {
 
-    func testURLComponents_addQueryItem_losslessStringConvertible_string() throws {
+    func testURLComponents_addStringQueryItem() throws {
         var components = testComponents
-        components.addQueryItem(name: "key", value: "value")
+        components.addStringQueryItem(name: "key", value: "value")
         XCTAssertEqualURLString(components.url, "/api?key=value")
-    }
-
-    func testURLComponents_addQueryItem_losslessStringConvertible_nil() throws {
-        var components = testComponents
-        let value: String? = nil
-        components.addQueryItem(name: "key", value: value)
-        XCTAssertEqualURLString(components.url, "/api")
-    }
-
-    func testURLComponents_addQueryItem_arrayOfLosslessStringConvertible_strings() throws {
-        var components = testComponents
-        components.addQueryItem(name: "key", value: ["1", "2"])
-        XCTAssertEqualURLString(components.url, "/api?key=1&key=2")
-    }
-
-    func testURLComponents_addQueryItem_arrayOfLosslessStringConvertible_nil() throws {
-        var components = testComponents
-        let values: [String]? = nil
-        components.addQueryItem(name: "key", value: values)
-        XCTAssertEqualURLString(components.url, "/api")
     }
 }

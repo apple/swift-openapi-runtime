@@ -57,316 +57,297 @@ public extension Converter {
         throw RuntimeError.unexpectedAcceptHeader(acceptHeader)
     }
 
-    // MARK: Path
-
-    /// Returns a deserialized value for the optional path variable name.
-    /// - Parameters:
-    ///   - pathParameters: Path parameters where the value might exist.
-    ///   - name: Path variable name.
-    ///   - type: Path variable type.
-    /// - Returns: Deserialized path variable value, if present.
-    func pathGetOptional<T: _StringConvertible>(
-        in pathParameters: [String: String],
-        name: String,
-        as type: T.Type
-    ) throws -> T? {
-        guard let untypedValue = pathParameters[name] else {
-            return nil
-        }
-        guard let typedValue = T(untypedValue) else {
-            throw RuntimeError.failedToDecodePathParameter(name: name, type: String(describing: T.self))
-        }
-        return typedValue
-    }
-
-    /// Returns a deserialized value for the required path variable name.
-    /// - Parameters:
-    ///   - pathParameters: Path parameters where the value must exist.
-    ///   - name: Path variable name.
-    ///   - type: Path variable type.
-    /// - Returns: Deserialized path variable value.
-    func pathGetRequired<T: _StringConvertible>(
+    //    | server | get | request path | text | string-convertible | required | getPathParameterAsText |
+    func getPathParameterAsText<T: _StringConvertible>(
         in pathParameters: [String: String],
         name: String,
         as type: T.Type
     ) throws -> T {
-        guard
-            let value = try pathGetOptional(
-                in: pathParameters,
-                name: name,
-                as: type
-            )
-        else {
-            throw RuntimeError.missingRequiredPathParameter(name)
-        }
-        return value
+        try getRequiredRequestPath(
+            in: pathParameters,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
     }
 
-    // MARK: Query - LosslessStringConvertible
-
-    /// Returns a deserialized value for the the first query item
-    /// found under the provided name.
-    /// - Parameters:
-    ///   - queryParameters: Query parameters container where the value might exist.
-    ///   - name: Query item name.
-    ///   - type: Query item value type.
-    /// - Returns: Deserialized query item value, if present.
-    func queryGetOptional<T: _StringConvertible>(
+    //    | server | get | request query | text | string-convertible | optional | getOptionalQueryItemAsText |
+    func getOptionalQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: T.Type
     ) throws -> T? {
-        guard let untypedValue = queryParameters.first(where: { $0.name == name })?.value else {
-            return nil
-        }
-        guard let typedValue = T(untypedValue) else {
-            throw RuntimeError.failedToDecodeQueryParameter(
-                name: name,
-                type: String(describing: T.self)
-            )
-        }
-        return typedValue
+        try getOptionalQueryItem(
+            in: queryParameters,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
     }
 
-    /// Returns a deserialized value for the the first query item
-    /// found under the provided name.
-    /// - Parameters:
-    ///   - queryParameters: Query parameters container where the value must exist.
-    ///   - name: Query item name.
-    ///   - type: Query item value type.
-    /// - Returns: Deserialized query item value.
-    func queryGetRequired<T: _StringConvertible>(
+    //    | server | get | request query | text | string-convertible | required | getRequiredQueryItemAsText |
+    func getRequiredQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: T.Type
     ) throws -> T {
-        guard let untypedValue = queryParameters.first(where: { $0.name == name })?.value else {
-            throw RuntimeError.missingRequiredQueryParameter(name)
-        }
-        guard let typedValue = T(untypedValue) else {
-            throw RuntimeError.failedToDecodeQueryParameter(name: name, type: String(describing: T.self))
-        }
-        return typedValue
+        try getRequiredQueryItem(
+            in: queryParameters,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
     }
 
-    // MARK: Query - Date
-
-    /// Returns a deserialized value for the the first query item
-    /// found under the provided name.
-    /// - Parameters:
-    ///   - queryParameters: Query parameters container where the value might exist.
-    ///   - name: Query item name.
-    ///   - type: Query item value type.
-    /// - Returns: Deserialized query item value, if present.
-    func queryGetOptional(
-        in queryParameters: [URLQueryItem],
-        name: String,
-        as type: Date.Type
-    ) throws -> Date? {
-        guard let dateString = queryParameters.first(where: { $0.name == name })?.value else {
-            return nil
-        }
-        return try self.configuration.dateTranscoder.decode(dateString)
-    }
-
-    /// Returns a deserialized value for the the first query item
-    /// found under the provided name.
-    /// - Parameters:
-    ///   - queryParameters: Query parameters container where the value must exist.
-    ///   - name: Query item name.
-    ///   - type: Query item value type.
-    /// - Returns: Deserialized query item value.
-    func queryGetRequired(
-        in queryParameters: [URLQueryItem],
-        name: String,
-        as type: Date.Type
-    ) throws -> Date {
-        guard let dateString = queryParameters.first(where: { $0.name == name })?.value else {
-            throw RuntimeError.missingRequiredQueryParameter(name)
-        }
-        return try self.configuration.dateTranscoder.decode(dateString)
-    }
-
-    // MARK: Query - Array of _StringConvertible
-
-    /// Returns an array of deserialized values for all the query items
-    /// found under the provided name.
-    /// - Parameters:
-    ///   - queryParameters: Query parameters container where the value might exist.
-    ///   - name: Query item name.
-    ///   - type: Query item value type.
-    /// - Returns: Deserialized query item value, if present.
-    func queryGetOptional<T: _StringConvertible>(
+    //    | server | get | request query | text | array of string-convertibles | optional | getOptionalQueryItemAsText |
+    func getOptionalQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: [T].Type
     ) throws -> [T]? {
-        let items: [T] =
-            try queryParameters
-            .filter { $0.name == name }
-            .compactMap { item in
-                guard let typedValue = T(item.value ?? "") else {
-                    throw RuntimeError.failedToDecodeQueryParameter(
-                        name: name,
-                        type: String(describing: T.self)
-                    )
-                }
-                return typedValue
-            }
-        guard !items.isEmpty else {
-            return nil
-        }
-        return items
+        try getOptionalQueryItems(
+            in: queryParameters,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
     }
 
-    /// Returns an array of deserialized values for all the query items
-    /// found under the provided name.
-    /// - Parameters:
-    ///   - queryParameters: Query parameters container where the value must exist.
-    ///   - name: Query item name.
-    ///   - type: Query item value type.
-    /// - Returns: Deserialized query item value.
-    func queryGetRequired<T: _StringConvertible>(
+    //    | server | get | request query | text | array of string-convertibles | required | getRequiredQueryItemAsText |
+    func getRequiredQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: [T].Type
     ) throws -> [T] {
-        let items: [T] =
-            try queryParameters
-            .filter { $0.name == name }
-            .map { item in
-                guard let typedValue = T(item.value ?? "") else {
-                    throw RuntimeError.failedToDecodeQueryParameter(name: name, type: String(describing: T.self))
-                }
-                return typedValue
-            }
-        guard !items.isEmpty else {
-            throw RuntimeError.missingRequiredQueryParameter(name)
-        }
-        return items
+        try getRequiredQueryItems(
+            in: queryParameters,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
     }
 
-    // MARK: Body - Complex
+    //    | server | get | request query | text | date | optional | getOptionalQueryItemAsText |
+    func getOptionalQueryItemAsText(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: Date.Type
+    ) throws -> Date? {
+        try getOptionalQueryItem(
+            in: queryParameters,
+            name: name,
+            as: type,
+            convert: convertTextToDate
+        )
+    }
 
-    /// Gets a deserialized value from body data, if present.
-    /// - Parameters:
-    ///   - type: Type used to decode the data.
-    ///   - data: Encoded body data.
-    ///   - transform: Closure for transforming the Decodable type into a final type.
-    /// - Returns: Deserialized body value, if present.
-    func bodyGetOptional<T: Decodable, C>(
+    //    | server | get | request query | text | date | required | getRequiredQueryItemAsText |
+    func getRequiredQueryItemAsText(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: Date.Type
+    ) throws -> Date {
+        try getRequiredQueryItem(
+            in: queryParameters,
+            name: name,
+            as: type,
+            convert: convertTextToDate
+        )
+    }
+
+    //    | server | get | request query | text | array of dates | optional | getOptionalQueryItemAsText |
+    func getOptionalQueryItemAsText(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: [Date].Type
+    ) throws -> [Date]? {
+        try getOptionalQueryItems(
+            in: queryParameters,
+            name: name,
+            as: type,
+            convert: convertTextToDate
+        )
+    }
+
+    //    | server | get | request query | text | array of dates | required | getRequiredQueryItemAsText |
+    func getRequiredQueryItemAsText(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: [Date].Type
+    ) throws -> [Date] {
+        try getRequiredQueryItems(
+            in: queryParameters,
+            name: name,
+            as: type,
+            convert: convertTextToDate
+        )
+    }
+
+    //    | server | get | request body | text | string-convertible | optional | getOptionalRequestBodyAsText |
+    func getOptionalRequestBodyAsText<T: _StringConvertible, C>(
         _ type: T.Type,
         from data: Data?,
         transforming transform: (T) -> C
     ) throws -> C? {
-        guard let data else {
-            return nil
-        }
-        let decoded: T
-        if let myType = T.self as? _StringConvertible.Type {
-            guard
-                let stringValue = String(data: data, encoding: .utf8),
-                let decodedValue = myType.init(stringValue)
-            else {
-                throw RuntimeError.failedToDecodePrimitiveBodyFromData
-            }
-            decoded = decodedValue as! T
-        } else {
-            decoded = try decoder.decode(type, from: data)
-        }
-        return transform(decoded)
+        try getOptionalRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertTextDataToStringConvertible
+        )
     }
 
-    /// Gets a deserialized value from body data.
-    /// - Parameters:
-    ///   - type: Type used to decode the data.
-    ///   - data: Encoded body data.
-    ///   - transform: Closure for transforming the Decodable type into a final type.
-    /// - Returns: Deserialized body value.
-    func bodyGetRequired<T: Decodable, C>(
+    //    | server | get | request body | text | string-convertible | required | getRequiredRequestBodyAsText |
+    func getRequiredRequestBodyAsText<T: _StringConvertible, C>(
+        _ type: T.Type,
+        from data: Data?,
+        transforming transform: (T) -> C
+    ) throws -> C? {
+        try getRequiredRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertTextDataToStringConvertible
+        )
+    }
+
+    //    | server | get | request body | text | date | optional | getOptionalRequestBodyAsText |
+    func getOptionalRequestBodyAsText<C>(
+        _ type: Date.Type,
+        from data: Data?,
+        transforming transform: (Date) -> C
+    ) throws -> C? {
+        try getOptionalRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertTextDataToDate
+        )
+    }
+
+    //    | server | get | request body | text | date | required | getRequiredRequestBodyAsText |
+    func getRequiredRequestBodyAsText<C>(
+        _ type: Date.Type,
+        from data: Data?,
+        transforming transform: (Date) -> C
+    ) throws -> C {
+        try getRequiredRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertTextDataToDate
+        )
+    }
+
+    //    | server | get | request body | JSON | codable | optional | getOptionalRequestBodyAsJSON |
+    func getOptionalRequestBodyAsJSON<T: Decodable, C>(
+        _ type: T.Type,
+        from data: Data?,
+        transforming transform: (T) -> C
+    ) throws -> C? {
+        try getOptionalRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertJSONToCodable
+        )
+    }
+
+    //    | server | get | request body | JSON | codable | required | getRequiredRequestBodyAsJSON |
+    func getRequiredRequestBodyAsJSON<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
         transforming transform: (T) -> C
     ) throws -> C {
-        guard let data else {
-            throw RuntimeError.missingRequiredRequestBody
-        }
-        let decoded = try decoder.decode(type, from: data)
-        return transform(decoded)
+        try getRequiredRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertJSONToCodable
+        )
     }
 
-    /// Provides a serialized value for the provided body value.
-    /// - Parameters:
-    ///   - value: Encodable value to turn into data.
-    ///   - headerFields: Header fields container where to add the Content-Type header.
-    ///   - transform: Closure for transforming the Encodable value into body content.
-    /// - Returns: Data for the serialized body value.
-    func bodyAdd<T: Encodable, C>(
+    //    | server | get | request body | binary | data | optional | getOptionalRequestBodyAsBinary |
+    func getOptionalRequestBodyAsBinary(
+        _ type: Data.Type,
+        from data: Data?,
+        transforming transform: (Data) -> Data
+    ) throws -> Data? {
+        try getOptionalRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertBinaryToData
+        )
+    }
+
+    //    | server | get | request body | binary | data | required | getRequiredRequestBodyAsBinary |
+    func getRequiredRequestBodyAsBinary<C>(
+        _ type: Data.Type,
+        from data: Data?,
+        transforming transform: (Data) -> C
+    ) throws -> C {
+        try getRequiredRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertBinaryToData
+        )
+    }
+
+    //    | server | set | response body | text | string-convertible | required | setResponseBodyAsText |
+    func setResponseBodyAsText<T: _StringConvertible, C>(
         _ value: C,
         headerFields: inout [HeaderField],
         transforming transform: (C) -> EncodableBodyContent<T>
     ) throws -> Data {
-        let body = transform(value)
-        headerFields.add(name: "content-type", value: body.contentType)
-        let bodyValue = body.value
-        if let value = bodyValue as? _StringConvertible {
-            guard let data = value.description.data(using: .utf8) else {
-                throw RuntimeError.failedToEncodePrimitiveBodyIntoData
-            }
-            return data
-        }
-        return try encoder.encode(bodyValue)
+        try setResponseBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertStringConvertibleToTextData
+        )
     }
 
-    // MARK: Body - Data
-
-    /// Gets a deserialized value from body data, if present.
-    /// - Parameters:
-    ///   - type: Type used to decode the data.
-    ///   - data: Encoded body data.
-    ///   - transform: Closure for transforming the Decodable type into a final type.
-    /// - Returns: Deserialized body value, if present.
-    func bodyGetOptional<C>(
-        _ type: Data.Type,
-        from data: Data?,
-        transforming transform: (Data) -> C
-    ) throws -> C? {
-        guard let data else {
-            return nil
-        }
-        return transform(data)
+    //    | server | set | response body | text | date | required | setResponseBodyAsText |
+    func setResponseBodyAsText<C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<Date>
+    ) throws -> Data {
+        try setResponseBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertDateToTextData
+        )
     }
 
-    /// Gets a deserialized value from body data.
-    /// - Parameters:
-    ///   - type: Type used to decode the data.
-    ///   - data: Encoded body data.
-    ///   - transform: Closure for transforming the Decodable type into a final type.
-    /// - Returns: Deserialized body value.
-    func bodyGetRequired<C>(
-        _ type: Data.Type,
-        from data: Data?,
-        transforming transform: (Data) -> C
-    ) throws -> C {
-        guard let data else {
-            throw RuntimeError.missingRequiredRequestBody
-        }
-        return transform(data)
+    //    | server | set | response body | JSON | codable | required | setResponseBodyAsJSON |
+    func setResponseBodyAsJSON<T: Encodable, C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>
+    ) throws -> Data {
+        try setResponseBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertBodyCodableToJSON
+        )
     }
 
-    /// Provides a serialized value for the provided body value.
-    /// - Parameters:
-    ///   - value: Encodable value to turn into data.
-    ///   - headers: Headers container where to add the Content-Type header.
-    ///   - transform: Closure for transforming the Encodable value into body content.
-    /// - Returns: Data for the serialized body value.
-    func bodyAdd<C>(
+    //    | server | set | response body | binary | data | required | setResponseBodyAsBinary |
+    func setResponseBodyAsBinary<C>(
         _ value: C,
         headerFields: inout [HeaderField],
         transforming transform: (C) -> EncodableBodyContent<Data>
     ) throws -> Data {
-        let body = transform(value)
-        headerFields.add(name: "content-type", value: body.contentType)
-        return body.value
+        try setResponseBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertDataToBinary
+        )
     }
 }

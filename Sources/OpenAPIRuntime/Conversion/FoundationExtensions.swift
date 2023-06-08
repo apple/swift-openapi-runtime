@@ -15,11 +15,8 @@ import Foundation
 
 extension Data {
     /// Returns a pretty representation of the Data.
-    ///
-    /// First tries to decode it as UTF-8, if that fails, tries ASCII,
-    /// if that fails too, stringifies the value itself.
     var pretty: String {
-        String(data: self, encoding: .utf8) ?? String(data: self, encoding: .ascii) ?? String(describing: self)
+        String(decoding: self, as: UTF8.self)
     }
 
     /// Returns a prefix of a pretty representation of the Data.
@@ -30,7 +27,7 @@ extension Data {
 
 extension Request {
     /// Allows modifying the parsed query parameters of the request.
-    mutating func mutatingQuery(_ closure: (inout URLComponents) throws -> Void) rethrows {
+    mutating func mutateQuery(_ closure: (inout URLComponents) throws -> Void) rethrows {
         var urlComponents: URLComponents = .init()
         if let query {
             urlComponents.percentEncodedQuery = query
@@ -38,39 +35,25 @@ extension Request {
         try closure(&urlComponents)
         query = urlComponents.percentEncodedQuery
     }
+
+    /// Allows modifying the parsed query parameters of the request.
+    mutating func addQueryItem(name: String, value: String) {
+        mutateQuery { urlComponents in
+            urlComponents.addStringQueryItem(name: name, value: value)
+        }
+    }
 }
 
 extension URLComponents {
-    /// Adds a query item using the provided name and typed value.
-    /// - Parameters:
-    ///   - name: Query name.
-    ///   - value: Typed value.
-    mutating func addQueryItem<T: _StringConvertible>(
+
+    /// Adds the provided name and value to the URL's query.
+    mutating func addStringQueryItem(
         name: String,
-        value: T?
+        value: String
     ) {
-        guard let value = value else {
-            return
-        }
         queryItems =
             (queryItems ?? []) + [
-                .init(name: name, value: value.description)
+                .init(name: name, value: value)
             ]
-    }
-
-    /// Adds query items using the provided name and typed values.
-    /// - Parameters:
-    ///   - name: Query name.
-    ///   - value: Array of typed values.
-    mutating func addQueryItem<T: _StringConvertible>(
-        name: String,
-        value: [T]?
-    ) {
-        guard let items = value else {
-            return
-        }
-        for item in items {
-            addQueryItem(name: name, value: item)
-        }
     }
 }

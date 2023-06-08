@@ -45,23 +45,27 @@ final class Test_CodableExtensions: Test_Runtime {
         }
 
         do {
-            let data = #"""
+            let data = Data(
+                #"""
                 {
                     "bar": "hi"
                 }
                 """#
-                .data(using: .utf8)!
+                .utf8
+            )
             _ = try testDecoder.decode(Foo.self, from: data)
         }
 
         do {
-            let data = #"""
+            let data = Data(
+                #"""
                 {
                     "bar": "hi",
                     "baz": "oh no"
                 }
                 """#
-                .data(using: .utf8)!
+                .utf8
+            )
             XCTAssertThrowsError(try testDecoder.decode(Foo.self, from: data)) { error in
                 let err = try! XCTUnwrap(error as? DecodingError)
                 guard case let .dataCorrupted(context) = err else {
@@ -97,25 +101,29 @@ final class Test_CodableExtensions: Test_Runtime {
         }
 
         do {
-            let data = #"""
+            let data = Data(
+                #"""
                 {
                     "bar": "hi"
                 }
                 """#
-                .data(using: .utf8)!
+                .utf8
+            )
             let value = try testDecoder.decode(Foo.self, from: data)
             XCTAssertEqual(value.bar, "hi")
             XCTAssertEqual(value.additionalProperties.value.count, 0)
         }
 
         do {
-            let data = #"""
+            let data = Data(
+                #"""
                 {
                     "bar": "hi",
                     "baz": "oh no"
                 }
                 """#
-                .data(using: .utf8)!
+                .utf8
+            )
             let value = try testDecoder.decode(Foo.self, from: data)
             XCTAssertEqual(value.bar, "hi")
             let additionalProperties = value.additionalProperties.value
@@ -144,25 +152,29 @@ final class Test_CodableExtensions: Test_Runtime {
         }
 
         do {
-            let data = #"""
+            let data = Data(
+                #"""
                 {
                     "bar": "hi"
                 }
                 """#
-                .data(using: .utf8)!
+                .utf8
+            )
             let value = try JSONDecoder().decode(Foo.self, from: data)
             XCTAssertEqual(value.bar, "hi")
             XCTAssertEqual(value.additionalProperties.count, 0)
         }
 
         do {
-            let data = #"""
+            let data = Data(
+                #"""
                 {
                     "bar": "hi",
                     "baz": 1
                 }
                 """#
-                .data(using: .utf8)!
+                .utf8
+            )
             let value = try JSONDecoder().decode(Foo.self, from: data)
             XCTAssertEqual(value.bar, "hi")
             let additionalProperties = value.additionalProperties
@@ -194,7 +206,7 @@ final class Test_CodableExtensions: Test_Runtime {
             )
             let data = try testEncoder.encode(value)
             XCTAssertEqual(
-                String(data: data, encoding: .utf8)!,
+                String(decoding: data, as: UTF8.self),
                 #"""
                 {
                   "bar" : "hi"
@@ -213,7 +225,7 @@ final class Test_CodableExtensions: Test_Runtime {
             )
             let data = try testEncoder.encode(value)
             XCTAssertEqual(
-                String(data: data, encoding: .utf8)!,
+                String(decoding: data, as: UTF8.self),
                 #"""
                 {
                   "bar" : "hi",
@@ -248,7 +260,7 @@ final class Test_CodableExtensions: Test_Runtime {
             )
             let data = try testEncoder.encode(value)
             XCTAssertEqual(
-                String(data: data, encoding: .utf8)!,
+                String(decoding: data, as: UTF8.self),
                 #"""
                 {
                   "bar" : "hi"
@@ -266,7 +278,7 @@ final class Test_CodableExtensions: Test_Runtime {
             )
             let data = try testEncoder.encode(value)
             XCTAssertEqual(
-                String(data: data, encoding: .utf8)!,
+                String(decoding: data, as: UTF8.self),
                 #"""
                 {
                   "bar" : "hi",
