@@ -18,7 +18,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
 
     // MARK: Miscs
 
-    func testValidateAccept_missing() throws {
+    func testValidateAccept() throws {
         let emptyHeaders: [HeaderField] = []
         let wildcard: [HeaderField] = [
             .init(name: "accept", value: "*/*")
@@ -101,13 +101,14 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         }
     }
 
-    // MARK: Path
+    // MARK: Converter helper methods
 
-    func testPathGetOptional_string() throws {
+    //    | server | get | request path | text | string-convertible | required | getPathParameterAsText |
+    func test_getPathParameterAsText_stringConvertible() throws {
         let path: [String: String] = [
             "foo": "bar"
         ]
-        let value = try converter.pathGetOptional(
+        let value = try converter.getPathParameterAsText(
             in: path,
             name: "foo",
             as: String.self
@@ -115,84 +116,12 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         XCTAssertEqual(value, "bar")
     }
 
-    func testPathGetOptional_intMismatch() throws {
-        let path: [String: String] = [
-            "foo": "bar"
-        ]
-        XCTAssertThrowsError(
-            try converter.pathGetOptional(
-                in: path,
-                name: "foo",
-                as: Int.self
-            ),
-            "Expected conversion from string to Int to throw",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case let .failedToDecodePathParameter(name, type) = err
-                else {
-                    XCTFail("Unexpected error thrown: \(error)")
-                    return
-                }
-                XCTAssertEqual(name, "foo")
-                XCTAssertEqual(type, "Int")
-            }
-        )
-    }
-
-    func testPathGetOptional_nil() throws {
-        let path: [String: String] = [:]
-        let value = try converter.pathGetOptional(
-            in: path,
-            name: "foo",
-            as: String.self
-        )
-        XCTAssertNil(value)
-    }
-
-    func testPathGetRequired_string() throws {
-        let path: [String: String] = [
-            "foo": "bar"
-        ]
-        let value = try converter.pathGetRequired(
-            in: path,
-            name: "foo",
-            as: String.self
-        )
-        XCTAssertEqual(value, "bar")
-    }
-
-    func testPathGetRequired_missing() throws {
-        let path: [String: String] = [
-            "foo": "bar"
-        ]
-        XCTAssertThrowsError(
-            try converter.pathGetRequired(
-                in: path,
-                name: "pet",
-                as: String.self
-            ),
-            "Was expected to throw error on missing required path parameter",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case .missingRequiredPathParameter(let name) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(name, "pet")
-            }
-        )
-    }
-
-    // MARK: Query - LosslessStringConvertible
-
-    func testQueryGetOptional_string() throws {
+    //    | server | get | request query | text | string-convertible | optional | getOptionalQueryItemAsText |
+    func test_getOptionalQueryItemAsText_stringConvertible() throws {
         let query: [URLQueryItem] = [
             .init(name: "search", value: "foo")
         ]
-        let value = try converter.queryGetOptional(
+        let value = try converter.getOptionalQueryItemAsText(
             in: query,
             name: "search",
             as: String.self
@@ -200,46 +129,12 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         XCTAssertEqual(value, "foo")
     }
 
-    func testQueryGetOptional_mismatch() throws {
+    //    | server | get | request query | text | string-convertible | required | getRequiredQueryItemAsText |
+    func test_getRequiredQueryItemAsText_stringConvertible() throws {
         let query: [URLQueryItem] = [
             .init(name: "search", value: "foo")
         ]
-        XCTAssertThrowsError(
-            try converter.queryGetOptional(
-                in: query,
-                name: "search",
-                as: Int.self
-            ),
-            "Was expected to throw error on missing required query",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case let .failedToDecodeQueryParameter(name, type) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(name, "search")
-                XCTAssertEqual(type, "Int")
-            }
-        )
-    }
-
-    func testQueryGetOptional_nil() throws {
-        let query: [URLQueryItem] = []
-        let value = try converter.queryGetOptional(
-            in: query,
-            name: "search",
-            as: String.self
-        )
-        XCTAssertNil(value)
-    }
-
-    func testQueryGetRequired_string() throws {
-        let query: [URLQueryItem] = [
-            .init(name: "search", value: "foo")
-        ]
-        let value = try converter.queryGetRequired(
+        let value = try converter.getRequiredQueryItemAsText(
             in: query,
             name: "search",
             as: String.self
@@ -247,291 +142,231 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         XCTAssertEqual(value, "foo")
     }
 
-    func testQueryGetRequired_mismatch() throws {
+    //    | server | get | request query | text | array of string-convertibles | optional | getOptionalQueryItemAsText |
+    func test_getOptionalQueryItemAsText_arrayOfStringConvertibles() throws {
         let query: [URLQueryItem] = [
-            .init(name: "search", value: "foo")
+            .init(name: "search", value: "foo"),
+            .init(name: "search", value: "bar"),
         ]
-        XCTAssertThrowsError(
-            try converter.queryGetRequired(
-                in: query,
-                name: "search",
-                as: Int.self
-            ),
-            "Was expected to throw error on missing required query",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case let .failedToDecodeQueryParameter(name, type) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(name, "search")
-                XCTAssertEqual(type, "Int")
-            }
-        )
-    }
-
-    func testQueryGetRequired_missing() throws {
-        let query: [URLQueryItem] = []
-        XCTAssertThrowsError(
-            try converter.queryGetRequired(
-                in: query,
-                name: "search",
-                as: String.self
-            ),
-            "Was expected to throw error on missing required query",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case .missingRequiredQueryParameter(let queryKey) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(queryKey, "search")
-            }
-        )
-    }
-
-    // MARK: Query - Date
-
-    func testQueryGetOptional_date() throws {
-        let query: [URLQueryItem] = [
-            .init(name: "since", value: testDateString)
-        ]
-        let value = try converter.queryGetOptional(
+        let value = try converter.getOptionalQueryItemAsText(
             in: query,
-            name: "since",
+            name: "search",
+            as: [String].self
+        )
+        XCTAssertEqual(value, ["foo", "bar"])
+    }
+
+    //    | server | get | request query | text | array of string-convertibles | required | getRequiredQueryItemAsText |
+    func test_getRequiredQueryItemAsText_arrayOfStringConvertibles() throws {
+        let query: [URLQueryItem] = [
+            .init(name: "search", value: "foo"),
+            .init(name: "search", value: "bar"),
+        ]
+        let value = try converter.getRequiredQueryItemAsText(
+            in: query,
+            name: "search",
+            as: [String].self
+        )
+        XCTAssertEqual(value, ["foo", "bar"])
+    }
+
+    //    | server | get | request query | text | date | optional | getOptionalQueryItemAsText |
+    func test_getOptionalQueryItemAsText_date() throws {
+        let query: [URLQueryItem] = [
+            .init(name: "search", value: testDateString)
+        ]
+        let value = try converter.getOptionalQueryItemAsText(
+            in: query,
+            name: "search",
             as: Date.self
         )
         XCTAssertEqual(value, testDate)
     }
 
-    func testQueryGetOptional_date_invalid() throws {
+    //    | server | get | request query | text | date | required | getRequiredQueryItemAsText |
+    func test_getRequiredQueryItemAsText_date() throws {
         let query: [URLQueryItem] = [
-            .init(name: "since", value: "invaliddate")
+            .init(name: "search", value: testDateString)
         ]
-        XCTAssertThrowsError(
-            try converter.queryGetOptional(
-                in: query,
-                name: "since",
-                as: Date.self
-            ),
-            "Was expected to throw error on missing required query",
-            { error in
-                guard
-                    let err = error as? DecodingError,
-                    case let .dataCorrupted(context) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(context.codingPath.map(\.description), [])
-                // Do not check the exact string of the error as that's not
-                // controlled by us - just ensure it's not empty.
-                XCTAssertFalse(context.debugDescription.isEmpty)
-                XCTAssertNil(context.underlyingError)
-            }
-        )
-    }
-
-    func testQueryGetOptional_date_nil() throws {
-        let query: [URLQueryItem] = []
-        let value = try converter.queryGetOptional(
+        let value = try converter.getRequiredQueryItemAsText(
             in: query,
-            name: "since",
-            as: Date.self
-        )
-        XCTAssertNil(value)
-    }
-
-    func testQueryGetRequired_date() throws {
-        let query: [URLQueryItem] = [
-            .init(name: "since", value: testDateString)
-        ]
-        let value = try converter.queryGetRequired(
-            in: query,
-            name: "since",
+            name: "search",
             as: Date.self
         )
         XCTAssertEqual(value, testDate)
     }
 
-    func testQueryGetRequired_date_invalid() throws {
+    //    | server | get | request query | text | array of dates | optional | getOptionalQueryItemAsText |
+    func test_getOptionalQueryItemAsText_arrayOfDates() throws {
         let query: [URLQueryItem] = [
-            .init(name: "since", value: "invaliddate")
+            .init(name: "search", value: testDateString),
+            .init(name: "search", value: testDateString),
         ]
-        XCTAssertThrowsError(
-            try converter.queryGetRequired(
-                in: query,
-                name: "since",
-                as: Date.self
-            ),
-            "Was expected to throw error on missing required query",
-            { error in
-                guard
-                    let err = error as? DecodingError,
-                    case let .dataCorrupted(context) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(context.codingPath.map(\.description), [])
-                // Do not check the exact string of the error as that's not
-                // controlled by us - just ensure it's not empty.
-                XCTAssertFalse(context.debugDescription.isEmpty)
-                XCTAssertNil(context.underlyingError)
-            }
-        )
-    }
-
-    func testQueryGetRequired_date_missing() throws {
-        let query: [URLQueryItem] = []
-        XCTAssertThrowsError(
-            try converter.queryGetRequired(
-                in: query,
-                name: "since",
-                as: Date.self
-            ),
-            "Was expected to throw error on missing required query",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case .missingRequiredQueryParameter(let queryKey) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(queryKey, "since")
-            }
-        )
-    }
-
-    // MARK: Query - Array of LosslessStringConvertibles
-
-    func testQueryGetOptional_array() throws {
-        let query: [URLQueryItem] = [
-            .init(name: "id", value: "1"),
-            .init(name: "id", value: "2"),
-        ]
-        let value = try converter.queryGetOptional(
+        let value = try converter.getOptionalQueryItemAsText(
             in: query,
-            name: "id",
-            as: [String].self
+            name: "search",
+            as: [Date].self
         )
-        XCTAssertEqual(value, ["1", "2"])
+        XCTAssertEqual(value, [testDate, testDate])
     }
 
-    func testQueryGetOptional_array_mismatch() throws {
+    //    | server | get | request query | text | array of dates | required | getRequiredQueryItemAsText |
+    func test_getRequiredQueryItemAsText_arrayOfDates() throws {
         let query: [URLQueryItem] = [
-            .init(name: "id", value: "1"),
-            .init(name: "id", value: "foo"),
+            .init(name: "search", value: testDateString),
+            .init(name: "search", value: testDateString),
         ]
-        XCTAssertThrowsError(
-            try converter.queryGetOptional(
-                in: query,
-                name: "id",
-                as: [Int].self
-            ),
-            "Was expected to throw error on mismatched query",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case let .failedToDecodeQueryParameter(name, type) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(name, "id")
-                XCTAssertEqual(type, "Int")
-            }
-        )
-    }
-
-    func testQueryGetOptional_array_nil() throws {
-        let query: [URLQueryItem] = []
-        let value = try converter.queryGetOptional(
+        let value = try converter.getRequiredQueryItemAsText(
             in: query,
-            name: "id",
-            as: [String].self
+            name: "search",
+            as: [Date].self
         )
-        XCTAssertNil(value)
+        XCTAssertEqual(value, [testDate, testDate])
     }
 
-    func testQueryGetRequired_array() throws {
-        let query: [URLQueryItem] = [
-            .init(name: "id", value: "1"),
-            .init(name: "id", value: "2"),
-        ]
-        let value = try converter.queryGetRequired(
-            in: query,
-            name: "id",
-            as: [String].self
+    //    | server | get | request body | text | string-convertible | optional | getOptionalRequestBodyAsText |
+    func test_getOptionalRequestBodyAsText_stringConvertible() throws {
+        let body = try converter.getOptionalRequestBodyAsText(
+            String.self,
+            from: testStringData,
+            transforming: { $0 }
         )
-        XCTAssertEqual(value, ["1", "2"])
+        XCTAssertEqual(body, testString)
     }
 
-    func testQueryGetRequired_array_mismatch() throws {
-        let query: [URLQueryItem] = [
-            .init(name: "id", value: "1"),
-            .init(name: "id", value: "foo"),
-        ]
-        XCTAssertThrowsError(
-            try converter.queryGetRequired(
-                in: query,
-                name: "id",
-                as: [Int].self
-            ),
-            "Was expected to throw error on mismatched query",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case let .failedToDecodeQueryParameter(name, type) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(name, "id")
-                XCTAssertEqual(type, "Int")
-            }
+    //    | server | get | request body | text | string-convertible | required | getRequiredRequestBodyAsText |
+    func test_getRequiredRequestBodyAsText_stringConvertible() throws {
+        let body = try converter.getRequiredRequestBodyAsText(
+            String.self,
+            from: testStringData,
+            transforming: { $0 }
         )
+        XCTAssertEqual(body, testString)
     }
 
-    func testQueryGetRequired_array_missing() throws {
-        let query: [URLQueryItem] = []
-        XCTAssertThrowsError(
-            try converter.queryGetRequired(
-                in: query,
-                name: "id",
-                as: [String].self
-            ),
-            "Was expected to throw error on missing required query",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case .missingRequiredQueryParameter(let queryKey) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(queryKey, "id")
-            }
+    //    | server | get | request body | text | date | optional | getOptionalRequestBodyAsText |
+    func test_getOptionalRequestBodyAsText_date() throws {
+        let body = try converter.getOptionalRequestBodyAsText(
+            Date.self,
+            from: testDateStringData,
+            transforming: { $0 }
         )
+        XCTAssertEqual(body, testDate)
     }
 
-    // MARK: Body
+    //    | server | get | request body | text | date | required | getRequiredRequestBodyAsText |
+    func test_getRequiredRequestBodyAsText_date() throws {
+        let body = try converter.getRequiredRequestBodyAsText(
+            Date.self,
+            from: testDateStringData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testDate)
+    }
 
-    func testBodyAddComplex() throws {
+    //    | server | get | request body | JSON | codable | optional | getOptionalRequestBodyAsJSON |
+    func test_getOptionalRequestBodyAsJSON_codable() throws {
+        let body = try converter.getOptionalRequestBodyAsJSON(
+            TestPet.self,
+            from: testStructData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testStruct)
+    }
+
+    func test_getOptionalRequestBodyAsJSON_codable_string() throws {
+        let body = try converter.getOptionalRequestBodyAsJSON(
+            String.self,
+            from: testQuotedStringData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testString)
+    }
+
+    //    | server | get | request body | JSON | codable | required | getRequiredRequestBodyAsJSON |
+    func test_getRequiredRequestBodyAsJSON_codable() throws {
+        let body = try converter.getRequiredRequestBodyAsJSON(
+            TestPet.self,
+            from: testStructData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testStruct)
+    }
+
+    //    | server | get | request body | binary | data | optional | getOptionalRequestBodyAsBinary |
+    func test_getOptionalRequestBodyAsBinary_data() throws {
+        let body = try converter.getOptionalRequestBodyAsBinary(
+            Data.self,
+            from: testStringData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testStringData)
+    }
+
+    //    | server | get | request body | binary | data | required | getRequiredRequestBodyAsBinary |
+    func test_getRequiredRequestBodyAsBinary_data() throws {
+        let body = try converter.getRequiredRequestBodyAsBinary(
+            Data.self,
+            from: testStringData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testStringData)
+    }
+
+    //    | server | set | response body | text | string-convertible | required | setResponseBodyAsText |
+    func test_setResponseBodyAsText_stringConvertible() throws {
         var headers: [HeaderField] = []
-        let data = try converter.bodyAdd(
+        let data = try converter.setResponseBodyAsText(
+            testString,
+            headerFields: &headers,
+            transforming: {
+                .init(
+                    value: $0,
+                    contentType: "text/plain"
+                )
+            }
+        )
+        XCTAssertEqual(data, testStringData)
+        XCTAssertEqual(
+            headers,
+            [
+                .init(name: "content-type", value: "text/plain")
+            ]
+        )
+    }
+
+    //    | server | set | response body | text | date | required | setResponseBodyAsText |
+    func test_setResponseBodyAsText_date() throws {
+        var headers: [HeaderField] = []
+        let data = try converter.setResponseBodyAsText(
+            testDate,
+            headerFields: &headers,
+            transforming: {
+                .init(
+                    value: $0,
+                    contentType: "text/plain"
+                )
+            }
+        )
+        XCTAssertEqual(data, testDateStringData)
+        XCTAssertEqual(
+            headers,
+            [
+                .init(name: "content-type", value: "text/plain")
+            ]
+        )
+    }
+
+    //    | server | set | response body | JSON | codable | required | setResponseBodyAsJSON |
+    func test_setResponseBodyAsJSON_codable() throws {
+        var headers: [HeaderField] = []
+        let data = try converter.setResponseBodyAsJSON(
             testStruct,
             headerFields: &headers,
             transforming: {
                 .init(
                     value: $0,
-                    contentType: "application/json",
-                    strategy: .codable
+                    contentType: "application/json"
                 )
             }
         )
@@ -544,211 +379,25 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         )
     }
 
-    func testBodyAddString_strategyString() throws {
+    //    | server | set | response body | binary | data | required | setResponseBodyAsBinary |
+    func test_setResponseBodyAsBinary_data() throws {
         var headers: [HeaderField] = []
-        let data = try converter.bodyAdd(
-            testString,
+        let data = try converter.setResponseBodyAsBinary(
+            testStringData,
             headerFields: &headers,
             transforming: {
                 .init(
                     value: $0,
-                    contentType: "text/plain",
-                    strategy: .string
+                    contentType: "application/octet-stream"
                 )
             }
         )
-        XCTAssertEqual(String(data: data, encoding: .utf8)!, testString)
-        XCTAssertEqual(
-            headers,
-            [
-                .init(name: "content-type", value: "text/plain")
-            ]
-        )
-    }
-
-    func testBodyAddString_strategyCodable() throws {
-        var headers: [HeaderField] = []
-        let data = try converter.bodyAdd(
-            testString,
-            headerFields: &headers,
-            transforming: {
-                .init(
-                    value: $0,
-                    contentType: "text/plain",
-                    strategy: .codable
-                )
-            }
-        )
-        XCTAssertEqual(String(data: data, encoding: .utf8)!, testQuotedString)
-        XCTAssertEqual(
-            headers,
-            [
-                .init(name: "content-type", value: "text/plain")
-            ]
-        )
-    }
-
-    func testBodyAddData() throws {
-        var headers: [HeaderField] = []
-        let data = try converter.bodyAdd(
-            testStructPrettyData,
-            headerFields: &headers,
-            transforming: {
-                .init(
-                    value: $0,
-                    contentType: "application/octet-stream",
-                    strategy: .data
-                )
-            }
-        )
-        XCTAssertEqual(data, testStructPrettyData)
+        XCTAssertEqual(data, testStringData)
         XCTAssertEqual(
             headers,
             [
                 .init(name: "content-type", value: "application/octet-stream")
             ]
         )
-    }
-
-    func testBodyGetComplexOptional_success() throws {
-        let body = try converter.bodyGetOptional(
-            TestPet.self,
-            from: testStructData,
-            strategy: .codable,
-            transforming: { $0 }
-        )
-        XCTAssertEqual(body, testStruct)
-    }
-
-    func testBodyGetComplexOptional_nil() throws {
-        let body = try converter.bodyGetOptional(
-            TestPet.self,
-            from: nil,
-            strategy: .codable,
-            transforming: { _ -> TestPet in fatalError("Unreachable") }
-        )
-        XCTAssertNil(body)
-    }
-
-    func testBodyGetComplexRequired_success() throws {
-        let body = try converter.bodyGetOptional(
-            TestPet.self,
-            from: testStructData,
-            strategy: .codable,
-            transforming: { $0 }
-        )
-        XCTAssertEqual(body, testStruct)
-    }
-
-    func testBodyGetComplexRequired_nil() throws {
-        XCTAssertThrowsError(
-            try converter.bodyGetRequired(
-                TestPet.self,
-                from: nil,
-                strategy: .codable,
-                transforming: { _ -> TestPet in fatalError("Unreachable") }
-            ),
-            "Was expected to throw error on missing required body",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case .missingRequiredRequestBody = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-            }
-        )
-    }
-
-    func testBodyGetDataOptional_success() throws {
-        let body = try converter.bodyGetOptional(
-            Data.self,
-            from: testStructPrettyData,
-            strategy: .data,
-            transforming: { $0 }
-        )
-        XCTAssertEqual(body, testStructPrettyData)
-    }
-
-    func testBodyGetDataRequired_success() throws {
-        let body = try converter.bodyGetRequired(
-            Data.self,
-            from: testStructPrettyData,
-            strategy: .data,
-            transforming: { $0 }
-        )
-        XCTAssertEqual(body, testStructPrettyData)
-    }
-
-    func testBodyGetDataRequired_missing() throws {
-        XCTAssertThrowsError(
-            try converter.bodyGetRequired(
-                Data.self,
-                from: nil,
-                strategy: .data,
-                transforming: { $0 }
-            ),
-            "Was expected to throw error on missing required body",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case .missingRequiredRequestBody = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-            }
-        )
-    }
-
-    func testBodyGetStringOptional_strategyData_success() throws {
-        let body = try converter.bodyGetOptional(
-            String.self,
-            from: testQuotedStringData,
-            strategy: .data,
-            transforming: { $0 }
-        )
-        XCTAssertEqual(body, testString)
-    }
-
-    func testBodyGetStringOptional_strategyString_success() throws {
-        let body = try converter.bodyGetOptional(
-            String.self,
-            from: testStringData,
-            strategy: .string,
-            transforming: { $0 }
-        )
-        XCTAssertEqual(body, testString)
-    }
-
-    func testBodyGetStringOptional_strategyCodable_success() throws {
-        let body = try converter.bodyGetOptional(
-            String.self,
-            from: testQuotedStringData,
-            strategy: .codable,
-            transforming: { $0 }
-        )
-        XCTAssertEqual(body, testString)
-    }
-
-    func testBodyGetStringRequired_strategyString_success() throws {
-        let body = try converter.bodyGetRequired(
-            String.self,
-            from: testStringData,
-            strategy: .string,
-            transforming: { $0 }
-        )
-        XCTAssertEqual(body, testString)
-    }
-
-    func testBodyGetStringRequired_strategyCodable_success() throws {
-        let body = try converter.bodyGetRequired(
-            String.self,
-            from: testQuotedStringData,
-            strategy: .codable,
-            transforming: { $0 }
-        )
-        XCTAssertEqual(body, testString)
     }
 }

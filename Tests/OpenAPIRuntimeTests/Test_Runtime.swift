@@ -54,12 +54,16 @@ class Test_Runtime: XCTestCase {
         "2023-01-18T10:04:11Z"
     }
 
+    var testDateStringData: Data {
+        Data(testDateString.utf8)
+    }
+
     var testString: String {
         "hello"
     }
 
     var testStringData: Data {
-        testString.data(using: .utf8)!
+        Data(testString.utf8)
     }
 
     var testQuotedString: String {
@@ -67,7 +71,7 @@ class Test_Runtime: XCTestCase {
     }
 
     var testQuotedStringData: Data {
-        testQuotedString.data(using: .utf8)!
+        Data(testQuotedString.utf8)
     }
 
     var testStruct: TestPet {
@@ -87,11 +91,11 @@ class Test_Runtime: XCTestCase {
     }
 
     var testStructData: Data {
-        testStructString.data(using: .utf8)!
+        Data(testStructString.utf8)
     }
 
     var testStructPrettyData: Data {
-        testStructPrettyString.data(using: .utf8)!
+        Data(testStructPrettyString.utf8)
     }
 }
 

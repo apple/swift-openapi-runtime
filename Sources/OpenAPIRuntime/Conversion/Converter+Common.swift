@@ -31,9 +31,8 @@ extension Converter {
         substring: String
     ) throws {
         guard
-            let contentType = try headerFieldGetOptional(
+            let contentType = try getOptionalHeaderFieldAsText(
                 in: headerFields,
-                strategy: .string,
                 name: "content-type",
                 as: String.self
             )
@@ -45,194 +44,215 @@ extension Converter {
         }
     }
 
-    // method name: {set,get}{location}As{strategy}{required/optional/omit if both}
-    // method parameters: value or type of value
-    
-    
-    
-//    | common | set | header field | text | string-convertible | both | TODO |
+    // MARK: - Converter helper methods
+
+    //    | common | set | header field | text | string-convertible | both | setHeaderFieldAsText |
     public func setHeaderFieldAsText<T: _StringConvertible>(
         in headerFields: inout [HeaderField],
         name: String,
         value: T?
     ) throws {
-        guard let value else {
-            return
-        }
-        headerFields.add(name: name, value: value.description)
+        try setHeaderField(
+            in: &headerFields,
+            name: name,
+            value: value,
+            convert: convertStringConvertibleToText
+        )
     }
-    
-//    | common | set | header field | text | array of string-convertibles | both | TODO |
+
+    //    | common | set | header field | text | array of string-convertibles | both | setHeaderFieldAsText |
     public func setHeaderFieldAsText<T: _StringConvertible>(
         in headerFields: inout [HeaderField],
         name: String,
         value values: [T]?
     ) throws {
-        guard let values else {
-            return
-        }
-        headerFields.add(name: name, values: values.map(\.description))
+        try setHeaderFields(
+            in: &headerFields,
+            name: name,
+            values: values,
+            convert: convertStringConvertibleToText
+        )
     }
-    
-//    | common | set | header field | text | date | both | TODO |
-//    | common | set | header field | text | array of dates | both | TODO |
-//    | common | set | header field | JSON | codable | both | TODO |
 
-    
-    
-    
-    
-    
-    
-    
-    /// Adds a header field with the provided name and Date value.
-    /// - Parameters:
-    ///   - headerFields: Collection of header fields to add to.
-    ///   - strategy: A hint about which coding strategy to use.
-    ///   - name: The name of the header field.
-    ///   - value: Date value. If nil, header is not added.
-    public func headerFieldAdd(
+    //    | common | set | header field | text | date | both | setHeaderFieldAsText |
+    public func setHeaderFieldAsText(
         in headerFields: inout [HeaderField],
-        strategy: ParameterCodingStrategy,
         name: String,
         value: Date?
     ) throws {
-        guard let value = value else {
-            return
-        }
-        let stringValue = try self.configuration.dateTranscoder.encode(value)
-        headerFields.add(name: name, value: stringValue)
+        try setHeaderField(
+            in: &headerFields,
+            name: name,
+            value: value,
+            convert: convertDateToText
+        )
     }
 
-    /// Returns the value for the first header field with given name.
-    /// - Parameters:
-    ///   - headerFields: Collection of header fields to retrieve the field from.
-    ///   - strategy: A hint about which coding strategy to use.
-    ///   - name: The name of the header field (case-insensitive).
-    ///   - type: Date type.
-    /// - Returns: First value for the given name, if one exists.
-    public func headerFieldGetOptional(
-        in headerFields: [HeaderField],
-        strategy: ParameterCodingStrategy,
-        name: String,
-        as type: Date.Type
-    ) throws -> Date? {
-        guard let dateString = headerFields.firstValue(name: name) else {
-            return nil
-        }
-        return try self.configuration.dateTranscoder.decode(dateString)
-    }
-
-    /// Returns the value for the first header field with the given name.
-    /// - Parameters:
-    ///   - headerFields: Collection of header fields to retrieve the field from.
-    ///   - strategy: A hint about which coding strategy to use.
-    ///   - name: Header name (case-insensitive).
-    ///   - type: Date type.
-    /// - Returns: First value for the given name.
-    public func headerFieldGetRequired(
-        in headerFields: [HeaderField],
-        strategy: ParameterCodingStrategy,
-        name: String,
-        as type: Date.Type
-    ) throws -> Date {
-        guard
-            let value = try headerFieldGetOptional(
-                in: headerFields,
-                strategy: strategy,
-                name: name,
-                as: type
-            )
-        else {
-            throw RuntimeError.missingRequiredHeader(name)
-        }
-        return value
-    }
-
-    // MARK: Headers - Complex
-
-    /// Adds a header field with the provided name and encodable value.
-    ///
-    /// Encodes the value into minimized JSON.
-    /// - Parameters:
-    ///   - headerFields: Collection of header fields to add to.
-    ///   - strategy: A hint about which coding strategy to use.
-    ///   - name: Header name.
-    ///   - value: Encodable header value.
-    public func headerFieldAdd<T: Encodable>(
+    //    | common | set | header field | text | array of dates | both | setHeaderFieldAsText |
+    public func setHeaderFieldAsText(
         in headerFields: inout [HeaderField],
-        strategy: ParameterCodingStrategy,
+        name: String,
+        value values: [Date]?
+    ) throws {
+        try setHeaderFields(
+            in: &headerFields,
+            name: name,
+            values: values,
+            convert: convertDateToText
+        )
+    }
+
+    //    | common | set | header field | JSON | codable | both | setHeaderFieldAsJSON |
+    public func setHeaderFieldAsJSON<T: Encodable>(
+        in headerFields: inout [HeaderField],
         name: String,
         value: T?
     ) throws {
-        guard let value else {
-            return
-        }
-        if let value = value as? _StringConvertible,
-            strategy != .codable
-        {
-            headerFields.add(name: name, value: value.description)
-            return
-        }
-        let data = try headerFieldEncoder.encode(value)
-        guard let stringValue = String(data: data, encoding: .utf8) else {
-            throw RuntimeError.failedToEncodeJSONHeaderIntoString(name: name)
-        }
-        headerFields.add(name: name, value: stringValue)
+        try setHeaderField(
+            in: &headerFields,
+            name: name,
+            value: value,
+            convert: convertHeaderFieldCodableToJSON
+        )
     }
 
-    /// Returns the value of the first header field for the given name.
-    ///
-    /// Decodes the value from JSON.
-    /// - Parameters:
-    ///   - headerFields: Collection of header fields to retrieve the field from.
-    ///   - strategy: A hint about which coding strategy to use.
-    ///   - name: Header name (case-insensitive).
-    ///   - type: Date type.
-    /// - Returns: First value for the given name, if one exists.
-    public func headerFieldGetOptional<T: Decodable>(
+    //    | common | get | header field | text | string-convertible | optional | getOptionalHeaderFieldAsText |
+    public func getOptionalHeaderFieldAsText<T: _StringConvertible>(
         in headerFields: [HeaderField],
-        strategy: ParameterCodingStrategy,
         name: String,
         as type: T.Type
     ) throws -> T? {
-        guard let stringValue = headerFields.firstValue(name: name) else {
-            return nil
-        }
-        if let myType = T.self as? _StringConvertible.Type,
-            strategy != .codable
-        {
-            return myType.init(stringValue).map { $0 as! T }
-        }
-        let data = Data(stringValue.utf8)
-        return try decoder.decode(T.self, from: data)
+        try getOptionalHeaderField(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
     }
 
-    /// Returns the first header value for the given (case-insensitive) name.
-    ///
-    /// Decodes the value from JSON.
-    /// - Parameters:
-    ///   - headerFields: Collection of header fields to retrieve the field from.
-    ///   - strategy: A hint about which coding strategy to use.
-    ///   - name: Header name (case-insensitive).
-    ///   - type: Date type.
-    /// - Returns: First value for the given name.
-    public func headerFieldGetRequired<T: Decodable>(
+    //    | common | get | header field | text | string-convertible | required | getRequiredHeaderFieldAsText |
+    public func getRequiredHeaderFieldAsText<T: _StringConvertible>(
         in headerFields: [HeaderField],
-        strategy: ParameterCodingStrategy,
         name: String,
         as type: T.Type
     ) throws -> T {
-        guard
-            let value = try headerFieldGetOptional(
-                in: headerFields,
-                strategy: strategy,
-                name: name,
-                as: type
-            )
-        else {
-            throw RuntimeError.missingRequiredHeader(name)
-        }
-        return value
+        try getRequiredHeaderField(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
+    }
+
+    //    | common | get | header field | text | array of string-convertibles | optional | getOptionalHeaderFieldAsText |
+    public func getOptionalHeaderFieldAsText<T: _StringConvertible>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: [T].Type
+    ) throws -> [T]? {
+        try getOptionalHeaderFields(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
+    }
+
+    //    | common | get | header field | text | array of string-convertibles | required | getRequiredHeaderFieldAsText |
+    public func getRequiredHeaderFieldAsText<T: _StringConvertible>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: [T].Type
+    ) throws -> [T]? {
+        try getRequiredHeaderFields(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
+    }
+
+    //    | common | get | header field | text | date | optional | getOptionalHeaderFieldAsText |
+    public func getOptionalHeaderFieldAsText(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: Date.Type
+    ) throws -> Date? {
+        try getOptionalHeaderField(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertHeaderFieldTextToDate
+        )
+    }
+
+    //    | common | get | header field | text | date | required | getRequiredHeaderFieldAsText |
+    public func getRequiredHeaderFieldAsText(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: Date.Type
+    ) throws -> Date {
+        try getRequiredHeaderField(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertHeaderFieldTextToDate
+        )
+    }
+
+    //    | common | get | header field | text | array of dates | optional | getOptionalHeaderFieldAsText |
+    public func getOptionalHeaderFieldAsText(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: [Date].Type
+    ) throws -> [Date]? {
+        try getOptionalHeaderFields(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertHeaderFieldTextToDate
+        )
+    }
+
+    //    | common | get | header field | text | array of dates | required | getRequiredHeaderFieldAsText |
+    public func getRequiredHeaderFieldAsText(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: [Date].Type
+    ) throws -> [Date]? {
+        try getRequiredHeaderFields(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertHeaderFieldTextToDate
+        )
+    }
+
+    //    | common | get | header field | JSON | codable | optional | getOptionalHeaderFieldAsJSON |
+    public func getOptionalHeaderFieldAsJSON<T: Decodable>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: T.Type
+    ) throws -> T? {
+        try getOptionalHeaderField(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertHeaderFieldJSONToCodable
+        )
+    }
+
+    //    | common | get | header field | JSON | codable | required | getRequiredHeaderFieldAsJSON |
+    public func getRequiredHeaderFieldAsJSON<T: Decodable>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: T.Type
+    ) throws -> T? {
+        try getRequiredHeaderField(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertHeaderFieldJSONToCodable
+        )
     }
 }

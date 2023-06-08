@@ -15,198 +15,243 @@ import Foundation
 
 extension Converter {
 
-    // MARK: Query - _StringConvertible
+    //    | client | set | request path | text | string-convertible | required | renderedRequestPath |
+    public func renderedRequestPath(
+        template: String,
+        parameters: [any _StringConvertible]
+    ) throws -> String {
+        var renderedString = template
+        for parameter in parameters {
+            renderedString.replace(
+                "{}",
+                with: parameter.description,
+                maxReplacements: 1
+            )
+        }
+        return renderedString
+    }
 
-    /// Adds a query item with a string-convertible value to the request.
-    /// - Parameters:
-    ///   - request: Request to add the query item.
-    ///   - name: Query item name.
-    ///   - value: Query item string-convertible value.
-    public func queryAdd<T: _StringConvertible>(
+    //    | client | set | request query | text | string-convertible | both | setQueryItemAsText |
+    public func setQueryItemAsText<T: _StringConvertible>(
         in request: inout Request,
         name: String,
         value: T?
     ) throws {
-        request.mutatingQuery { components in
-            components.addQueryItem(
-                name: name,
-                value: value
-            )
-        }
+        try setQueryItem(
+            in: &request,
+            name: name,
+            value: value,
+            convert: convertStringConvertibleToText
+        )
     }
 
-    // MARK: Query - Date
-
-    /// Adds a query item with a Date value to the request.
-    /// - Parameters:
-    ///   - request: Request to add the query item.
-    ///   - name: Query item name.
-    ///   - value: Query item Date value.
-    public func queryAdd(
-        in request: inout Request,
-        name: String,
-        value: Date?
-    ) throws {
-        try request.mutatingQuery { components in
-            try components.addQueryItem(
-                name: name,
-                value: value.flatMap { value in
-                    try self.configuration.dateTranscoder.encode(value)
-                }
-            )
-        }
-    }
-
-    // MARK: Query - Array of _StringConvertible
-
-    /// Adds a query item with a list of string-convertible values to the request.
-    /// - Parameters:
-    ///   - request: Request to add the query item.
-    ///   - name: Query item name.
-    ///   - value: Query item string-convertible values.
-    public func queryAdd<T: _StringConvertible>(
+    //    | client | set | request query | text | array of string-convertibles | both | setQueryItemAsText |
+    public func setQueryItemAsText<T: _StringConvertible>(
         in request: inout Request,
         name: String,
         value: [T]?
     ) throws {
-        request.mutatingQuery { components in
-            components.addQueryItem(
-                name: name,
-                value: value
-            )
-        }
+        try setQueryItems(
+            in: &request,
+            name: name,
+            values: value,
+            convert: convertStringConvertibleToText
+        )
     }
 
-    // MARK: Body - Complex
+    //    | client | set | request query | text | date | both | setQueryItemAsText |
+    public func setQueryItemAsText(
+        in request: inout Request,
+        name: String,
+        value: Date?
+    ) throws {
+        try setQueryItem(
+            in: &request,
+            name: name,
+            value: value,
+            convert: convertDateToText
+        )
+    }
 
-    /// Gets a deserialized value from body data.
-    /// - Parameters:
-    ///   - type: Type used to decode the data.
-    ///   - data: Encoded body data.
-    ///   - strategy: A hint about which coding strategy to use.
-    ///   - transform: Closure for transforming the Decodable type into a final
-    ///   type.
-    /// - Returns: Deserialized body value.
-    public func bodyGet<T: Decodable, C>(
+    //    | client | set | request query | text | array of dates | both | setQueryItemAsText |
+    public func setQueryItemAsText(
+        in request: inout Request,
+        name: String,
+        value: [Date]?
+    ) throws {
+        try setQueryItems(
+            in: &request,
+            name: name,
+            values: value,
+            convert: convertDateToText
+        )
+    }
+
+    //    | client | set | request body | text | string-convertible | optional | setOptionalRequestBodyAsText |
+    public func setOptionalRequestBodyAsText<T: _StringConvertible, C>(
+        _ value: C?,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>
+    ) throws -> Data? {
+        try setOptionalRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertStringConvertibleToTextData
+        )
+    }
+
+    //    | client | set | request body | text | string-convertible | required | setRequiredRequestBodyAsText |
+    public func setRequiredRequestBodyAsText<T: _StringConvertible, C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>
+    ) throws -> Data {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertStringConvertibleToTextData
+        )
+    }
+
+    //    | client | set | request body | text | date | optional | setOptionalRequestBodyAsText |
+    public func setOptionalRequestBodyAsText<C>(
+        _ value: C?,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<Date>
+    ) throws -> Data? {
+        try setOptionalRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertDateToTextData
+        )
+    }
+
+    //    | client | set | request body | text | date | required | setRequiredRequestBodyAsText |
+    public func setRequiredRequestBodyAsText<C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<Date>
+    ) throws -> Data {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertDateToTextData
+        )
+    }
+
+    //    | client | set | request body | JSON | codable | optional | setOptionalRequestBodyAsJSON |
+    public func setOptionalRequestBodyAsJSON<T: Encodable, C>(
+        _ value: C?,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>
+    ) throws -> Data? {
+        try setOptionalRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertBodyCodableToJSON
+        )
+    }
+
+    //    | client | set | request body | JSON | codable | required | setRequiredRequestBodyAsJSON |
+    public func setRequiredRequestBodyAsJSON<T: Encodable, C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>
+    ) throws -> Data {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertBodyCodableToJSON
+        )
+    }
+
+    //    | client | set | request body | binary | data | optional | setOptionalRequestBodyAsBinary |
+    public func setOptionalRequestBodyAsBinary<C>(
+        _ value: C?,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<Data>
+    ) throws -> Data? {
+        try setOptionalRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertDataToBinary
+        )
+    }
+
+    //    | client | set | request body | binary | data | required | setRequiredRequestBodyAsBinary |
+    public func setRequiredRequestBodyAsBinary<C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<Data>
+    ) throws -> Data {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertDataToBinary
+        )
+    }
+
+    //    | client | get | response body | text | string-convertible | required | getResponseBodyAsText |
+    public func getResponseBodyAsText<T: _StringConvertible, C>(
         _ type: T.Type,
         from data: Data,
-        strategy: BodyCodingStrategy,
         transforming transform: (T) -> C
     ) throws -> C {
-        let decoded: T
-        if let myType = T.self as? _StringConvertible.Type,
-            strategy == .string
-        {
-            guard
-                let stringValue = String(data: data, encoding: .utf8),
-                let decodedValue = myType.init(stringValue)
-            else {
-                throw RuntimeError.failedToDecodeBody(type: T.self)
-            }
-            decoded = decodedValue as! T
-        } else {
-            decoded = try decoder.decode(type, from: data)
-        }
-        return transform(decoded)
-    }
-
-    /// Provides an optional serialized value for the body value.
-    /// - Parameters:
-    ///   - value: Encodable value to turn into data.
-    ///   - headerFields: Headers container where to add the Content-Type header.
-    ///   - transform: Closure for transforming the Encodable value into body content.
-    /// - Returns: Data for the serialized body value, or nil if `value` was nil.
-    public func bodyAddOptional<T: Encodable, C>(
-        _ value: C?,
-        headerFields: inout [HeaderField],
-        transforming transform: (C) -> EncodableBodyContent<T>
-    ) throws -> Data? {
-        guard let value else {
-            return nil
-        }
-        return try bodyAddRequired(
-            value,
-            headerFields: &headerFields,
-            transforming: transform
+        try getResponseBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertTextDataToStringConvertible
         )
     }
 
-    /// Provides a required serialized value for the body value.
-    /// - Parameters:
-    ///   - value: Encodable value to turn into data.
-    ///   - headerFields: Headers container where to add the Content-Type header.
-    ///   - transform: Closure for transforming the Encodable value into body content.
-    /// - Returns: Data for the serialized body value.
-    public func bodyAddRequired<T: Encodable, C>(
-        _ value: C,
-        headerFields: inout [HeaderField],
-        transforming transform: (C) -> EncodableBodyContent<T>
-    ) throws -> Data {
-        let body = transform(value)
-        headerFields.add(name: "content-type", value: body.contentType)
-        if let value = value as? _StringConvertible,
-            body.strategy == .string
-        {
-            guard let data = value.description.data(using: .utf8) else {
-                throw RuntimeError.failedToEncodeBody(type: T.self)
-            }
-            return data
-        }
-        return try encoder.encode(body.value)
+    //    | client | get | response body | text | date | required | getResponseBodyAsText |
+    public func getResponseBodyAsText<C>(
+        _ type: Date.Type,
+        from data: Data,
+        transforming transform: (Date) -> C
+    ) throws -> C {
+        try getResponseBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertTextDataToDate
+        )
     }
 
-    // MARK: Body - Primivite - Data
+    //    | client | get | response body | JSON | codable | required | getResponseBodyAsJSON |
+    public func getResponseBodyAsJSON<T: Decodable, C>(
+        _ type: T.Type,
+        from data: Data,
+        transforming transform: (T) -> C
+    ) throws -> C {
+        try getResponseBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertJSONToCodable
+        )
+    }
 
-    /// Gets a deserialized value from body data.
-    /// - Parameters:
-    ///   - type: Type used to decode the data.
-    ///   - data: Encoded body data.
-    ///   - strategy: A hint about which coding strategy to use.
-    ///   - transform: Closure for transforming the Decodable type into a final type.
-    /// - Returns: Deserialized body value.
-    public func bodyGet<C>(
+    //    | client | get | response body | binary | data | required | getResponseBodyAsBinary |
+    public func getResponseBodyAsBinary<C>(
         _ type: Data.Type,
         from data: Data,
-        strategy: BodyCodingStrategy,
         transforming transform: (Data) -> C
     ) throws -> C {
-        return transform(data)
-    }
-
-    /// Provides an optional serialized value for the body value.
-    /// - Parameters:
-    ///   - value: Encodable value to turn into data.
-    ///   - headerFields: Headers container where to add the Content-Type header.
-    ///   - transform: Closure for transforming the Encodable value into body content.
-    /// - Returns: Data for the serialized body value, or nil if `value` was nil.
-    public func bodyAddOptional<C>(
-        _ value: C?,
-        headerFields: inout [HeaderField],
-        transforming transform: (C) -> EncodableBodyContent<Data>
-    ) throws -> Data? {
-        guard let value else {
-            return nil
-        }
-        return try bodyAddRequired(
-            value,
-            headerFields: &headerFields,
-            transforming: transform
+        try getResponseBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertBinaryToData
         )
-    }
-
-    /// Provides a required serialized value for the body value.
-    /// - Parameters:
-    ///   - value: Encodable value to turn into data.
-    ///   - headerFields: Headers container where to add the Content-Type header.
-    ///   - transform: Closure for transforming the Encodable value into body content.
-    /// - Returns: Data for the serialized body value.
-    public func bodyAddRequired<C>(
-        _ value: C,
-        headerFields: inout [HeaderField],
-        transforming transform: (C) -> EncodableBodyContent<Data>
-    ) throws -> Data {
-        let body = transform(value)
-        headerFields.add(name: "content-type", value: body.contentType)
-        return body.value
     }
 }

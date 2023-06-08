@@ -16,76 +16,6 @@ import XCTest
 
 final class Test_CommonConverterExtensions: Test_Runtime {
 
-    // MARK: [HeaderField] extension
-
-    func testHeaderFields_add_string() throws {
-        var headerFields: [HeaderField] = []
-        headerFields.add(name: "foo", value: "bar")
-        XCTAssertEqual(
-            headerFields,
-            [
-                .init(name: "foo", value: "bar")
-            ]
-        )
-    }
-
-    func testHeaderFields_add_nil() throws {
-        var headerFields: [HeaderField] = []
-        let value: String? = nil
-        headerFields.add(name: "foo", value: value)
-        XCTAssertEqual(headerFields, [])
-    }
-
-    func testHeaderFields_firstValue_found() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: "bar")
-        ]
-        XCTAssertEqual(headerFields.firstValue(name: "foo"), "bar")
-    }
-
-    func testHeaderFields_firstValue_nil() throws {
-        let headerFields: [HeaderField] = []
-        XCTAssertNil(headerFields.firstValue(name: "foo"))
-    }
-
-    func testHeaderFields_values() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: "bar"),
-            .init(name: "foo", value: "baz"),
-        ]
-        XCTAssertEqual(headerFields.values(name: "foo"), ["bar", "baz"])
-    }
-
-    func testHeaderFields_removeAll_noMatches() throws {
-        var headerFields: [HeaderField] = [
-            .init(name: "one", value: "one"),
-            .init(name: "two", value: "two"),
-        ]
-        headerFields.removeAll(named: "three")
-        XCTAssertEqual(headerFields.map(\.name), ["one", "two"])
-    }
-
-    func testHeaderFields_removeAll_oneMatch() throws {
-        var headerFields: [HeaderField] = [
-            .init(name: "one", value: "one"),
-            .init(name: "two", value: "two"),
-            .init(name: "three", value: "three"),
-        ]
-        headerFields.removeAll(named: "three")
-        XCTAssertEqual(headerFields.map(\.name), ["one", "two"])
-    }
-
-    func testHeaderFields_removeAll_manyMatches() throws {
-        var headerFields: [HeaderField] = [
-            .init(name: "one", value: "one"),
-            .init(name: "three", value: "3"),
-            .init(name: "two", value: "two"),
-            .init(name: "three", value: "three"),
-        ]
-        headerFields.removeAll(named: "three")
-        XCTAssertEqual(headerFields.map(\.name), ["one", "two"])
-    }
-
     // MARK: Miscs
 
     func testValidateContentType_match() throws {
@@ -145,11 +75,13 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         )
     }
 
-    func testHeaderFieldsAdd_string_strategyDeferredToType() throws {
+    // MARK: Converter helper methods
+
+    //    | common | set | header field | text | string-convertible | both | setHeaderFieldAsText |
+    func test_setHeaderFieldAsText_stringConvertible() throws {
         var headerFields: [HeaderField] = []
-        try converter.headerFieldAdd(
+        try converter.setHeaderFieldAsText(
             in: &headerFields,
-            strategy: .deferredToType,
             name: "foo",
             value: "bar"
         )
@@ -161,221 +93,61 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         )
     }
 
-    func testHeaderFieldsAdd_string_strategyString() throws {
+    //    | common | set | header field | text | array of string-convertibles | both | setHeaderFieldAsText |
+    func test_setHeaderFieldAsText_arrayOfStringConvertible() throws {
         var headerFields: [HeaderField] = []
-        try converter.headerFieldAdd(
+        try converter.setHeaderFieldAsText(
             in: &headerFields,
-            strategy: .string,
             name: "foo",
-            value: "bar"
+            value: ["bar", "baz"] as [String]
         )
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "foo", value: "bar")
+                .init(name: "foo", value: "bar"),
+                .init(name: "foo", value: "baz"),
             ]
         )
     }
 
-    func testHeaderFieldsAdd_string_strategyCodable() throws {
+    //    | common | set | header field | text | date | both | setHeaderFieldAsText |
+    func test_setHeaderFieldAsText_date() throws {
         var headerFields: [HeaderField] = []
-        try converter.headerFieldAdd(
+        try converter.setHeaderFieldAsText(
             in: &headerFields,
-            strategy: .codable,
             name: "foo",
-            value: "bar"
-        )
-        XCTAssertEqual(
-            headerFields,
-            [
-                .init(name: "foo", value: "\"bar\"")
-            ]
-        )
-    }
-
-    func testHeaderFieldsGetOptional_string_strategyDeferredToType() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: "bar")
-        ]
-        let value = try converter.headerFieldGetOptional(
-            in: headerFields,
-            strategy: .deferredToType,
-            name: "foo",
-            as: String.self
-        )
-        XCTAssertEqual(value, "bar")
-    }
-
-    func testHeaderFieldsGetOptional_string_strategyString() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: "bar")
-        ]
-        let value = try converter.headerFieldGetOptional(
-            in: headerFields,
-            strategy: .deferredToType,
-            name: "foo",
-            as: String.self
-        )
-        XCTAssertEqual(value, "bar")
-    }
-
-    func testHeaderFieldsGetOptional_string_strategyCodable() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: "bar")
-        ]
-        let value = try converter.headerFieldGetOptional(
-            in: headerFields,
-            strategy: .deferredToType,
-            name: "foo",
-            as: String.self
-        )
-        XCTAssertEqual(value, "bar")
-    }
-
-    func testHeaderFieldsGetOptional_missing() throws {
-        let headerFields: [HeaderField] = []
-        let value = try converter.headerFieldGetOptional(
-            in: headerFields,
-            strategy: .deferredToType,
-            name: "foo",
-            as: String.self
-        )
-        XCTAssertNil(value)
-    }
-
-    func testHeaderFieldsGetRequired_string() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: "bar")
-        ]
-        let value = try converter.headerFieldGetRequired(
-            in: headerFields,
-            strategy: .deferredToType,
-            name: "foo",
-            as: String.self
-        )
-        XCTAssertEqual(value, "bar")
-    }
-
-    func testHeaderFieldsGetRequired_missing() throws {
-        let headerFields: [HeaderField] = []
-        XCTAssertThrowsError(
-            try converter.headerFieldGetRequired(
-                in: headerFields,
-                strategy: .deferredToType,
-                name: "foo",
-                as: String.self
-            ),
-            "Was expected to throw error on missing required header",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case .missingRequiredHeader(let name) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(name, "foo")
-            }
-        )
-    }
-
-    // MARK: [HeaderField] -  (Date)
-
-    func testHeaderFieldsAdd_date() throws {
-        var headerFields: [HeaderField] = []
-        try converter.headerFieldAdd(
-            in: &headerFields,
-            strategy: .deferredToType,
-            name: "since",
             value: testDate
         )
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "since", value: testDateString)
+                .init(name: "foo", value: testDateString)
             ]
         )
     }
 
-    func testHeaderFieldsAdd_date_nil() throws {
+    //    | common | set | header field | text | array of dates | both | setHeaderFieldAsText |
+    func test_setHeaderFieldAsText_arrayOfDates() throws {
         var headerFields: [HeaderField] = []
-        let date: Date? = nil
-        try converter.headerFieldAdd(
+        try converter.setHeaderFieldAsText(
             in: &headerFields,
-            strategy: .deferredToType,
-            name: "since",
-            value: date
+            name: "foo",
+            value: [testDate, testDate]
         )
-        XCTAssertEqual(headerFields, [])
-    }
-
-    func testHeaderFieldsGetOptional_date() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "since", value: testDateString)
-        ]
-        let value = try converter.headerFieldGetOptional(
-            in: headerFields,
-            strategy: .deferredToType,
-            name: "since",
-            as: Date.self
-        )
-        XCTAssertEqual(value, testDate)
-    }
-
-    func testHeaderFieldsGetOptional_date_missing() throws {
-        let headerFields: [HeaderField] = []
-        let value = try converter.headerFieldGetOptional(
-            in: headerFields,
-            strategy: .deferredToType,
-            name: "since",
-            as: Date.self
-        )
-        XCTAssertNil(value)
-    }
-
-    func testHeaderFieldsGetRequired_date() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "since", value: testDateString)
-        ]
-        let value = try converter.headerFieldGetRequired(
-            in: headerFields,
-            strategy: .deferredToType,
-            name: "since",
-            as: Date.self
-        )
-        XCTAssertEqual(value, testDate)
-    }
-
-    func testHeaderFieldsGetRequired_date_missing() throws {
-        let headerFields: [HeaderField] = []
-        XCTAssertThrowsError(
-            try converter.headerFieldGetRequired(
-                in: headerFields,
-                strategy: .deferredToType,
-                name: "since",
-                as: Date.self
-            ),
-            "Was expected to throw error on missing required header",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case .missingRequiredHeader(let name) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(name, "since")
-            }
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "foo", value: testDateString),
+                .init(name: "foo", value: testDateString),
+            ]
         )
     }
 
-    // MARK: [HeaderField] - Complex
-
-    func testHeaderFieldsAddComplex_struct() throws {
+    //    | common | set | header field | JSON | codable | both | setHeaderFieldAsJSON |
+    func test_setHeaderFieldAsJSON_codable() throws {
         var headerFields: [HeaderField] = []
-        try converter.headerFieldAdd(
+        try converter.setHeaderFieldAsJSON(
             in: &headerFields,
-            strategy: .deferredToType,
             name: "foo",
             value: testStruct
         )
@@ -387,75 +159,152 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         )
     }
 
-    func testHeaderFieldsAddComplex_nil() throws {
+    func test_setHeaderFieldAsJSON_codable_string() throws {
         var headerFields: [HeaderField] = []
-        let value: TestPet? = nil
-        try converter.headerFieldAdd(
+        try converter.setHeaderFieldAsJSON(
             in: &headerFields,
-            strategy: .deferredToType,
             name: "foo",
-            value: value
+            value: "hello"
         )
-        XCTAssertEqual(headerFields, [])
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "foo", value: "\"hello\"")
+            ]
+        )
     }
 
-    func testHeaderFieldsGetComplexOptional_struct() throws {
+    //    | common | get | header field | text | string-convertible | optional | getOptionalHeaderFieldAsText |
+    func test_getOptionalHeaderFieldAsText_stringConvertible() throws {
         let headerFields: [HeaderField] = [
-            .init(name: "pet", value: testStructString)
+            .init(name: "foo", value: "bar")
         ]
-        let value = try converter.headerFieldGetOptional(
+        let value = try converter.getOptionalHeaderFieldAsText(
             in: headerFields,
-            strategy: .deferredToType,
-            name: "pet",
+            name: "foo",
+            as: String.self
+        )
+        XCTAssertEqual(value, "bar")
+    }
+
+    //    | common | get | header field | text | string-convertible | required | getRequiredHeaderFieldAsText |
+    func test_getRequiredHeaderFieldAsText_stringConvertible() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: "bar")
+        ]
+        let value = try converter.getRequiredHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: String.self
+        )
+        XCTAssertEqual(value, "bar")
+    }
+
+    //    | common | get | header field | text | array of string-convertibles | optional | getOptionalHeaderFieldAsText |
+    func test_getOptionalHeaderFieldAsText_arrayOfStringConvertibles() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: "bar"),
+            .init(name: "foo", value: "baz"),
+        ]
+        let value = try converter.getOptionalHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: [String].self
+        )
+        XCTAssertEqual(value, ["bar", "baz"])
+    }
+
+    //    | common | get | header field | text | array of string-convertibles | required | getRequiredHeaderFieldAsText |
+    func test_getRequiredHeaderFieldAsText_arrayOfStringConvertibles() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: "bar"),
+            .init(name: "foo", value: "baz"),
+        ]
+        let value = try converter.getRequiredHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: [String].self
+        )
+        XCTAssertEqual(value, ["bar", "baz"])
+    }
+
+    //    | common | get | header field | text | date | optional | getOptionalHeaderFieldAsText |
+    func test_getOptionalHeaderFieldAsText_date() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: testDateString)
+        ]
+        let value = try converter.getOptionalHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: Date.self
+        )
+        XCTAssertEqual(value, testDate)
+    }
+
+    //    | common | get | header field | text | date | required | getRequiredHeaderFieldAsText |
+    func test_getRequiredHeaderFieldAsText_date() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: testDateString)
+        ]
+        let value = try converter.getRequiredHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: Date.self
+        )
+        XCTAssertEqual(value, testDate)
+    }
+
+    //    | common | get | header field | text | array of dates | optional | getOptionalHeaderFieldAsText |
+    func test_getOptionalHeaderFieldAsText_arrayOfDates() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: testDateString),
+            .init(name: "foo", value: testDateString),
+        ]
+        let value = try converter.getOptionalHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: [Date].self
+        )
+        XCTAssertEqual(value, [testDate, testDate])
+    }
+
+    //    | common | get | header field | text | array of dates | required | getRequiredHeaderFieldAsText |
+    func test_getRequiredHeaderFieldAsText_arrayOfDates() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: testDateString),
+            .init(name: "foo", value: testDateString),
+        ]
+        let value = try converter.getRequiredHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: [Date].self
+        )
+        XCTAssertEqual(value, [testDate, testDate])
+    }
+
+    //    | common | get | header field | JSON | codable | optional | getOptionalHeaderFieldAsJSON |
+    func test_getOptionalHeaderFieldAsJSON_codable() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: testStructString)
+        ]
+        let value = try converter.getOptionalHeaderFieldAsJSON(
+            in: headerFields,
+            name: "foo",
             as: TestPet.self
         )
         XCTAssertEqual(value, testStruct)
     }
 
-    func testHeaderFieldsGetComplexOptional_missing() throws {
-        let headerFields: [HeaderField] = []
-        let value = try converter.headerFieldGetOptional(
-            in: headerFields,
-            strategy: .deferredToType,
-            name: "pet",
-            as: TestPet.self
-        )
-        XCTAssertNil(value)
-    }
-
-    func testHeaderFieldsGetComplexRequired_struct() throws {
+    //    | common | get | header field | JSON | codable | required | getRequiredHeaderFieldAsJSON |
+    func test_getRequiredHeaderFieldAsJSON_codable() throws {
         let headerFields: [HeaderField] = [
-            .init(name: "pet", value: testStructString)
+            .init(name: "foo", value: testStructString)
         ]
-        let value = try converter.headerFieldGetRequired(
+        let value = try converter.getRequiredHeaderFieldAsJSON(
             in: headerFields,
-            strategy: .deferredToType,
-            name: "pet",
+            name: "foo",
             as: TestPet.self
         )
         XCTAssertEqual(value, testStruct)
-    }
-
-    func testHeaderFieldsGetComplexRequired_missing() throws {
-        let headerFields: [HeaderField] = []
-        XCTAssertThrowsError(
-            try converter.headerFieldGetRequired(
-                in: headerFields,
-                strategy: .deferredToType,
-                name: "pet",
-                as: TestPet.self
-            ),
-            "Was expected to throw error on missing required header",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case .missingRequiredHeader(let name) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(name, "pet")
-            }
-        )
     }
 }

@@ -55,7 +55,7 @@ extension Array where Element == HeaderField {
         }
         append(.init(name: name, value: value))
     }
-    
+
     /// Adds headers for the provided name and values.
     /// - Parameters:
     ///   - name: Header name.
@@ -90,5 +90,368 @@ extension Array where Element == HeaderField {
     /// - Returns: All values for the given name, might be empty if none are found.
     func values(name: String) -> [String] {
         filter { $0.name.caseInsensitiveCompare(name) == .orderedSame }.map { $0.value }
+    }
+}
+
+extension Converter {
+
+    // MARK: Common functions for Converter's SPI helper methods
+
+    func convertStringConvertibleToText<T: _StringConvertible>(
+        _ value: T
+    ) throws -> String {
+        value.description
+    }
+
+    func convertStringConvertibleToTextData<T: _StringConvertible>(
+        _ value: T
+    ) throws -> Data {
+        try Data(convertStringConvertibleToText(value).utf8)
+    }
+
+    func convertDateToText(_ value: Date) throws -> String {
+        try configuration.dateTranscoder.encode(value)
+    }
+
+    func convertDateToTextData(_ value: Date) throws -> Data {
+        try Data(convertDateToText(value).utf8)
+    }
+
+    func convertTextToDate(_ stringValue: String) throws -> Date {
+        try configuration.dateTranscoder.decode(stringValue)
+    }
+
+    func convertTextDataToDate(_ data: Data) throws -> Date {
+        let stringValue = String(decoding: data, as: UTF8.self)
+        return try convertTextToDate(stringValue)
+    }
+
+    func convertJSONToCodable<T: Decodable>(
+        _ data: Data
+    ) throws -> T {
+        try decoder.decode(T.self, from: data)
+    }
+
+    func convertBodyCodableToJSON<T: Encodable>(
+        _ value: T
+    ) throws -> Data {
+        try encoder.encode(value)
+    }
+
+    func convertHeaderFieldTextToDate(_ stringValue: String) throws -> Date {
+        try convertTextToDate(stringValue)
+    }
+
+    func convertHeaderFieldCodableToJSON<T: Encodable>(
+        _ value: T
+    ) throws -> String {
+        let data = try headerFieldEncoder.encode(value)
+        let stringValue = String(decoding: data, as: UTF8.self)
+        return stringValue
+    }
+
+    func convertHeaderFieldJSONToCodable<T: Decodable>(
+        _ stringValue: String
+    ) throws -> T {
+        let data = Data(stringValue.utf8)
+        return try decoder.decode(T.self, from: data)
+    }
+
+    func convertTextToStringConvertible<T: _StringConvertible>(
+        _ stringValue: String
+    ) throws -> T {
+        guard let value = T.init(stringValue) else {
+            throw RuntimeError.failedToDecodeStringConvertibleValue(
+                type: String(describing: T.self)
+            )
+        }
+        return value
+    }
+
+    func convertTextDataToStringConvertible<T: _StringConvertible>(
+        _ data: Data
+    ) throws -> T {
+        let stringValue = String(decoding: data, as: UTF8.self)
+        return try convertTextToStringConvertible(stringValue)
+    }
+
+    func setHeaderField<T>(
+        in headerFields: inout [HeaderField],
+        name: String,
+        value: T?,
+        convert: (T) throws -> String
+    ) throws {
+        guard let value else {
+            return
+        }
+        headerFields.add(
+            name: name,
+            value: try convert(value)
+        )
+    }
+
+    func setHeaderFields<T>(
+        in headerFields: inout [HeaderField],
+        name: String,
+        values: [T]?,
+        convert: (T) throws -> String
+    ) throws {
+        guard let values else {
+            return
+        }
+        for value in values {
+            headerFields.add(
+                name: name,
+                value: try convert(value)
+            )
+        }
+    }
+
+    func getOptionalHeaderField<T>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: T.Type,
+        convert: (String) throws -> T
+    ) throws -> T? {
+        guard let stringValue = headerFields.firstValue(name: name) else {
+            return nil
+        }
+        return try convert(stringValue)
+    }
+
+    func getRequiredHeaderField<T>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: T.Type,
+        convert: (String) throws -> T
+    ) throws -> T {
+        guard let stringValue = headerFields.firstValue(name: name) else {
+            throw RuntimeError.missingRequiredHeaderField(name)
+        }
+        return try convert(stringValue)
+    }
+
+    func getOptionalHeaderFields<T>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: [T].Type,
+        convert: (String) throws -> T
+    ) throws -> [T]? {
+        let values = headerFields.values(name: name)
+        if values.isEmpty {
+            return nil
+        }
+        return try values.map { value in try convert(value) }
+    }
+
+    func getRequiredHeaderFields<T>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: [T].Type,
+        convert: (String) throws -> T
+    ) throws -> [T] {
+        let values = headerFields.values(name: name)
+        if values.isEmpty {
+            throw RuntimeError.missingRequiredHeaderField(name)
+        }
+        return try values.map { value in try convert(value) }
+    }
+
+    func setQueryItem<T>(
+        in request: inout Request,
+        name: String,
+        value: T?,
+        convert: (T) throws -> String
+    ) throws {
+        guard let value else {
+            return
+        }
+        request.addQueryItem(name: name, value: try convert(value))
+    }
+
+    func setQueryItems<T>(
+        in request: inout Request,
+        name: String,
+        values: [T]?,
+        convert: (T) throws -> String
+    ) throws {
+        guard let values else {
+            return
+        }
+        for value in values {
+            request.addQueryItem(name: name, value: try convert(value))
+        }
+    }
+
+    func getOptionalQueryItem<T>(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: T.Type,
+        convert: (String) throws -> T
+    ) throws -> T? {
+        guard
+            let untypedValue =
+                queryParameters
+                .first(where: { $0.name == name })
+        else {
+            return nil
+        }
+        return try convert(untypedValue.value ?? "")
+    }
+
+    func getRequiredQueryItem<T>(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: T.Type,
+        convert: (String) throws -> T
+    ) throws -> T {
+        guard
+            let value = try getOptionalQueryItem(
+                in: queryParameters,
+                name: name,
+                as: type,
+                convert: convert
+            )
+        else {
+            throw RuntimeError.missingRequiredQueryParameter(name)
+        }
+        return value
+    }
+
+    func getOptionalQueryItems<T>(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: [T].Type,
+        convert: (String) throws -> T
+    ) throws -> [T]? {
+        let untypedValues = queryParameters.filter { $0.name == name }
+        return try untypedValues.map { try convert($0.value ?? "") }
+    }
+
+    func getRequiredQueryItems<T>(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: [T].Type,
+        convert: (String) throws -> T
+    ) throws -> [T] {
+        guard
+            let values = try getOptionalQueryItems(
+                in: queryParameters,
+                name: name,
+                as: type,
+                convert: convert
+            ), !values.isEmpty
+        else {
+            throw RuntimeError.missingRequiredQueryParameter(name)
+        }
+        return values
+    }
+
+    func setRequiredRequestBody<T, C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>,
+        convert: (T) throws -> Data
+    ) throws -> Data {
+        let body = transform(value)
+        headerFields.add(name: "content-type", value: body.contentType)
+        let convertibleValue = body.value
+        return try convert(convertibleValue)
+    }
+
+    func setOptionalRequestBody<T, C>(
+        _ value: C?,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>,
+        convert: (T) throws -> Data
+    ) throws -> Data? {
+        guard let value else {
+            return nil
+        }
+        return try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convert
+        )
+    }
+
+    func getOptionalRequestBody<T, C>(
+        _ type: T.Type,
+        from data: Data?,
+        transforming transform: (T) -> C,
+        convert: (Data) throws -> T
+    ) throws -> C? {
+        guard let data else {
+            return nil
+        }
+        let decoded = try convert(data)
+        return transform(decoded)
+    }
+
+    func getRequiredRequestBody<T, C>(
+        _ type: T.Type,
+        from data: Data?,
+        transforming transform: (T) -> C,
+        convert: (Data) throws -> T
+    ) throws -> C {
+        guard
+            let body = try getOptionalRequestBody(
+                type,
+                from: data,
+                transforming: transform,
+                convert: convert
+            )
+        else {
+            throw RuntimeError.missingRequiredRequestBody
+        }
+        return body
+    }
+
+    func getResponseBody<T, C>(
+        _ type: T.Type,
+        from data: Data,
+        transforming transform: (T) -> C,
+        convert: (Data) throws -> T
+    ) throws -> C {
+        let parsedValue = try convert(data)
+        let transformedValue = transform(parsedValue)
+        return transformedValue
+    }
+
+    func setResponseBody<T, C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>,
+        convert: (T) throws -> Data
+    ) throws -> Data {
+        let body = transform(value)
+        headerFields.add(name: "content-type", value: body.contentType)
+        let convertibleValue = body.value
+        return try convert(convertibleValue)
+    }
+
+    func convertBinaryToData(
+        _ binary: Data
+    ) throws -> Data {
+        binary
+    }
+
+    func convertDataToBinary(
+        _ data: Data
+    ) throws -> Data {
+        data
+    }
+
+    func getRequiredRequestPath<T>(
+        in pathParameters: [String: String],
+        name: String,
+        as type: T.Type,
+        convert: (String) throws -> T
+    ) throws -> T {
+        guard let untypedValue = pathParameters[name] else {
+            throw RuntimeError.missingRequiredPathParameter(name)
+        }
+        return try convert(untypedValue)
     }
 }

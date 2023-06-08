@@ -14,7 +14,7 @@
 
 /// A wrapper of a body value with its content type.
 @_spi(Generated)
-public struct EncodableBodyContent<T: Encodable & Equatable>: Equatable {
+public struct EncodableBodyContent<T: Equatable>: Equatable {
 
     /// An encodable body value.
     public var value: T
@@ -22,21 +22,15 @@ public struct EncodableBodyContent<T: Encodable & Equatable>: Equatable {
     /// The header value of the content type, for example `application/json`.
     public var contentType: String
 
-    /// A hint about which coding strategy to use.
-    public var strategy: BodyCodingStrategy
-
     /// Creates a new content wrapper.
     /// - Parameters:
     ///   - value: An encodable body value.
     ///   - contentType: The header value of the content type.
-    ///   - strategy: A hint about which coding strategy to use.
     public init(
         value: T,
-        contentType: String,
-        strategy: BodyCodingStrategy
+        contentType: String
     ) {
         self.value = value
         self.contentType = contentType
-        self.strategy = strategy
     }
 }

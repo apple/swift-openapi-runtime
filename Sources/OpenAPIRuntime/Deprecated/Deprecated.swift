@@ -176,7 +176,7 @@ extension Converter {
                 as: type
             )
         else {
-            throw RuntimeError.missingRequiredHeader(name)
+            throw RuntimeError.missingRequiredHeaderField(name)
         }
         return value
     }
@@ -202,9 +202,7 @@ extension Converter {
             return
         }
         let data = try headerFieldEncoder.encode(value)
-        guard let stringValue = String(data: data, encoding: .utf8) else {
-            throw RuntimeError.failedToEncodeJSONHeaderIntoString(name: name)
-        }
+        let stringValue = String(decoding: data, as: UTF8.self)
         headerFields.add(name: name, value: stringValue)
     }
 
@@ -253,7 +251,7 @@ extension Converter {
                 as: type
             )
         else {
-            throw RuntimeError.missingRequiredHeader(name)
+            throw RuntimeError.missingRequiredHeaderField(name)
         }
         return value
     }
