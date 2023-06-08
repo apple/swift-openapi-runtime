@@ -268,11 +268,11 @@ public extension Converter {
     }
 
     //    | server | get | request body | binary | data | optional | getOptionalRequestBodyAsBinary |
-    func getOptionalRequestBodyAsBinary(
+    func getOptionalRequestBodyAsBinary<C>(
         _ type: Data.Type,
         from data: Data?,
-        transforming transform: (Data) -> Data
-    ) throws -> Data? {
+        transforming transform: (Data) -> C
+    ) throws -> C? {
         try getOptionalRequestBody(
             type,
             from: data,
