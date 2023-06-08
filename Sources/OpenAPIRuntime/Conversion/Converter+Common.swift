@@ -247,7 +247,7 @@ extension Converter {
         in headerFields: [HeaderField],
         name: String,
         as type: T.Type
-    ) throws -> T? {
+    ) throws -> T {
         try getRequiredHeaderField(
             in: headerFields,
             name: name,
