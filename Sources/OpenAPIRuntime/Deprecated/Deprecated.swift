@@ -255,7 +255,7 @@ extension Converter {
         }
         return value
     }
-    
+
     // MARK: Query - _StringConvertible
 
     /// Adds a query item with a string-convertible value to the request.
@@ -320,7 +320,7 @@ extension Converter {
             )
         }
     }
-    
+
     // MARK: Query - LosslessStringConvertible
 
     /// Returns a deserialized value for the the first query item
@@ -656,7 +656,7 @@ extension Converter {
         headerFields.add(name: "content-type", value: body.contentType)
         return body.value
     }
-    
+
     /// Returns a deserialized value for the required path variable name.
     /// - Parameters:
     ///   - pathParameters: Path parameters where the value must exist.
@@ -680,7 +680,7 @@ extension Converter {
         }
         return value
     }
-    
+
     /// Returns a deserialized value for the optional path variable name.
     /// - Parameters:
     ///   - pathParameters: Path parameters where the value might exist.
