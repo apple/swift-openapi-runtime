@@ -22,7 +22,7 @@ extension Converter {
     ///   - data: Encoded body data.
     ///   - transform: Closure for transforming the Decodable type into a final type.
     /// - Returns: Deserialized body value.
-    @available(*, deprecated, renamed: "bodyGet(_:from:strategy:transforming:)")
+    @available(*, deprecated)
     public func bodyGet<T: Decodable, C>(
         _ type: T.Type,
         from data: Data,
@@ -38,7 +38,7 @@ extension Converter {
     ///   - data: Encoded body data.
     ///   - transform: Closure for transforming the Decodable type into a final type.
     /// - Returns: Deserialized body value.
-    @available(*, deprecated, renamed: "bodyGet(_:from:strategy:transforming:)")
+    @available(*, deprecated)
     public func bodyGet<C>(
         _ type: Data.Type,
         from data: Data,
@@ -53,7 +53,7 @@ extension Converter {
     ///   - data: Encoded body data.
     ///   - transform: Closure for transforming the Decodable type into a final type.
     /// - Returns: Deserialized body value, if present.
-    @available(*, deprecated, renamed: "bodyGetOptional(_:from:strategy:transforming:)")
+    @available(*, deprecated)
     public func bodyGetOptional<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
@@ -72,7 +72,7 @@ extension Converter {
     ///   - data: Encoded body data.
     ///   - transform: Closure for transforming the Decodable type into a final type.
     /// - Returns: Deserialized body value.
-    @available(*, deprecated, renamed: "bodyGetRequired(_:from:strategy:transforming:)")
+    @available(*, deprecated)
     public func bodyGetRequired<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
@@ -91,7 +91,7 @@ extension Converter {
     ///   - data: Encoded body data.
     ///   - transform: Closure for transforming the Decodable type into a final type.
     /// - Returns: Deserialized body value, if present.
-    @available(*, deprecated, renamed: "bodyGetOptional(_:from:strategy:transforming:)")
+    @available(*, deprecated)
     public func bodyGetOptional<C>(
         _ type: Data.Type,
         from data: Data?,
@@ -109,7 +109,7 @@ extension Converter {
     ///   - data: Encoded body data.
     ///   - transform: Closure for transforming the Decodable type into a final type.
     /// - Returns: Deserialized body value.
-    @available(*, deprecated, renamed: "bodyGetRequired(_:from:strategy:transforming:)")
+    @available(*, deprecated)
     public func bodyGetRequired<C>(
         _ type: Data.Type,
         from data: Data?,
@@ -126,7 +126,7 @@ extension Converter {
     ///   - headerFields: Collection of header fields to add to.
     ///   - name: The name of the header field.
     ///   - value: Date value. If nil, header is not added.
-    @available(*, deprecated, renamed: "headerFieldAdd(in:strategy:name:value:)")
+    @available(*, deprecated)
     public func headerFieldAdd(
         in headerFields: inout [HeaderField],
         name: String,
@@ -145,7 +145,7 @@ extension Converter {
     ///   - name: The name of the header field (case-insensitive).
     ///   - type: Date type.
     /// - Returns: First value for the given name, if one exists.
-    @available(*, deprecated, renamed: "headerFieldGetOptional(in:strategy:name:as:)")
+    @available(*, deprecated)
     public func headerFieldGetOptional(
         in headerFields: [HeaderField],
         name: String,
@@ -163,7 +163,7 @@ extension Converter {
     ///   - name: Header name (case-insensitive).
     ///   - type: Date type.
     /// - Returns: First value for the given name.
-    @available(*, deprecated, renamed: "headerFieldGetRequired(in:strategy:name:as:)")
+    @available(*, deprecated)
     public func headerFieldGetRequired(
         in headerFields: [HeaderField],
         name: String,
@@ -188,7 +188,7 @@ extension Converter {
     ///   - headerFields: Collection of header fields to add to.
     ///   - name: Header name.
     ///   - value: Encodable header value.
-    @available(*, deprecated, renamed: "headerFieldAdd(in:strategy:name:value:)")
+    @available(*, deprecated)
     public func headerFieldAdd<T: Encodable>(
         in headerFields: inout [HeaderField],
         name: String,
@@ -214,7 +214,7 @@ extension Converter {
     ///   - name: Header name (case-insensitive).
     ///   - type: Date type.
     /// - Returns: First value for the given name, if one exists.
-    @available(*, deprecated, renamed: "headerFieldGetOptional(in:strategy:name:as:)")
+    @available(*, deprecated)
     public func headerFieldGetOptional<T: Decodable>(
         in headerFields: [HeaderField],
         name: String,
@@ -238,7 +238,7 @@ extension Converter {
     ///   - name: Header name (case-insensitive).
     ///   - type: Date type.
     /// - Returns: First value for the given name.
-    @available(*, deprecated, renamed: "headerFieldGetRequired(in:strategy:name:as:)")
+    @available(*, deprecated)
     public func headerFieldGetRequired<T: Decodable>(
         in headerFields: [HeaderField],
         name: String,
@@ -254,6 +254,269 @@ extension Converter {
             throw RuntimeError.missingRequiredHeaderField(name)
         }
         return value
+    }
+    
+    // MARK: Query - _StringConvertible
+
+    /// Adds a query item with a string-convertible value to the request.
+    /// - Parameters:
+    ///   - request: Request to add the query item.
+    ///   - name: Query item name.
+    ///   - value: Query item string-convertible value.
+    @available(*, deprecated)
+    public func queryAdd<T: _StringConvertible>(
+        in request: inout Request,
+        name: String,
+        value: T?
+    ) throws {
+        request.mutatingQuery { components in
+            components.addQueryItem(
+                name: name,
+                value: value
+            )
+        }
+    }
+
+    // MARK: Query - Date
+
+    /// Adds a query item with a Date value to the request.
+    /// - Parameters:
+    ///   - request: Request to add the query item.
+    ///   - name: Query item name.
+    ///   - value: Query item Date value.
+    @available(*, deprecated)
+    public func queryAdd(
+        in request: inout Request,
+        name: String,
+        value: Date?
+    ) throws {
+        try request.mutatingQuery { components in
+            try components.addQueryItem(
+                name: name,
+                value: value.flatMap { value in
+                    try self.configuration.dateTranscoder.encode(value)
+                }
+            )
+        }
+    }
+
+    // MARK: Query - Array of _StringConvertible
+
+    /// Adds a query item with a list of string-convertible values to the request.
+    /// - Parameters:
+    ///   - request: Request to add the query item.
+    ///   - name: Query item name.
+    ///   - value: Query item string-convertible values.
+    @available(*, deprecated)
+    public func queryAdd<T: _StringConvertible>(
+        in request: inout Request,
+        name: String,
+        value: [T]?
+    ) throws {
+        request.mutatingQuery { components in
+            components.addQueryItem(
+                name: name,
+                value: value
+            )
+        }
+    }
+    
+    // MARK: Query - LosslessStringConvertible
+
+    /// Returns a deserialized value for the the first query item
+    /// found under the provided name.
+    /// - Parameters:
+    ///   - queryParameters: Query parameters container where the value might exist.
+    ///   - name: Query item name.
+    ///   - type: Query item value type.
+    /// - Returns: Deserialized query item value, if present.
+    @available(*, deprecated)
+    public func queryGetOptional<T: _StringConvertible>(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: T.Type
+    ) throws -> T? {
+        guard let untypedValue = queryParameters.first(where: { $0.name == name })?.value else {
+            return nil
+        }
+        guard let typedValue = T(untypedValue) else {
+            throw RuntimeError.failedToDecodeStringConvertibleValue(
+                type: String(describing: T.self)
+            )
+        }
+        return typedValue
+    }
+
+    /// Returns a deserialized value for the the first query item
+    /// found under the provided name.
+    /// - Parameters:
+    ///   - queryParameters: Query parameters container where the value must exist.
+    ///   - name: Query item name.
+    ///   - type: Query item value type.
+    /// - Returns: Deserialized query item value.
+    @available(*, deprecated)
+    public func queryGetRequired<T: _StringConvertible>(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: T.Type
+    ) throws -> T {
+        guard let untypedValue = queryParameters.first(where: { $0.name == name })?.value else {
+            throw RuntimeError.missingRequiredQueryParameter(name)
+        }
+        guard let typedValue = T(untypedValue) else {
+            throw RuntimeError.failedToDecodeStringConvertibleValue(type: String(describing: T.self))
+        }
+        return typedValue
+    }
+
+    // MARK: Query - Date
+
+    /// Returns a deserialized value for the the first query item
+    /// found under the provided name.
+    /// - Parameters:
+    ///   - queryParameters: Query parameters container where the value might exist.
+    ///   - name: Query item name.
+    ///   - type: Query item value type.
+    /// - Returns: Deserialized query item value, if present.
+    @available(*, deprecated)
+    public func queryGetOptional(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: Date.Type
+    ) throws -> Date? {
+        guard let dateString = queryParameters.first(where: { $0.name == name })?.value else {
+            return nil
+        }
+        return try self.configuration.dateTranscoder.decode(dateString)
+    }
+
+    /// Returns a deserialized value for the the first query item
+    /// found under the provided name.
+    /// - Parameters:
+    ///   - queryParameters: Query parameters container where the value must exist.
+    ///   - name: Query item name.
+    ///   - type: Query item value type.
+    /// - Returns: Deserialized query item value.
+    @available(*, deprecated)
+    public func queryGetRequired(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: Date.Type
+    ) throws -> Date {
+        guard let dateString = queryParameters.first(where: { $0.name == name })?.value else {
+            throw RuntimeError.missingRequiredQueryParameter(name)
+        }
+        return try self.configuration.dateTranscoder.decode(dateString)
+    }
+
+    // MARK: Query - Array of _StringConvertible
+
+    /// Returns an array of deserialized values for all the query items
+    /// found under the provided name.
+    /// - Parameters:
+    ///   - queryParameters: Query parameters container where the value might exist.
+    ///   - name: Query item name.
+    ///   - type: Query item value type.
+    /// - Returns: Deserialized query item value, if present.
+    @available(*, deprecated)
+    public func queryGetOptional<T: _StringConvertible>(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: [T].Type
+    ) throws -> [T]? {
+        let items: [T] =
+            try queryParameters
+            .filter { $0.name == name }
+            .compactMap { item in
+                guard let typedValue = T(item.value ?? "") else {
+                    throw RuntimeError.failedToDecodeStringConvertibleValue(
+                        type: String(describing: T.self)
+                    )
+                }
+                return typedValue
+            }
+        guard !items.isEmpty else {
+            return nil
+        }
+        return items
+    }
+
+    /// Returns an array of deserialized values for all the query items
+    /// found under the provided name.
+    /// - Parameters:
+    ///   - queryParameters: Query parameters container where the value must exist.
+    ///   - name: Query item name.
+    ///   - type: Query item value type.
+    /// - Returns: Deserialized query item value.
+    @available(*, deprecated)
+    public func queryGetRequired<T: _StringConvertible>(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: [T].Type
+    ) throws -> [T] {
+        let items: [T] =
+            try queryParameters
+            .filter { $0.name == name }
+            .map { item in
+                guard let typedValue = T(item.value ?? "") else {
+                    throw RuntimeError.failedToDecodeStringConvertibleValue(type: String(describing: T.self))
+                }
+                return typedValue
+            }
+        guard !items.isEmpty else {
+            throw RuntimeError.missingRequiredQueryParameter(name)
+        }
+        return items
+    }
+}
+
+extension Request {
+    /// Allows modifying the parsed query parameters of the request.
+    @available(*, deprecated)
+    mutating func mutatingQuery(_ closure: (inout URLComponents) throws -> Void) rethrows {
+        var urlComponents: URLComponents = .init()
+        if let query {
+            urlComponents.percentEncodedQuery = query
+        }
+        try closure(&urlComponents)
+        query = urlComponents.percentEncodedQuery
+    }
+}
+
+extension URLComponents {
+    /// Adds a query item using the provided name and typed value.
+    /// - Parameters:
+    ///   - name: Query name.
+    ///   - value: Typed value.
+    @available(*, deprecated)
+    mutating func addQueryItem<T: _StringConvertible>(
+        name: String,
+        value: T?
+    ) {
+        guard let value = value else {
+            return
+        }
+        queryItems =
+            (queryItems ?? []) + [
+                .init(name: name, value: value.description)
+            ]
+    }
+
+    /// Adds query items using the provided name and typed values.
+    /// - Parameters:
+    ///   - name: Query name.
+    ///   - value: Array of typed values.
+    @available(*, deprecated)
+    mutating func addQueryItem<T: _StringConvertible>(
+        name: String,
+        value: [T]?
+    ) {
+        guard let items = value else {
+            return
+        }
+        for item in items {
+            addQueryItem(name: name, value: item)
+        }
     }
 }
 
@@ -367,7 +630,7 @@ extension Converter {
     ///   - transform: Closure for transforming the Encodable value into body content.
     /// - Returns: Data for the serialized body value.
     @available(*, deprecated, message: "Use the variant with EncodableBodyContent")
-    func bodyAdd<T: Encodable, C>(
+    public func bodyAdd<T: Encodable, C>(
         _ value: C,
         headerFields: inout [HeaderField],
         transforming transform: (C) -> LegacyEncodableBodyContent<T>
@@ -384,7 +647,7 @@ extension Converter {
     ///   - transform: Closure for transforming the Encodable value into body content.
     /// - Returns: Data for the serialized body value.
     @available(*, deprecated, message: "Use the variant with EncodableBodyContent")
-    func bodyAdd<C>(
+    public func bodyAdd<C>(
         _ value: C,
         headerFields: inout [HeaderField],
         transforming transform: (C) -> LegacyEncodableBodyContent<Data>
@@ -392,5 +655,50 @@ extension Converter {
         let body = transform(value)
         headerFields.add(name: "content-type", value: body.contentType)
         return body.value
+    }
+    
+    /// Returns a deserialized value for the required path variable name.
+    /// - Parameters:
+    ///   - pathParameters: Path parameters where the value must exist.
+    ///   - name: Path variable name.
+    ///   - type: Path variable type.
+    /// - Returns: Deserialized path variable value.
+    @available(*, deprecated)
+    public func pathGetRequired<T: _StringConvertible>(
+        in pathParameters: [String: String],
+        name: String,
+        as type: T.Type
+    ) throws -> T {
+        guard
+            let value = try pathGetOptional(
+                in: pathParameters,
+                name: name,
+                as: type
+            )
+        else {
+            throw RuntimeError.missingRequiredPathParameter(name)
+        }
+        return value
+    }
+    
+    /// Returns a deserialized value for the optional path variable name.
+    /// - Parameters:
+    ///   - pathParameters: Path parameters where the value might exist.
+    ///   - name: Path variable name.
+    ///   - type: Path variable type.
+    /// - Returns: Deserialized path variable value, if present.
+    @available(*, deprecated)
+    public func pathGetOptional<T: _StringConvertible>(
+        in pathParameters: [String: String],
+        name: String,
+        as type: T.Type
+    ) throws -> T? {
+        guard let untypedValue = pathParameters[name] else {
+            return nil
+        }
+        guard let typedValue = T(untypedValue) else {
+            throw RuntimeError.failedToDecodeStringConvertibleValue(type: String(describing: T.self))
+        }
+        return typedValue
     }
 }
