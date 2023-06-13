@@ -22,7 +22,7 @@ extension Converter {
     ) throws -> String {
         var renderedString = template
         for parameter in parameters {
-            if #available(iOS 16.0, macOS 13.0, *) {
+            if #available(macOS 13, iOS 16.0, tvOS 16, watchOS 9, *) {
                 renderedString.replace(
                     "{}",
                     with: parameter.description,
