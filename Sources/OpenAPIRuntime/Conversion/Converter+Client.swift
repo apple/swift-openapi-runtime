@@ -22,20 +22,12 @@ extension Converter {
     ) throws -> String {
         var renderedString = template
         for parameter in parameters {
-            if #available(macOS 13, iOS 16.0, tvOS 16, watchOS 9, *) {
-                renderedString.replace(
-                    "{}",
+            if let range = renderedString.range(of: "{}") {
+                renderedString = renderedString.replacingOccurrences(
+                    of: "{}",
                     with: parameter.description,
-                    maxReplacements: 1
+                    range: range
                 )
-            } else {
-                if let range = renderedString.range(of: "{}") {
-                    renderedString = renderedString.replacingOccurrences(
-                        of: "{}",
-                        with: parameter.description,
-                        range: range
-                    )
-                }
             }
         }
         return renderedString
