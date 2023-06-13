@@ -22,11 +22,13 @@ extension Converter {
     ) throws -> String {
         var renderedString = template
         for parameter in parameters {
-            renderedString.replace(
-                "{}",
-                with: parameter.description,
-                maxReplacements: 1
-            )
+            if let range = renderedString.range(of: "{}") {
+                renderedString = renderedString.replacingOccurrences(
+                    of: "{}",
+                    with: parameter.description,
+                    range: range
+                )
+            }
         }
         return renderedString
     }
