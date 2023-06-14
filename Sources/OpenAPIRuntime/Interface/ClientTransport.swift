@@ -207,7 +207,7 @@ public protocol ClientTransport: Sendable {
 ///         ) async throws -> Response {
 ///             var request = request
 ///             request.headerFields.append(.init(
-///                 name: "Authorization", value: "Bearer \(token)"
+///                 name: "Authorization", value: "Bearer \(self.bearerToken)"
 ///             ))
 ///             return try await next(request, baseURL)
 ///         }
