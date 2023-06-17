@@ -283,7 +283,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
 
     //    | client | get | response body | text | string-convertible | required | getResponseBodyAsText |
     func test_getResponseBodyAsText_stringConvertible() throws {
-        let value = try converter.getResponseBodyAsText(
+        let value: String = try converter.getResponseBodyAsText(
             String.self,
             from: testStringData,
             transforming: { $0 }
@@ -293,7 +293,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
 
     //    | client | get | response body | text | date | required | getResponseBodyAsText |
     func test_getResponseBodyAsText_date() throws {
-        let value = try converter.getResponseBodyAsText(
+        let value: Date = try converter.getResponseBodyAsText(
             Date.self,
             from: testDateStringData,
             transforming: { $0 }
@@ -303,7 +303,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
 
     //    | client | get | response body | JSON | codable | required | getResponseBodyAsJSON |
     func test_getResponseBodyAsJSON_codable() throws {
-        let value = try converter.getResponseBodyAsJSON(
+        let value: TestPet = try converter.getResponseBodyAsJSON(
             TestPet.self,
             from: testStructData,
             transforming: { $0 }
@@ -313,7 +313,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
 
     //    | client | get | response body | binary | data | required | getResponseBodyAsBinary |
     func test_getResponseBodyAsBinary_data() throws {
-        let value = try converter.getResponseBodyAsBinary(
+        let value: Data = try converter.getResponseBodyAsBinary(
             Data.self,
             from: testStringData,
             transforming: { $0 }
