@@ -179,7 +179,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         let headerFields: [HeaderField] = [
             .init(name: "foo", value: "bar")
         ]
-        let value = try converter.getOptionalHeaderFieldAsText(
+        let value: String? = try converter.getOptionalHeaderFieldAsText(
             in: headerFields,
             name: "foo",
             as: String.self
@@ -192,7 +192,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         let headerFields: [HeaderField] = [
             .init(name: "foo", value: "bar")
         ]
-        let value = try converter.getRequiredHeaderFieldAsText(
+        let value: String = try converter.getRequiredHeaderFieldAsText(
             in: headerFields,
             name: "foo",
             as: String.self
@@ -206,7 +206,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
             .init(name: "foo", value: "bar"),
             .init(name: "foo", value: "baz"),
         ]
-        let value = try converter.getOptionalHeaderFieldAsText(
+        let value: [String]? = try converter.getOptionalHeaderFieldAsText(
             in: headerFields,
             name: "foo",
             as: [String].self
@@ -220,7 +220,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
             .init(name: "foo", value: "bar"),
             .init(name: "foo", value: "baz"),
         ]
-        let value = try converter.getRequiredHeaderFieldAsText(
+        let value: [String] = try converter.getRequiredHeaderFieldAsText(
             in: headerFields,
             name: "foo",
             as: [String].self
@@ -233,7 +233,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         let headerFields: [HeaderField] = [
             .init(name: "foo", value: testDateString)
         ]
-        let value = try converter.getOptionalHeaderFieldAsText(
+        let value: Date? = try converter.getOptionalHeaderFieldAsText(
             in: headerFields,
             name: "foo",
             as: Date.self
@@ -246,7 +246,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         let headerFields: [HeaderField] = [
             .init(name: "foo", value: testDateString)
         ]
-        let value = try converter.getRequiredHeaderFieldAsText(
+        let value: Date = try converter.getRequiredHeaderFieldAsText(
             in: headerFields,
             name: "foo",
             as: Date.self
@@ -260,7 +260,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
             .init(name: "foo", value: testDateString),
             .init(name: "foo", value: testDateString),
         ]
-        let value = try converter.getOptionalHeaderFieldAsText(
+        let value: [Date]? = try converter.getOptionalHeaderFieldAsText(
             in: headerFields,
             name: "foo",
             as: [Date].self
@@ -274,7 +274,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
             .init(name: "foo", value: testDateString),
             .init(name: "foo", value: testDateString),
         ]
-        let value = try converter.getRequiredHeaderFieldAsText(
+        let value: [Date] = try converter.getRequiredHeaderFieldAsText(
             in: headerFields,
             name: "foo",
             as: [Date].self
@@ -287,7 +287,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         let headerFields: [HeaderField] = [
             .init(name: "foo", value: testStructString)
         ]
-        let value = try converter.getOptionalHeaderFieldAsJSON(
+        let value: TestPet? = try converter.getOptionalHeaderFieldAsJSON(
             in: headerFields,
             name: "foo",
             as: TestPet.self
@@ -300,7 +300,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         let headerFields: [HeaderField] = [
             .init(name: "foo", value: testStructString)
         ]
-        let value = try converter.getRequiredHeaderFieldAsJSON(
+        let value: TestPet = try converter.getRequiredHeaderFieldAsJSON(
             in: headerFields,
             name: "foo",
             as: TestPet.self

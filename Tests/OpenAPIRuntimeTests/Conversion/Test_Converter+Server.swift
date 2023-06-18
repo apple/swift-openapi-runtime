@@ -108,7 +108,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let path: [String: String] = [
             "foo": "bar"
         ]
-        let value = try converter.getPathParameterAsText(
+        let value: String = try converter.getPathParameterAsText(
             in: path,
             name: "foo",
             as: String.self
@@ -121,7 +121,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let query: [URLQueryItem] = [
             .init(name: "search", value: "foo")
         ]
-        let value = try converter.getOptionalQueryItemAsText(
+        let value: String? = try converter.getOptionalQueryItemAsText(
             in: query,
             name: "search",
             as: String.self
@@ -134,7 +134,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let query: [URLQueryItem] = [
             .init(name: "search", value: "foo")
         ]
-        let value = try converter.getRequiredQueryItemAsText(
+        let value: String = try converter.getRequiredQueryItemAsText(
             in: query,
             name: "search",
             as: String.self
@@ -148,7 +148,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             .init(name: "search", value: "foo"),
             .init(name: "search", value: "bar"),
         ]
-        let value = try converter.getOptionalQueryItemAsText(
+        let value: [String]? = try converter.getOptionalQueryItemAsText(
             in: query,
             name: "search",
             as: [String].self
@@ -162,7 +162,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             .init(name: "search", value: "foo"),
             .init(name: "search", value: "bar"),
         ]
-        let value = try converter.getRequiredQueryItemAsText(
+        let value: [String] = try converter.getRequiredQueryItemAsText(
             in: query,
             name: "search",
             as: [String].self
@@ -175,7 +175,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let query: [URLQueryItem] = [
             .init(name: "search", value: testDateString)
         ]
-        let value = try converter.getOptionalQueryItemAsText(
+        let value: Date? = try converter.getOptionalQueryItemAsText(
             in: query,
             name: "search",
             as: Date.self
@@ -188,7 +188,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let query: [URLQueryItem] = [
             .init(name: "search", value: testDateString)
         ]
-        let value = try converter.getRequiredQueryItemAsText(
+        let value: Date = try converter.getRequiredQueryItemAsText(
             in: query,
             name: "search",
             as: Date.self
@@ -202,7 +202,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             .init(name: "search", value: testDateString),
             .init(name: "search", value: testDateString),
         ]
-        let value = try converter.getOptionalQueryItemAsText(
+        let value: [Date]? = try converter.getOptionalQueryItemAsText(
             in: query,
             name: "search",
             as: [Date].self
@@ -216,7 +216,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             .init(name: "search", value: testDateString),
             .init(name: "search", value: testDateString),
         ]
-        let value = try converter.getRequiredQueryItemAsText(
+        let value: [Date] = try converter.getRequiredQueryItemAsText(
             in: query,
             name: "search",
             as: [Date].self
@@ -226,7 +226,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
 
     //    | server | get | request body | text | string-convertible | optional | getOptionalRequestBodyAsText |
     func test_getOptionalRequestBodyAsText_stringConvertible() throws {
-        let body = try converter.getOptionalRequestBodyAsText(
+        let body: String? = try converter.getOptionalRequestBodyAsText(
             String.self,
             from: testStringData,
             transforming: { $0 }
@@ -236,7 +236,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
 
     //    | server | get | request body | text | string-convertible | required | getRequiredRequestBodyAsText |
     func test_getRequiredRequestBodyAsText_stringConvertible() throws {
-        let body = try converter.getRequiredRequestBodyAsText(
+        let body: String = try converter.getRequiredRequestBodyAsText(
             String.self,
             from: testStringData,
             transforming: { $0 }
@@ -246,7 +246,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
 
     //    | server | get | request body | text | date | optional | getOptionalRequestBodyAsText |
     func test_getOptionalRequestBodyAsText_date() throws {
-        let body = try converter.getOptionalRequestBodyAsText(
+        let body: Date? = try converter.getOptionalRequestBodyAsText(
             Date.self,
             from: testDateStringData,
             transforming: { $0 }
@@ -256,7 +256,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
 
     //    | server | get | request body | text | date | required | getRequiredRequestBodyAsText |
     func test_getRequiredRequestBodyAsText_date() throws {
-        let body = try converter.getRequiredRequestBodyAsText(
+        let body: Date = try converter.getRequiredRequestBodyAsText(
             Date.self,
             from: testDateStringData,
             transforming: { $0 }
@@ -266,7 +266,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
 
     //    | server | get | request body | JSON | codable | optional | getOptionalRequestBodyAsJSON |
     func test_getOptionalRequestBodyAsJSON_codable() throws {
-        let body = try converter.getOptionalRequestBodyAsJSON(
+        let body: TestPet? = try converter.getOptionalRequestBodyAsJSON(
             TestPet.self,
             from: testStructData,
             transforming: { $0 }
@@ -275,7 +275,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     }
 
     func test_getOptionalRequestBodyAsJSON_codable_string() throws {
-        let body = try converter.getOptionalRequestBodyAsJSON(
+        let body: String? = try converter.getOptionalRequestBodyAsJSON(
             String.self,
             from: testQuotedStringData,
             transforming: { $0 }
@@ -285,7 +285,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
 
     //    | server | get | request body | JSON | codable | required | getRequiredRequestBodyAsJSON |
     func test_getRequiredRequestBodyAsJSON_codable() throws {
-        let body = try converter.getRequiredRequestBodyAsJSON(
+        let body: TestPet = try converter.getRequiredRequestBodyAsJSON(
             TestPet.self,
             from: testStructData,
             transforming: { $0 }
@@ -295,7 +295,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
 
     //    | server | get | request body | binary | data | optional | getOptionalRequestBodyAsBinary |
     func test_getOptionalRequestBodyAsBinary_data() throws {
-        let body = try converter.getOptionalRequestBodyAsBinary(
+        let body: Data? = try converter.getOptionalRequestBodyAsBinary(
             Data.self,
             from: testStringData,
             transforming: { $0 }
@@ -305,7 +305,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
 
     //    | server | get | request body | binary | data | required | getRequiredRequestBodyAsBinary |
     func test_getRequiredRequestBodyAsBinary_data() throws {
-        let body = try converter.getRequiredRequestBodyAsBinary(
+        let body: Data = try converter.getRequiredRequestBodyAsBinary(
             Data.self,
             from: testStringData,
             transforming: { $0 }

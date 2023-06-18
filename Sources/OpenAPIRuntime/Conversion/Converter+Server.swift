@@ -202,7 +202,7 @@ public extension Converter {
         _ type: T.Type,
         from data: Data?,
         transforming transform: (T) -> C
-    ) throws -> C? {
+    ) throws -> C {
         try getRequiredRequestBody(
             type,
             from: data,

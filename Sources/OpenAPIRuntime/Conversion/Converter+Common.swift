@@ -163,7 +163,7 @@ extension Converter {
         in headerFields: [HeaderField],
         name: String,
         as type: [T].Type
-    ) throws -> [T]? {
+    ) throws -> [T] {
         try getRequiredHeaderFields(
             in: headerFields,
             name: name,
@@ -219,7 +219,7 @@ extension Converter {
         in headerFields: [HeaderField],
         name: String,
         as type: [Date].Type
-    ) throws -> [Date]? {
+    ) throws -> [Date] {
         try getRequiredHeaderFields(
             in: headerFields,
             name: name,
