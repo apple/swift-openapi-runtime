@@ -35,7 +35,8 @@ public struct Converter: Sendable {
 
     /// Creates a new converter with the behavior specified by the configuration.
     public init(
-        configuration: Configuration
+        configuration: Configuration,
+        i: Int = 1
     ) {
         self.configuration = configuration
 
