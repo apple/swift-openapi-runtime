@@ -83,12 +83,14 @@ public struct UniversalClient: Sendable {
     ///   - serializer: Creates an HTTP request from the provided Input value.
     ///   - deserializer: Creates an Output value from the provided HTTP response.
     /// - Returns: The Output value produced by `deserializer`.
+    @preconcurrency
     public func send<OperationInput, OperationOutput>(
         input: OperationInput,
         forOperation operationID: String,
-        serializer: (OperationInput) throws -> Request,
-        deserializer: (Response) throws -> OperationOutput
+        serializer: @Sendable (OperationInput) throws -> Request,
+        deserializer: @Sendable (Response) throws -> OperationOutput
     ) async throws -> OperationOutput {
+        @Sendable
         func wrappingErrors<R>(
             work: () async throws -> R,
             mapError: (Error) -> Error
@@ -121,7 +123,7 @@ public struct UniversalClient: Sendable {
             makeError(error: error)
         }
         let response: Response = try await wrappingErrors {
-            var next: (Request, URL) async throws -> Response = { (_request, _url) in
+            var next: @Sendable (Request, URL) async throws -> Response = { (_request, _url) in
                 try await wrappingErrors {
                     try await transport.send(
                         _request,

@@ -229,10 +229,11 @@ public protocol ClientMiddleware: Sendable {
     ///   - operationID: The identifier of the OpenAPI operation.
     ///   - next: A closure that calls the next middleware, or the transport.
     /// - Returns: An HTTP response.
+    @preconcurrency
     func intercept(
         _ request: Request,
         baseURL: URL,
         operationID: String,
-        next: (Request, URL) async throws -> Response
+        next: @Sendable (Request, URL) async throws -> Response
     ) async throws -> Response
 }
