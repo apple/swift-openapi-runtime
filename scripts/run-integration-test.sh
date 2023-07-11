@@ -43,6 +43,7 @@ swift package --package-path "${INTEGRATION_TEST_PACKAGE_PATH}" \
     edit "${PACKAGE_NAME}" --path "${PACKAGE_PATH}"
 
 log "Building integration test package: ${INTEGRATION_TEST_PACKAGE_PATH}"
-swift build --package-path "${INTEGRATION_TEST_PACKAGE_PATH}"
+swift build --package-path "${INTEGRATION_TEST_PACKAGE_PATH}" \
+    -Xswiftc -strict-concurrency=complete
 
 log "✅ Successfully built integration test package."
