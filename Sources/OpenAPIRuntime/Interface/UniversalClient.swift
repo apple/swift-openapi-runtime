@@ -88,7 +88,7 @@ public struct UniversalClient: Sendable {
         forOperation operationID: String,
         serializer: @Sendable (OperationInput) throws -> Request,
         deserializer: @Sendable (Response) throws -> OperationOutput
-    ) async throws -> OperationOutput {
+    ) async throws -> OperationOutput where OperationInput: Sendable, OperationOutput: Sendable {
         @Sendable
         func wrappingErrors<R>(
             work: () async throws -> R,

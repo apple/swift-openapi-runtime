@@ -52,7 +52,7 @@ public struct OpenAPIValueContainer: Codable, Equatable, Hashable, Sendable {
     /// - Parameter unvalidatedValue: A value of a JSON-compatible type,
     /// such as `String`, `[Any]`, and `[String: Any]`.
     /// - Throws: When the value is not supported.
-    public init(unvalidatedValue: Any? = nil) throws {
+    public init(unvalidatedValue: (any Sendable)? = nil) throws {
         try self.init(validatedValue: Self.tryCast(unvalidatedValue))
     }
 
@@ -62,14 +62,14 @@ public struct OpenAPIValueContainer: Codable, Equatable, Hashable, Sendable {
     /// - Parameter value: An untyped value.
     /// - Returns: A cast value if supported.
     /// - Throws: When the value is not supported.
-    static func tryCast(_ value: Any?) throws -> Sendable? {
+    static func tryCast(_ value: (any Sendable)?) throws -> Sendable? {
         guard let value = value else {
             return nil
         }
-        if let array = value as? [Any?] {
+        if let array = value as? [(any Sendable)?] {
             return try array.map(tryCast(_:))
         }
-        if let dictionary = value as? [String: Any?] {
+        if let dictionary = value as? [String: (any Sendable)?] {
             return try dictionary.mapValues(tryCast(_:))
         }
         if let value = tryCastPrimitiveType(value) {
@@ -87,7 +87,7 @@ public struct OpenAPIValueContainer: Codable, Equatable, Hashable, Sendable {
     /// Returns the specified value cast to a supported primitive type.
     /// - Parameter value: An untyped value.
     /// - Returns: A cast value if supported, nil otherwise.
-    static func tryCastPrimitiveType(_ value: Any) -> Sendable? {
+    static func tryCastPrimitiveType(_ value: any Sendable) -> (any Sendable)? {
         switch value {
         case is String, is Int, is Bool, is Double:
             return value
@@ -327,7 +327,7 @@ public struct OpenAPIObjectContainer: Codable, Equatable, Hashable, Sendable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        try container.encode(value.mapValues(OpenAPIValueContainer.init))
+        try container.encode(value.mapValues(OpenAPIValueContainer.init(unvalidatedValue:)))
     }
 
     // MARK: Equatable
@@ -430,7 +430,7 @@ public struct OpenAPIArrayContainer: Codable, Equatable, Hashable, Sendable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        try container.encode(value.map(OpenAPIValueContainer.init))
+        try container.encode(value.map(OpenAPIValueContainer.init(unvalidatedValue:)))
     }
 
     // MARK: Equatable

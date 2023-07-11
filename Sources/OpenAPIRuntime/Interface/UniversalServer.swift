@@ -91,7 +91,7 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
         using handlerMethod: @Sendable @escaping (APIHandler) -> ((OperationInput) async throws -> OperationOutput),
         deserializer: @Sendable @escaping (Request, ServerRequestMetadata) throws -> OperationInput,
         serializer: @Sendable @escaping (OperationOutput, Request) throws -> Response
-    ) async throws -> Response {
+    ) async throws -> Response where OperationInput: Sendable, OperationOutput: Sendable {
         @Sendable
         func wrappingErrors<R>(
             work: () async throws -> R,
