@@ -11,7 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if canImport(Darwin)
 import Foundation
+#else
+@preconcurrency import Foundation
+#endif
 
 /// An error thrown by a client performing an OpenAPI operation.
 ///
