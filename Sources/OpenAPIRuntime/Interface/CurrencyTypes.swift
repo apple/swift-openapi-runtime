@@ -48,7 +48,7 @@ private class RedactedHeadersStorage: @unchecked Sendable {
         return lock
     }()
 
-    init() { }
+    init() {}
 }
 
 
