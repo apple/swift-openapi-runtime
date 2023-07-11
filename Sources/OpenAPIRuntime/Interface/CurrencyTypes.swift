@@ -51,7 +51,6 @@ private class RedactedHeadersStorage: @unchecked Sendable {
     init() {}
 }
 
-
 /// A header field used in an HTTP request or response.
 public struct HeaderField: Equatable, Hashable, Sendable {
 
