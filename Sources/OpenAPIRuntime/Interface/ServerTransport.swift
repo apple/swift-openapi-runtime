@@ -111,7 +111,6 @@ public protocol ServerTransport {
     ///   - path: The URL path components, for example `["pets", ":petId"]`.
     ///   - queryItemNames: The names of query items to be extracted
     ///   from the request URL that matches the provided HTTP operation.
-    @preconcurrency
     func register(
         _ handler: @Sendable @escaping (Request, ServerRequestMetadata) async throws -> Response,
         method: HTTPMethod,
@@ -214,7 +213,6 @@ public protocol ServerMiddleware: Sendable {
     ///   - operationID: The identifier of the OpenAPI operation.
     ///   - next: A closure that calls the next middleware, or the transport.
     /// - Returns: An HTTP response.
-    @preconcurrency
     func intercept(
         _ request: Request,
         metadata: ServerRequestMetadata,

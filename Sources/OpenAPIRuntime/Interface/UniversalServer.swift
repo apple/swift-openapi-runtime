@@ -84,7 +84,6 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
     ///   - deserializer: Creates an Input value from the provided HTTP request.
     ///   - serializer: Creates an HTTP response from the provided Output value.
     /// - Returns: The HTTP response produced by `serializer`.
-    @preconcurrency
     public func handle<OperationInput, OperationOutput>(
         request: Request,
         with metadata: ServerRequestMetadata,

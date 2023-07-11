@@ -83,7 +83,6 @@ public struct UniversalClient: Sendable {
     ///   - serializer: Creates an HTTP request from the provided Input value.
     ///   - deserializer: Creates an Output value from the provided HTTP response.
     /// - Returns: The Output value produced by `deserializer`.
-    @preconcurrency
     public func send<OperationInput, OperationOutput>(
         input: OperationInput,
         forOperation operationID: String,
