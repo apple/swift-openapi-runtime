@@ -11,7 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if canImport(Darwin)
 import Foundation
+#else
+// `@preconcrrency` is for `Data`/`URLQueryItem`.
+@preconcurrency import Foundation
+#endif
 
 /// A protected-by-locks storage for ``redactedHeaderFields``.
 private class RedactedHeadersStorage: @unchecked Sendable {
