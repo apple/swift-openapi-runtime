@@ -47,8 +47,6 @@ private class RedactedHeadersStorage: @unchecked Sendable {
         lock.name = "com.apple.swift-openapi-runtime.lock.redactedHeaderFields"
         return lock
     }()
-
-    init() {}
 }
 
 /// A header field used in an HTTP request or response.
