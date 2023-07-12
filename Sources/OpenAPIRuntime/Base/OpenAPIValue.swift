@@ -327,7 +327,7 @@ public struct OpenAPIObjectContainer: Codable, Equatable, Hashable, Sendable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        try container.encode(value.mapValues(OpenAPIValueContainer.init(unvalidatedValue:)))
+        try container.encode(value.mapValues(OpenAPIValueContainer.init(validatedValue:)))
     }
 
     // MARK: Equatable
@@ -430,7 +430,7 @@ public struct OpenAPIArrayContainer: Codable, Equatable, Hashable, Sendable {
 
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        try container.encode(value.map(OpenAPIValueContainer.init(unvalidatedValue:)))
+        try container.encode(value.map(OpenAPIValueContainer.init(validatedValue:)))
     }
 
     // MARK: Equatable
