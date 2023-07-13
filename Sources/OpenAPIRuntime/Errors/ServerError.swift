@@ -27,12 +27,12 @@ public struct ServerError: Error {
     /// Operation-specific Input value.
     ///
     /// Is nil if error was thrown during request -> Input conversion.
-    public var operationInput: Any?
+    public var operationInput: (any Sendable)?
 
     /// Operation-specific Output value.
     ///
     /// Is nil if error was thrown before/during Output -> response conversion.
-    public var operationOutput: Any?
+    public var operationOutput: (any Sendable)?
 
     /// The underlying error that caused the operation to fail.
     public var underlyingError: Error
@@ -50,8 +50,8 @@ public struct ServerError: Error {
         operationID: String,
         request: Request,
         requestMetadata: ServerRequestMetadata,
-        operationInput: Any? = nil,
-        operationOutput: Any? = nil,
+        operationInput: (any Sendable)? = nil,
+        operationOutput: (any Sendable)? = nil,
         underlyingError: Error
     ) {
         self.operationID = operationID

@@ -112,9 +112,7 @@ public protocol ServerTransport {
     ///   - queryItemNames: The names of query items to be extracted
     ///   from the request URL that matches the provided HTTP operation.
     func register(
-        _ handler: @Sendable @escaping (
-            Request, ServerRequestMetadata
-        ) async throws -> Response,
+        _ handler: @Sendable @escaping (Request, ServerRequestMetadata) async throws -> Response,
         method: HTTPMethod,
         path: [RouterPathComponent],
         queryItemNames: Set<String>
@@ -219,6 +217,6 @@ public protocol ServerMiddleware: Sendable {
         _ request: Request,
         metadata: ServerRequestMetadata,
         operationID: String,
-        next: (Request, ServerRequestMetadata) async throws -> Response
+        next: @Sendable (Request, ServerRequestMetadata) async throws -> Response
     ) async throws -> Response
 }

@@ -233,6 +233,6 @@ public protocol ClientMiddleware: Sendable {
         _ request: Request,
         baseURL: URL,
         operationID: String,
-        next: (Request, URL) async throws -> Response
+        next: @Sendable (Request, URL) async throws -> Response
     ) async throws -> Response
 }

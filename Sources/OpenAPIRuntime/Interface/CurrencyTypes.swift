@@ -14,8 +14,41 @@
 #if canImport(Darwin)
 import Foundation
 #else
+// `@preconcrrency` is for `Data`/`URLQueryItem`.
 @preconcurrency import Foundation
 #endif
+
+/// A protected-by-locks storage for ``redactedHeaderFields``.
+private class RedactedHeadersStorage: @unchecked Sendable {
+    /// The underlying storage of ``redactedHeaderFields``,
+    /// protected by a lock.
+    private var _locked_redactedHeaderFields: Set<String> = HeaderField.defaultRedactedHeaderFields
+
+    /// The header fields to be redacted.
+    var redactedHeaderFields: Set<String> {
+        get {
+            lock.lock()
+            defer {
+                lock.unlock()
+            }
+            return _locked_redactedHeaderFields
+        }
+        set {
+            lock.lock()
+            defer {
+                lock.unlock()
+            }
+            _locked_redactedHeaderFields = newValue
+        }
+    }
+
+    /// The lock used for protecting access to `_locked_redactedHeaderFields`.
+    private let lock: NSLock = {
+        let lock = NSLock()
+        lock.name = "com.apple.swift-openapi-runtime.lock.redactedHeaderFields"
+        return lock
+    }()
+}
 
 /// A header field used in an HTTP request or response.
 public struct HeaderField: Equatable, Hashable, Sendable {
@@ -47,20 +80,12 @@ extension HeaderField {
     /// Use this to avoid leaking sensitive tokens into application logs.
     public static var redactedHeaderFields: Set<String> {
         set {
-            _lock_redactedHeaderFields.lock()
-            defer {
-                _lock_redactedHeaderFields.unlock()
-            }
             // Save lowercased versions of the header field names to make
             // membership checking O(1).
-            _locked_redactedHeaderFields = Set(newValue.map { $0.lowercased() })
+            redactedHeadersStorage.redactedHeaderFields = Set(newValue.map { $0.lowercased() })
         }
         get {
-            _lock_redactedHeaderFields.lock()
-            defer {
-                _lock_redactedHeaderFields.unlock()
-            }
-            return _locked_redactedHeaderFields
+            return redactedHeadersStorage.redactedHeaderFields
         }
     }
 
@@ -71,16 +96,7 @@ extension HeaderField {
         "set-cookie",
     ]
 
-    /// The lock used for protecting access to `_locked_redactedHeaderFields`.
-    private static let _lock_redactedHeaderFields: NSLock = {
-        let lock = NSLock()
-        lock.name = "com.apple.swift-openapi-runtime.lock.redactedHeaderFields"
-        return lock
-    }()
-
-    /// The underlying storage of ``HeaderField/redactedHeaderFields``,
-    /// protected by a lock.
-    private static var _locked_redactedHeaderFields: Set<String> = defaultRedactedHeaderFields
+    private static let redactedHeadersStorage = RedactedHeadersStorage()
 }
 
 /// Describes the HTTP method used in an OpenAPI operation.

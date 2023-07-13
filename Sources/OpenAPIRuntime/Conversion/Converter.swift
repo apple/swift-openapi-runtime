@@ -14,6 +14,7 @@
 #if canImport(Darwin)
 import Foundation
 #else
+// `@preconcrrency` is for `JSONDecoder`/`JSONEncoder`.
 @preconcurrency import Foundation
 #endif
 
