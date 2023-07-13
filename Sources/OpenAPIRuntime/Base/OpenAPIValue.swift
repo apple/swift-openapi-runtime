@@ -143,6 +143,18 @@ public struct OpenAPIValueContainer: Codable, Equatable, Hashable, Sendable {
             try container.encode(value.map(OpenAPIValueContainer.init(validatedValue:)))
         case let value as [String: OpenAPIValueContainer?]:
             try container.encode(value.mapValues(OpenAPIValueContainer.init(validatedValue:)))
+        case let value as [Sendable?]:
+            try container.encode(
+                value.map {
+                    try OpenAPIValueContainer.init(unvalidatedValue: $0)
+                }
+            )
+        case let value as [String: Sendable?]:
+            try container.encode(
+                value.mapValues {
+                    try OpenAPIValueContainer.init(unvalidatedValue: $0)
+                }
+            )
         default:
             throw EncodingError.invalidValue(
                 value,
