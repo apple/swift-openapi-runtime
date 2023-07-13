@@ -193,4 +193,96 @@ final class Test_OpenAPIValue: Test_Runtime {
         XCTAssertEqual(value[0] as? String, "one")
         XCTAssertEqual(value[1] as? [String: Int], ["two": 2])
     }
+
+    func testEncoding_objectNested_success() throws {
+
+        struct Foo: Encodable {
+            var bar: String
+            var dict: OpenAPIObjectContainer = .init()
+        }
+
+        do {
+            let value = Foo(
+                bar: "hi",
+                dict: try .init(unvalidatedValue: [
+                    "baz": "bar",
+                    "number": 1,
+                    "nestedArray": [
+                        1,
+                        [
+                            "k": "v"
+                        ],
+                    ] as [(any Sendable)?],
+                    "nestedDict": [
+                        "nested": 2
+                    ],
+                ])
+            )
+            let encoder: JSONEncoder = .init()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            let data = try encoder.encode(value)
+            XCTAssertEqual(
+                String(decoding: data, as: UTF8.self),
+                #"""
+                {
+                  "bar" : "hi",
+                  "dict" : {
+                    "baz" : "bar",
+                    "nestedArray" : [
+                      1,
+                      {
+                        "k" : "v"
+                      }
+                    ],
+                    "nestedDict" : {
+                      "nested" : 2
+                    },
+                    "number" : 1
+                  }
+                }
+                """#
+            )
+        }
+    }
+
+    func testDecodeEncodeRoundTrip_objectNested_success() throws {
+
+        struct Foo: Codable {
+            var bar: String
+            var dict: OpenAPIObjectContainer = .init()
+        }
+
+        do {
+            let data = Data(
+                #"""
+                {
+                  "bar" : "hi",
+                  "dict" : {
+                    "baz" : "bar",
+                    "nestedArray" : [
+                      1,
+                      {
+                        "k" : "v"
+                      }
+                    ],
+                    "nestedDict" : {
+                      "nested" : 2
+                    },
+                    "number" : 1
+                  }
+                }
+                """#
+                .utf8
+            )
+            let decoded = try JSONDecoder().decode(Foo.self, from: data)
+            let nestedDict = try XCTUnwrap(decoded.dict.value["nestedDict"] as? [String: Any?])
+            let nestedValue = try XCTUnwrap(nestedDict["nested"] as? Int)
+            XCTAssertEqual(nestedValue, 2)
+
+            let encoder: JSONEncoder = .init()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+            let encodedData = try encoder.encode(decoded)
+            XCTAssertEqual(encodedData, data)
+        }
+    }
 }
