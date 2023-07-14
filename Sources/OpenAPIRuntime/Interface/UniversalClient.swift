@@ -14,6 +14,7 @@
 #if canImport(Darwin)
 import Foundation
 #else
+// `@preconcrrency` is for `URL`.
 @preconcurrency import Foundation
 #endif
 
@@ -86,9 +87,10 @@ public struct UniversalClient: Sendable {
     public func send<OperationInput, OperationOutput>(
         input: OperationInput,
         forOperation operationID: String,
-        serializer: (OperationInput) throws -> Request,
-        deserializer: (Response) throws -> OperationOutput
-    ) async throws -> OperationOutput {
+        serializer: @Sendable (OperationInput) throws -> Request,
+        deserializer: @Sendable (Response) throws -> OperationOutput
+    ) async throws -> OperationOutput where OperationInput: Sendable, OperationOutput: Sendable {
+        @Sendable
         func wrappingErrors<R>(
             work: () async throws -> R,
             mapError: (Error) -> Error
@@ -121,7 +123,7 @@ public struct UniversalClient: Sendable {
             makeError(error: error)
         }
         let response: Response = try await wrappingErrors {
-            var next: (Request, URL) async throws -> Response = { (_request, _url) in
+            var next: @Sendable (Request, URL) async throws -> Response = { (_request, _url) in
                 try await wrappingErrors {
                     try await transport.send(
                         _request,

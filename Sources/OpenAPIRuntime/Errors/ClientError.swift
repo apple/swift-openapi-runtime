@@ -11,7 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if canImport(Darwin)
 import Foundation
+#else
+// `@preconcrrency` is for `URL`.
+@preconcurrency import Foundation
+#endif
 
 /// An error thrown by a client performing an OpenAPI operation.
 ///
@@ -24,7 +29,7 @@ public struct ClientError: Error {
     public var operationID: String
 
     /// The operation-specific Input value.
-    public var operationInput: Any
+    public var operationInput: any Sendable
 
     /// The HTTP request created during the operation.
     ///
@@ -56,7 +61,7 @@ public struct ClientError: Error {
     ///   - underlyingError: The underlying error that caused the operation to fail.
     public init(
         operationID: String,
-        operationInput: Any,
+        operationInput: any Sendable,
         request: Request? = nil,
         baseURL: URL? = nil,
         response: Response? = nil,
