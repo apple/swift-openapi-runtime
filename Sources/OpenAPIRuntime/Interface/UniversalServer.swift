@@ -88,10 +88,11 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
         request: Request,
         with metadata: ServerRequestMetadata,
         forOperation operationID: String,
-        using handlerMethod: @escaping (APIHandler) -> ((OperationInput) async throws -> OperationOutput),
-        deserializer: @escaping (Request, ServerRequestMetadata) throws -> OperationInput,
-        serializer: @escaping (OperationOutput, Request) throws -> Response
-    ) async throws -> Response {
+        using handlerMethod: @Sendable @escaping (APIHandler) -> ((OperationInput) async throws -> OperationOutput),
+        deserializer: @Sendable @escaping (Request, ServerRequestMetadata) throws -> OperationInput,
+        serializer: @Sendable @escaping (OperationOutput, Request) throws -> Response
+    ) async throws -> Response where OperationInput: Sendable, OperationOutput: Sendable {
+        @Sendable
         func wrappingErrors<R>(
             work: () async throws -> R,
             mapError: (Error) -> Error
@@ -102,6 +103,7 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
                 throw mapError(error)
             }
         }
+        @Sendable
         func makeError(
             input: OperationInput? = nil,
             output: OperationOutput? = nil,
@@ -116,7 +118,7 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
                 underlyingError: error
             )
         }
-        var next: (Request, ServerRequestMetadata) async throws -> Response = { _request, _metadata in
+        var next: @Sendable (Request, ServerRequestMetadata) async throws -> Response = { _request, _metadata in
             let input: OperationInput = try await wrappingErrors {
                 try deserializer(_request, _metadata)
             } mapError: { error in
