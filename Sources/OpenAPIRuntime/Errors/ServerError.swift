@@ -35,7 +35,7 @@ public struct ServerError: Error {
     public var operationOutput: (any Sendable)?
 
     /// The underlying error that caused the operation to fail.
-    public var underlyingError: Error
+    public var underlyingError: any Error
 
     /// Creates a new error.
     /// - Parameters:
@@ -52,7 +52,7 @@ public struct ServerError: Error {
         requestMetadata: ServerRequestMetadata,
         operationInput: (any Sendable)? = nil,
         operationOutput: (any Sendable)? = nil,
-        underlyingError: Error
+        underlyingError: (any Error)
     ) {
         self.operationID = operationID
         self.request = request
@@ -65,7 +65,7 @@ public struct ServerError: Error {
     // MARK: Private
 
     fileprivate var underlyingErrorDescription: String {
-        guard let prettyError = underlyingError as? PrettyStringConvertible else {
+        guard let prettyError = underlyingError as? (any PrettyStringConvertible) else {
             return underlyingError.localizedDescription
         }
         return prettyError.prettyDescription

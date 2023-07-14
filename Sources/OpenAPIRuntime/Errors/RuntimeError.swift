@@ -38,8 +38,8 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     case missingRequiredRequestBody
 
     // Transport/Handler
-    case transportFailed(Error)
-    case handlerFailed(Error)
+    case transportFailed(any Error)
+    case handlerFailed(any Error)
 
     // MARK: CustomStringConvertible
 

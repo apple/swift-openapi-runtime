@@ -14,6 +14,13 @@
 //===----------------------------------------------------------------------===//
 import PackageDescription
 
+// General Swift-settings for all targets.
+let swiftSettings: [SwiftSetting] = [
+    // https://github.com/apple/swift-evolution/blob/main/proposals/0335-existential-any.md
+    // Require `any` for existential types.
+    .enableUpcomingFeature("ExistentialAny")
+]
+
 let package = Package(
     name: "swift-openapi-runtime",
     platforms: [
@@ -31,11 +38,13 @@ let package = Package(
     targets: [
         .target(
             name: "OpenAPIRuntime",
-            dependencies: []
+            dependencies: [],
+            swiftSettings: swiftSettings
         ),
         .testTarget(
             name: "OpenAPIRuntimeTests",
-            dependencies: ["OpenAPIRuntime"]
+            dependencies: ["OpenAPIRuntime"],
+            swiftSettings: swiftSettings
         ),
     ]
 )
