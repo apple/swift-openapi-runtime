@@ -36,14 +36,14 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
     public var handler: APIHandler
 
     /// Middlewares to be invoked before `api` handles the request.
-    public var middlewares: [ServerMiddleware]
+    public var middlewares: [any ServerMiddleware]
 
     /// Internal initializer that takes an initialized converter.
     internal init(
         serverURL: URL,
         converter: Converter,
         handler: APIHandler,
-        middlewares: [ServerMiddleware]
+        middlewares: [any ServerMiddleware]
     ) {
         self.serverURL = serverURL
         self.converter = converter
@@ -56,7 +56,7 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
         serverURL: URL = .defaultOpenAPIServerURL,
         handler: APIHandler,
         configuration: Configuration = .init(),
-        middlewares: [ServerMiddleware] = []
+        middlewares: [any ServerMiddleware] = []
     ) {
         self.init(
             serverURL: serverURL,
@@ -95,7 +95,7 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
         @Sendable
         func wrappingErrors<R>(
             work: () async throws -> R,
-            mapError: (Error) -> Error
+            mapError: (any Error) -> any Error
         ) async throws -> R {
             do {
                 return try await work()
@@ -107,8 +107,8 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
         func makeError(
             input: OperationInput? = nil,
             output: OperationOutput? = nil,
-            error: Error
-        ) -> Error {
+            error: any Error
+        ) -> any Error {
             ServerError(
                 operationID: operationID,
                 request: request,

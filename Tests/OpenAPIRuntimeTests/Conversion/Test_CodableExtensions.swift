@@ -35,7 +35,7 @@ final class Test_CodableExtensions: Test_Runtime {
                 case bar
             }
 
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 self.bar = try container.decode(String.self, forKey: .bar)
                 try decoder.ensureNoAdditionalProperties(
@@ -91,7 +91,7 @@ final class Test_CodableExtensions: Test_Runtime {
                 case bar
             }
 
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 self.bar = try container.decode(String.self, forKey: .bar)
                 self.additionalProperties =
@@ -142,7 +142,7 @@ final class Test_CodableExtensions: Test_Runtime {
                 case bar
             }
 
-            init(from decoder: Decoder) throws {
+            init(from decoder: any Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 self.bar = try container.decode(String.self, forKey: .bar)
                 self.additionalProperties =
@@ -193,7 +193,7 @@ final class Test_CodableExtensions: Test_Runtime {
                 case bar
             }
 
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.container(keyedBy: CodingKeys.self)
                 try container.encode(bar, forKey: .bar)
                 try encoder.encodeAdditionalProperties(additionalProperties)
@@ -247,7 +247,7 @@ final class Test_CodableExtensions: Test_Runtime {
                 case bar
             }
 
-            func encode(to encoder: Encoder) throws {
+            func encode(to encoder: any Encoder) throws {
                 var container = encoder.container(keyedBy: CodingKeys.self)
                 try container.encode(bar, forKey: .bar)
                 try encoder.encodeAdditionalProperties(additionalProperties)

@@ -49,7 +49,7 @@ public struct ClientError: Error {
     public var response: Response?
 
     /// The underlying error that caused the operation to fail.
-    public var underlyingError: Error
+    public var underlyingError: any Error
 
     /// Creates a new error.
     /// - Parameters:
@@ -65,7 +65,7 @@ public struct ClientError: Error {
         request: Request? = nil,
         baseURL: URL? = nil,
         response: Response? = nil,
-        underlyingError: Error
+        underlyingError: any Error
     ) {
         self.operationID = operationID
         self.operationInput = operationInput
@@ -78,7 +78,7 @@ public struct ClientError: Error {
     // MARK: Private
 
     fileprivate var underlyingErrorDescription: String {
-        guard let prettyError = underlyingError as? PrettyStringConvertible else {
+        guard let prettyError = underlyingError as? (any PrettyStringConvertible) else {
             return underlyingError.localizedDescription
         }
         return prettyError.prettyDescription

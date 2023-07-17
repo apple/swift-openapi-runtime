@@ -197,7 +197,7 @@ extension Converter {
         guard let value else {
             return
         }
-        if let value = value as? _StringConvertible {
+        if let value = value as? (any _StringConvertible) {
             headerFields.add(name: name, value: value.description)
             return
         }
@@ -223,7 +223,7 @@ extension Converter {
         guard let stringValue = headerFields.firstValue(name: name) else {
             return nil
         }
-        if let myType = T.self as? _StringConvertible.Type {
+        if let myType = T.self as? any _StringConvertible.Type {
             return myType.init(stringValue).map { $0 as! T }
         }
         let data = Data(stringValue.utf8)

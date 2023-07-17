@@ -55,7 +55,7 @@ extension DateTranscoder where Self == ISO8601DateTranscoder {
 
 extension JSONEncoder.DateEncodingStrategy {
     /// Encode the `Date` as a custom value encoded using the given ``DateTranscoder``.
-    static func from(dateTranscoder: DateTranscoder) -> Self {
+    static func from(dateTranscoder: any DateTranscoder) -> Self {
         return .custom { date, encoder in
             let dateAsString = try dateTranscoder.encode(date)
             var container = encoder.singleValueContainer()
@@ -66,7 +66,7 @@ extension JSONEncoder.DateEncodingStrategy {
 
 extension JSONDecoder.DateDecodingStrategy {
     /// Decode the `Date` as a custom value decoded by the given ``DateTranscoder``.
-    static func from(dateTranscoder: DateTranscoder) -> Self {
+    static func from(dateTranscoder: any DateTranscoder) -> Self {
         return .custom { decoder in
             let container = try decoder.singleValueContainer()
             let dateString = try container.decode(String.self)
@@ -79,7 +79,7 @@ extension JSONDecoder.DateDecodingStrategy {
 public struct Configuration: Sendable {
 
     /// The transcoder used when converting between date and string values.
-    public var dateTranscoder: DateTranscoder
+    public var dateTranscoder: any DateTranscoder
 
     /// Creates a new configuration with the specified values.
     ///
@@ -87,7 +87,7 @@ public struct Configuration: Sendable {
     ///   - dateTranscoder: The transcoder to use when converting between date
     ///   and string values.
     public init(
-        dateTranscoder: DateTranscoder = .iso8601
+        dateTranscoder: any DateTranscoder = .iso8601
     ) {
         self.dateTranscoder = dateTranscoder
     }
