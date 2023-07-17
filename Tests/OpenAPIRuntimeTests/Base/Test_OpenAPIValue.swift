@@ -26,14 +26,14 @@ final class Test_OpenAPIValue: Test_Runtime {
         _ = try OpenAPIValueContainer(unvalidatedValue: ["hello": "world"])
 
         _ = try OpenAPIObjectContainer(unvalidatedValue: ["hello": "world"])
-        _ = try OpenAPIObjectContainer(unvalidatedValue: ["hello": ["nested": "world", "nested2": 2]])
+        _ = try OpenAPIObjectContainer(unvalidatedValue: ["hello": ["nested": "world", "nested2": 2] as [String: any Sendable]])
 
         _ = try OpenAPIArrayContainer(unvalidatedValue: ["hello"])
-        _ = try OpenAPIArrayContainer(unvalidatedValue: ["hello", ["nestedHello", 2]])
+        _ = try OpenAPIArrayContainer(unvalidatedValue: ["hello", ["nestedHello", 2] as [any Sendable]])
     }
 
     func testEncoding_container_success() throws {
-        let values: [Any?] = [
+        let values: [(any Sendable)?] = [
             nil,
             "Hello",
             [
@@ -41,8 +41,8 @@ final class Test_OpenAPIValue: Test_Runtime {
                 "anotherKey": [
                     1,
                     "two",
-                ],
-            ],
+                ] as [any Sendable],
+            ] as [String: any Sendable],
             1 as Int,
             2.5 as Double,
             [true],
@@ -125,7 +125,7 @@ final class Test_OpenAPIValue: Test_Runtime {
     }
 
     func testEncoding_object_success() throws {
-        let values: [String: Any?] = [
+        let values: [String: (any Sendable)?] = [
             "key": "value",
             "keyMore": [
                 true
@@ -160,7 +160,7 @@ final class Test_OpenAPIValue: Test_Runtime {
     }
 
     func testEncoding_array_success() throws {
-        let values: [Any?] = [
+        let values: [(any Sendable)?] = [
             "one",
             ["two": 2],
         ]
