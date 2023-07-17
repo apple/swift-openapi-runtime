@@ -52,7 +52,7 @@ public struct OpenAPIValueContainer: Codable, Equatable, Hashable, Sendable {
     /// - Parameter unvalidatedValue: A value of a JSON-compatible type,
     /// such as `String`, `[Any]`, and `[String: Any]`.
     /// - Throws: When the value is not supported.
-    public init(unvalidatedValue: (any Sendable)? = nil) throws {
+    public init(unvalidatedValue: Any? = nil) throws {
         try self.init(validatedValue: Self.tryCast(unvalidatedValue))
     }
 
@@ -62,7 +62,7 @@ public struct OpenAPIValueContainer: Codable, Equatable, Hashable, Sendable {
     /// - Parameter value: An untyped value.
     /// - Returns: A cast value if supported.
     /// - Throws: When the value is not supported.
-    static func tryCast(_ value: (any Sendable)?) throws -> (any Sendable)? {
+    static func tryCast(_ value: Any?) throws -> (any Sendable)? {
         guard let value = value else {
             return nil
         }
