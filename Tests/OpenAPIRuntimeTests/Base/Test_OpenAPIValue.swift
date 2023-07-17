@@ -26,7 +26,9 @@ final class Test_OpenAPIValue: Test_Runtime {
         _ = try OpenAPIValueContainer(unvalidatedValue: ["hello": "world"])
 
         _ = try OpenAPIObjectContainer(unvalidatedValue: ["hello": "world"])
-        _ = try OpenAPIObjectContainer(unvalidatedValue: ["hello": ["nested": "world", "nested2": 2] as [String: any Sendable]])
+        _ = try OpenAPIObjectContainer(unvalidatedValue: [
+            "hello": ["nested": "world", "nested2": 2] as [String: any Sendable]
+        ])
 
         _ = try OpenAPIArrayContainer(unvalidatedValue: ["hello"])
         _ = try OpenAPIArrayContainer(unvalidatedValue: ["hello", ["nestedHello", 2] as [any Sendable]])
