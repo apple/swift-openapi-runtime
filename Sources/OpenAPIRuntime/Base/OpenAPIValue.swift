@@ -139,9 +139,9 @@ public struct OpenAPIValueContainer: Codable, Equatable, Hashable, Sendable {
             try container.encode(value)
         case let value as String:
             try container.encode(value)
-        case let value as [OpenAPIValueContainer?]:
+        case let value as [(any Sendable)?]:
             try container.encode(value.map(OpenAPIValueContainer.init(validatedValue:)))
-        case let value as [String: OpenAPIValueContainer?]:
+        case let value as [String: (any Sendable)?]:
             try container.encode(value.mapValues(OpenAPIValueContainer.init(validatedValue:)))
         default:
             throw EncodingError.invalidValue(
@@ -211,11 +211,11 @@ public struct OpenAPIValueContainer: Codable, Equatable, Hashable, Sendable {
             hasher.combine(value)
         case let value as String:
             hasher.combine(value)
-        case let value as [any Sendable]:
+        case let value as [(any Sendable)?]:
             for item in value {
                 hasher.combine(OpenAPIValueContainer(validatedValue: item))
             }
-        case let value as [String: any Sendable]:
+        case let value as [String: (any Sendable)?]:
             for (key, itemValue) in value {
                 hasher.combine(key)
                 hasher.combine(OpenAPIValueContainer(validatedValue: itemValue))
@@ -301,7 +301,7 @@ public struct OpenAPIObjectContainer: Codable, Equatable, Hashable, Sendable {
     /// - Parameter unvalidatedValue: A dictionary with values of
     /// JSON-compatible types.
     /// - Throws: When the value is not supported.
-    public init(unvalidatedValue: [String: Any?]) throws {
+    public init(unvalidatedValue: [String: (any Sendable)?]) throws {
         try self.init(validatedValue: Self.tryCast(unvalidatedValue))
     }
 
@@ -311,7 +311,7 @@ public struct OpenAPIObjectContainer: Codable, Equatable, Hashable, Sendable {
     /// - Parameter value: A dictionary with untyped values.
     /// - Returns: A cast dictionary if values are supported.
     /// - Throws: If an unsupported value is found.
-    static func tryCast(_ value: [String: Any?]) throws -> [String: (any Sendable)?] {
+    static func tryCast(_ value: [String: (any Sendable)?]) throws -> [String: (any Sendable)?] {
         return try value.mapValues(OpenAPIValueContainer.tryCast(_:))
     }
 
@@ -405,7 +405,7 @@ public struct OpenAPIArrayContainer: Codable, Equatable, Hashable, Sendable {
     /// - Parameter unvalidatedValue: An array with values of JSON-compatible
     /// types.
     /// - Throws: When the value is not supported.
-    public init(unvalidatedValue: [Any?]) throws {
+    public init(unvalidatedValue: [(any Sendable)?]) throws {
         try self.init(validatedValue: Self.tryCast(unvalidatedValue))
     }
 
@@ -414,7 +414,7 @@ public struct OpenAPIArrayContainer: Codable, Equatable, Hashable, Sendable {
     /// Returns the specified value cast to an array of supported values.
     /// - Parameter value: An array with untyped values.
     /// - Returns: A cast value if values are supported, nil otherwise.
-    static func tryCast(_ value: [Any?]) throws -> [(any Sendable)?] {
+    static func tryCast(_ value: [(any Sendable)?]) throws -> [(any Sendable)?] {
         return try value.map(OpenAPIValueContainer.tryCast(_:))
     }
 

@@ -97,6 +97,19 @@ class Test_Runtime: XCTestCase {
     var testStructPrettyData: Data {
         Data(testStructPrettyString.utf8)
     }
+
+    func _testPrettyEncoded<Value: Encodable>(_ value: Value, expectedJSON: String) throws {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        let data = try encoder.encode(value)
+        XCTAssertEqual(String(data: data, encoding: .utf8)!, expectedJSON)
+    }
+
+    func _getDecoded<Value: Decodable>(json: String) throws -> Value {
+        let inputData = json.data(using: .utf8)!
+        let decoder = JSONDecoder()
+        return try decoder.decode(Value.self, from: inputData)
+    }
 }
 
 public func XCTAssertEqualURLString(_ lhs: URL?, _ rhs: String, file: StaticString = #file, line: UInt = #line) {
