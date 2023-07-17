@@ -34,17 +34,17 @@ public struct UniversalClient: Sendable {
     public let converter: Converter
 
     /// Type capable of sending HTTP requests and receiving HTTP responses.
-    public var transport: ClientTransport
+    public var transport: any ClientTransport
 
     /// Middlewares to be invoked before `transport`.
-    public var middlewares: [ClientMiddleware]
+    public var middlewares: [any ClientMiddleware]
 
     /// Internal initializer that takes an initialized `Converter`.
     internal init(
         serverURL: URL,
         converter: Converter,
-        transport: ClientTransport,
-        middlewares: [ClientMiddleware]
+        transport: any ClientTransport,
+        middlewares: [any ClientMiddleware]
     ) {
         self.serverURL = serverURL
         self.converter = converter
@@ -56,8 +56,8 @@ public struct UniversalClient: Sendable {
     public init(
         serverURL: URL = .defaultOpenAPIServerURL,
         configuration: Configuration = .init(),
-        transport: ClientTransport,
-        middlewares: [ClientMiddleware] = []
+        transport: any ClientTransport,
+        middlewares: [any ClientMiddleware] = []
     ) {
         self.init(
             serverURL: serverURL,
@@ -93,7 +93,7 @@ public struct UniversalClient: Sendable {
         @Sendable
         func wrappingErrors<R>(
             work: () async throws -> R,
-            mapError: (Error) -> Error
+            mapError: (any Error) -> any Error
         ) async throws -> R {
             do {
                 return try await work()
@@ -106,8 +106,8 @@ public struct UniversalClient: Sendable {
             request: Request? = nil,
             baseURL: URL? = nil,
             response: Response? = nil,
-            error: Error
-        ) -> Error {
+            error: any Error
+        ) -> any Error {
             ClientError(
                 operationID: operationID,
                 operationInput: input,

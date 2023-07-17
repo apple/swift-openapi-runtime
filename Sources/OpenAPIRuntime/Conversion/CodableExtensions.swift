@@ -53,7 +53,7 @@ extension Decoder {
         guard !unknownKeys.isEmpty else {
             return .init()
         }
-        let keyValuePairs: [(String, Sendable?)] = try unknownKeys.map { key in
+        let keyValuePairs: [(String, (any Sendable)?)] = try unknownKeys.map { key in
             (
                 key.stringValue,
                 try container.decode(
