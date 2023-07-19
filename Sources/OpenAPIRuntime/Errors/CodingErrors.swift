@@ -18,17 +18,24 @@ extension DecodingError: PrettyStringConvertible {
         let output: String
         switch self {
         case .dataCorrupted(let context):
-            output = "dataCorrupted - \(context.debugDescription)"
+            output = "dataCorrupted - \(context.prettyDescription)"
         case .keyNotFound(let key, let context):
-            output = "keyNotFound \(key) - \(context.debugDescription)"
+            output = "keyNotFound \(key) - \(context.prettyDescription)"
         case .typeMismatch(let type, let context):
-            output = "typeMismatch \(type) - in \(context.debugDescription)"
+            output = "typeMismatch \(type) - \(context.prettyDescription)"
         case .valueNotFound(let type, let context):
-            output = "valueNotFound \(type) - \(context.debugDescription)"
+            output = "valueNotFound \(type) - \(context.prettyDescription)"
         @unknown default:
             output = "unknown: \(localizedDescription)"
         }
         return "DecodingError: \(output)"
+    }
+}
+
+extension DecodingError.Context: PrettyStringConvertible {
+    var prettyDescription: String {
+        let path = codingPath.map(\.description).joined(separator: "/")
+        return "at \(path): \(debugDescription) (underlying error: \(underlyingError?.localizedDescription ?? "<nil>"))"
     }
 }
 
@@ -37,10 +44,17 @@ extension EncodingError: PrettyStringConvertible {
         let output: String
         switch self {
         case .invalidValue(let value, let context):
-            output = "invalidValue \(value) - \(context)"
+            output = "invalidValue \(value) - \(context.prettyDescription)"
         @unknown default:
             output = "unknown: \(localizedDescription)"
         }
         return "EncodingError: \(output)"
+    }
+}
+
+extension EncodingError.Context: PrettyStringConvertible {
+    var prettyDescription: String {
+        let path = codingPath.map(\.description).joined(separator: "/")
+        return "at \(path): \(debugDescription) (underlying error: \(underlyingError?.localizedDescription ?? "<nil>"))"
     }
 }
