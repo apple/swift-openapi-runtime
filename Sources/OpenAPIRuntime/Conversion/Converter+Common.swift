@@ -25,23 +25,83 @@ extension Converter {
     /// - Parameters:
     ///   - headerFields: Header fields to inspect for a content type.
     ///   - substring: Expected content type.
-    /// - Throws: If the response's Content-Type value is not compatible with the provided substring.
+    /// - Throws: If the response's Content-Type value is not compatible with
+    /// the provided substring.
+    @available(*, deprecated, message: "Use isValidContentType instead.")
     public func validateContentTypeIfPresent(
         in headerFields: [HeaderField],
         substring: String
     ) throws {
-        guard
-            let contentType = try getOptionalHeaderFieldAsText(
-                in: headerFields,
-                name: "content-type",
-                as: String.self
-            )
-        else {
+        guard let contentType = extractContentTypeIfPresent(in: headerFields) else {
             return
         }
-        guard contentType.localizedCaseInsensitiveContains(substring) else {
+        guard isValidContentType(received: contentType, expected: substring) else {
             throw RuntimeError.unexpectedContentTypeHeader(contentType)
         }
+    }
+
+    /// Returns the content-type header from the provided header fields, if
+    /// present.
+    /// - Parameter headerFields: The header fields to inspect for the content
+    /// type header.
+    /// - Returns: The content type value, or nil if not found.
+    public func extractContentTypeIfPresent(in headerFields: [HeaderField]) -> String? {
+        headerFields.firstValue(name: "content-type")
+    }
+
+    /// Checks whether a concrete content type matches an expected content type.
+    ///
+    /// The concrete content type can contain parameters, such as `charset`, but
+    /// they are ignored in the equality comparison.
+    ///
+    /// The expected content type can contain wildcards, such as */* and text/*.
+    /// - Parameters:
+    ///   - received: The concrete content type to validate against the other.
+    ///   - expected: The expected content type, can be a wildcard.
+    /// - Returns: A Boolean value representing whether the concrete content
+    /// type matches the expected one.
+    public func isValidContentType(received: String?, expected: String) -> Bool {
+        guard let received else {
+            return false
+        }
+        func parseContentType(_ value: String) -> (main: String, sub: String)? {
+            let components =
+                value
+                // Normalize to lowercase.
+                .lowercased()
+                // Drop any charset and other parameters.
+                .split(separator: ";")[0]
+                // Parse out main type and subtype.
+                .split(separator: "/")
+                .map(String.init)
+            guard components.count == 2 else {
+                return nil
+            }
+            return (components[0], components[1])
+        }
+        guard
+            let receivedContentType = parseContentType(received),
+            let expectedContentType = parseContentType(expected)
+        else {
+            return false
+        }
+        if expectedContentType.main == "*" {
+            return true
+        }
+        if expectedContentType.main != receivedContentType.main {
+            return false
+        }
+        if expectedContentType.sub == "*" {
+            return true
+        }
+        return expectedContentType.sub == receivedContentType.sub
+    }
+
+    /// Returns an error to be thrown when an unexpected content type is
+    /// received.
+    /// - Parameter contentType: The content type that was received.
+    public func makeUnexpectedContentTypeError(contentType: String?) -> any Error {
+        RuntimeError.unexpectedContentTypeHeader(contentType ?? "")
     }
 
     // MARK: - Converter helper methods
