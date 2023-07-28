@@ -15,6 +15,30 @@ import Foundation
 
 // MARK: - Functionality to be removed in the future
 
+/// A wrapper of a body value with its content type.
+@available(*, deprecated)
+@_spi(Generated)
+public struct EncodableBodyContent<T: Equatable>: Equatable {
+
+    /// An encodable body value.
+    public var value: T
+
+    /// The header value of the content type, for example `application/json`.
+    public var contentType: String
+
+    /// Creates a new content wrapper.
+    /// - Parameters:
+    ///   - value: An encodable body value.
+    ///   - contentType: The header value of the content type.
+    public init(
+        value: T,
+        contentType: String
+    ) {
+        self.value = value
+        self.contentType = contentType
+    }
+}
+
 extension Converter {
     /// Gets a deserialized value from body data.
     /// - Parameters:
@@ -700,5 +724,232 @@ extension Converter {
             throw RuntimeError.failedToDecodeStringConvertibleValue(type: String(describing: T.self))
         }
         return typedValue
+    }
+}
+
+extension Converter {
+    
+    //    | client | set | request body | text | string-convertible | optional | setOptionalRequestBodyAsText |
+    @available(*, deprecated)
+    public func setOptionalRequestBodyAsText<T: _StringConvertible, C>(
+        _ value: C?,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>
+    ) throws -> Data? {
+        try setOptionalRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertStringConvertibleToTextData
+        )
+    }
+
+    //    | client | set | request body | text | string-convertible | required | setRequiredRequestBodyAsText |
+    @available(*, deprecated)
+    public func setRequiredRequestBodyAsText<T: _StringConvertible, C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>
+    ) throws -> Data {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertStringConvertibleToTextData
+        )
+    }
+
+    //    | client | set | request body | text | date | optional | setOptionalRequestBodyAsText |
+    @available(*, deprecated)
+    public func setOptionalRequestBodyAsText<C>(
+        _ value: C?,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<Date>
+    ) throws -> Data? {
+        try setOptionalRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertDateToTextData
+        )
+    }
+    
+    //    | client | set | request body | text | date | required | setRequiredRequestBodyAsText |
+    @available(*, deprecated)
+    public func setRequiredRequestBodyAsText<C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<Date>
+    ) throws -> Data {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertDateToTextData
+        )
+    }
+
+    //    | client | set | request body | JSON | codable | optional | setOptionalRequestBodyAsJSON |
+    @available(*, deprecated)
+    public func setOptionalRequestBodyAsJSON<T: Encodable, C>(
+        _ value: C?,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>
+    ) throws -> Data? {
+        try setOptionalRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertBodyCodableToJSON
+        )
+    }
+
+    //    | client | set | request body | JSON | codable | required | setRequiredRequestBodyAsJSON |
+    @available(*, deprecated)
+    public func setRequiredRequestBodyAsJSON<T: Encodable, C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>
+    ) throws -> Data {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertBodyCodableToJSON
+        )
+    }
+
+    //    | client | set | request body | binary | data | optional | setOptionalRequestBodyAsBinary |
+    @available(*, deprecated)
+    public func setOptionalRequestBodyAsBinary<C>(
+        _ value: C?,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<Data>
+    ) throws -> Data? {
+        try setOptionalRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertDataToBinary
+        )
+    }
+
+    //    | client | set | request body | binary | data | required | setRequiredRequestBodyAsBinary |
+    @available(*, deprecated)
+    public func setRequiredRequestBodyAsBinary<C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<Data>
+    ) throws -> Data {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertDataToBinary
+        )
+    }
+
+    //    | server | set | response body | text | string-convertible | required | setResponseBodyAsText |
+    @available(*, deprecated)
+    public func setResponseBodyAsText<T: _StringConvertible, C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>
+    ) throws -> Data {
+        try setResponseBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertStringConvertibleToTextData
+        )
+    }
+
+    //    | server | set | response body | text | date | required | setResponseBodyAsText |
+    @available(*, deprecated)
+    public func setResponseBodyAsText<C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<Date>
+    ) throws -> Data {
+        try setResponseBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertDateToTextData
+        )
+    }
+    
+    //    | server | set | response body | JSON | codable | required | setResponseBodyAsJSON |
+    @available(*, deprecated)
+    public func setResponseBodyAsJSON<T: Encodable, C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>
+    ) throws -> Data {
+        try setResponseBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertBodyCodableToJSON
+        )
+    }
+    
+    //    | server | set | response body | binary | data | required | setResponseBodyAsBinary |
+    @available(*, deprecated)
+    public func setResponseBodyAsBinary<C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<Data>
+    ) throws -> Data {
+        try setResponseBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convertDataToBinary
+        )
+    }
+    
+    @available(*, deprecated)
+    public func setRequiredRequestBody<T, C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>,
+        convert: (T) throws -> Data
+    ) throws -> Data {
+        let body = transform(value)
+        headerFields.add(name: "content-type", value: body.contentType)
+        let convertibleValue = body.value
+        return try convert(convertibleValue)
+    }
+
+    @available(*, deprecated)
+    public func setOptionalRequestBody<T, C>(
+        _ value: C?,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>,
+        convert: (T) throws -> Data
+    ) throws -> Data? {
+        guard let value else {
+            return nil
+        }
+        return try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            transforming: transform,
+            convert: convert
+        )
+    }
+
+    @available(*, deprecated)
+    public func setResponseBody<T, C>(
+        _ value: C,
+        headerFields: inout [HeaderField],
+        transforming transform: (C) -> EncodableBodyContent<T>,
+        convert: (T) throws -> Data
+    ) throws -> Data {
+        let body = transform(value)
+        headerFields.add(name: "content-type", value: body.contentType)
+        let convertibleValue = body.value
+        return try convert(convertibleValue)
     }
 }

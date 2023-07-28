@@ -347,19 +347,6 @@ extension Converter {
         return values
     }
 
-    @available(*, deprecated)
-    func setRequiredRequestBody<T, C>(
-        _ value: C,
-        headerFields: inout [HeaderField],
-        transforming transform: (C) -> EncodableBodyContent<T>,
-        convert: (T) throws -> Data
-    ) throws -> Data {
-        let body = transform(value)
-        headerFields.add(name: "content-type", value: body.contentType)
-        let convertibleValue = body.value
-        return try convert(convertibleValue)
-    }
-
     func setRequiredRequestBody<T>(
         _ value: T,
         headerFields: inout [HeaderField],
@@ -368,24 +355,6 @@ extension Converter {
     ) throws -> Data {
         headerFields.add(name: "content-type", value: contentType)
         return try convert(value)
-    }
-
-    @available(*, deprecated)
-    func setOptionalRequestBody<T, C>(
-        _ value: C?,
-        headerFields: inout [HeaderField],
-        transforming transform: (C) -> EncodableBodyContent<T>,
-        convert: (T) throws -> Data
-    ) throws -> Data? {
-        guard let value else {
-            return nil
-        }
-        return try setRequiredRequestBody(
-            value,
-            headerFields: &headerFields,
-            transforming: transform,
-            convert: convert
-        )
     }
 
     func setOptionalRequestBody<T>(
@@ -437,6 +406,16 @@ extension Converter {
         return body
     }
 
+    func setResponseBody<T>(
+        _ value: T,
+        headerFields: inout [HeaderField],
+        contentType: String,
+        convert: (T) throws -> Data
+    ) throws -> Data {
+        headerFields.add(name: "content-type", value: contentType)
+        return try convert(value)
+    }
+
     func getResponseBody<T, C>(
         _ type: T.Type,
         from data: Data,
@@ -446,19 +425,6 @@ extension Converter {
         let parsedValue = try convert(data)
         let transformedValue = transform(parsedValue)
         return transformedValue
-    }
-
-    @available(*, deprecated)
-    func setResponseBody<T, C>(
-        _ value: C,
-        headerFields: inout [HeaderField],
-        transforming transform: (C) -> EncodableBodyContent<T>,
-        convert: (T) throws -> Data
-    ) throws -> Data {
-        let body = transform(value)
-        headerFields.add(name: "content-type", value: body.contentType)
-        let convertibleValue = body.value
-        return try convert(convertibleValue)
     }
 
     func convertBinaryToData(
