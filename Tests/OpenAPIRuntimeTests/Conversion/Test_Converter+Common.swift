@@ -18,67 +18,6 @@ final class Test_CommonConverterExtensions: Test_Runtime {
 
     // MARK: Miscs
 
-    @available(*, deprecated)
-    func testValidateContentType_match() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "content-type", value: "application/json")
-        ]
-        XCTAssertNoThrow(
-            try converter.validateContentTypeIfPresent(
-                in: headerFields,
-                substring: "application/json"
-            )
-        )
-    }
-
-    @available(*, deprecated)
-    func testValidateContentType_match_substring() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "content-type", value: "application/json; charset=utf-8")
-        ]
-        XCTAssertNoThrow(
-            try converter.validateContentTypeIfPresent(
-                in: headerFields,
-                substring: "application/json"
-            )
-        )
-    }
-
-    @available(*, deprecated)
-    func testValidateContentType_missing() throws {
-        let headerFields: [HeaderField] = []
-        XCTAssertNoThrow(
-            try converter.validateContentTypeIfPresent(
-                in: headerFields,
-                substring: "application/json"
-            )
-        )
-    }
-
-    @available(*, deprecated)
-    func testValidateContentType_mismatch() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "content-type", value: "text/plain")
-        ]
-        XCTAssertThrowsError(
-            try converter.validateContentTypeIfPresent(
-                in: headerFields,
-                substring: "application/json"
-            ),
-            "Was expected to throw error on mismatch",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case .unexpectedContentTypeHeader(let contentType) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(contentType, "text/plain")
-            }
-        )
-    }
-
     func testContentTypeMatching() throws {
         let cases: [(received: String, expected: String, isMatch: Bool)] = [
             ("application/json", "application/json", true),

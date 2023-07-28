@@ -728,7 +728,30 @@ extension Converter {
 }
 
 extension Converter {
-    
+
+    /// Validates that the Content-Type header field (if present)
+    /// is compatible with the provided content-type substring.
+    ///
+    /// Succeeds if no Content-Type header is found in the response headers.
+    ///
+    /// - Parameters:
+    ///   - headerFields: Header fields to inspect for a content type.
+    ///   - substring: Expected content type.
+    /// - Throws: If the response's Content-Type value is not compatible with
+    /// the provided substring.
+    @available(*, deprecated, message: "Use isValidContentType instead.")
+    public func validateContentTypeIfPresent(
+        in headerFields: [HeaderField],
+        substring: String
+    ) throws {
+        guard let contentType = extractContentTypeIfPresent(in: headerFields) else {
+            return
+        }
+        guard isValidContentType(received: contentType, expected: substring) else {
+            throw RuntimeError.unexpectedContentTypeHeader(contentType)
+        }
+    }
+
     //    | client | set | request body | text | string-convertible | optional | setOptionalRequestBodyAsText |
     @available(*, deprecated)
     public func setOptionalRequestBodyAsText<T: _StringConvertible, C>(
@@ -773,7 +796,7 @@ extension Converter {
             convert: convertDateToTextData
         )
     }
-    
+
     //    | client | set | request body | text | date | required | setRequiredRequestBodyAsText |
     @available(*, deprecated)
     public func setRequiredRequestBodyAsText<C>(
@@ -878,7 +901,7 @@ extension Converter {
             convert: convertDateToTextData
         )
     }
-    
+
     //    | server | set | response body | JSON | codable | required | setResponseBodyAsJSON |
     @available(*, deprecated)
     public func setResponseBodyAsJSON<T: Encodable, C>(
@@ -893,7 +916,7 @@ extension Converter {
             convert: convertBodyCodableToJSON
         )
     }
-    
+
     //    | server | set | response body | binary | data | required | setResponseBodyAsBinary |
     @available(*, deprecated)
     public func setResponseBodyAsBinary<C>(
@@ -908,7 +931,7 @@ extension Converter {
             convert: convertDataToBinary
         )
     }
-    
+
     @available(*, deprecated)
     public func setRequiredRequestBody<T, C>(
         _ value: C,

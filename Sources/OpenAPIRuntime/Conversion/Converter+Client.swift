@@ -88,7 +88,7 @@ extension Converter {
             convert: convertDateToText
         )
     }
-    
+
     //    | client | set | request body | text | string-convertible | optional | setOptionalRequestBodyAsText |
     public func setOptionalRequestBodyAsText<T: _StringConvertible>(
         _ value: T?,

@@ -294,7 +294,7 @@ public extension Converter {
             convert: convertBinaryToData
         )
     }
-    
+
     //    | server | set | response body | text | string-convertible | required | setResponseBodyAsText |
     func setResponseBodyAsText<T: _StringConvertible>(
         _ value: T,

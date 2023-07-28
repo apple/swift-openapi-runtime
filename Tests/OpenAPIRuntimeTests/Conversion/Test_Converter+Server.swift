@@ -314,18 +314,12 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     }
 
     //    | server | set | response body | text | string-convertible | required | setResponseBodyAsText |
-    @available(*, deprecated)
     func test_setResponseBodyAsText_stringConvertible() throws {
         var headers: [HeaderField] = []
         let data = try converter.setResponseBodyAsText(
             testString,
             headerFields: &headers,
-            transforming: {
-                .init(
-                    value: $0,
-                    contentType: "text/plain"
-                )
-            }
+            contentType: "text/plain"
         )
         XCTAssertEqual(data, testStringData)
         XCTAssertEqual(
@@ -337,18 +331,12 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     }
 
     //    | server | set | response body | text | date | required | setResponseBodyAsText |
-    @available(*, deprecated)
     func test_setResponseBodyAsText_date() throws {
         var headers: [HeaderField] = []
         let data = try converter.setResponseBodyAsText(
             testDate,
             headerFields: &headers,
-            transforming: {
-                .init(
-                    value: $0,
-                    contentType: "text/plain"
-                )
-            }
+            contentType: "text/plain"
         )
         XCTAssertEqual(data, testDateStringData)
         XCTAssertEqual(
@@ -360,18 +348,12 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     }
 
     //    | server | set | response body | JSON | codable | required | setResponseBodyAsJSON |
-    @available(*, deprecated)
     func test_setResponseBodyAsJSON_codable() throws {
         var headers: [HeaderField] = []
         let data = try converter.setResponseBodyAsJSON(
             testStruct,
             headerFields: &headers,
-            transforming: {
-                .init(
-                    value: $0,
-                    contentType: "application/json"
-                )
-            }
+            contentType: "application/json"
         )
         XCTAssertEqual(data, testStructPrettyData)
         XCTAssertEqual(
@@ -383,18 +365,12 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     }
 
     //    | server | set | response body | binary | data | required | setResponseBodyAsBinary |
-    @available(*, deprecated)
     func test_setResponseBodyAsBinary_data() throws {
         var headers: [HeaderField] = []
         let data = try converter.setResponseBodyAsBinary(
             testStringData,
             headerFields: &headers,
-            transforming: {
-                .init(
-                    value: $0,
-                    contentType: "application/octet-stream"
-                )
-            }
+            contentType: "application/octet-stream"
         )
         XCTAssertEqual(data, testStringData)
         XCTAssertEqual(
