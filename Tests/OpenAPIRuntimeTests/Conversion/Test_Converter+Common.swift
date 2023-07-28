@@ -18,6 +18,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
 
     // MARK: Miscs
 
+    @available(*, deprecated)
     func testValidateContentType_match() throws {
         let headerFields: [HeaderField] = [
             .init(name: "content-type", value: "application/json")
@@ -30,6 +31,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         )
     }
 
+    @available(*, deprecated)
     func testValidateContentType_match_substring() throws {
         let headerFields: [HeaderField] = [
             .init(name: "content-type", value: "application/json; charset=utf-8")
@@ -42,6 +44,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         )
     }
 
+    @available(*, deprecated)
     func testValidateContentType_missing() throws {
         let headerFields: [HeaderField] = []
         XCTAssertNoThrow(
@@ -52,6 +55,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         )
     }
 
+    @available(*, deprecated)
     func testValidateContentType_mismatch() throws {
         let headerFields: [HeaderField] = [
             .init(name: "content-type", value: "text/plain")

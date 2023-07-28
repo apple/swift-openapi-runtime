@@ -85,6 +85,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     }
 
     //    | client | set | request body | text | string-convertible | optional | setOptionalRequestBodyAsText |
+    @available(*, deprecated)
     func test_setOptionalRequestBodyAsText_stringConvertible() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setOptionalRequestBodyAsText(
@@ -107,6 +108,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     }
 
     //    | client | set | request body | text | string-convertible | required | setRequiredRequestBodyAsText |
+    @available(*, deprecated)
     func test_setRequiredRequestBodyAsText_stringConvertible() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setRequiredRequestBodyAsText(
@@ -129,6 +131,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     }
 
     //    | client | set | request body | text | date | optional | setOptionalRequestBodyAsText |
+    @available(*, deprecated)
     func test_setOptionalRequestBodyAsText_date() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setOptionalRequestBodyAsText(
@@ -151,6 +154,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     }
 
     //    | client | set | request body | text | date | required | setRequiredRequestBodyAsText |
+    @available(*, deprecated)
     func test_setRequiredRequestBodyAsText_date() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setRequiredRequestBodyAsText(
@@ -173,6 +177,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     }
 
     //    | client | set | request body | JSON | codable | optional | setOptionalRequestBodyAsJSON |
+    @available(*, deprecated)
     func test_setOptionalRequestBodyAsJSON_codable() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setOptionalRequestBodyAsJSON(
@@ -194,6 +199,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         )
     }
 
+    @available(*, deprecated)
     func test_setOptionalRequestBodyAsJSON_codable_string() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setOptionalRequestBodyAsJSON(
@@ -216,6 +222,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     }
 
     //    | client | set | request body | JSON | codable | required | setRequiredRequestBodyAsJSON |
+    @available(*, deprecated)
     func test_setRequiredRequestBodyAsJSON_codable() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setRequiredRequestBodyAsJSON(
@@ -238,6 +245,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     }
 
     //    | client | set | request body | binary | data | optional | setOptionalRequestBodyAsBinary |
+    @available(*, deprecated)
     func test_setOptionalRequestBodyAsBinary_data() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setOptionalRequestBodyAsBinary(
@@ -260,6 +268,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     }
 
     //    | client | set | request body | binary | data | required | setRequiredRequestBodyAsBinary |
+    @available(*, deprecated)
     func test_setRequiredRequestBodyAsBinary_data() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setRequiredRequestBodyAsBinary(

@@ -314,6 +314,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     }
 
     //    | server | set | response body | text | string-convertible | required | setResponseBodyAsText |
+    @available(*, deprecated)
     func test_setResponseBodyAsText_stringConvertible() throws {
         var headers: [HeaderField] = []
         let data = try converter.setResponseBodyAsText(
@@ -336,6 +337,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     }
 
     //    | server | set | response body | text | date | required | setResponseBodyAsText |
+    @available(*, deprecated)
     func test_setResponseBodyAsText_date() throws {
         var headers: [HeaderField] = []
         let data = try converter.setResponseBodyAsText(
@@ -358,6 +360,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     }
 
     //    | server | set | response body | JSON | codable | required | setResponseBodyAsJSON |
+    @available(*, deprecated)
     func test_setResponseBodyAsJSON_codable() throws {
         var headers: [HeaderField] = []
         let data = try converter.setResponseBodyAsJSON(
@@ -380,6 +383,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     }
 
     //    | server | set | response body | binary | data | required | setResponseBodyAsBinary |
+    @available(*, deprecated)
     func test_setResponseBodyAsBinary_data() throws {
         var headers: [HeaderField] = []
         let data = try converter.setResponseBodyAsBinary(
