@@ -14,6 +14,7 @@
 
 /// A wrapper of a body value with its content type.
 @_spi(Generated)
+@available(*, deprecated)
 public struct EncodableBodyContent<T: Equatable>: Equatable {
 
     /// An encodable body value.

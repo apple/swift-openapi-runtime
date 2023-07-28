@@ -90,6 +90,7 @@ extension Converter {
     }
 
     //    | client | set | request body | text | string-convertible | optional | setOptionalRequestBodyAsText |
+    @available(*, deprecated)
     public func setOptionalRequestBodyAsText<T: _StringConvertible, C>(
         _ value: C?,
         headerFields: inout [HeaderField],
@@ -104,6 +105,7 @@ extension Converter {
     }
 
     //    | client | set | request body | text | string-convertible | required | setRequiredRequestBodyAsText |
+    @available(*, deprecated)
     public func setRequiredRequestBodyAsText<T: _StringConvertible, C>(
         _ value: C,
         headerFields: inout [HeaderField],
@@ -117,7 +119,22 @@ extension Converter {
         )
     }
 
+    //    | client | set | request body | text | string-convertible | required | setRequiredRequestBodyAsText |
+    public func setRequiredRequestBodyAsText<T: _StringConvertible>(
+        _ value: T,
+        headerFields: inout [HeaderField],
+        contentType: String
+    ) throws -> Data {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: convertStringConvertibleToTextData
+        )
+    }
+
     //    | client | set | request body | text | date | optional | setOptionalRequestBodyAsText |
+    @available(*, deprecated)
     public func setOptionalRequestBodyAsText<C>(
         _ value: C?,
         headerFields: inout [HeaderField],
@@ -132,6 +149,7 @@ extension Converter {
     }
 
     //    | client | set | request body | text | date | required | setRequiredRequestBodyAsText |
+    @available(*, deprecated)
     public func setRequiredRequestBodyAsText<C>(
         _ value: C,
         headerFields: inout [HeaderField],
@@ -145,7 +163,22 @@ extension Converter {
         )
     }
 
+    //    | client | set | request body | text | date | required | setRequiredRequestBodyAsText |
+    public func setRequiredRequestBodyAsText(
+        _ value: Date,
+        headerFields: inout [HeaderField],
+        contentType: String
+    ) throws -> Data {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: convertDateToTextData
+        )
+    }
+
     //    | client | set | request body | JSON | codable | optional | setOptionalRequestBodyAsJSON |
+    @available(*, deprecated)
     public func setOptionalRequestBodyAsJSON<T: Encodable, C>(
         _ value: C?,
         headerFields: inout [HeaderField],
@@ -159,7 +192,22 @@ extension Converter {
         )
     }
 
+    //    | client | set | request body | JSON | codable | optional | setOptionalRequestBodyAsJSON |
+    public func setOptionalRequestBodyAsJSON<T: Encodable>(
+        _ value: T?,
+        headerFields: inout [HeaderField],
+        contentType: String
+    ) throws -> Data? {
+        try setOptionalRequestBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: convertBodyCodableToJSON
+        )
+    }
+
     //    | client | set | request body | JSON | codable | required | setRequiredRequestBodyAsJSON |
+    @available(*, deprecated)
     public func setRequiredRequestBodyAsJSON<T: Encodable, C>(
         _ value: C,
         headerFields: inout [HeaderField],
@@ -173,7 +221,22 @@ extension Converter {
         )
     }
 
+    //    | client | set | request body | JSON | codable | required | setRequiredRequestBodyAsJSON |
+    public func setRequiredRequestBodyAsJSON<T: Encodable>(
+        _ value: T,
+        headerFields: inout [HeaderField],
+        contentType: String
+    ) throws -> Data {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: convertBodyCodableToJSON
+        )
+    }
+
     //    | client | set | request body | binary | data | optional | setOptionalRequestBodyAsBinary |
+    @available(*, deprecated)
     public func setOptionalRequestBodyAsBinary<C>(
         _ value: C?,
         headerFields: inout [HeaderField],
@@ -188,6 +251,7 @@ extension Converter {
     }
 
     //    | client | set | request body | binary | data | required | setRequiredRequestBodyAsBinary |
+    @available(*, deprecated)
     public func setRequiredRequestBodyAsBinary<C>(
         _ value: C,
         headerFields: inout [HeaderField],
@@ -197,6 +261,20 @@ extension Converter {
             value,
             headerFields: &headerFields,
             transforming: transform,
+            convert: convertDataToBinary
+        )
+    }
+
+    //    | client | set | request body | binary | data | required | setRequiredRequestBodyAsBinary |
+    public func setRequiredRequestBodyAsBinary(
+        _ value: Data,
+        headerFields: inout [HeaderField],
+        contentType: String
+    ) throws -> Data {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
             convert: convertDataToBinary
         )
     }

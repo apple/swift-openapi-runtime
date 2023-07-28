@@ -296,6 +296,7 @@ public extension Converter {
     }
 
     //    | server | set | response body | text | string-convertible | required | setResponseBodyAsText |
+    @available(*, deprecated)
     func setResponseBodyAsText<T: _StringConvertible, C>(
         _ value: C,
         headerFields: inout [HeaderField],
@@ -310,6 +311,7 @@ public extension Converter {
     }
 
     //    | server | set | response body | text | date | required | setResponseBodyAsText |
+    @available(*, deprecated)
     func setResponseBodyAsText<C>(
         _ value: C,
         headerFields: inout [HeaderField],
@@ -324,6 +326,7 @@ public extension Converter {
     }
 
     //    | server | set | response body | JSON | codable | required | setResponseBodyAsJSON |
+    @available(*, deprecated)
     func setResponseBodyAsJSON<T: Encodable, C>(
         _ value: C,
         headerFields: inout [HeaderField],
@@ -338,6 +341,7 @@ public extension Converter {
     }
 
     //    | server | set | response body | binary | data | required | setResponseBodyAsBinary |
+    @available(*, deprecated)
     func setResponseBodyAsBinary<C>(
         _ value: C,
         headerFields: inout [HeaderField],
