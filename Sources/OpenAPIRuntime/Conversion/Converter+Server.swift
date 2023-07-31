@@ -296,57 +296,57 @@ public extension Converter {
     }
 
     //    | server | set | response body | text | string-convertible | required | setResponseBodyAsText |
-    func setResponseBodyAsText<T: _StringConvertible, C>(
-        _ value: C,
+    func setResponseBodyAsText<T: _StringConvertible>(
+        _ value: T,
         headerFields: inout [HeaderField],
-        transforming transform: (C) -> EncodableBodyContent<T>
+        contentType: String
     ) throws -> Data {
         try setResponseBody(
             value,
             headerFields: &headerFields,
-            transforming: transform,
+            contentType: contentType,
             convert: convertStringConvertibleToTextData
         )
     }
 
     //    | server | set | response body | text | date | required | setResponseBodyAsText |
-    func setResponseBodyAsText<C>(
-        _ value: C,
+    func setResponseBodyAsText(
+        _ value: Date,
         headerFields: inout [HeaderField],
-        transforming transform: (C) -> EncodableBodyContent<Date>
+        contentType: String
     ) throws -> Data {
         try setResponseBody(
             value,
             headerFields: &headerFields,
-            transforming: transform,
+            contentType: contentType,
             convert: convertDateToTextData
         )
     }
 
     //    | server | set | response body | JSON | codable | required | setResponseBodyAsJSON |
-    func setResponseBodyAsJSON<T: Encodable, C>(
-        _ value: C,
+    func setResponseBodyAsJSON<T: Encodable>(
+        _ value: T,
         headerFields: inout [HeaderField],
-        transforming transform: (C) -> EncodableBodyContent<T>
+        contentType: String
     ) throws -> Data {
         try setResponseBody(
             value,
             headerFields: &headerFields,
-            transforming: transform,
+            contentType: contentType,
             convert: convertBodyCodableToJSON
         )
     }
 
     //    | server | set | response body | binary | data | required | setResponseBodyAsBinary |
-    func setResponseBodyAsBinary<C>(
-        _ value: C,
+    func setResponseBodyAsBinary(
+        _ value: Data,
         headerFields: inout [HeaderField],
-        transforming transform: (C) -> EncodableBodyContent<Data>
+        contentType: String
     ) throws -> Data {
         try setResponseBody(
             value,
             headerFields: &headerFields,
-            transforming: transform,
+            contentType: contentType,
             convert: convertDataToBinary
         )
     }

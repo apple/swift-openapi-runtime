@@ -347,22 +347,20 @@ extension Converter {
         return values
     }
 
-    func setRequiredRequestBody<T, C>(
-        _ value: C,
+    func setRequiredRequestBody<T>(
+        _ value: T,
         headerFields: inout [HeaderField],
-        transforming transform: (C) -> EncodableBodyContent<T>,
+        contentType: String,
         convert: (T) throws -> Data
     ) throws -> Data {
-        let body = transform(value)
-        headerFields.add(name: "content-type", value: body.contentType)
-        let convertibleValue = body.value
-        return try convert(convertibleValue)
+        headerFields.add(name: "content-type", value: contentType)
+        return try convert(value)
     }
 
-    func setOptionalRequestBody<T, C>(
-        _ value: C?,
+    func setOptionalRequestBody<T>(
+        _ value: T?,
         headerFields: inout [HeaderField],
-        transforming transform: (C) -> EncodableBodyContent<T>,
+        contentType: String,
         convert: (T) throws -> Data
     ) throws -> Data? {
         guard let value else {
@@ -371,7 +369,7 @@ extension Converter {
         return try setRequiredRequestBody(
             value,
             headerFields: &headerFields,
-            transforming: transform,
+            contentType: contentType,
             convert: convert
         )
     }
@@ -419,16 +417,14 @@ extension Converter {
         return transformedValue
     }
 
-    func setResponseBody<T, C>(
-        _ value: C,
+    func setResponseBody<T>(
+        _ value: T,
         headerFields: inout [HeaderField],
-        transforming transform: (C) -> EncodableBodyContent<T>,
+        contentType: String,
         convert: (T) throws -> Data
     ) throws -> Data {
-        let body = transform(value)
-        headerFields.add(name: "content-type", value: body.contentType)
-        let convertibleValue = body.value
-        return try convert(convertibleValue)
+        headerFields.add(name: "content-type", value: contentType)
+        return try convert(value)
     }
 
     func convertBinaryToData(
