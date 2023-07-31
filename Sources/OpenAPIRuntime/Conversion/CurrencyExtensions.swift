@@ -406,16 +406,6 @@ extension Converter {
         return body
     }
 
-    func setResponseBody<T>(
-        _ value: T,
-        headerFields: inout [HeaderField],
-        contentType: String,
-        convert: (T) throws -> Data
-    ) throws -> Data {
-        headerFields.add(name: "content-type", value: contentType)
-        return try convert(value)
-    }
-
     func getResponseBody<T, C>(
         _ type: T.Type,
         from data: Data,
@@ -425,6 +415,16 @@ extension Converter {
         let parsedValue = try convert(data)
         let transformedValue = transform(parsedValue)
         return transformedValue
+    }
+
+    func setResponseBody<T>(
+        _ value: T,
+        headerFields: inout [HeaderField],
+        contentType: String,
+        convert: (T) throws -> Data
+    ) throws -> Data {
+        headerFields.add(name: "content-type", value: contentType)
+        return try convert(value)
     }
 
     func convertBinaryToData(
