@@ -498,7 +498,7 @@ extension Request {
     /// Allows modifying the parsed query parameters of the request.
     @available(*, deprecated)
     mutating func mutatingQuery(_ closure: (inout URLComponents) throws -> Void) rethrows {
-        var urlComponents: URLComponents = .init()
+        var urlComponents = URLComponents()
         if let query {
             urlComponents.percentEncodedQuery = query
         }
