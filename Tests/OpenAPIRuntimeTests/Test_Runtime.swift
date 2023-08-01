@@ -37,7 +37,7 @@ class Test_Runtime: XCTestCase {
     }
 
     var testComponents: URLComponents {
-        var components: URLComponents = .init()
+        var components = URLComponents()
         components.path = "/api"
         return components
     }
