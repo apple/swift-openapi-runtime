@@ -36,18 +36,19 @@ extension Converter {
     /// The expected content type can contain wildcards, such as */* and text/*.
     /// - Parameters:
     ///   - received: The concrete content type to validate against the other.
-    ///   - expected: The expected content type, can contain wildcards.
+    ///   - expectedRaw: The expected content type, can contain wildcards.
+    /// - Throws: A `RuntimeError` when `expectedRaw` is not a valid content type.
     /// - Returns: A Boolean value representing whether the concrete content
     /// type matches the expected one.
-    public func isMatchingContentType(received: OpenAPIMIMEType?, expected: String) -> Bool {
+    public func isMatchingContentType(received: OpenAPIMIMEType?, expectedRaw: String) throws -> Bool {
         guard let received else {
             return false
         }
         guard case let .concrete(type: receivedType, subtype: receivedSubtype) = received.kind else {
             return false
         }
-        guard let expectedContentType = OpenAPIMIMEType(expected) else {
-            return false
+        guard let expectedContentType = OpenAPIMIMEType(expectedRaw) else {
+            throw RuntimeError.invalidExpectedContentType(expectedRaw)
         }
         switch expectedContentType.kind {
         case .any:

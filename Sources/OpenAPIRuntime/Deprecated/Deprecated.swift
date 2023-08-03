@@ -747,7 +747,7 @@ extension Converter {
         guard let contentType = extractContentTypeIfPresent(in: headerFields) else {
             return
         }
-        guard isMatchingContentType(received: contentType, expected: substring) else {
+        guard try isMatchingContentType(received: contentType, expectedRaw: substring) else {
             throw RuntimeError.unexpectedContentTypeHeader(contentType.description)
         }
     }
