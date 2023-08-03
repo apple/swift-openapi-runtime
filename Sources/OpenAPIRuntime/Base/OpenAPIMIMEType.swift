@@ -148,6 +148,7 @@ extension OpenAPIMIMEType: LosslessStringConvertible {
             kind: kind,
             parameters: Dictionary(
                 parameters,
+                // Pick the first value when duplicate parameters are provided.
                 uniquingKeysWith: { a, _ in a }
             )
         )
