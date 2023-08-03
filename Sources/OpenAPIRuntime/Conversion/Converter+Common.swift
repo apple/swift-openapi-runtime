@@ -34,7 +34,7 @@ extension Converter {
     /// The expected content type can contain wildcards, such as */* and text/*.
     /// - Parameters:
     ///   - received: The concrete content type to validate against the other.
-    ///   - expected: The expected content type, can be a wildcard.
+    ///   - expected: The expected content type, can contain wildcards.
     /// - Returns: A Boolean value representing whether the concrete content
     /// type matches the expected one.
     public func isValidContentType(received: String?, expected: String) -> Bool {
