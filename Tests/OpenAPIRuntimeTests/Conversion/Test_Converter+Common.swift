@@ -38,7 +38,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         for testCase in cases {
             XCTAssertEqual(
                 converter.isValidContentType(
-                    received: testCase.received,
+                    received: .init(testCase.received),
                     expected: testCase.expected
                 ),
                 testCase.isMatch,

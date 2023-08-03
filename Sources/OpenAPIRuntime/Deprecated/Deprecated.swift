@@ -748,7 +748,7 @@ extension Converter {
             return
         }
         guard isValidContentType(received: contentType, expected: substring) else {
-            throw RuntimeError.unexpectedContentTypeHeader(contentType)
+            throw RuntimeError.unexpectedContentTypeHeader(contentType.description)
         }
     }
 

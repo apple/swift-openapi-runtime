@@ -17,13 +17,15 @@ extension Converter {
 
     // MARK: Miscs
 
-    /// Returns the content-type header from the provided header fields, if
-    /// present.
+    /// Returns the MIME type from the content-type header, if present.
     /// - Parameter headerFields: The header fields to inspect for the content
     /// type header.
-    /// - Returns: The content type value, or nil if not found.
-    public func extractContentTypeIfPresent(in headerFields: [HeaderField]) -> String? {
-        headerFields.firstValue(name: "content-type")
+    /// - Returns: The content type value, or nil if not found or invalid.
+    public func extractContentTypeIfPresent(in headerFields: [HeaderField]) -> MIMEType? {
+        guard let rawValue = headerFields.firstValue(name: "content-type") else {
+            return nil
+        }
+        return MIMEType(rawValue)
     }
 
     /// Checks whether a concrete content type matches an expected content type.
@@ -37,48 +39,31 @@ extension Converter {
     ///   - expected: The expected content type, can contain wildcards.
     /// - Returns: A Boolean value representing whether the concrete content
     /// type matches the expected one.
-    public func isValidContentType(received: String?, expected: String) -> Bool {
+    public func isValidContentType(received: MIMEType?, expected: String) -> Bool {
         guard let received else {
             return false
         }
-        func parseContentType(_ value: String) -> (main: String, sub: String)? {
-            let components =
-                value
-                // Normalize to lowercase.
-                .lowercased()
-                // Drop any charset and other parameters.
-                .split(separator: ";")[0]
-                // Parse out main type and subtype.
-                .split(separator: "/")
-                .map(String.init)
-            guard components.count == 2 else {
-                return nil
-            }
-            return (components[0], components[1])
-        }
-        guard
-            let receivedContentType = parseContentType(received),
-            let expectedContentType = parseContentType(expected)
-        else {
+        let receivedContentType = received
+        guard let expectedContentType = MIMEType(expected) else {
             return false
         }
-        if expectedContentType.main == "*" {
+        if expectedContentType.type == .wildcard {
             return true
         }
-        if expectedContentType.main != receivedContentType.main {
+        if expectedContentType.type != receivedContentType.type {
             return false
         }
-        if expectedContentType.sub == "*" {
+        if expectedContentType.subtype == .wildcard {
             return true
         }
-        return expectedContentType.sub == receivedContentType.sub
+        return expectedContentType.subtype == receivedContentType.subtype
     }
 
     /// Returns an error to be thrown when an unexpected content type is
     /// received.
     /// - Parameter contentType: The content type that was received.
-    public func makeUnexpectedContentTypeError(contentType: String?) -> any Error {
-        RuntimeError.unexpectedContentTypeHeader(contentType ?? "")
+    public func makeUnexpectedContentTypeError(contentType: MIMEType?) -> any Error {
+        RuntimeError.unexpectedContentTypeHeader(contentType?.description ?? "")
     }
 
     // MARK: - Converter helper methods
