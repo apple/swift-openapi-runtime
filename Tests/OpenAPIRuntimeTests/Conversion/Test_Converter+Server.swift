@@ -319,12 +319,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let data = try converter.setResponseBodyAsText(
             testString,
             headerFields: &headers,
-            transforming: {
-                .init(
-                    value: $0,
-                    contentType: "text/plain"
-                )
-            }
+            contentType: "text/plain"
         )
         XCTAssertEqual(data, testStringData)
         XCTAssertEqual(
@@ -341,12 +336,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let data = try converter.setResponseBodyAsText(
             testDate,
             headerFields: &headers,
-            transforming: {
-                .init(
-                    value: $0,
-                    contentType: "text/plain"
-                )
-            }
+            contentType: "text/plain"
         )
         XCTAssertEqual(data, testDateStringData)
         XCTAssertEqual(
@@ -363,12 +353,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let data = try converter.setResponseBodyAsJSON(
             testStruct,
             headerFields: &headers,
-            transforming: {
-                .init(
-                    value: $0,
-                    contentType: "application/json"
-                )
-            }
+            contentType: "application/json"
         )
         XCTAssertEqual(data, testStructPrettyData)
         XCTAssertEqual(
@@ -385,12 +370,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let data = try converter.setResponseBodyAsBinary(
             testStringData,
             headerFields: &headers,
-            transforming: {
-                .init(
-                    value: $0,
-                    contentType: "application/octet-stream"
-                )
-            }
+            contentType: "application/octet-stream"
         )
         XCTAssertEqual(data, testStringData)
         XCTAssertEqual(

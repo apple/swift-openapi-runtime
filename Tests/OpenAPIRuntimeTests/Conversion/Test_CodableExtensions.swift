@@ -21,7 +21,7 @@ final class Test_CodableExtensions: Test_Runtime {
     }
 
     var testEncoder: JSONEncoder {
-        let encoder: JSONEncoder = .init()
+        let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         return encoder
     }
@@ -187,7 +187,7 @@ final class Test_CodableExtensions: Test_Runtime {
 
         struct Foo: Encodable {
             var bar: String
-            var additionalProperties: OpenAPIObjectContainer = .init()
+            var additionalProperties = OpenAPIObjectContainer()
 
             enum CodingKeys: String, CodingKey {
                 case bar

@@ -18,38 +18,6 @@ import Foundation
 @preconcurrency import Foundation
 #endif
 
-/// A protected-by-locks storage for ``redactedHeaderFields``.
-private class RedactedHeadersStorage: @unchecked Sendable {
-    /// The underlying storage of ``redactedHeaderFields``,
-    /// protected by a lock.
-    private var _locked_redactedHeaderFields: Set<String> = HeaderField.defaultRedactedHeaderFields
-
-    /// The header fields to be redacted.
-    var redactedHeaderFields: Set<String> {
-        get {
-            lock.lock()
-            defer {
-                lock.unlock()
-            }
-            return _locked_redactedHeaderFields
-        }
-        set {
-            lock.lock()
-            defer {
-                lock.unlock()
-            }
-            _locked_redactedHeaderFields = newValue
-        }
-    }
-
-    /// The lock used for protecting access to `_locked_redactedHeaderFields`.
-    private let lock: NSLock = {
-        let lock = NSLock()
-        lock.name = "com.apple.swift-openapi-runtime.lock.redactedHeaderFields"
-        return lock
-    }()
-}
-
 /// A header field used in an HTTP request or response.
 public struct HeaderField: Equatable, Hashable, Sendable {
 
@@ -67,36 +35,6 @@ public struct HeaderField: Equatable, Hashable, Sendable {
         self.name = name
         self.value = value
     }
-}
-
-extension HeaderField {
-    /// Names of the header fields whose values should be redacted.
-    ///
-    /// All header field names are lowercased when added to the set.
-    ///
-    /// The values of header fields with the provided names will are replaced
-    /// with "<redacted>" when using `HeaderField.description`.
-    ///
-    /// Use this to avoid leaking sensitive tokens into application logs.
-    public static var redactedHeaderFields: Set<String> {
-        set {
-            // Save lowercased versions of the header field names to make
-            // membership checking O(1).
-            redactedHeadersStorage.redactedHeaderFields = Set(newValue.map { $0.lowercased() })
-        }
-        get {
-            return redactedHeadersStorage.redactedHeaderFields
-        }
-    }
-
-    /// The default header field names whose values are redacted.
-    public static let defaultRedactedHeaderFields: Set<String> = [
-        "authorization",
-        "cookie",
-        "set-cookie",
-    ]
-
-    private static let redactedHeadersStorage = RedactedHeadersStorage()
 }
 
 /// Describes the HTTP method used in an OpenAPI operation.
