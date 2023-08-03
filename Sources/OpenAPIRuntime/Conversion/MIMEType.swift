@@ -104,7 +104,7 @@ extension MIMEType: LosslessStringConvertible {
             .split(separator: ";")
             .map(String.init)
             // Trim leading/trailing spaces
-            .map { $0.soar_trimmingLeadingAndTrailingSpaces }
+            .map { $0.trimmingLeadingAndTrailingSpaces }
         guard !components.isEmpty else {
             return nil
         }
@@ -150,7 +150,7 @@ extension MIMEType: LosslessStringConvertible {
 }
 
 extension String {
-    fileprivate var soar_trimmingLeadingAndTrailingSpaces: Self {
+    fileprivate var trimmingLeadingAndTrailingSpaces: Self {
         trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
