@@ -68,6 +68,9 @@ public struct OpenAPIMIMEType: Equatable {
         guard lhs.parameters.count == rhs.parameters.count else {
             return false
         }
+        if lhs.parameters.isEmpty {
+            return true
+        }
         func normalizeKeyValue(key: String, value: String) -> (String, String) {
             (key.lowercased(), value)
         }
