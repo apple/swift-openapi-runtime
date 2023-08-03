@@ -17,7 +17,7 @@ import XCTest
 final class Test_MIMEType: Test_Runtime {
     func test() throws {
         let cases: [(String, MIMEType?, String?)] = [
-            
+
             // Common
             (
                 "application/json",
@@ -27,7 +27,7 @@ final class Test_MIMEType: Test_Runtime {
                 ),
                 "application/json"
             ),
-            
+
             // Subtype wildcard
             (
                 "application/*",
@@ -47,7 +47,7 @@ final class Test_MIMEType: Test_Runtime {
                 ),
                 "*/*"
             ),
-            
+
             // Common with a parameter
             (
                 "application/json; charset=UTF-8",
@@ -60,7 +60,7 @@ final class Test_MIMEType: Test_Runtime {
                 ),
                 "application/json; charset=UTF-8"
             ),
-            
+
             // Common with two parameters
             (
                 "application/json; charset=UTF-8; boundary=1234",
@@ -69,7 +69,7 @@ final class Test_MIMEType: Test_Runtime {
                     subtype: .concrete("json"),
                     parameters: [
                         "charset": "UTF-8",
-                        "boundary": "1234"
+                        "boundary": "1234",
                     ]
                 ),
                 "application/json; boundary=1234; charset=UTF-8"

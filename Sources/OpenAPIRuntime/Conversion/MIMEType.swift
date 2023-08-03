@@ -16,31 +16,31 @@ import Foundation
 /// A container for a parsed, valid MIME type.
 @_spi(Generated)
 public struct MIMEType: Equatable {
-    
+
     /// The value of the type or subtype in the MIME type.
     public enum Token: Equatable {
-        
+
         /// Any value, represented as `*`.
         case wildcard
-        
+
         /// A concrete value.
         case concrete(String)
-        
-        public static func ==(lhs: Token, rhs: Token) -> Bool {
+
+        public static func == (lhs: Token, rhs: Token) -> Bool {
             // Case-insensitive
             lhs.description.lowercased() == rhs.description.lowercased()
         }
     }
-        
+
     /// The type – the first token.
     public var type: Token
-    
+
     /// The subtype – the second token.
     public var subtype: Token
-    
+
     /// Any optional parameters.
     public var parameters: [String: String]
-    
+
     /// Creates a new MIME type.
     /// - Parameters:
     ///   - type: The type – the first token.
@@ -51,8 +51,8 @@ public struct MIMEType: Equatable {
         self.subtype = subtype
         self.parameters = parameters
     }
-    
-    public static func ==(lhs: MIMEType, rhs: MIMEType) -> Bool {
+
+    public static func == (lhs: MIMEType, rhs: MIMEType) -> Bool {
         guard lhs.type == rhs.type else {
             return false
         }
@@ -85,7 +85,7 @@ extension MIMEType.Token: LosslessStringConvertible {
             self = .concrete(description)
         }
     }
-    
+
     public var description: String {
         switch self {
         case .wildcard:
@@ -98,7 +98,8 @@ extension MIMEType.Token: LosslessStringConvertible {
 
 extension MIMEType: LosslessStringConvertible {
     public init?(_ description: String) {
-        var components = description
+        var components =
+            description
             // Split by semicolon
             .split(separator: ";")
             .map(String.init)
@@ -108,7 +109,8 @@ extension MIMEType: LosslessStringConvertible {
             return nil
         }
         let firstComponent = components.removeFirst()
-        let typeAndSubtype = firstComponent
+        let typeAndSubtype =
+            firstComponent
             .split(separator: "/")
             .map(String.init)
             .compactMap(MIMEType.Token.init)
@@ -116,7 +118,8 @@ extension MIMEType: LosslessStringConvertible {
             return nil
         }
         func parseParameter(_ string: String) -> (String, String)? {
-            let components = string
+            let components =
+                string
                 .split(separator: "=")
                 .map(String.init)
             guard components.count == 2 else {
@@ -124,7 +127,8 @@ extension MIMEType: LosslessStringConvertible {
             }
             return (components[0], components[1])
         }
-        let parameters = components
+        let parameters =
+            components
             .compactMap(parseParameter)
         self.init(
             type: typeAndSubtype[0],
@@ -135,13 +139,13 @@ extension MIMEType: LosslessStringConvertible {
             )
         )
     }
-    
+
     public var description: String {
         (["\(type.description)/\(subtype.description)"]
-         + parameters
+            + parameters
             .sorted(by: { a, b in a.key < b.key })
             .map { "\($0)=\($1)" })
-        .joined(separator: "; ")
+            .joined(separator: "; ")
     }
 }
 
