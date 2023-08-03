@@ -43,20 +43,21 @@ extension Converter {
         guard let received else {
             return false
         }
-        let receivedContentType = received
+        guard case let .concrete(type: receivedType, subtype: receivedSubtype) = received.kind else {
+            return false
+        }
         guard let expectedContentType = MIMEType(expected) else {
             return false
         }
-        if expectedContentType.type == .wildcard {
+        switch expectedContentType.kind {
+        case .any:
             return true
+        case .anySubtype(let expectedType):
+            return receivedType.lowercased() == expectedType.lowercased()
+        case .concrete(let expectedType, let expectedSubtype):
+            return receivedType.lowercased() == expectedType.lowercased()
+                && receivedSubtype.lowercased() == expectedSubtype.lowercased()
         }
-        if expectedContentType.type != receivedContentType.type {
-            return false
-        }
-        if expectedContentType.subtype == .wildcard {
-            return true
-        }
-        return expectedContentType.subtype == receivedContentType.subtype
     }
 
     /// Returns an error to be thrown when an unexpected content type is

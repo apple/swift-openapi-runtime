@@ -21,30 +21,21 @@ final class Test_MIMEType: Test_Runtime {
             // Common
             (
                 "application/json",
-                MIMEType(
-                    type: .concrete("application"),
-                    subtype: .concrete("json")
-                ),
+                MIMEType(kind: .concrete(type: "application", subtype: "json")),
                 "application/json"
             ),
 
             // Subtype wildcard
             (
                 "application/*",
-                MIMEType(
-                    type: .concrete("application"),
-                    subtype: .wildcard
-                ),
+                MIMEType(kind: .anySubtype(type: "application")),
                 "application/*"
             ),
 
             // Type wildcard
             (
                 "*/*",
-                MIMEType(
-                    type: .wildcard,
-                    subtype: .wildcard
-                ),
+                MIMEType(kind: .any),
                 "*/*"
             ),
 
@@ -52,8 +43,7 @@ final class Test_MIMEType: Test_Runtime {
             (
                 "application/json; charset=UTF-8",
                 MIMEType(
-                    type: .concrete("application"),
-                    subtype: .concrete("json"),
+                    kind: .concrete(type: "application", subtype: "json"),
                     parameters: [
                         "charset": "UTF-8"
                     ]
@@ -65,8 +55,7 @@ final class Test_MIMEType: Test_Runtime {
             (
                 "application/json; charset=UTF-8; boundary=1234",
                 MIMEType(
-                    type: .concrete("application"),
-                    subtype: .concrete("json"),
+                    kind: .concrete(type: "application", subtype: "json"),
                     parameters: [
                         "charset": "UTF-8",
                         "boundary": "1234",
@@ -79,8 +68,7 @@ final class Test_MIMEType: Test_Runtime {
             (
                 "APPLICATION/JSON;CHARSET=UTF-8",
                 MIMEType(
-                    type: .concrete("application"),
-                    subtype: .concrete("json"),
+                    kind: .concrete(type: "application", subtype: "json"),
                     parameters: [
                         "charset": "UTF-8"
                     ]
