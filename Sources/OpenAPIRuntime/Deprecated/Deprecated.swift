@@ -739,7 +739,7 @@ extension Converter {
     ///   - substring: Expected content type.
     /// - Throws: If the response's Content-Type value is not compatible with
     /// the provided substring.
-    @available(*, deprecated, message: "Use isValidContentType instead.")
+    @available(*, deprecated, message: "Use isMatchingContentType instead.")
     public func validateContentTypeIfPresent(
         in headerFields: [HeaderField],
         substring: String
@@ -747,7 +747,7 @@ extension Converter {
         guard let contentType = extractContentTypeIfPresent(in: headerFields) else {
             return
         }
-        guard isValidContentType(received: contentType, expected: substring) else {
+        guard isMatchingContentType(received: contentType, expected: substring) else {
             throw RuntimeError.unexpectedContentTypeHeader(contentType.description)
         }
     }

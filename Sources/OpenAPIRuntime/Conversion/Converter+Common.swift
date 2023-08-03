@@ -39,7 +39,7 @@ extension Converter {
     ///   - expected: The expected content type, can contain wildcards.
     /// - Returns: A Boolean value representing whether the concrete content
     /// type matches the expected one.
-    public func isValidContentType(received: MIMEType?, expected: String) -> Bool {
+    public func isMatchingContentType(received: MIMEType?, expected: String) -> Bool {
         guard let received else {
             return false
         }
