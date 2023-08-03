@@ -16,7 +16,7 @@ import Foundation
 extension HeaderField: CustomStringConvertible {
     public var description: String {
         let value: String
-        if HeaderField.redactedHeaderFields.contains(name.lowercased()) {
+        if HeaderField.internalRedactedHeaderFields.contains(name.lowercased()) {
             value = "<redacted>"
         } else {
             value = self.value

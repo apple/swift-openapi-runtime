@@ -12,10 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-import OpenAPIRuntime
+@_spi(Generated)@testable import OpenAPIRuntime
 
-final class Test_CurrencyTypes: Test_Runtime {
+final class Test_Deprecated_RedactedHeaderFields: Test_Runtime {
 
+    @available(*, deprecated)
     func _resetRedactedHeaderFields() {
         HeaderField.redactedHeaderFields = HeaderField.defaultRedactedHeaderFields
     }
@@ -35,11 +36,13 @@ final class Test_CurrencyTypes: Test_Runtime {
         }
     }
 
+    @available(*, deprecated)
     override func tearDown() async throws {
         _resetRedactedHeaderFields()
         try await super.tearDown()
     }
 
+    @available(*, deprecated)
     func testDefaultRedactedHeaderFields() {
         XCTAssertEqual(
             HeaderField.redactedHeaderFields,
@@ -51,6 +54,7 @@ final class Test_CurrencyTypes: Test_Runtime {
         )
     }
 
+    @available(*, deprecated)
     func testCustomizeExtraRedactedHeaderField() {
         XCTAssertEqual(
             HeaderField.redactedHeaderFields,
