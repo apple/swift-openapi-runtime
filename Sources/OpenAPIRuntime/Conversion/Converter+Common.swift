@@ -21,11 +21,11 @@ extension Converter {
     /// - Parameter headerFields: The header fields to inspect for the content
     /// type header.
     /// - Returns: The content type value, or nil if not found or invalid.
-    public func extractContentTypeIfPresent(in headerFields: [HeaderField]) -> MIMEType? {
+    public func extractContentTypeIfPresent(in headerFields: [HeaderField]) -> OpenAPIMIMEType? {
         guard let rawValue = headerFields.firstValue(name: "content-type") else {
             return nil
         }
-        return MIMEType(rawValue)
+        return OpenAPIMIMEType(rawValue)
     }
 
     /// Checks whether a concrete content type matches an expected content type.
@@ -39,14 +39,14 @@ extension Converter {
     ///   - expected: The expected content type, can contain wildcards.
     /// - Returns: A Boolean value representing whether the concrete content
     /// type matches the expected one.
-    public func isMatchingContentType(received: MIMEType?, expected: String) -> Bool {
+    public func isMatchingContentType(received: OpenAPIMIMEType?, expected: String) -> Bool {
         guard let received else {
             return false
         }
         guard case let .concrete(type: receivedType, subtype: receivedSubtype) = received.kind else {
             return false
         }
-        guard let expectedContentType = MIMEType(expected) else {
+        guard let expectedContentType = OpenAPIMIMEType(expected) else {
             return false
         }
         switch expectedContentType.kind {
@@ -63,7 +63,7 @@ extension Converter {
     /// Returns an error to be thrown when an unexpected content type is
     /// received.
     /// - Parameter contentType: The content type that was received.
-    public func makeUnexpectedContentTypeError(contentType: MIMEType?) -> any Error {
+    public func makeUnexpectedContentTypeError(contentType: OpenAPIMIMEType?) -> any Error {
         RuntimeError.unexpectedContentTypeHeader(contentType?.description ?? "")
     }
 

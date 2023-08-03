@@ -15,7 +15,7 @@ import Foundation
 
 /// A container for a parsed, valid MIME type.
 @_spi(Generated)
-public struct MIMEType: Equatable {
+public struct OpenAPIMIMEType: Equatable {
 
     /// The kind of the MIME type.
     public enum Kind: Equatable {
@@ -59,7 +59,7 @@ public struct MIMEType: Equatable {
         self.parameters = parameters
     }
 
-    public static func == (lhs: MIMEType, rhs: MIMEType) -> Bool {
+    public static func == (lhs: OpenAPIMIMEType, rhs: OpenAPIMIMEType) -> Bool {
         guard lhs.kind == rhs.kind else {
             return false
         }
@@ -81,7 +81,7 @@ public struct MIMEType: Equatable {
     }
 }
 
-extension MIMEType.Kind: LosslessStringConvertible {
+extension OpenAPIMIMEType.Kind: LosslessStringConvertible {
     public init?(_ description: String) {
         let typeAndSubtype =
             description
@@ -115,7 +115,7 @@ extension MIMEType.Kind: LosslessStringConvertible {
     }
 }
 
-extension MIMEType: LosslessStringConvertible {
+extension OpenAPIMIMEType: LosslessStringConvertible {
     public init?(_ description: String) {
         var components =
             description
@@ -128,7 +128,7 @@ extension MIMEType: LosslessStringConvertible {
             return nil
         }
         let firstComponent = components.removeFirst()
-        guard let kind = MIMEType.Kind(firstComponent) else {
+        guard let kind = OpenAPIMIMEType.Kind(firstComponent) else {
             return nil
         }
         func parseParameter(_ string: String) -> (String, String)? {

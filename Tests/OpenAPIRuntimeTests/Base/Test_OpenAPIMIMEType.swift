@@ -14,35 +14,35 @@
 import XCTest
 @_spi(Generated) import OpenAPIRuntime
 
-final class Test_MIMEType: Test_Runtime {
+final class Test_OpenAPIMIMEType: Test_Runtime {
     func test() throws {
-        let cases: [(String, MIMEType?, String?)] = [
+        let cases: [(String, OpenAPIMIMEType?, String?)] = [
 
             // Common
             (
                 "application/json",
-                MIMEType(kind: .concrete(type: "application", subtype: "json")),
+                OpenAPIMIMEType(kind: .concrete(type: "application", subtype: "json")),
                 "application/json"
             ),
 
             // Subtype wildcard
             (
                 "application/*",
-                MIMEType(kind: .anySubtype(type: "application")),
+                OpenAPIMIMEType(kind: .anySubtype(type: "application")),
                 "application/*"
             ),
 
             // Type wildcard
             (
                 "*/*",
-                MIMEType(kind: .any),
+                OpenAPIMIMEType(kind: .any),
                 "*/*"
             ),
 
             // Common with a parameter
             (
                 "application/json; charset=UTF-8",
-                MIMEType(
+                OpenAPIMIMEType(
                     kind: .concrete(type: "application", subtype: "json"),
                     parameters: [
                         "charset": "UTF-8"
@@ -54,7 +54,7 @@ final class Test_MIMEType: Test_Runtime {
             // Common with two parameters
             (
                 "application/json; charset=UTF-8; boundary=1234",
-                MIMEType(
+                OpenAPIMIMEType(
                     kind: .concrete(type: "application", subtype: "json"),
                     parameters: [
                         "charset": "UTF-8",
@@ -67,7 +67,7 @@ final class Test_MIMEType: Test_Runtime {
             // Common case preserving, but case insensitive equality
             (
                 "APPLICATION/JSON;CHARSET=UTF-8",
-                MIMEType(
+                OpenAPIMIMEType(
                     kind: .concrete(type: "application", subtype: "json"),
                     parameters: [
                         "charset": "UTF-8"
@@ -82,7 +82,7 @@ final class Test_MIMEType: Test_Runtime {
             ("", nil, nil),
         ]
         for (inputString, expectedMIME, outputString) in cases {
-            let mime = MIMEType(inputString)
+            let mime = OpenAPIMIMEType(inputString)
             XCTAssertEqual(mime, expectedMIME)
             XCTAssertEqual(mime?.description, outputString)
         }
