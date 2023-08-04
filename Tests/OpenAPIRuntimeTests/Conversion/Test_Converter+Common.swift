@@ -18,61 +18,33 @@ final class Test_CommonConverterExtensions: Test_Runtime {
 
     // MARK: Miscs
 
-    func testValidateContentType_match() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "content-type", value: "application/json")
-        ]
-        XCTAssertNoThrow(
-            try converter.validateContentTypeIfPresent(
-                in: headerFields,
-                substring: "application/json"
-            )
-        )
-    }
+    func testContentTypeMatching() throws {
+        let cases: [(received: String, expected: String, isMatch: Bool)] = [
+            ("application/json", "application/json", true),
+            ("APPLICATION/JSON", "application/json", true),
+            ("application/json", "application/*", true),
+            ("application/json", "*/*", true),
+            ("application/json", "text/*", false),
+            ("application/json", "application/xml", false),
+            ("application/json", "text/plain", false),
 
-    func testValidateContentType_match_substring() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "content-type", value: "application/json; charset=utf-8")
+            ("text/plain; charset=UTF-8", "text/plain", true),
+            ("TEXT/PLAIN; CHARSET=UTF-8", "text/plain", true),
+            ("text/plain; charset=UTF-8", "text/*", true),
+            ("text/plain; charset=UTF-8", "*/*", true),
+            ("text/plain; charset=UTF-8", "application/*", false),
+            ("text/plain; charset=UTF-8", "text/html", false),
         ]
-        XCTAssertNoThrow(
-            try converter.validateContentTypeIfPresent(
-                in: headerFields,
-                substring: "application/json"
+        for testCase in cases {
+            XCTAssertEqual(
+                try converter.isMatchingContentType(
+                    received: .init(testCase.received),
+                    expectedRaw: testCase.expected
+                ),
+                testCase.isMatch,
+                "Wrong result for (\(testCase.received), \(testCase.expected), \(testCase.isMatch))"
             )
-        )
-    }
-
-    func testValidateContentType_missing() throws {
-        let headerFields: [HeaderField] = []
-        XCTAssertNoThrow(
-            try converter.validateContentTypeIfPresent(
-                in: headerFields,
-                substring: "application/json"
-            )
-        )
-    }
-
-    func testValidateContentType_mismatch() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "content-type", value: "text/plain")
-        ]
-        XCTAssertThrowsError(
-            try converter.validateContentTypeIfPresent(
-                in: headerFields,
-                substring: "application/json"
-            ),
-            "Was expected to throw error on mismatch",
-            { error in
-                guard
-                    let err = error as? RuntimeError,
-                    case .unexpectedContentTypeHeader(let contentType) = err
-                else {
-                    XCTFail("Unexpected kind of error thrown")
-                    return
-                }
-                XCTAssertEqual(contentType, "text/plain")
-            }
-        )
+        }
     }
 
     // MARK: Converter helper methods
