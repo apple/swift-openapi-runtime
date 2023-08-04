@@ -62,6 +62,18 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(request.query, "search=foo&search=bar")
     }
 
+    //    | client | set | request query | text | array of string-convertibles | both | setQueryItemAsText |
+    func test_setQueryItemAsText_arrayOfStringConvertibles_unexploded() throws {
+        var request = testRequest
+        try converter.setQueryItemAsText(
+            in: &request,
+            explode: false,
+            name: "search",
+            value: ["foo", "bar"]
+        )
+        XCTAssertEqual(request.query, "search=foo,bar")
+    }
+
     //    | client | set | request query | text | date | both | setQueryItemAsText |
     func test_setQueryItemAsText_date() throws {
         var request = testRequest

@@ -93,6 +93,33 @@ extension Array where Element == HeaderField {
     }
 }
 
+extension ParameterStyle {
+
+    /// Returns the parameter style and explode parameter that should be used
+    /// based on the provided inputs, taking defaults into considerations.
+    /// - Parameters:
+    ///   - style: The provided parameter style, if any.
+    ///   - explode: The provided explode value, if any.
+    /// - Throws: For an unsupported input combination.
+    static func resolvedQueryStyleAndExplode(
+        name: String,
+        style: ParameterStyle?,
+        explode: Bool?
+    ) throws -> (ParameterStyle, Bool) {
+        let resolvedStyle = style ?? .defaultForQueryItems
+        let resolvedExplode = explode ?? ParameterStyle.defaultExplodeFor(forStyle: resolvedStyle)
+        guard resolvedStyle == .form else {
+            throw RuntimeError.unsupportedParameterStyle(
+                name: name,
+                location: .query,
+                style: resolvedStyle,
+                explode: resolvedExplode
+            )
+        }
+        return (resolvedStyle, resolvedExplode)
+    }
+}
+
 extension Converter {
 
     // MARK: Common functions for Converter's SPI helper methods
@@ -259,6 +286,8 @@ extension Converter {
 
     func setQueryItem<T>(
         in request: inout Request,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         value: T?,
         convert: (T) throws -> String
@@ -266,11 +295,22 @@ extension Converter {
         guard let value else {
             return
         }
-        request.addQueryItem(name: name, value: try convert(value))
+        let (_, resolvedExplode) = try ParameterStyle.resolvedQueryStyleAndExplode(
+            name: name,
+            style: style,
+            explode: explode
+        )
+        request.addQueryItem(
+            name: name,
+            value: try convert(value),
+            explode: resolvedExplode
+        )
     }
 
     func setQueryItems<T>(
         in request: inout Request,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         values: [T]?,
         convert: (T) throws -> String
@@ -278,17 +318,33 @@ extension Converter {
         guard let values else {
             return
         }
+        let (_, resolvedExplode) = try ParameterStyle.resolvedQueryStyleAndExplode(
+            name: name,
+            style: style,
+            explode: explode
+        )
         for value in values {
-            request.addQueryItem(name: name, value: try convert(value))
+            request.addQueryItem(
+                name: name,
+                value: try convert(value),
+                explode: resolvedExplode
+            )
         }
     }
 
     func getOptionalQueryItem<T>(
         in queryParameters: [URLQueryItem],
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: T.Type,
         convert: (String) throws -> T
     ) throws -> T? {
+        let (_, _) = try ParameterStyle.resolvedQueryStyleAndExplode(
+            name: name,
+            style: style,
+            explode: explode
+        )
         guard
             let untypedValue =
                 queryParameters
@@ -301,6 +357,8 @@ extension Converter {
 
     func getRequiredQueryItem<T>(
         in queryParameters: [URLQueryItem],
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: T.Type,
         convert: (String) throws -> T
@@ -308,6 +366,8 @@ extension Converter {
         guard
             let value = try getOptionalQueryItem(
                 in: queryParameters,
+                style: style,
+                explode: explode,
                 name: name,
                 as: type,
                 convert: convert
@@ -320,16 +380,40 @@ extension Converter {
 
     func getOptionalQueryItems<T>(
         in queryParameters: [URLQueryItem],
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: [T].Type,
         convert: (String) throws -> T
     ) throws -> [T]? {
-        let untypedValues = queryParameters.filter { $0.name == name }
-        return try untypedValues.map { try convert($0.value ?? "") }
+        let (_, resolvedExplode) = try ParameterStyle.resolvedQueryStyleAndExplode(
+            name: name,
+            style: style,
+            explode: explode
+        )
+        let untypedValues =
+            queryParameters
+            .filter { $0.name == name }
+            .map { $0.value ?? "" }
+        // If explode is false, some of the items might have multiple
+        // comma-separate values, so we need to split them here.
+        let processedValues: [String]
+        if resolvedExplode {
+            processedValues = untypedValues
+        } else {
+            processedValues = untypedValues.flatMap { multiValue in
+                multiValue
+                    .split(separator: ",", omittingEmptySubsequences: false)
+                    .map(String.init)
+            }
+        }
+        return try processedValues.map(convert)
     }
 
     func getRequiredQueryItems<T>(
         in queryParameters: [URLQueryItem],
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: [T].Type,
         convert: (String) throws -> T
@@ -337,6 +421,8 @@ extension Converter {
         guard
             let values = try getOptionalQueryItems(
                 in: queryParameters,
+                style: style,
+                explode: explode,
                 name: name,
                 as: type,
                 convert: convert
