@@ -195,14 +195,12 @@ final class Test_OpenAPIValue: Test_Runtime {
     }
 
     func testEncoding_objectNested_success() throws {
-
         struct Foo: Encodable {
             var bar: String
             var dict: OpenAPIObjectContainer = .init()
         }
-
-        do {
-            let value = Foo(
+        try _testPrettyEncoded(
+            Foo(
                 bar: "hi",
                 dict: try .init(unvalidatedValue: [
                     "baz": "bar",
@@ -217,13 +215,8 @@ final class Test_OpenAPIValue: Test_Runtime {
                         "nested": 2
                     ],
                 ])
-            )
-            let encoder: JSONEncoder = .init()
-            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-            let data = try encoder.encode(value)
-            XCTAssertEqual(
-                String(decoding: data, as: UTF8.self),
-                #"""
+            ),
+            expectedJSON: #"""
                 {
                   "bar" : "hi",
                   "dict" : {
@@ -241,20 +234,16 @@ final class Test_OpenAPIValue: Test_Runtime {
                   }
                 }
                 """#
-            )
-        }
+        )
     }
 
-    func testDecodeEncodeRoundTrip_objectNested_success() throws {
-
+    func testDecoding_objectNested_success() throws {
         struct Foo: Codable {
             var bar: String
             var dict: OpenAPIObjectContainer = .init()
         }
-
-        do {
-            let data = Data(
-                #"""
+        let decoded: Foo = try _getDecoded(
+            json: #"""
                 {
                   "bar" : "hi",
                   "dict" : {
@@ -272,17 +261,9 @@ final class Test_OpenAPIValue: Test_Runtime {
                   }
                 }
                 """#
-                .utf8
-            )
-            let decoded = try JSONDecoder().decode(Foo.self, from: data)
-            let nestedDict = try XCTUnwrap(decoded.dict.value["nestedDict"] as? [String: Any?])
-            let nestedValue = try XCTUnwrap(nestedDict["nested"] as? Int)
-            XCTAssertEqual(nestedValue, 2)
-
-            let encoder: JSONEncoder = .init()
-            encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-            let encodedData = try encoder.encode(decoded)
-            XCTAssertEqual(encodedData, data)
-        }
+        )
+        let nestedDict = try XCTUnwrap(decoded.dict.value["nestedDict"] as? [String: Any?])
+        let nestedValue = try XCTUnwrap(nestedDict["nested"] as? Int)
+        XCTAssertEqual(nestedValue, 2)
     }
 }
