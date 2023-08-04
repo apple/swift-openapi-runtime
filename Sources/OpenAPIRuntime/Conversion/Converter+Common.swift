@@ -17,31 +17,55 @@ extension Converter {
 
     // MARK: Miscs
 
-    /// Validates that the Content-Type header field (if present)
-    /// is compatible with the provided content-type substring.
+    /// Returns the MIME type from the content-type header, if present.
+    /// - Parameter headerFields: The header fields to inspect for the content
+    /// type header.
+    /// - Returns: The content type value, or nil if not found or invalid.
+    public func extractContentTypeIfPresent(in headerFields: [HeaderField]) -> OpenAPIMIMEType? {
+        guard let rawValue = headerFields.firstValue(name: "content-type") else {
+            return nil
+        }
+        return OpenAPIMIMEType(rawValue)
+    }
+
+    /// Checks whether a concrete content type matches an expected content type.
     ///
-    /// Succeeds if no Content-Type header is found in the response headers.
+    /// The concrete content type can contain parameters, such as `charset`, but
+    /// they are ignored in the equality comparison.
     ///
+    /// The expected content type can contain wildcards, such as */* and text/*.
     /// - Parameters:
-    ///   - headerFields: Header fields to inspect for a content type.
-    ///   - substring: Expected content type.
-    /// - Throws: If the response's Content-Type value is not compatible with the provided substring.
-    public func validateContentTypeIfPresent(
-        in headerFields: [HeaderField],
-        substring: String
-    ) throws {
-        guard
-            let contentType = try getOptionalHeaderFieldAsText(
-                in: headerFields,
-                name: "content-type",
-                as: String.self
-            )
-        else {
-            return
+    ///   - received: The concrete content type to validate against the other.
+    ///   - expectedRaw: The expected content type, can contain wildcards.
+    /// - Throws: A `RuntimeError` when `expectedRaw` is not a valid content type.
+    /// - Returns: A Boolean value representing whether the concrete content
+    /// type matches the expected one.
+    public func isMatchingContentType(received: OpenAPIMIMEType?, expectedRaw: String) throws -> Bool {
+        guard let received else {
+            return false
         }
-        guard contentType.localizedCaseInsensitiveContains(substring) else {
-            throw RuntimeError.unexpectedContentTypeHeader(contentType)
+        guard case let .concrete(type: receivedType, subtype: receivedSubtype) = received.kind else {
+            return false
         }
+        guard let expectedContentType = OpenAPIMIMEType(expectedRaw) else {
+            throw RuntimeError.invalidExpectedContentType(expectedRaw)
+        }
+        switch expectedContentType.kind {
+        case .any:
+            return true
+        case .anySubtype(let expectedType):
+            return receivedType.lowercased() == expectedType.lowercased()
+        case .concrete(let expectedType, let expectedSubtype):
+            return receivedType.lowercased() == expectedType.lowercased()
+                && receivedSubtype.lowercased() == expectedSubtype.lowercased()
+        }
+    }
+
+    /// Returns an error to be thrown when an unexpected content type is
+    /// received.
+    /// - Parameter contentType: The content type that was received.
+    public func makeUnexpectedContentTypeError(contentType: OpenAPIMIMEType?) -> any Error {
+        RuntimeError.unexpectedContentTypeHeader(contentType?.description ?? "")
     }
 
     // MARK: - Converter helper methods

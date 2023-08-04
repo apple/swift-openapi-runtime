@@ -729,6 +729,29 @@ extension Converter {
 
 extension Converter {
 
+    /// Validates that the Content-Type header field (if present)
+    /// is compatible with the provided content-type substring.
+    ///
+    /// Succeeds if no Content-Type header is found in the response headers.
+    ///
+    /// - Parameters:
+    ///   - headerFields: Header fields to inspect for a content type.
+    ///   - substring: Expected content type.
+    /// - Throws: If the response's Content-Type value is not compatible with
+    /// the provided substring.
+    @available(*, deprecated, message: "Use isMatchingContentType instead.")
+    public func validateContentTypeIfPresent(
+        in headerFields: [HeaderField],
+        substring: String
+    ) throws {
+        guard let contentType = extractContentTypeIfPresent(in: headerFields) else {
+            return
+        }
+        guard try isMatchingContentType(received: contentType, expectedRaw: substring) else {
+            throw RuntimeError.unexpectedContentTypeHeader(contentType.description)
+        }
+    }
+
     //    | client | set | request body | text | string-convertible | optional | setOptionalRequestBodyAsText |
     @available(*, deprecated)
     public func setOptionalRequestBodyAsText<T: _StringConvertible, C>(

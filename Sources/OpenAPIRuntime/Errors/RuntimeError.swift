@@ -19,6 +19,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 
     // Miscs
     case invalidServerURL(String)
+    case invalidExpectedContentType(String)
 
     // Data conversion
     case failedToDecodeStringConvertibleValue(type: String)
@@ -51,6 +52,8 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
         switch self {
         case .invalidServerURL(let string):
             return "Invalid server URL: \(string)"
+        case .invalidExpectedContentType(let string):
+            return "Invalid expected content type: '\(string)'"
         case .failedToDecodeStringConvertibleValue(let string):
             return "Failed to decode a value of type '\(string)'."
         case .missingRequiredHeaderField(let name):
