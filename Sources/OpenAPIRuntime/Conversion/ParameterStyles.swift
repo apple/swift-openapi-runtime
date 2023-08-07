@@ -16,7 +16,7 @@
 ///
 /// Details: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#fixed-fields-10
 @_spi(Generated)
-public enum ParameterStyle {
+public enum ParameterStyle: Sendable {
 
     /// The form style.
     ///
