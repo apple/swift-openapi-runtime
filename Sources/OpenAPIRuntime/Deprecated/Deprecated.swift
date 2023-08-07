@@ -975,4 +975,208 @@ extension Converter {
         let convertibleValue = body.value
         return try convert(convertibleValue)
     }
+
+    //    | client | set | request query | text | string-convertible | both | setQueryItemAsText |
+    @available(*, deprecated)
+    public func setQueryItemAsText<T: _StringConvertible>(
+        in request: inout Request,
+        name: String,
+        value: T?
+    ) throws {
+        try setQueryItem(
+            in: &request,
+            style: nil,
+            explode: nil,
+            name: name,
+            value: value,
+            convert: convertStringConvertibleToText
+        )
+    }
+
+    //    | client | set | request query | text | array of string-convertibles | both | setQueryItemAsText |
+    @available(*, deprecated)
+    public func setQueryItemAsText<T: _StringConvertible>(
+        in request: inout Request,
+        name: String,
+        value: [T]?
+    ) throws {
+        try setQueryItems(
+            in: &request,
+            style: nil,
+            explode: nil,
+            name: name,
+            values: value,
+            convert: convertStringConvertibleToText
+        )
+    }
+
+    //    | client | set | request query | text | date | both | setQueryItemAsText |
+    @available(*, deprecated)
+    public func setQueryItemAsText(
+        in request: inout Request,
+        name: String,
+        value: Date?
+    ) throws {
+        try setQueryItem(
+            in: &request,
+            style: nil,
+            explode: nil,
+            name: name,
+            value: value,
+            convert: convertDateToText
+        )
+    }
+
+    //    | client | set | request query | text | array of dates | both | setQueryItemAsText |
+    @available(*, deprecated)
+    public func setQueryItemAsText(
+        in request: inout Request,
+        name: String,
+        value: [Date]?
+    ) throws {
+        try setQueryItems(
+            in: &request,
+            style: nil,
+            explode: nil,
+            name: name,
+            values: value,
+            convert: convertDateToText
+        )
+    }
+
+    //    | server | get | request query | text | string-convertible | optional | getOptionalQueryItemAsText |
+    @available(*, deprecated)
+    func getOptionalQueryItemAsText<T: _StringConvertible>(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: T.Type
+    ) throws -> T? {
+        try getOptionalQueryItem(
+            in: queryParameters,
+            style: nil,
+            explode: nil,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
+    }
+
+    //    | server | get | request query | text | string-convertible | required | getRequiredQueryItemAsText |
+    @available(*, deprecated)
+    func getRequiredQueryItemAsText<T: _StringConvertible>(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: T.Type
+    ) throws -> T {
+        try getRequiredQueryItem(
+            in: queryParameters,
+            style: nil,
+            explode: nil,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
+    }
+
+    //    | server | get | request query | text | array of string-convertibles | optional | getOptionalQueryItemAsText |
+    @available(*, deprecated)
+    func getOptionalQueryItemAsText<T: _StringConvertible>(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: [T].Type
+    ) throws -> [T]? {
+        try getOptionalQueryItems(
+            in: queryParameters,
+            style: nil,
+            explode: nil,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
+    }
+
+    //    | server | get | request query | text | array of string-convertibles | required | getRequiredQueryItemAsText |
+    @available(*, deprecated)
+    func getRequiredQueryItemAsText<T: _StringConvertible>(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: [T].Type
+    ) throws -> [T] {
+        try getRequiredQueryItems(
+            in: queryParameters,
+            style: nil,
+            explode: nil,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
+    }
+
+    //    | server | get | request query | text | date | optional | getOptionalQueryItemAsText |
+    @available(*, deprecated)
+    func getOptionalQueryItemAsText(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: Date.Type
+    ) throws -> Date? {
+        try getOptionalQueryItem(
+            in: queryParameters,
+            style: nil,
+            explode: nil,
+            name: name,
+            as: type,
+            convert: convertTextToDate
+        )
+    }
+
+    //    | server | get | request query | text | date | required | getRequiredQueryItemAsText |
+    @available(*, deprecated)
+    func getRequiredQueryItemAsText(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: Date.Type
+    ) throws -> Date {
+        try getRequiredQueryItem(
+            in: queryParameters,
+            style: nil,
+            explode: nil,
+            name: name,
+            as: type,
+            convert: convertTextToDate
+        )
+    }
+
+    //    | server | get | request query | text | array of dates | optional | getOptionalQueryItemAsText |
+    @available(*, deprecated)
+    func getOptionalQueryItemAsText(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: [Date].Type
+    ) throws -> [Date]? {
+        try getOptionalQueryItems(
+            in: queryParameters,
+            style: nil,
+            explode: nil,
+            name: name,
+            as: type,
+            convert: convertTextToDate
+        )
+    }
+
+    //    | server | get | request query | text | array of dates | required | getRequiredQueryItemAsText |
+    @available(*, deprecated)
+    func getRequiredQueryItemAsText(
+        in queryParameters: [URLQueryItem],
+        name: String,
+        as type: [Date].Type
+    ) throws -> [Date] {
+        try getRequiredQueryItems(
+            in: queryParameters,
+            style: nil,
+            explode: nil,
+            name: name,
+            as: type,
+            convert: convertTextToDate
+        )
+    }
 }

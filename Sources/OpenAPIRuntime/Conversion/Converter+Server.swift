@@ -74,8 +74,8 @@ public extension Converter {
     //    | server | get | request query | text | string-convertible | optional | getOptionalQueryItemAsText |
     func getOptionalQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
-        style: ParameterStyle? = nil,
-        explode: Bool? = nil,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: T.Type
     ) throws -> T? {
@@ -92,8 +92,8 @@ public extension Converter {
     //    | server | get | request query | text | string-convertible | required | getRequiredQueryItemAsText |
     func getRequiredQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
-        style: ParameterStyle? = nil,
-        explode: Bool? = nil,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: T.Type
     ) throws -> T {
@@ -110,8 +110,8 @@ public extension Converter {
     //    | server | get | request query | text | array of string-convertibles | optional | getOptionalQueryItemAsText |
     func getOptionalQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
-        style: ParameterStyle? = nil,
-        explode: Bool? = nil,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: [T].Type
     ) throws -> [T]? {
@@ -128,8 +128,8 @@ public extension Converter {
     //    | server | get | request query | text | array of string-convertibles | required | getRequiredQueryItemAsText |
     func getRequiredQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
-        style: ParameterStyle? = nil,
-        explode: Bool? = nil,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: [T].Type
     ) throws -> [T] {
@@ -146,8 +146,8 @@ public extension Converter {
     //    | server | get | request query | text | date | optional | getOptionalQueryItemAsText |
     func getOptionalQueryItemAsText(
         in queryParameters: [URLQueryItem],
-        style: ParameterStyle? = nil,
-        explode: Bool? = nil,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: Date.Type
     ) throws -> Date? {
@@ -164,8 +164,8 @@ public extension Converter {
     //    | server | get | request query | text | date | required | getRequiredQueryItemAsText |
     func getRequiredQueryItemAsText(
         in queryParameters: [URLQueryItem],
-        style: ParameterStyle? = nil,
-        explode: Bool? = nil,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: Date.Type
     ) throws -> Date {
@@ -182,8 +182,8 @@ public extension Converter {
     //    | server | get | request query | text | array of dates | optional | getOptionalQueryItemAsText |
     func getOptionalQueryItemAsText(
         in queryParameters: [URLQueryItem],
-        style: ParameterStyle? = nil,
-        explode: Bool? = nil,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: [Date].Type
     ) throws -> [Date]? {
@@ -200,8 +200,8 @@ public extension Converter {
     //    | server | get | request query | text | array of dates | required | getRequiredQueryItemAsText |
     func getRequiredQueryItemAsText(
         in queryParameters: [URLQueryItem],
-        style: ParameterStyle? = nil,
-        explode: Bool? = nil,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: [Date].Type
     ) throws -> [Date] {

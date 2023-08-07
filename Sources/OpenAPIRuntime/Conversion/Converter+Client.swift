@@ -36,8 +36,8 @@ extension Converter {
     //    | client | set | request query | text | string-convertible | both | setQueryItemAsText |
     public func setQueryItemAsText<T: _StringConvertible>(
         in request: inout Request,
-        style: ParameterStyle? = nil,
-        explode: Bool? = nil,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         value: T?
     ) throws {
@@ -54,8 +54,8 @@ extension Converter {
     //    | client | set | request query | text | array of string-convertibles | both | setQueryItemAsText |
     public func setQueryItemAsText<T: _StringConvertible>(
         in request: inout Request,
-        style: ParameterStyle? = nil,
-        explode: Bool? = nil,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         value: [T]?
     ) throws {
@@ -72,8 +72,8 @@ extension Converter {
     //    | client | set | request query | text | date | both | setQueryItemAsText |
     public func setQueryItemAsText(
         in request: inout Request,
-        style: ParameterStyle? = nil,
-        explode: Bool? = nil,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         value: Date?
     ) throws {
@@ -90,8 +90,8 @@ extension Converter {
     //    | client | set | request query | text | array of dates | both | setQueryItemAsText |
     public func setQueryItemAsText(
         in request: inout Request,
-        style: ParameterStyle? = nil,
-        explode: Bool? = nil,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         value: [Date]?
     ) throws {
