@@ -340,6 +340,9 @@ extension Converter {
         as type: T.Type,
         convert: (String) throws -> T
     ) throws -> T? {
+        // Even though the return value isn't used, the validation
+        // in the method is important for consistently handling
+        // style+explode combinations in all the helper functions.
         let (_, _) = try ParameterStyle.resolvedQueryStyleAndExplode(
             name: name,
             style: style,
