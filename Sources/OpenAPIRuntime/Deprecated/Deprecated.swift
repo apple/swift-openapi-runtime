@@ -1046,7 +1046,7 @@ extension Converter {
 
     //    | server | get | request query | text | string-convertible | optional | getOptionalQueryItemAsText |
     @available(*, deprecated)
-    func getOptionalQueryItemAsText<T: _StringConvertible>(
+    public func getOptionalQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: T.Type
@@ -1063,7 +1063,7 @@ extension Converter {
 
     //    | server | get | request query | text | string-convertible | required | getRequiredQueryItemAsText |
     @available(*, deprecated)
-    func getRequiredQueryItemAsText<T: _StringConvertible>(
+    public func getRequiredQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: T.Type
@@ -1080,7 +1080,7 @@ extension Converter {
 
     //    | server | get | request query | text | array of string-convertibles | optional | getOptionalQueryItemAsText |
     @available(*, deprecated)
-    func getOptionalQueryItemAsText<T: _StringConvertible>(
+    public func getOptionalQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: [T].Type
@@ -1097,7 +1097,7 @@ extension Converter {
 
     //    | server | get | request query | text | array of string-convertibles | required | getRequiredQueryItemAsText |
     @available(*, deprecated)
-    func getRequiredQueryItemAsText<T: _StringConvertible>(
+    public func getRequiredQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: [T].Type
@@ -1114,7 +1114,7 @@ extension Converter {
 
     //    | server | get | request query | text | date | optional | getOptionalQueryItemAsText |
     @available(*, deprecated)
-    func getOptionalQueryItemAsText(
+    public func getOptionalQueryItemAsText(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: Date.Type
@@ -1131,7 +1131,7 @@ extension Converter {
 
     //    | server | get | request query | text | date | required | getRequiredQueryItemAsText |
     @available(*, deprecated)
-    func getRequiredQueryItemAsText(
+    public func getRequiredQueryItemAsText(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: Date.Type
@@ -1148,7 +1148,7 @@ extension Converter {
 
     //    | server | get | request query | text | array of dates | optional | getOptionalQueryItemAsText |
     @available(*, deprecated)
-    func getOptionalQueryItemAsText(
+    public func getOptionalQueryItemAsText(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: [Date].Type
@@ -1165,7 +1165,7 @@ extension Converter {
 
     //    | server | get | request query | text | array of dates | required | getRequiredQueryItemAsText |
     @available(*, deprecated)
-    func getRequiredQueryItemAsText(
+    public func getRequiredQueryItemAsText(
         in queryParameters: [URLQueryItem],
         name: String,
         as type: [Date].Type
