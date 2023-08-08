@@ -36,11 +36,15 @@ extension Converter {
     //    | client | set | request query | text | string-convertible | both | setQueryItemAsText |
     public func setQueryItemAsText<T: _StringConvertible>(
         in request: inout Request,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         value: T?
     ) throws {
         try setQueryItem(
             in: &request,
+            style: style,
+            explode: explode,
             name: name,
             value: value,
             convert: convertStringConvertibleToText
@@ -50,11 +54,15 @@ extension Converter {
     //    | client | set | request query | text | array of string-convertibles | both | setQueryItemAsText |
     public func setQueryItemAsText<T: _StringConvertible>(
         in request: inout Request,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         value: [T]?
     ) throws {
         try setQueryItems(
             in: &request,
+            style: style,
+            explode: explode,
             name: name,
             values: value,
             convert: convertStringConvertibleToText
@@ -64,11 +72,15 @@ extension Converter {
     //    | client | set | request query | text | date | both | setQueryItemAsText |
     public func setQueryItemAsText(
         in request: inout Request,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         value: Date?
     ) throws {
         try setQueryItem(
             in: &request,
+            style: style,
+            explode: explode,
             name: name,
             value: value,
             convert: convertDateToText
@@ -78,11 +90,15 @@ extension Converter {
     //    | client | set | request query | text | array of dates | both | setQueryItemAsText |
     public func setQueryItemAsText(
         in request: inout Request,
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         value: [Date]?
     ) throws {
         try setQueryItems(
             in: &request,
+            style: style,
+            explode: explode,
             name: name,
             values: value,
             convert: convertDateToText
