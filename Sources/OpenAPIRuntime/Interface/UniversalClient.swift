@@ -14,8 +14,7 @@
 #if canImport(Darwin)
 import Foundation
 #else
-// `@preconcrrency` is for `URL`.
-@preconcurrency import Foundation
+@preconcurrency import struct Foundation.URL
 #endif
 
 /// OpenAPI document-agnostic HTTP client used by OpenAPI document-specific,

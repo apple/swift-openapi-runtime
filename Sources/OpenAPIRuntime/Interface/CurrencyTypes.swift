@@ -14,8 +14,8 @@
 #if canImport(Darwin)
 import Foundation
 #else
-// `@preconcrrency` is for `Data`/`URLQueryItem`.
-@preconcurrency import Foundation
+@preconcurrency import struct Foundation.Data
+@preconcurrency import struct Foundation.URLQueryItem
 #endif
 
 /// A header field used in an HTTP request or response.

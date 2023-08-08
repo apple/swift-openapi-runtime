@@ -14,8 +14,8 @@
 #if canImport(Darwin)
 import Foundation
 #else
-// `@preconcrrency` is for `JSONDecoder`/`JSONEncoder`.
-@preconcurrency import Foundation
+@preconcurrency import class Foundation.JSONEncoder
+@preconcurrency import class Foundation.JSONDecoder
 #endif
 
 /// Converter between generated and HTTP currency types.
