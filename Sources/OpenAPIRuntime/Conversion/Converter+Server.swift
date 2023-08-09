@@ -74,11 +74,15 @@ public extension Converter {
     //    | server | get | request query | text | string-convertible | optional | getOptionalQueryItemAsText |
     func getOptionalQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: T.Type
     ) throws -> T? {
         try getOptionalQueryItem(
             in: queryParameters,
+            style: style,
+            explode: explode,
             name: name,
             as: type,
             convert: convertTextToStringConvertible
@@ -88,11 +92,15 @@ public extension Converter {
     //    | server | get | request query | text | string-convertible | required | getRequiredQueryItemAsText |
     func getRequiredQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: T.Type
     ) throws -> T {
         try getRequiredQueryItem(
             in: queryParameters,
+            style: style,
+            explode: explode,
             name: name,
             as: type,
             convert: convertTextToStringConvertible
@@ -102,11 +110,15 @@ public extension Converter {
     //    | server | get | request query | text | array of string-convertibles | optional | getOptionalQueryItemAsText |
     func getOptionalQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: [T].Type
     ) throws -> [T]? {
         try getOptionalQueryItems(
             in: queryParameters,
+            style: style,
+            explode: explode,
             name: name,
             as: type,
             convert: convertTextToStringConvertible
@@ -116,11 +128,15 @@ public extension Converter {
     //    | server | get | request query | text | array of string-convertibles | required | getRequiredQueryItemAsText |
     func getRequiredQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: [T].Type
     ) throws -> [T] {
         try getRequiredQueryItems(
             in: queryParameters,
+            style: style,
+            explode: explode,
             name: name,
             as: type,
             convert: convertTextToStringConvertible
@@ -130,11 +146,15 @@ public extension Converter {
     //    | server | get | request query | text | date | optional | getOptionalQueryItemAsText |
     func getOptionalQueryItemAsText(
         in queryParameters: [URLQueryItem],
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: Date.Type
     ) throws -> Date? {
         try getOptionalQueryItem(
             in: queryParameters,
+            style: style,
+            explode: explode,
             name: name,
             as: type,
             convert: convertTextToDate
@@ -144,11 +164,15 @@ public extension Converter {
     //    | server | get | request query | text | date | required | getRequiredQueryItemAsText |
     func getRequiredQueryItemAsText(
         in queryParameters: [URLQueryItem],
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: Date.Type
     ) throws -> Date {
         try getRequiredQueryItem(
             in: queryParameters,
+            style: style,
+            explode: explode,
             name: name,
             as: type,
             convert: convertTextToDate
@@ -158,11 +182,15 @@ public extension Converter {
     //    | server | get | request query | text | array of dates | optional | getOptionalQueryItemAsText |
     func getOptionalQueryItemAsText(
         in queryParameters: [URLQueryItem],
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: [Date].Type
     ) throws -> [Date]? {
         try getOptionalQueryItems(
             in: queryParameters,
+            style: style,
+            explode: explode,
             name: name,
             as: type,
             convert: convertTextToDate
@@ -172,11 +200,15 @@ public extension Converter {
     //    | server | get | request query | text | array of dates | required | getRequiredQueryItemAsText |
     func getRequiredQueryItemAsText(
         in queryParameters: [URLQueryItem],
+        style: ParameterStyle?,
+        explode: Bool?,
         name: String,
         as type: [Date].Type
     ) throws -> [Date] {
         try getRequiredQueryItems(
             in: queryParameters,
+            style: style,
+            explode: explode,
             name: name,
             as: type,
             convert: convertTextToDate

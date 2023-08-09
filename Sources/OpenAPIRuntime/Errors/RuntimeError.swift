@@ -24,6 +24,15 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     // Data conversion
     case failedToDecodeStringConvertibleValue(type: String)
 
+    enum ParameterLocation: String, CustomStringConvertible {
+        case query
+
+        var description: String {
+            rawValue
+        }
+    }
+    case unsupportedParameterStyle(name: String, location: ParameterLocation, style: ParameterStyle, explode: Bool)
+
     // Headers
     case missingRequiredHeaderField(String)
     case unexpectedContentTypeHeader(String)
@@ -56,6 +65,9 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
             return "Invalid expected content type: '\(string)'"
         case .failedToDecodeStringConvertibleValue(let string):
             return "Failed to decode a value of type '\(string)'."
+        case .unsupportedParameterStyle(name: let name, location: let location, style: let style, explode: let explode):
+            return
+                "Unsupported parameter style, parameter name: '\(name)', kind: \(location), style: \(style), explode: \(explode)"
         case .missingRequiredHeaderField(let name):
             return "The required header field named '\(name)' is missing."
         case .unexpectedContentTypeHeader(let contentType):
