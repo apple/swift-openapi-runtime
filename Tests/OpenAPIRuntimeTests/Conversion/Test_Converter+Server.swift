@@ -123,6 +123,8 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         ]
         let value: String? = try converter.getOptionalQueryItemAsText(
             in: query,
+            style: nil,
+            explode: nil,
             name: "search",
             as: String.self
         )
@@ -136,6 +138,8 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         ]
         let value: String = try converter.getRequiredQueryItemAsText(
             in: query,
+            style: nil,
+            explode: nil,
             name: "search",
             as: String.self
         )
@@ -150,6 +154,8 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         ]
         let value: [String]? = try converter.getOptionalQueryItemAsText(
             in: query,
+            style: nil,
+            explode: nil,
             name: "search",
             as: [String].self
         )
@@ -164,6 +170,23 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         ]
         let value: [String] = try converter.getRequiredQueryItemAsText(
             in: query,
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: [String].self
+        )
+        XCTAssertEqual(value, ["foo", "bar"])
+    }
+
+    //    | server | get | request query | text | array of string-convertibles | required | getRequiredQueryItemAsText |
+    func test_getRequiredQueryItemAsText_arrayOfStringConvertibles_unexploded() throws {
+        let query: [URLQueryItem] = [
+            .init(name: "search", value: "foo,bar")
+        ]
+        let value: [String] = try converter.getRequiredQueryItemAsText(
+            in: query,
+            style: nil,
+            explode: false,
             name: "search",
             as: [String].self
         )
@@ -177,6 +200,8 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         ]
         let value: Date? = try converter.getOptionalQueryItemAsText(
             in: query,
+            style: nil,
+            explode: nil,
             name: "search",
             as: Date.self
         )
@@ -190,6 +215,8 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         ]
         let value: Date = try converter.getRequiredQueryItemAsText(
             in: query,
+            style: nil,
+            explode: nil,
             name: "search",
             as: Date.self
         )
@@ -204,6 +231,8 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         ]
         let value: [Date]? = try converter.getOptionalQueryItemAsText(
             in: query,
+            style: nil,
+            explode: nil,
             name: "search",
             as: [Date].self
         )
@@ -218,6 +247,8 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         ]
         let value: [Date] = try converter.getRequiredQueryItemAsText(
             in: query,
+            style: nil,
+            explode: nil,
             name: "search",
             as: [Date].self
         )

@@ -35,6 +35,8 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         var request = testRequest
         try converter.setQueryItemAsText(
             in: &request,
+            style: nil,
+            explode: nil,
             name: "search",
             value: "foo"
         )
@@ -45,6 +47,8 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         var request = testRequest
         try converter.setQueryItemAsText(
             in: &request,
+            style: nil,
+            explode: nil,
             name: "search",
             value: "h%llo"
         )
@@ -56,10 +60,25 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         var request = testRequest
         try converter.setQueryItemAsText(
             in: &request,
+            style: nil,
+            explode: nil,
             name: "search",
             value: ["foo", "bar"]
         )
         XCTAssertEqual(request.query, "search=foo&search=bar")
+    }
+
+    //    | client | set | request query | text | array of string-convertibles | both | setQueryItemAsText |
+    func test_setQueryItemAsText_arrayOfStringConvertibles_unexploded() throws {
+        var request = testRequest
+        try converter.setQueryItemAsText(
+            in: &request,
+            style: nil,
+            explode: false,
+            name: "search",
+            value: ["foo", "bar"]
+        )
+        XCTAssertEqual(request.query, "search=foo,bar")
     }
 
     //    | client | set | request query | text | date | both | setQueryItemAsText |
@@ -67,6 +86,8 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         var request = testRequest
         try converter.setQueryItemAsText(
             in: &request,
+            style: nil,
+            explode: nil,
             name: "search",
             value: testDate
         )
@@ -78,6 +99,8 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         var request = testRequest
         try converter.setQueryItemAsText(
             in: &request,
+            style: nil,
+            explode: nil,
             name: "search",
             value: [testDate, testDate]
         )
