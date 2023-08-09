@@ -14,7 +14,7 @@
 #if canImport(Darwin)
 import Foundation
 #else
-@preconcurrency import Foundation.NSLock
+@preconcurrency import class Foundation.NSLock
 #endif
 
 /// A protected-by-locks storage for ``redactedHeaderFields``.
