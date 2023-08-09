@@ -14,8 +14,8 @@
 #if canImport(Darwin)
 import Foundation
 #else
-// `@preconcrrency` is for `URL`.
-@preconcurrency import Foundation
+@preconcurrency import struct Foundation.URL
+@preconcurrency import protocol Foundation.LocalizedError
 #endif
 
 /// An error thrown by a client performing an OpenAPI operation.
