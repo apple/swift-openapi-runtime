@@ -17,6 +17,27 @@ public extension Converter {
 
     // MARK: Miscs
 
+    #warning("TODO: Docs")
+    func extractAcceptHeaderIfPresent<T: AcceptableProtocol>(
+        in headerFields: [HeaderField]
+    ) throws -> [AcceptHeaderContentType<T>] {
+        guard let rawValue = headerFields.firstValue(name: "accept") else {
+            return AcceptHeaderContentType<T>.defaultValues
+        }
+        let rawComponents =
+            rawValue
+            .split(separator: ",")
+            .map(String.init)
+            .map(\.trimmingLeadingAndTrailingSpaces)
+        let parsedComponents = try rawComponents.map { rawComponent in
+            guard let value = AcceptHeaderContentType<T>(rawValue: rawComponent) else {
+                throw RuntimeError.malformedAcceptHeader(rawComponent)
+            }
+            return value
+        }
+        return parsedComponents
+    }
+
     /// Validates that the Accept header in the provided response
     /// is compatible with the provided content type substring.
     /// - Parameters:

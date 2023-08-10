@@ -15,6 +15,19 @@ import Foundation
 
 extension Converter {
 
+    #warning("TODO: Add docs")
+    public func setAcceptHeader<T: AcceptableProtocol>(
+        in headerFields: inout [HeaderField],
+        value: [AcceptHeaderContentType<T>]
+    ) {
+        headerFields.append(
+            .init(
+                name: "accept",
+                value: value.map(\.rawValue).joined(separator: ", ")
+            )
+        )
+    }
+
     //    | client | set | request path | text | string-convertible | required | renderedRequestPath |
     public func renderedRequestPath(
         template: String,
