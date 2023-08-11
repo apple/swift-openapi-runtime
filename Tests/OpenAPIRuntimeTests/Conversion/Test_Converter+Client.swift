@@ -233,6 +233,59 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             ]
         )
     }
+    
+    //    | client | set | request body | urlEncodedForm | codable | optional | setRequiredRequestBodyAsURLEncodedForm |
+    func test_setOptionalRequestBodyAsURLEncodedForm_codable() throws {
+        var headerFields: [HeaderField] = []
+        let body = try converter.setOptionalRequestBodyAsURLEncodedForm(
+            testStructDetailed,
+            headerFields: &headerFields,
+            contentType: "application/x-www-form-urlencoded"
+        )
+
+        XCTAssertEqual(body, testStructURLFormData)
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "content-type", value: "application/x-www-form-urlencoded")
+            ]
+        )
+    }
+    
+    //    | client | set | request body | urlEncodedForm | codable | required | setRequiredRequestBodyAsURLEncodedForm |
+    func test_setRequiredRequestBodyAsURLEncodedForm_codable_string() throws {
+        var headerFields: [HeaderField] = []
+        let body = try converter.setRequiredRequestBodyAsURLEncodedForm(
+            testStructDetailed,
+            headerFields: &headerFields,
+            contentType: "application/x-www-form-urlencoded"
+        )
+
+        XCTAssertEqual(String(data: body, encoding: .utf8), testStructURLFormString)
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "content-type", value: "application/x-www-form-urlencoded")
+            ]
+        )
+    }
+    
+    func test_setRequiredRequestBodyAsURLEncodedForm_codable() throws {
+        var headerFields: [HeaderField] = []
+        let body = try converter.setRequiredRequestBodyAsURLEncodedForm(
+            testStructDetailed,
+            headerFields: &headerFields,
+            contentType: "application/x-www-form-urlencoded"
+        )
+
+        XCTAssertEqual(body, testStructURLFormData)
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "content-type", value: "application/x-www-form-urlencoded")
+            ]
+        )
+    }
 
     //    | client | set | request body | binary | optional | setOptionalRequestBodyAsBinary |
     func test_setOptionalRequestBodyAsBinary_data() throws {

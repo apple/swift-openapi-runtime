@@ -176,11 +176,41 @@ extension Converter {
     ) throws -> T {
         try decoder.decode(T.self, from: data)
     }
+    
+    func convertURLEncodedFormToCodable<T:Decodable>(
+        _ data: Data
+    ) throws -> T {
+        
+        let decoder = URIDecoder(configuration: .init(style: .form,
+                                                      explode: true,
+                                                      spaceEscapingCharacter: .percentEncoded,
+                                                      dateTranscoder: configuration.dateTranscoder))
+        guard let uriString = String(data: data, encoding: .utf8) else {
+            throw RuntimeError.failedToSerializeCodableData
+        }
+        
+        return try decoder.decode(T.self, from: uriString)
+    }
 
     func convertBodyCodableToJSON<T: Encodable>(
         _ value: T
     ) throws -> Data {
         try encoder.encode(value)
+    }
+    
+    func convertBodyCodableToURLFormData<T: Encodable>(
+        _ value: T
+    ) throws -> Data {
+        
+        let encoder = URIEncoder(configuration: .init(style: .form,
+                                                      explode: true,
+                                                      spaceEscapingCharacter: .percentEncoded,
+                                                      dateTranscoder: configuration.dateTranscoder))
+        guard let data = try encoder.encode(value, forKey: "").data(using: .utf8) else {
+            throw RuntimeError.failedToDecodeStringConvertibleValue(type: String(describing: T.self))
+        }
+        
+        return data
     }
 
     func convertHeaderFieldCodableToJSON<T: Encodable>(

@@ -272,6 +272,35 @@ extension Converter {
             convert: convertBinaryToData
         )
     }
+    
+    //    | server | get | request body | URLEncodedForm | codable | optional | getOptionalRequestBodyAsURLEncodedForm |
+    func getOptionalRequestBodyAsURLEncodedForm<T: Decodable, C>(
+        _ type: T.Type,
+        from data: Data?,
+        transforming transform: (T) -> C
+    ) throws -> C? {
+        try getOptionalRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertURLEncodedFormToCodable
+        )
+    }
+
+    //    | server | get | request body | URLEncodedForm | codable | required | getRequiredRequestBodyAsURLEncodedForm |
+    func getRequiredRequestBodyAsURLEncodedForm<T: Decodable, C>(
+        _ type: T.Type,
+        from data: Data?,
+        transforming transform: (T) -> C
+    ) throws -> C {
+        try getRequiredRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertURLEncodedFormToCodable
+        )
+    }
+    
 
     //    | server | set | response body | string | required | setResponseBodyAsString |
     public func setResponseBodyAsString<T: Encodable>(

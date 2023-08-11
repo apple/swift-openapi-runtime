@@ -23,6 +23,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 
     // Data conversion
     case failedToDecodeStringConvertibleValue(type: String)
+    case failedToSerializeCodableData
 
     enum ParameterLocation: String, CustomStringConvertible {
         case query
@@ -66,6 +67,8 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
             return "Invalid expected content type: '\(string)'"
         case .failedToDecodeStringConvertibleValue(let string):
             return "Failed to decode a value of type '\(string)'."
+        case .failedToSerializeCodableData:
+            return "Failed to serialize codable data."
         case .unsupportedParameterStyle(name: let name, location: let location, style: let style, explode: let explode):
             return
                 "Unsupported parameter style, parameter name: '\(name)', kind: \(location), style: \(style), explode: \(explode)"
