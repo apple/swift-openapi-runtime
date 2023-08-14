@@ -73,12 +73,6 @@ extension QualityValue: RawRepresentable {
     }
 }
 
-extension QualityValue: Comparable {
-    public static func < (lhs: QualityValue, rhs: QualityValue) -> Bool {
-        lhs.thousands > rhs.thousands
-    }
-}
-
 extension QualityValue: ExpressibleByIntegerLiteral {
     public init(integerLiteral value: UInt16) {
         self.thousands = value * 1000
@@ -91,8 +85,30 @@ extension QualityValue: ExpressibleByFloatLiteral {
     }
 }
 
+extension Array where Element == QualityValue {
+
+    /// Returns a sorted array of quality values, where the highest
+    /// priority items come first.
+    public func sortedByQuality() -> Self {
+        sorted { a, b in
+            a.doubleValue < b.doubleValue
+        }
+    }
+}
+
+extension Array where Element: AcceptableProtocol {
+
+    /// Returns the default values for the acceptable type.
+    public var defaultValues: Self {
+        Element.defaultValues
+    }
+}
+
 /// A wrapper of an individual content type in the accept header.
 public struct AcceptHeaderContentType<T: AcceptableProtocol>: Sendable, Equatable, Hashable {
+
+    /// The value representing the content type.
+    public var contentType: T
 
     /// The quality value of this content type.
     ///
@@ -103,17 +119,14 @@ public struct AcceptHeaderContentType<T: AcceptableProtocol>: Sendable, Equatabl
     /// when deciding which content type to use in the response.
     ///
     /// Also called the "q-factor" or "q-value".
-    public let quality: QualityValue
-
-    /// The value representing the content type.
-    public let contentType: T
+    public var quality: QualityValue
 
     /// Creates a new content type from the provided parameters.
     /// - Parameters:
-    ///   - quality: The quality of the content type, between 0.0 and 1.0.
     ///   - value: The value representing the content type.
+    ///   - quality: The quality of the content type, between 0.0 and 1.0.
     /// - Precondition: Priority must be in the range 0.0 and 1.0 inclusive.
-    public init(quality: QualityValue = 1.0, contentType: T) {
+    public init(contentType: T, quality: QualityValue = 1.0) {
         self.quality = quality
         self.contentType = contentType
     }
@@ -141,11 +154,11 @@ extension AcceptHeaderContentType: RawRepresentable {
         } else {
             quality = 1.0
         }
-        guard let typeAndSubtype = T.init(rawValue: validMimeType.kind.description.lowercased()) else {
+        guard let typeAndSubtype = T(rawValue: validMimeType.kind.description.lowercased()) else {
             // Invalid type/subtype.
             return nil
         }
-        self.init(quality: quality, contentType: typeAndSubtype)
+        self.init(contentType: typeAndSubtype, quality: quality)
     }
 
     public var rawValue: String {
@@ -153,8 +166,12 @@ extension AcceptHeaderContentType: RawRepresentable {
     }
 }
 
-extension AcceptHeaderContentType: Comparable {
-    public static func < (lhs: AcceptHeaderContentType<T>, rhs: AcceptHeaderContentType<T>) -> Bool {
-        lhs.quality < rhs.quality
+extension AcceptHeaderContentType {
+
+    // TODO: Can we spell this as an extension of an array?
+    public func sortedByQuality(_ array: [AcceptHeaderContentType<T>]) -> [AcceptHeaderContentType<T>] {
+        array.sorted { a, b in
+            a.quality.doubleValue > b.quality.doubleValue
+        }
     }
 }
