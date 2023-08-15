@@ -91,24 +91,25 @@ extension Array where Element == QualityValue {
     /// priority items come first.
     public func sortedByQuality() -> Self {
         sorted { a, b in
-            a.doubleValue < b.doubleValue
+            a.doubleValue > b.doubleValue
         }
     }
 }
 
-extension Array where Element: AcceptableProtocol {
+extension Array {
 
     /// Returns the default values for the acceptable type.
-    public var defaultValues: Self {
-        Element.defaultValues
+    public static func defaultValues<T: AcceptableProtocol>() -> [AcceptHeaderContentType<T>]
+    where Element == AcceptHeaderContentType<T> {
+        T.defaultValues.map { .init(contentType: $0) }
     }
 }
 
 /// A wrapper of an individual content type in the accept header.
-public struct AcceptHeaderContentType<T: AcceptableProtocol>: Sendable, Equatable, Hashable {
+public struct AcceptHeaderContentType<ContentType: AcceptableProtocol>: Sendable, Equatable, Hashable {
 
     /// The value representing the content type.
-    public var contentType: T
+    public var contentType: ContentType
 
     /// The quality value of this content type.
     ///
@@ -126,7 +127,7 @@ public struct AcceptHeaderContentType<T: AcceptableProtocol>: Sendable, Equatabl
     ///   - value: The value representing the content type.
     ///   - quality: The quality of the content type, between 0.0 and 1.0.
     /// - Precondition: Priority must be in the range 0.0 and 1.0 inclusive.
-    public init(contentType: T, quality: QualityValue = 1.0) {
+    public init(contentType: ContentType, quality: QualityValue = 1.0) {
         self.quality = quality
         self.contentType = contentType
     }
@@ -134,7 +135,7 @@ public struct AcceptHeaderContentType<T: AcceptableProtocol>: Sendable, Equatabl
     /// Returns the default set of acceptable content types for this type, in
     /// the order specified in the OpenAPI document.
     public static var defaultValues: [Self] {
-        T.defaultValues.map { .init(contentType: $0) }
+        ContentType.defaultValues.map { .init(contentType: $0) }
     }
 }
 
@@ -154,7 +155,7 @@ extension AcceptHeaderContentType: RawRepresentable {
         } else {
             quality = 1.0
         }
-        guard let typeAndSubtype = T(rawValue: validMimeType.kind.description.lowercased()) else {
+        guard let typeAndSubtype = ContentType(rawValue: validMimeType.kind.description.lowercased()) else {
             // Invalid type/subtype.
             return nil
         }
@@ -166,11 +167,12 @@ extension AcceptHeaderContentType: RawRepresentable {
     }
 }
 
-extension AcceptHeaderContentType {
+extension Array {
 
-    // TODO: Can we spell this as an extension of an array?
-    public func sortedByQuality(_ array: [AcceptHeaderContentType<T>]) -> [AcceptHeaderContentType<T>] {
-        array.sorted { a, b in
+    /// Returns the array sorted by the quality value, highest quality first.
+    public func sortedByQuality<T: AcceptableProtocol>() -> [AcceptHeaderContentType<T>]
+    where Element == AcceptHeaderContentType<T> {
+        sorted { a, b in
             a.quality.doubleValue > b.quality.doubleValue
         }
     }

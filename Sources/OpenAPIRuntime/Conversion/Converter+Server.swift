@@ -17,7 +17,11 @@ public extension Converter {
 
     // MARK: Miscs
 
-    #warning("TODO: Docs")
+    /// Returns the "accept" header parsed into individual content types.
+    /// - Parameter headerFields: The header fields to inspect for an "accept"
+    ///   header.
+    /// - Returns: The parsed content types, or the default content types if
+    ///   the header was not provided.
     func extractAcceptHeaderIfPresent<T: AcceptableProtocol>(
         in headerFields: [HeaderField]
     ) throws -> [AcceptHeaderContentType<T>] {
