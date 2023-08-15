@@ -13,12 +13,8 @@
 //===----------------------------------------------------------------------===//
 
 /// The protocol that all generated `AcceptableContentType` enums conform to.
-public protocol AcceptableProtocol: RawRepresentable, Sendable, Equatable, Hashable where RawValue == String {
-
-    /// Returns the default set of acceptable content types for this type, in
-    /// the order specified in the OpenAPI document.
-    static var defaultValues: [Self] { get }
-}
+public protocol AcceptableProtocol: RawRepresentable, Sendable, Equatable, Hashable, CaseIterable
+where RawValue == String {}
 
 /// A quality value used to describe the order of priority in a comma-separated
 /// list of values, such as in the Accept header.
@@ -101,7 +97,7 @@ extension Array {
     /// Returns the default values for the acceptable type.
     public static func defaultValues<T: AcceptableProtocol>() -> [AcceptHeaderContentType<T>]
     where Element == AcceptHeaderContentType<T> {
-        T.defaultValues.map { .init(contentType: $0) }
+        T.allCases.map { .init(contentType: $0) }
     }
 }
 
@@ -135,7 +131,7 @@ public struct AcceptHeaderContentType<ContentType: AcceptableProtocol>: Sendable
     /// Returns the default set of acceptable content types for this type, in
     /// the order specified in the OpenAPI document.
     public static var defaultValues: [Self] {
-        ContentType.defaultValues.map { .init(contentType: $0) }
+        ContentType.allCases.map { .init(contentType: $0) }
     }
 }
 
