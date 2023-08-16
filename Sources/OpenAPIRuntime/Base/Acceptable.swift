@@ -81,17 +81,6 @@ extension QualityValue: ExpressibleByFloatLiteral {
     }
 }
 
-extension Array where Element == QualityValue {
-
-    /// Returns a sorted array of quality values, where the highest
-    /// priority items come first.
-    public func sortedByQuality() -> Self {
-        sorted { a, b in
-            a.doubleValue > b.doubleValue
-        }
-    }
-}
-
 extension Array {
 
     /// Returns the default values for the acceptable type.
