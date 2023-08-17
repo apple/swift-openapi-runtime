@@ -35,6 +35,27 @@ extension DecodingError {
             )
         )
     }
+
+    /// Returns a decoding error used by the oneOf decoder when not a single
+    /// child schema decodes the received payload.
+    /// - Parameters:
+    ///   - type: The type representing the oneOf schema in which the decoding
+    ///   occurred.
+    ///   - codingPath: The coding path to the decoder that attempted to decode
+    ///   the type.
+    /// - Returns: A decoding error.
+    static func failedToDecodeOneOfSchema(
+        type: Any.Type,
+        codingPath: [any CodingKey]
+    ) -> Self {
+        DecodingError.valueNotFound(
+            type,
+            DecodingError.Context.init(
+                codingPath: codingPath,
+                debugDescription: "The oneOf structure did not decode into any child schema."
+            )
+        )
+    }
 }
 
 @_spi(Generated)
