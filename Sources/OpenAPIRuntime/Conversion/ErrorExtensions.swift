@@ -44,7 +44,8 @@ extension DecodingError {
     ///   - codingPath: The coding path to the decoder that attempted to decode
     ///   the type.
     /// - Returns: A decoding error.
-    static func failedToDecodeOneOfSchema(
+    @_spi(Generated)
+    public static func failedToDecodeOneOfSchema(
         type: Any.Type,
         codingPath: [any CodingKey]
     ) -> Self {
