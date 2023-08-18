@@ -45,7 +45,7 @@ public struct QualityValue: Sendable, Equatable, Hashable {
     public init(doubleValue: Double) {
         precondition(
             doubleValue >= 0.0 && doubleValue <= 1.0,
-            "Input number into quality value is out of range"
+            "Provided quality number is out of range, must be between 0.0 and 1.0, inclusive."
         )
         self.thousands = UInt16(doubleValue * 1000)
     }
@@ -71,6 +71,10 @@ extension QualityValue: RawRepresentable {
 
 extension QualityValue: ExpressibleByIntegerLiteral {
     public init(integerLiteral value: UInt16) {
+        precondition(
+            value >= 0 && value <= 1,
+            "Provided quality number is out of range, must be between 0 and 1, inclusive."
+        )
         self.thousands = value * 1000
     }
 }
