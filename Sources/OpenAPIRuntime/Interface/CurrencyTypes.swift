@@ -19,7 +19,7 @@ import Foundation
 #endif
 
 /// A header field used in an HTTP request or response.
-public struct HeaderField: Equatable, Hashable, Sendable {
+public struct HeaderField: Hashable, Sendable {
 
     /// The name of the HTTP header field.
     public var name: String
@@ -40,10 +40,10 @@ public struct HeaderField: Equatable, Hashable, Sendable {
 /// Describes the HTTP method used in an OpenAPI operation.
 ///
 /// https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#fixed-fields-7
-public struct HTTPMethod: RawRepresentable, Equatable, Hashable, Sendable {
+public struct HTTPMethod: RawRepresentable, Hashable, Sendable {
 
     /// Describes an HTTP method explicitly supported by OpenAPI.
-    private enum OpenAPIHTTPMethod: String, Equatable, Hashable, Sendable {
+    private enum OpenAPIHTTPMethod: String, Hashable, Sendable {
         case GET
         case PUT
         case POST
@@ -120,7 +120,7 @@ public struct HTTPMethod: RawRepresentable, Equatable, Hashable, Sendable {
 }
 
 /// An HTTP request, sent by the client to the server.
-public struct Request: Equatable, Hashable, Sendable {
+public struct Request: Hashable, Sendable {
 
     /// The path of the URL for the HTTP request.
     public var path: String
@@ -199,7 +199,7 @@ public struct Request: Equatable, Hashable, Sendable {
 }
 
 /// An HTTP response, returned by the server to the client.
-public struct Response: Equatable, Hashable, Sendable {
+public struct Response: Hashable, Sendable {
 
     /// The status code of the HTTP response, for example `200`.
     public var statusCode: Int
@@ -228,7 +228,7 @@ public struct Response: Equatable, Hashable, Sendable {
 
 /// A container for request metadata already parsed and validated
 /// by the server transport.
-public struct ServerRequestMetadata: Equatable, Hashable, Sendable {
+public struct ServerRequestMetadata: Hashable, Sendable {
 
     /// The path parameters parsed from the URL of the HTTP request.
     public var pathParameters: [String: String]
@@ -252,7 +252,7 @@ public struct ServerRequestMetadata: Equatable, Hashable, Sendable {
 }
 
 /// Describes the kind and associated data of a URL path component.
-public enum RouterPathComponent: Equatable, Hashable, Sendable {
+public enum RouterPathComponent: Hashable, Sendable {
 
     /// A constant string component.
     ///
