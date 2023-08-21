@@ -149,7 +149,7 @@ extension Encoder {
 }
 
 /// A freeform String coding key for decoding undocumented values.
-private struct StringKey: CodingKey, Equatable, Hashable, Comparable {
+private struct StringKey: CodingKey, Hashable, Comparable {
 
     var stringValue: String
     var intValue: Int? {
