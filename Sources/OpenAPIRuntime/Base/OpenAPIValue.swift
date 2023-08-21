@@ -33,7 +33,7 @@
 ///
 /// - Important: This type is expensive at runtime; try to avoid it.
 /// Define the structure of your types in the OpenAPI document instead.
-public struct OpenAPIValueContainer: Codable, Equatable, Hashable, Sendable {
+public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
 
     /// The underlying dynamic value.
     public var value: (any Sendable)?
@@ -278,7 +278,7 @@ extension OpenAPIValueContainer: ExpressibleByFloatLiteral {
 ///
 /// - Important: This type is expensive at runtime; try to avoid it.
 /// Define the structure of your types in the OpenAPI document instead.
-public struct OpenAPIObjectContainer: Codable, Equatable, Hashable, Sendable {
+public struct OpenAPIObjectContainer: Codable, Hashable, Sendable {
 
     /// The underlying dynamic dictionary value.
     public var value: [String: (any Sendable)?]
@@ -382,7 +382,7 @@ public struct OpenAPIObjectContainer: Codable, Equatable, Hashable, Sendable {
 ///
 /// - Important: This type is expensive at runtime; try to avoid it.
 /// Define the structure of your types in the OpenAPI document instead.
-public struct OpenAPIArrayContainer: Codable, Equatable, Hashable, Sendable {
+public struct OpenAPIArrayContainer: Codable, Hashable, Sendable {
 
     /// The underlying dynamic array value.
     public var value: [(any Sendable)?]
