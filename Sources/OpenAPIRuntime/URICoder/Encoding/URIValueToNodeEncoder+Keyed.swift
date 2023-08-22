@@ -15,15 +15,15 @@
 import Foundation
 
 struct URIKeyedEncodingContainer<Key: CodingKey> {
-    let translator: URITranslator
+    let translator: URIValueToNodeEncoder
 }
 
 extension URIKeyedEncodingContainer {
-    private func _insertValue(_ node: URINode, atKey key: Key) throws {
+    private func _insertValue(_ node: URIEncodableNode, atKey key: Key) throws {
         try translator.currentStackEntry.storage.insert(node, atKey: key)
     }
 
-    private func _insertValue(_ node: URINode.Primitive, atKey key: Key) throws {
+    private func _insertValue(_ node: URIEncodableNode.Primitive, atKey key: Key) throws {
         try _insertValue(.primitive(node), atKey: key)
     }
 
@@ -39,7 +39,7 @@ extension URIKeyedEncodingContainer {
         atKey key: Key
     ) throws {
         guard let validatedValue = Int(exactly: value) else {
-            throw URITranslator.GeneralError.integerOutOfRange
+            throw URIValueToNodeEncoder.GeneralError.integerOutOfRange
         }
         try _insertValue(.integer(validatedValue), atKey: key)
     }

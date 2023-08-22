@@ -14,7 +14,7 @@
 
 import Foundation
 
-enum URINode: Equatable {
+enum URIEncodableNode: Equatable {
 
     case unset
     case primitive(Primitive)
@@ -29,7 +29,7 @@ enum URINode: Equatable {
     }
 }
 
-extension URINode {
+extension URIEncodableNode {
 
     enum InsertionError: Swift.Error {
         case settingPrimitiveValueAgain

@@ -14,8 +14,8 @@
 
 import Foundation
 
-/// Converts an Encodable type into a URINode.
-final class URITranslator {
+/// Converts an Encodable type into a URIEncodableNode.
+final class URIValueToNodeEncoder {
 
     /// The coding key.
     struct _CodingKey: CodingKey {
@@ -43,7 +43,7 @@ final class URITranslator {
     /// This is used to keep track of where we are in the encode.
     struct CodingStackEntry {
         var key: _CodingKey
-        var storage: URINode
+        var storage: URIEncodableNode
     }
 
     enum GeneralError: Swift.Error {
@@ -64,19 +64,21 @@ final class URITranslator {
         )
     }
 
-    func translateValue(_ value: some Encodable) throws -> URINode {
+    func translateValue(_ value: some Encodable) throws -> URIEncodableNode {
+        defer {
+            _codingPath = []
+            currentStackEntry = CodingStackEntry(
+                key: .init(stringValue: ""),
+                storage: .unset
+            )
+        }
         try value.encode(to: self)
         let encodedValue = currentStackEntry.storage
-        _codingPath = []
-        currentStackEntry = CodingStackEntry(
-            key: .init(stringValue: ""),
-            storage: .unset
-        )
         return encodedValue
     }
 }
 
-extension URITranslator: Encoder {
+extension URIValueToNodeEncoder: Encoder {
     var codingPath: [any CodingKey] {
         // The coding path meaningful to the types conforming to Codable.
         // 1. Omit the root coding path.
@@ -92,7 +94,7 @@ extension URITranslator: Encoder {
         [:]
     }
 
-    func push(key: _CodingKey, newStorage: URINode) {
+    func push(key: _CodingKey, newStorage: URIEncodableNode) {
         _codingPath.append(currentStackEntry)
         currentStackEntry = .init(key: key, storage: newStorage)
     }

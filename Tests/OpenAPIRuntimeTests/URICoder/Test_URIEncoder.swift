@@ -20,11 +20,12 @@ final class Test_URIEncoder: Test_Runtime {
         struct Foo: Encodable {
             var bar: String
         }
-        let encoder = URIEncoder()
+        let serializer = URISerializer(configuration: .formDataExplode)
+        let encoder = URIEncoder(serializer: serializer)
         let encodedString = try encoder.encode(
             Foo(bar: "hello world"),
-            forKey: .key("root")
+            forKey: "root"
         )
-        XCTAssertEqual(encodedString, "root[bar]=hello world")
+        XCTAssertEqual(encodedString, "bar=hello+world")
     }
 }

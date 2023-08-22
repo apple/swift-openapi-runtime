@@ -14,18 +14,18 @@
 import XCTest
 @testable import OpenAPIRuntime
 
-final class Test_URITranslator: Test_Runtime {
+final class Test_URIValueToNodeEncoder: Test_Runtime {
 
     func testTranslating() throws {
         struct Case {
             var value: any Encodable
-            var expectedNode: URINode
+            var expectedNode: URIEncodableNode
             var file: StaticString = #file
             var line: UInt = #line
         }
         func makeCase(
             _ value: any Encodable,
-            _ expectedNode: URINode,
+            _ expectedNode: URIEncodableNode,
             file: StaticString = #file,
             line: UInt = #line
         )
@@ -225,7 +225,7 @@ final class Test_URITranslator: Test_Runtime {
                 ])
             ),
         ]
-        let translator = URITranslator()
+        let translator = URIValueToNodeEncoder()
         for testCase in cases {
             let translatedNode = try translator.translateValue(testCase.value)
             XCTAssertEqual(

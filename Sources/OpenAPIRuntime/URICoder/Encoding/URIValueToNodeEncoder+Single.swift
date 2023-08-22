@@ -14,120 +14,91 @@
 
 import Foundation
 
-struct URIUnkeyedEncodingContainer {
-    let translator: URITranslator
+struct URISingleValueEncodingContainer: SingleValueEncodingContainer {
+    let translator: URIValueToNodeEncoder
 }
 
-extension URIUnkeyedEncodingContainer {
-    private func _appendValue(_ node: URINode) throws {
-        try translator.currentStackEntry.storage.append(node)
+extension URISingleValueEncodingContainer {
+    private func _setValue(_ node: URIEncodableNode.Primitive) throws {
+        try translator.currentStackEntry.storage.set(node)
     }
 
-    private func _appendValue(_ node: URINode.Primitive) throws {
-        try _appendValue(.primitive(node))
+    private func _setBinaryFloatingPoint(_ value: some BinaryFloatingPoint) throws {
+        try _setValue(.double(Double(value)))
     }
 
-    private func _appendBinaryFloatingPoint(_ value: some BinaryFloatingPoint) throws {
-        try _appendValue(.double(Double(value)))
-    }
-
-    private func _appendFixedWidthInteger(_ value: some FixedWidthInteger) throws {
+    private func _setFixedWidthInteger(_ value: some FixedWidthInteger) throws {
         guard let validatedValue = Int(exactly: value) else {
-            throw URITranslator.GeneralError.integerOutOfRange
+            throw URIValueToNodeEncoder.GeneralError.integerOutOfRange
         }
-        try _appendValue(.integer(validatedValue))
+        try _setValue(.integer(validatedValue))
     }
 }
 
-extension URIUnkeyedEncodingContainer: UnkeyedEncodingContainer {
+extension URISingleValueEncodingContainer {
 
     var codingPath: [any CodingKey] {
         translator.codingPath
     }
 
-    var count: Int {
-        switch translator.currentStackEntry.storage {
-        case .array(let array):
-            return array.count
-        case .unset:
-            return 0
-        default:
-            fatalError("Cannot have an unkeyed container at \(translator.currentStackEntry).")
-        }
-    }
-
-    func nestedUnkeyedContainer() -> any UnkeyedEncodingContainer {
-        translator.unkeyedContainer()
-    }
-
-    func nestedContainer<NestedKey>(
-        keyedBy keyType: NestedKey.Type
-    ) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
-        translator.container(keyedBy: NestedKey.self)
-    }
-
-    func superEncoder() -> any Encoder {
-        translator
-    }
-
     func encodeNil() throws {
-        throw URITranslator.GeneralError.nilNotSupported
+        throw URIValueToNodeEncoder.GeneralError.nilNotSupported
     }
 
     func encode(_ value: Bool) throws {
-        try _appendValue(.bool(value))
+        try _setValue(.bool(value))
     }
 
     func encode(_ value: String) throws {
-        try _appendValue(.string(value))
+        try _setValue(.string(value))
     }
 
     func encode(_ value: Double) throws {
-        try _appendBinaryFloatingPoint(value)
+        try _setBinaryFloatingPoint(value)
     }
 
     func encode(_ value: Float) throws {
-        try _appendBinaryFloatingPoint(value)
+        try _setBinaryFloatingPoint(value)
     }
 
     func encode(_ value: Int) throws {
-        try _appendFixedWidthInteger(value)
+        try _setFixedWidthInteger(value)
     }
 
     func encode(_ value: Int8) throws {
-        try _appendFixedWidthInteger(value)
+        try _setFixedWidthInteger(value)
     }
 
     func encode(_ value: Int16) throws {
-        try _appendFixedWidthInteger(value)
+        try _setFixedWidthInteger(value)
     }
 
     func encode(_ value: Int32) throws {
-        try _appendFixedWidthInteger(value)
+        try _setFixedWidthInteger(value)
     }
 
     func encode(_ value: Int64) throws {
-        try _appendFixedWidthInteger(value)
+        try _setFixedWidthInteger(value)
     }
 
     func encode(_ value: UInt) throws {
-        try _appendFixedWidthInteger(value)
+        try _setFixedWidthInteger(value)
     }
 
     func encode(_ value: UInt8) throws {
-        try _appendFixedWidthInteger(value)
+        try _setFixedWidthInteger(value)
     }
 
     func encode(_ value: UInt16) throws {
-        try _appendFixedWidthInteger(value)
+        try _setFixedWidthInteger(value)
     }
 
     func encode(_ value: UInt32) throws {
-        try _appendFixedWidthInteger(value)
+        try _setFixedWidthInteger(value)
     }
 
     func encode(_ value: UInt64) throws {
-        try _appendFixedWidthInteger(value)
+        try _setFixedWidthInteger(value)
     }
 
     func encode<T>(_ value: T) throws where T: Encodable {
@@ -161,9 +132,7 @@ extension URIUnkeyedEncodingContainer: UnkeyedEncodingContainer {
         case let value as Bool:
             try encode(value)
         default:
-            translator.push(key: .init(intValue: count), newStorage: .unset)
-            try value.encode(to: translator)
-            try translator.pop()
+            throw URIValueToNodeEncoder.GeneralError.nestedValueInSingleValueContainer
         }
     }
 }

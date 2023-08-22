@@ -19,18 +19,27 @@ import Foundation
 /// the configuration.
 ///
 /// - [OpenAPI 3.0.3 styles](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#style-examples)
-public struct URIEncoder: Sendable {
-    public init() {}
+struct URIEncoder: Sendable {
+    
+    private let serializer: URISerializer
+    
+    init(serializer: URISerializer) {
+        self.serializer = serializer
+    }
+    
+    init(serializerConfiguration: URISerializer.Configuration) {
+        self.init(serializer: .init(configuration: serializerConfiguration))
+    }
 }
 
 extension URIEncoder {
 
-    public enum KeyComponent {
-        case index(Int)
-        case key(String)
-    }
-
     /// Attempt to encode an object into an URI string.
+    ///
+    /// Under the hood, URIEncoder first encodes the Encodable type
+    /// into a URIEncodableNode using URIValueToNodeEncoder, and then
+    /// URISerializer encodes the URIEncodableNode into a string based
+    /// on the configured behavior.
     ///
     /// - Parameters:
     ///     - value: The value to encode.
@@ -39,26 +48,12 @@ extension URIEncoder {
     /// - Returns: The URI string.
     public func encode(
         _ value: some Encodable,
-        forKey key: KeyComponent
+        forKey key: String
     ) throws -> String {
-
-        // Under the hood, URIEncoder first encodes the Encodable type
-        // into a URINode using URITranslator, and then
-        // URISerializer encodes the URINode into a string based
-        // on the configured behavior.
-
-        let translator = URITranslator()
-        var serializer = URISerializer()
+        let translator = URIValueToNodeEncoder()
         let node = try translator.translateValue(value)
-
-        let convertedKey: URISerializer.KeyComponent
-        switch key {
-        case .index(let int):
-            convertedKey = .index(int)
-        case .key(let string):
-            convertedKey = .key(string)
-        }
-        let encodedString = try serializer.writeNode(node, forKey: convertedKey)
+        var serializer = serializer
+        let encodedString = try serializer.serializeNode(node, forKey: key)
         return encodedString
     }
 }
