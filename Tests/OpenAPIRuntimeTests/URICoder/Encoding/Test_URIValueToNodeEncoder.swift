@@ -19,13 +19,13 @@ final class Test_URIValueToNodeEncoder: Test_Runtime {
     func testTranslating() throws {
         struct Case {
             var value: any Encodable
-            var expectedNode: URIEncodableNode
+            var expectedNode: URIEncodedNode
             var file: StaticString = #file
             var line: UInt = #line
         }
         func makeCase(
             _ value: any Encodable,
-            _ expectedNode: URIEncodableNode,
+            _ expectedNode: URIEncodedNode,
             file: StaticString = #file,
             line: UInt = #line
         )

@@ -43,7 +43,7 @@ final class URIValueToNodeEncoder {
     /// This is used to keep track of where we are in the encode.
     struct CodingStackEntry {
         var key: _CodingKey
-        var storage: URIEncodableNode
+        var storage: URIEncodedNode
     }
 
     enum GeneralError: Swift.Error {
@@ -64,7 +64,7 @@ final class URIValueToNodeEncoder {
         )
     }
 
-    func translateValue(_ value: some Encodable) throws -> URIEncodableNode {
+    func translateValue(_ value: some Encodable) throws -> URIEncodedNode {
         defer {
             _codingPath = []
             currentStackEntry = CodingStackEntry(
@@ -94,7 +94,7 @@ extension URIValueToNodeEncoder: Encoder {
         [:]
     }
 
-    func push(key: _CodingKey, newStorage: URIEncodableNode) {
+    func push(key: _CodingKey, newStorage: URIEncodedNode) {
         _codingPath.append(currentStackEntry)
         currentStackEntry = .init(key: key, storage: newStorage)
     }

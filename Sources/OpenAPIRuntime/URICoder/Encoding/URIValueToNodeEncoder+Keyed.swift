@@ -19,11 +19,11 @@ struct URIKeyedEncodingContainer<Key: CodingKey> {
 }
 
 extension URIKeyedEncodingContainer {
-    private func _insertValue(_ node: URIEncodableNode, atKey key: Key) throws {
+    private func _insertValue(_ node: URIEncodedNode, atKey key: Key) throws {
         try translator.currentStackEntry.storage.insert(node, atKey: key)
     }
 
-    private func _insertValue(_ node: URIEncodableNode.Primitive, atKey key: Key) throws {
+    private func _insertValue(_ node: URIEncodedNode.Primitive, atKey key: Key) throws {
         try _insertValue(.primitive(node), atKey: key)
     }
 

@@ -19,7 +19,7 @@ struct URISingleValueEncodingContainer: SingleValueEncodingContainer {
 }
 
 extension URISingleValueEncodingContainer {
-    private func _setValue(_ node: URIEncodableNode.Primitive) throws {
+    private func _setValue(_ node: URIEncodedNode.Primitive) throws {
         try translator.currentStackEntry.storage.set(node)
     }
 

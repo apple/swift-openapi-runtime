@@ -14,7 +14,7 @@
 
 import Foundation
 
-/// Implements form-style query expansion from RFC 6570.
+/// Serializes data into a subset of variable expansions from RFC 6570.
 ///
 /// [RFC 6570 - Form-style query expansion.](https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.8)
 ///
@@ -29,67 +29,26 @@ import Foundation
 /// | `{?list\*}`      | `?list=red&list=green&list=blue`  |
 /// | `{?keys}`        | `?keys=semi,%3B,dot,.,comma,%2C`  |
 /// | `{?keys\*}`      | `?semi=%3B&dot=.&comma=%2C`       |
+///
+/// [RFC 6570 - Simple string expansion.](https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.2)
+///
+/// | Example Template |   Expansion                       |
+/// | ---------------- | ----------------------------------|
+/// | `{hello}`        | `Hello%20World%21`                |
+/// | `{half}`         | `50%25`                           |
+/// | `{x,y}`          | `1024,768`                        |
+/// | `{x,empty}`      | `1024,`                           |
+/// | `{x,undef}`      | `1024`                            |
+/// | `{list}`         | `red,green,blue`                  |
+/// | `{list\*}`       | `red,green,blue`                  |
+/// | `{keys}`         | `semi,%3B,dot,.,comma,%2C`        |
+/// | `{keys\*}`       | `semi=%3B,dot=.,comma=%2C`        |
 struct URISerializer {
-    
-    struct Configuration {
         
-        // TODO: Wrap in a struct.
-        enum Style {
-            case simple
-            case form
-        }
-        
-        var style: Style
-        var explode: Bool
-        var spaceEscapingCharacter: String
-        
-        private init(style: Style, explode: Bool, spaceEscapingCharacter: String) {
-            self.style = style
-            self.explode = explode
-            self.spaceEscapingCharacter = spaceEscapingCharacter
-        }
-        
-        static let formExplode: Self = .init(
-            style: .form,
-            explode: true,
-            spaceEscapingCharacter: "%20"
-        )
-        
-        static let formUnexplode: Self = .init(
-            style: .form,
-            explode: false,
-            spaceEscapingCharacter: "%20"
-        )
-        
-        static let simpleExplode: Self = .init(
-            style: .simple,
-            explode: true,
-            spaceEscapingCharacter: "%20"
-        )
-        
-        static let simpleUnexplode: Self = .init(
-            style: .simple,
-            explode: false,
-            spaceEscapingCharacter: "%20"
-        )
-        
-        static let formDataExplode: Self = .init(
-            style: .form,
-            explode: true,
-            spaceEscapingCharacter: "+"
-        )
-        
-        static let formDataUnexplode: Self = .init(
-            style: .form,
-            explode: false,
-            spaceEscapingCharacter: "+"
-        )
-    }
-    
-    private let configuration: Configuration
+    private let configuration: URISerializationConfiguration
     private var data: String
     
-    init(configuration: Configuration) {
+    init(configuration: URISerializationConfiguration) {
         self.configuration = configuration
         self.data = ""
     }
@@ -126,13 +85,13 @@ extension URISerializer {
     }
 
     mutating func serializeNode(
-        _ value: URIEncodableNode,
+        _ value: URIEncodedNode,
         forKey key: String
     ) throws -> String {
         defer {
             data.removeAll(keepingCapacity: true)
         }
-        try serializeAnyNode(value, forKey: key)
+        try serializeTopLevelNode(value, forKey: key)
         return data
     }
 
@@ -145,8 +104,11 @@ extension URISerializer {
         return safeTopLevelKey
     }
 
-    private mutating func serializeAnyNode(_ value: URIEncodableNode, forKey key: String) throws {
-        func unwrapPrimitiveValue(_ node: URIEncodableNode) throws -> URIEncodableNode.Primitive {
+    private mutating func serializeTopLevelNode(
+        _ value: URIEncodedNode,
+        forKey key: String
+    ) throws {
+        func unwrapPrimitiveValue(_ node: URIEncodedNode) throws -> URIEncodedNode.Primitive {
             guard case let .primitive(primitive) = node else {
                 throw SerializationError.nestedContainersNotSupported
             }
@@ -157,12 +119,17 @@ extension URISerializer {
             // Nothing to serialize.
             break
         case .primitive(let primitive):
+            let keyAndValueSeparator: String?
+            switch configuration.style {
+            case .form:
+                keyAndValueSeparator = "="
+            case .simple:
+                keyAndValueSeparator = nil
+            }
             try serializePrimitiveKeyValuePair(
                 primitive,
                 forKey: key,
-                
-                // TODO: Seems strange to assume this, is the API wrong?
-                separator: "="
+                separator: keyAndValueSeparator
             )
         case .array(let array):
             try serializeArray(
@@ -178,7 +145,7 @@ extension URISerializer {
     }
 
     private mutating func serializePrimitiveValue(
-        _ value: URIEncodableNode.Primitive
+        _ value: URIEncodedNode.Primitive
     ) throws {
         let stringValue: String
         switch value {
@@ -195,28 +162,27 @@ extension URISerializer {
     }
 
     private mutating func serializePrimitiveKeyValuePair(
-        _ value: URIEncodableNode.Primitive,
+        _ value: URIEncodedNode.Primitive,
         forKey key: String,
-        separator: String
+        separator: String?
     ) throws {
-        data.append(try stringifiedKey(key))
-        data.append(separator)
+        if let separator {
+            data.append(try stringifiedKey(key))
+            data.append(separator)
+        }
         try serializePrimitiveValue(value)
     }
 
     private mutating func serializeArray(
-        _ array: [URIEncodableNode.Primitive],
+        _ array: [URIEncodedNode.Primitive],
         forKey key: String
     ) throws {
         guard !array.isEmpty else {
             return
         }
-        let style = configuration.style
-        let explode = configuration.explode
-        
         let keyAndValueSeparator: String?
         let pairSeparator: String
-        switch (style, explode) {
+        switch (configuration.style, configuration.explode) {
         case (.form, true):
             keyAndValueSeparator = "="
             pairSeparator = "&"
@@ -227,7 +193,7 @@ extension URISerializer {
             keyAndValueSeparator = nil
             pairSeparator = ","
         }
-        func serializeNext(_ element: URIEncodableNode.Primitive) throws {
+        func serializeNext(_ element: URIEncodedNode.Primitive) throws {
             if let keyAndValueSeparator {
                 try serializePrimitiveKeyValuePair(
                     element,
@@ -238,9 +204,9 @@ extension URISerializer {
                 try serializePrimitiveValue(element)
             }
         }
-        if keyAndValueSeparator == nil {
+        if let containerKeyAndValue = configuration.containerKeyAndValueSeparator {
             data.append(try stringifiedKey(key))
-            data.append("=")
+            data.append(containerKeyAndValue)
         }
         for element in array.dropLast() {
             try serializeNext(element)
@@ -252,7 +218,7 @@ extension URISerializer {
     }
 
     private mutating func serializeDictionary(
-        _ dictionary: [String: URIEncodableNode.Primitive],
+        _ dictionary: [String: URIEncodedNode.Primitive],
         forKey key: String
     ) throws {
         guard !dictionary.isEmpty else {
@@ -264,12 +230,9 @@ extension URISerializer {
                     == .orderedAscending
             }
 
-        let style = configuration.style
-        let explode = configuration.explode
-        
-        let keyAndValueSeparator: String?
+        let keyAndValueSeparator: String
         let pairSeparator: String
-        switch (style, explode) {
+        switch (configuration.style, configuration.explode) {
         case (.form, true):
             keyAndValueSeparator = "="
             pairSeparator = "&"
@@ -283,20 +246,17 @@ extension URISerializer {
             keyAndValueSeparator = ","
             pairSeparator = ","
         }
-        func serializeNext(_ element: URIEncodableNode.Primitive, forKey elementKey: String) throws {
-            if let keyAndValueSeparator {
-                try serializePrimitiveKeyValuePair(
-                    element,
-                    forKey: elementKey,
-                    separator: keyAndValueSeparator
-                )
-            } else {
-                try serializePrimitiveValue(element)
-            }
+
+        func serializeNext(_ element: URIEncodedNode.Primitive, forKey elementKey: String) throws {
+            try serializePrimitiveKeyValuePair(
+                element,
+                forKey: elementKey,
+                separator: keyAndValueSeparator
+            )
         }
-        if !explode {
+        if let containerKeyAndValue = configuration.containerKeyAndValueSeparator {
             data.append(try stringifiedKey(key))
-            data.append("=")
+            data.append(containerKeyAndValue)
         }
         for (elementKey, element) in sortedDictionary.dropLast() {
             try serializeNext(element, forKey: elementKey)
@@ -304,6 +264,17 @@ extension URISerializer {
         }
         if let (elementKey, element) = sortedDictionary.last {
             try serializeNext(element, forKey: elementKey)
+        }
+    }
+}
+
+extension URISerializationConfiguration {
+    fileprivate var containerKeyAndValueSeparator: String? {
+        switch (style, explode) {
+        case (.form, false):
+            return "="
+        default:
+            return nil
         }
     }
 }

@@ -19,11 +19,11 @@ struct URIUnkeyedEncodingContainer {
 }
 
 extension URIUnkeyedEncodingContainer {
-    private func _appendValue(_ node: URIEncodableNode) throws {
+    private func _appendValue(_ node: URIEncodedNode) throws {
         try translator.currentStackEntry.storage.append(node)
     }
 
-    private func _appendValue(_ node: URIEncodableNode.Primitive) throws {
+    private func _appendValue(_ node: URIEncodedNode.Primitive) throws {
         try _appendValue(.primitive(node))
     }
 

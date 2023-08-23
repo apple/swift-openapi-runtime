@@ -27,7 +27,7 @@ struct URIEncoder: Sendable {
         self.serializer = serializer
     }
     
-    init(serializerConfiguration: URISerializer.Configuration) {
+    init(serializerConfiguration: URISerializationConfiguration) {
         self.init(serializer: .init(configuration: serializerConfiguration))
     }
 }

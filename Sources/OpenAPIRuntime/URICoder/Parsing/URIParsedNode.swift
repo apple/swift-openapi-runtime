@@ -14,12 +14,4 @@
 
 import Foundation
 
-enum URIParsedNode: Equatable {
-    case unset
-    case primitive(String)
-    case array([Self])
-    case dictionary([String: Self])
-    
-    typealias Root = [String: Self]
-}
-
+typealias URIParsedNode = [String.SubSequence: [String.SubSequence]]
