@@ -19,7 +19,7 @@
 /// not all are defined by the user in the OpenAPI document, an extra
 /// `undocumented` enum case is used when such a status code is
 /// detected.
-public struct UndocumentedPayload: Sendable, Equatable, Hashable {
+public struct UndocumentedPayload: Sendable, Hashable {
     /// Creates a new payload.
     public init() {}
 }
