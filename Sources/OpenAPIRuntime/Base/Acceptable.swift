@@ -13,12 +13,11 @@
 //===----------------------------------------------------------------------===//
 
 /// The protocol that all generated `AcceptableContentType` enums conform to.
-public protocol AcceptableProtocol: RawRepresentable, Sendable, Equatable, Hashable, CaseIterable
-where RawValue == String {}
+public protocol AcceptableProtocol: RawRepresentable, Sendable, Hashable, CaseIterable where RawValue == String {}
 
 /// A quality value used to describe the order of priority in a comma-separated
 /// list of values, such as in the Accept header.
-public struct QualityValue: Sendable, Equatable, Hashable {
+public struct QualityValue: Sendable, Hashable {
 
     /// As the quality value only retains up to and including 3 decimal digits,
     /// we store it in terms of the thousands.
@@ -95,7 +94,7 @@ extension Array {
 }
 
 /// A wrapper of an individual content type in the accept header.
-public struct AcceptHeaderContentType<ContentType: AcceptableProtocol>: Sendable, Equatable, Hashable {
+public struct AcceptHeaderContentType<ContentType: AcceptableProtocol>: Sendable, Hashable {
 
     /// The value representing the content type.
     public var contentType: ContentType
