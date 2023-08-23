@@ -17,32 +17,11 @@ import Foundation
 /// Converts an Encodable type into a URIEncodableNode.
 final class URIValueToNodeEncoder {
 
-    /// The coding key.
-    struct _CodingKey: CodingKey {
-        var stringValue: String
-        var intValue: Int?
-
-        init(stringValue: String) {
-            self.stringValue = stringValue
-            self.intValue = nil
-        }
-
-        init(intValue: Int) {
-            self.stringValue = "\(intValue)"
-            self.intValue = intValue
-        }
-
-        init(_ key: some CodingKey) {
-            self.stringValue = key.stringValue
-            self.intValue = key.intValue
-        }
-    }
-
     /// An entry in the coding stack for \_URIEncoder.
     ///
     /// This is used to keep track of where we are in the encode.
     struct CodingStackEntry {
-        var key: _CodingKey
+        var key: URICoderCodingKey
         var storage: URIEncodedNode
     }
 
@@ -94,7 +73,7 @@ extension URIValueToNodeEncoder: Encoder {
         [:]
     }
 
-    func push(key: _CodingKey, newStorage: URIEncodedNode) {
+    func push(key: URICoderCodingKey, newStorage: URIEncodedNode) {
         _codingPath.append(currentStackEntry)
         currentStackEntry = .init(key: key, storage: newStorage)
     }

@@ -11,10 +11,17 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+import XCTest
+@testable import OpenAPIRuntime
 
-import Foundation
+final class Test_URIDecoder: Test_Runtime {
 
-typealias URIParsedKey = String.SubSequence
-typealias URIParsedValue = String.SubSequence
-typealias URIParsedValueArray = [URIParsedValue]
-typealias URIParsedNode = [URIParsedKey: URIParsedValueArray]
+    func testDecoding() throws {
+        struct Foo: Decodable, Equatable {
+            var bar: String
+        }
+        let decoder = URIDecoder(configuration: .formDataExplode)
+        let decodedValue = try decoder.decode(Foo.self, from: "bar=hello+world")
+        XCTAssertEqual(decodedValue, Foo(bar: "hello world"))
+    }
+}

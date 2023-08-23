@@ -16,7 +16,7 @@ import XCTest
 
 final class Test_URIValueToNodeEncoder: Test_Runtime {
 
-    func testTranslating() throws {
+    func testEncoding() throws {
         struct Case {
             var value: any Encodable
             var expectedNode: URIEncodedNode
@@ -225,11 +225,11 @@ final class Test_URIValueToNodeEncoder: Test_Runtime {
                 ])
             ),
         ]
-        let translator = URIValueToNodeEncoder()
+        let encoder = URIValueToNodeEncoder()
         for testCase in cases {
-            let translatedNode = try translator.encodeValue(testCase.value)
+            let encodedNode = try encoder.encodeValue(testCase.value)
             XCTAssertEqual(
-                translatedNode,
+                encodedNode,
                 testCase.expectedNode,
                 file: testCase.file,
                 line: testCase.line

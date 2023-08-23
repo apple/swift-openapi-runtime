@@ -14,7 +14,23 @@
 
 import Foundation
 
-typealias URIParsedKey = String.SubSequence
-typealias URIParsedValue = String.SubSequence
-typealias URIParsedValueArray = [URIParsedValue]
-typealias URIParsedNode = [URIParsedKey: URIParsedValueArray]
+/// The coding key.
+struct URICoderCodingKey: CodingKey {
+    var stringValue: String
+    var intValue: Int?
+
+    init(stringValue: String) {
+        self.stringValue = stringValue
+        self.intValue = nil
+    }
+
+    init(intValue: Int) {
+        self.stringValue = "\(intValue)"
+        self.intValue = intValue
+    }
+
+    init(_ key: some CodingKey) {
+        self.stringValue = key.stringValue
+        self.intValue = key.intValue
+    }
+}
