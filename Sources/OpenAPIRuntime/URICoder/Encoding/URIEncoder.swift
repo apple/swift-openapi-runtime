@@ -18,13 +18,13 @@ import Foundation
 /// using the rules from RFC 6570, RFC 1866, and OpenAPI 3.0.3, depending on
 /// the configuration.
 struct URIEncoder: Sendable {
-    
+
     private let serializer: URISerializer
-    
+
     init(serializer: URISerializer) {
         self.serializer = serializer
     }
-    
+
     init(configuration: URICoderConfiguration) {
         self.init(serializer: .init(configuration: configuration))
     }

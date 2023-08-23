@@ -18,9 +18,9 @@ import Foundation
 /// using the rules from RFC 6570, RFC 1866, and OpenAPI 3.0.3, depending on
 /// the configuration.
 struct URIDecoder: Sendable {
-    
+
     private let configuration: URICoderConfiguration
-    
+
     init(configuration: URICoderConfiguration) {
         self.configuration = configuration
     }
@@ -44,7 +44,10 @@ extension URIDecoder {
     ) throws -> T {
         var parser = URIParser(configuration: configuration, data: data)
         let parsedNode = try parser.parseRoot()
-        let decoder = URIValueFromNodeDecoder(node: parsedNode)
+        let decoder = URIValueFromNodeDecoder(
+            node: parsedNode,
+            explode: configuration.explode
+        )
         return try decoder.decodeRoot()
     }
 }

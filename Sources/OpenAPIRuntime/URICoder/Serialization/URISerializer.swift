@@ -44,10 +44,10 @@ import Foundation
 /// | `{keys}`         | `semi,%3B,dot,.,comma,%2C`        |
 /// | `{keys\*}`       | `semi=%3B,dot=.,comma=%2C`        |
 struct URISerializer {
-        
+
     private let configuration: URICoderConfiguration
     private var data: String
-    
+
     init(configuration: URICoderConfiguration) {
         self.configuration = configuration
         self.data = ""
@@ -62,14 +62,15 @@ extension CharacterSet {
 }
 
 extension URISerializer {
-    
+
     private func computeSafeString(_ unsafeString: String) -> String {
         // The space character needs to be encoded based on the config,
         // so first allow it to be unescaped, and then we'll do a second
         // pass and only encode the space based on the config.
-        let partiallyEncoded = unsafeString.addingPercentEncoding(
-            withAllowedCharacters: .unreservedAndSpace
-        ) ?? ""
+        let partiallyEncoded =
+            unsafeString.addingPercentEncoding(
+                withAllowedCharacters: .unreservedAndSpace
+            ) ?? ""
         let fullyEncoded = partiallyEncoded.replacingOccurrences(
             of: " ",
             with: configuration.spaceEscapingCharacter
@@ -79,7 +80,7 @@ extension URISerializer {
 }
 
 extension URISerializer {
-    
+
     private enum SerializationError: Swift.Error {
         case nestedContainersNotSupported
     }
@@ -224,7 +225,8 @@ extension URISerializer {
         guard !dictionary.isEmpty else {
             return
         }
-        let sortedDictionary = dictionary
+        let sortedDictionary =
+            dictionary
             .sorted { a, b in
                 a.key.localizedCaseInsensitiveCompare(b.key)
                     == .orderedAscending

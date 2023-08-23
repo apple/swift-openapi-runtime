@@ -119,7 +119,7 @@ final class Test_URISerializer: Test_Runtime {
                 value: .dictionary([
                     "semi": .primitive(.string(";")),
                     "dot": .primitive(.string(".")),
-                    "comma": .primitive(.string(","))
+                    "comma": .primitive(.string(",")),
                 ]),
                 key: "keys",
                 .init(
@@ -151,7 +151,7 @@ final class Test_URISerializer: Test_Runtime {
             try testVariant(.formUnexplode, testCase.variants.formUnexplode)
             try testVariant(.simpleExplode, testCase.variants.simpleExplode)
             try testVariant(.simpleUnexplode, testCase.variants.simpleUnexplode)
-            try testVariant(.formDataExplode,testCase.variants.formDataExplode)
+            try testVariant(.formDataExplode, testCase.variants.formDataExplode)
             try testVariant(.formDataUnexplode, testCase.variants.formDataUnexplode)
         }
     }
@@ -162,7 +162,7 @@ extension Test_URISerializer {
         struct Variant {
             var name: String
             var config: URICoderConfiguration
-            
+
             static let formExplode: Self = .init(
                 name: "formExplode",
                 config: .formExplode

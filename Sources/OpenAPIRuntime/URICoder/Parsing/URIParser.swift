@@ -55,7 +55,7 @@ struct URIParser: Sendable {
     }
 }
 
-fileprivate enum ParsingError: Swift.Error {
+private enum ParsingError: Swift.Error {
     case malformedKeyValuePair(String.SubSequence)
 }
 
@@ -69,7 +69,7 @@ extension URIParser {
         if data.isEmpty {
             return ["": [""]]
         }
-        
+
         switch (configuration.style, configuration.explode) {
         case (.form, true):
             return try parseExplodedFormRoot()
@@ -81,12 +81,12 @@ extension URIParser {
             return try parseUnexplodedSimpleRoot()
         }
     }
-    
+
     private mutating func parseExplodedFormRoot() throws -> URIParsedNode {
         try parseGenericRoot { data, appendPair in
             let keyValueSeparator: Character = "="
             let pairSeparator: Character = "&"
-            
+
             while !data.isEmpty {
                 let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
                     first: keyValueSeparator,
@@ -109,13 +109,13 @@ extension URIParser {
             }
         }
     }
-    
+
     private mutating func parseUnexplodedFormRoot() throws -> URIParsedNode {
         try parseGenericRoot { data, appendPair in
             let keyValueSeparator: Character = "="
             let pairSeparator: Character = "&"
             let valueSeparator: Character = ","
-            
+
             while !data.isEmpty {
                 let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
                     first: keyValueSeparator,
@@ -163,7 +163,7 @@ extension URIParser {
         try parseGenericRoot { data, appendPair in
             let keyValueSeparator: Character = "="
             let pairSeparator: Character = ","
-            
+
             while !data.isEmpty {
                 let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
                     first: keyValueSeparator,
@@ -224,14 +224,14 @@ extension URIParser {
         }
         return root
     }
-    
+
     private func unescapeValue(_ escapedValue: Raw) -> Raw {
         Self.unescapeValue(
             escapedValue,
             spaceEscapingCharacter: configuration.spaceEscapingCharacter
         )
     }
-    
+
     private static func unescapeValue(
         _ escapedValue: Raw,
         spaceEscapingCharacter: String
@@ -248,12 +248,12 @@ extension URIParser {
 // MARK: - Substring utilities
 
 extension String.SubSequence {
-    
+
     fileprivate enum ParseUpToEitherCharacterResult {
         case foundFirst
         case foundSecondOrEnd
     }
-    
+
     fileprivate mutating func parseUpToEitherCharacterOrEnd(
         first: Character,
         second: Character
@@ -263,18 +263,17 @@ extension String.SubSequence {
             return (.foundSecondOrEnd, .init())
         }
         var currentIndex = startIndex
-        
+
         func finalize(
             _ result: ParseUpToEitherCharacterResult
         ) -> (ParseUpToEitherCharacterResult, Self) {
             let parsed = self[startIndex..<currentIndex]
-            if currentIndex == endIndex {
-                self = .init()
-                return (result, parsed)
-            } else {
+            guard currentIndex == endIndex else {
                 self = self[index(after: currentIndex)...]
                 return (result, parsed)
             }
+            self = .init()
+            return (result, parsed)
         }
         while currentIndex != endIndex {
             let currentChar = self[currentIndex]
@@ -297,16 +296,15 @@ extension String.SubSequence {
             return .init()
         }
         var currentIndex = startIndex
-        
+
         func finalize() -> Self {
             let parsed = self[startIndex..<currentIndex]
-            if currentIndex == endIndex {
-                self = .init()
-                return parsed
-            } else {
+            guard currentIndex == endIndex else {
                 self = self[index(after: currentIndex)...]
                 return parsed
             }
+            self = .init()
+            return parsed
         }
         while currentIndex != endIndex {
             let currentChar = self[currentIndex]

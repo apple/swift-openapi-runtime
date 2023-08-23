@@ -34,9 +34,15 @@ final class Test_URIValueToNodeEncoder: Test_Runtime {
             .init(value: value, expectedNode: expectedNode, file: file, line: line)
         }
 
+        enum SimpleEnum: String, Encodable {
+            case foo
+            case bar
+        }
+
         struct SimpleStruct: Encodable {
             var foo: String
             var bar: Int?
+            var val: SimpleEnum?
         }
 
         struct NestedStruct: Encodable {
@@ -75,13 +81,28 @@ final class Test_URIValueToNodeEncoder: Test_Runtime {
                 .primitive(.bool(true))
             ),
 
-            // A simple array.
+            // An enum.
+            makeCase(
+                SimpleEnum.foo,
+                .primitive(.string("foo"))
+            ),
+
+            // A simple array of strings.
             makeCase(
                 ["a", "b", "c"],
                 .array([
                     .primitive(.string("a")),
                     .primitive(.string("b")),
                     .primitive(.string("c")),
+                ])
+            ),
+
+            // A simple array of enums.
+            makeCase(
+                [SimpleEnum.foo, SimpleEnum.bar],
+                .array([
+                    .primitive(.string("foo")),
+                    .primitive(.string("bar")),
                 ])
             ),
 
@@ -101,9 +122,10 @@ final class Test_URIValueToNodeEncoder: Test_Runtime {
 
             // A struct.
             makeCase(
-                SimpleStruct(foo: "bar"),
+                SimpleStruct(foo: "bar", val: .foo),
                 .dictionary([
-                    "foo": .primitive(.string("bar"))
+                    "foo": .primitive(.string("bar")),
+                    "val": .primitive(.string("foo")),
                 ])
             ),
 
@@ -121,14 +143,15 @@ final class Test_URIValueToNodeEncoder: Test_Runtime {
             makeCase(
                 [
                     SimpleStruct(foo: "bar"),
-                    SimpleStruct(foo: "baz"),
+                    SimpleStruct(foo: "baz", val: .bar),
                 ],
                 .array([
                     .dictionary([
                         "foo": .primitive(.string("bar"))
                     ]),
                     .dictionary([
-                        "foo": .primitive(.string("baz"))
+                        "foo": .primitive(.string("baz")),
+                        "val": .primitive(.string("bar")),
                     ]),
                 ])
             ),
@@ -157,12 +180,20 @@ final class Test_URIValueToNodeEncoder: Test_Runtime {
                 ])
             ),
 
-            // A simple dictionary.
+            // A simple dictionary of string -> int pairs.
             makeCase(
                 ["one": 1, "two": 2],
                 .dictionary([
                     "one": .primitive(.integer(1)),
                     "two": .primitive(.integer(2)),
+                ])
+            ),
+
+            // A simple dictionary of string -> enum pairs.
+            makeCase(
+                ["one": SimpleEnum.bar],
+                .dictionary([
+                    "one": .primitive(.string("bar"))
                 ])
             ),
 

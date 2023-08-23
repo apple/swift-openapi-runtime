@@ -133,7 +133,7 @@ final class Test_URIParser: Test_Runtime {
             try testVariant(.formUnexplode, variants.formUnexplode)
             try testVariant(.simpleExplode, variants.simpleExplode)
             try testVariant(.simpleUnexplode, variants.simpleUnexplode)
-            try testVariant(.formDataExplode,variants.formDataExplode)
+            try testVariant(.formDataExplode, variants.formDataExplode)
             try testVariant(.formDataUnexplode, variants.formDataUnexplode)
         }
     }
@@ -144,7 +144,7 @@ extension Test_URIParser {
         struct Variant {
             var name: String
             var config: URICoderConfiguration
-            
+
             static let formExplode: Self = .init(
                 name: "formExplode",
                 config: .formExplode
@@ -171,26 +171,26 @@ extension Test_URIParser {
             )
         }
         struct Variants {
-            
+
             struct Input: ExpressibleByStringLiteral {
                 var string: String
                 var valueOverride: URIParsedNode?
-                
+
                 init(string: String, valueOverride: URIParsedNode? = nil) {
                     self.string = string
                     self.valueOverride = valueOverride
                 }
-                
+
                 static func custom(_ string: String, value: URIParsedNode) -> Self {
                     .init(string: string, valueOverride: value)
                 }
-                
+
                 init(stringLiteral value: String) {
                     self.string = value
                     self.valueOverride = nil
                 }
             }
-            
+
             var formExplode: Input
             var formUnexplode: Input
             var simpleExplode: Input

@@ -14,7 +14,7 @@
 
 import Foundation
 
-struct URISingleValueDecodingContainer  {
+struct URISingleValueDecodingContainer {
     let _codingPath: [any CodingKey]
     let value: URIParsedValue
 }
@@ -49,7 +49,7 @@ extension URISingleValueDecodingContainer {
         }
         return parsedValue
     }
-    
+
     private func _decodeLosslessStringConvertible<T: LosslessStringConvertible>(
         _: T.Type = T.self
     ) throws -> T {
@@ -67,72 +67,72 @@ extension URISingleValueDecodingContainer {
 }
 
 extension URISingleValueDecodingContainer: SingleValueDecodingContainer {
-    
+
     var codingPath: [any CodingKey] {
         _codingPath
     }
-    
+
     func decodeNil() -> Bool {
         false
     }
-    
+
     func decode(_ type: Bool.Type) throws -> Bool {
         try _decodeLosslessStringConvertible()
     }
-    
+
     func decode(_ type: String.Type) throws -> String {
         String(value)
     }
-    
+
     func decode(_ type: Double.Type) throws -> Double {
         try _decodeBinaryFloatingPoint()
     }
-    
+
     func decode(_ type: Float.Type) throws -> Float {
         try _decodeBinaryFloatingPoint()
     }
-    
+
     func decode(_ type: Int.Type) throws -> Int {
         try _decodeFixedWidthInteger()
     }
-    
+
     func decode(_ type: Int8.Type) throws -> Int8 {
         try _decodeFixedWidthInteger()
     }
-    
+
     func decode(_ type: Int16.Type) throws -> Int16 {
         try _decodeFixedWidthInteger()
     }
-    
+
     func decode(_ type: Int32.Type) throws -> Int32 {
         try _decodeFixedWidthInteger()
     }
-    
+
     func decode(_ type: Int64.Type) throws -> Int64 {
         try _decodeFixedWidthInteger()
     }
-    
+
     func decode(_ type: UInt.Type) throws -> UInt {
         try _decodeFixedWidthInteger()
     }
-    
+
     func decode(_ type: UInt8.Type) throws -> UInt8 {
         try _decodeFixedWidthInteger()
     }
-    
+
     func decode(_ type: UInt16.Type) throws -> UInt16 {
         try _decodeFixedWidthInteger()
     }
-    
+
     func decode(_ type: UInt32.Type) throws -> UInt32 {
         try _decodeFixedWidthInteger()
     }
-    
+
     func decode(_ type: UInt64.Type) throws -> UInt64 {
         try _decodeFixedWidthInteger()
     }
-    
-    func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+
+    func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         switch type {
         case is Bool.Type:
             return try decode(Bool.self) as! T
