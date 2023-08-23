@@ -45,11 +45,11 @@ import Foundation
 /// | `{keys\*}`       | `semi=%3B,dot=.,comma=%2C`        |
 struct URIParser: Sendable {
 
-    private let configuration: URISerializationConfiguration
+    private let configuration: URICoderConfiguration
     private typealias Raw = String.SubSequence
     private var data: Raw
 
-    init(configuration: URISerializationConfiguration, data: String) {
+    init(configuration: URICoderConfiguration, data: String) {
         self.configuration = configuration
         self.data = data[...]
     }
@@ -82,7 +82,7 @@ extension URIParser {
         }
     }
     
-    mutating func parseExplodedFormRoot() throws -> URIParsedNode {
+    private mutating func parseExplodedFormRoot() throws -> URIParsedNode {
         try parseGenericRoot { data, appendPair in
             let keyValueSeparator: Character = "="
             let pairSeparator: Character = "&"
@@ -110,7 +110,7 @@ extension URIParser {
         }
     }
     
-    mutating func parseUnexplodedFormRoot() throws -> URIParsedNode {
+    private mutating func parseUnexplodedFormRoot() throws -> URIParsedNode {
         try parseGenericRoot { data, appendPair in
             let keyValueSeparator: Character = "="
             let pairSeparator: Character = "&"
@@ -159,7 +159,7 @@ extension URIParser {
         }
     }
 
-    mutating func parseExplodedSimpleRoot() throws -> URIParsedNode {
+    private mutating func parseExplodedSimpleRoot() throws -> URIParsedNode {
         try parseGenericRoot { data, appendPair in
             let keyValueSeparator: Character = "="
             let pairSeparator: Character = ","
@@ -187,7 +187,7 @@ extension URIParser {
         }
     }
 
-    mutating func parseUnexplodedSimpleRoot() throws -> URIParsedNode {
+    private mutating func parseUnexplodedSimpleRoot() throws -> URIParsedNode {
         // Unexploded simple dictionary cannot be told apart from
         // an array, so we just accumulate all pairs as standalone
         // values and add them to the array. It'll be the higher
@@ -249,12 +249,12 @@ extension URIParser {
 
 extension String.SubSequence {
     
-    enum ParseUpToEitherCharacterResult {
+    fileprivate enum ParseUpToEitherCharacterResult {
         case foundFirst
         case foundSecondOrEnd
     }
     
-    mutating func parseUpToEitherCharacterOrEnd(
+    fileprivate mutating func parseUpToEitherCharacterOrEnd(
         first: Character,
         second: Character
     ) -> (ParseUpToEitherCharacterResult, Self) {
@@ -289,7 +289,7 @@ extension String.SubSequence {
         return finalize(.foundSecondOrEnd)
     }
 
-    mutating func parseUpToCharacterOrEnd(
+    fileprivate mutating func parseUpToCharacterOrEnd(
         _ character: Character
     ) -> Self {
         let startIndex = startIndex

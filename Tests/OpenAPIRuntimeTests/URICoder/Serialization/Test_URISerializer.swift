@@ -16,7 +16,7 @@ import XCTest
 
 final class Test_URISerializer: Test_Runtime {
 
-    let testedVariants: [URISerializationConfiguration] = [
+    let testedVariants: [URICoderConfiguration] = [
         .formExplode,
         .formUnexplode,
         .simpleExplode,
@@ -161,7 +161,7 @@ extension Test_URISerializer {
     struct Case {
         struct Variant {
             var name: String
-            var config: URISerializationConfiguration
+            var config: URICoderConfiguration
             
             static let formExplode: Self = .init(
                 name: "formExplode",

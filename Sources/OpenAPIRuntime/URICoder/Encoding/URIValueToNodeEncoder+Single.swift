@@ -15,12 +15,12 @@
 import Foundation
 
 struct URISingleValueEncodingContainer: SingleValueEncodingContainer {
-    let translator: URIValueToNodeEncoder
+    let encoder: URIValueToNodeEncoder
 }
 
 extension URISingleValueEncodingContainer {
     private func _setValue(_ node: URIEncodedNode.Primitive) throws {
-        try translator.currentStackEntry.storage.set(node)
+        try encoder.currentStackEntry.storage.set(node)
     }
 
     private func _setBinaryFloatingPoint(_ value: some BinaryFloatingPoint) throws {
@@ -38,7 +38,7 @@ extension URISingleValueEncodingContainer {
 extension URISingleValueEncodingContainer {
 
     var codingPath: [any CodingKey] {
-        translator.codingPath
+        encoder.codingPath
     }
 
     func encodeNil() throws {

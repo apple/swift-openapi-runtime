@@ -227,7 +227,7 @@ final class Test_URIValueToNodeEncoder: Test_Runtime {
         ]
         let translator = URIValueToNodeEncoder()
         for testCase in cases {
-            let translatedNode = try translator.translateValue(testCase.value)
+            let translatedNode = try translator.encodeValue(testCase.value)
             XCTAssertEqual(
                 translatedNode,
                 testCase.expectedNode,

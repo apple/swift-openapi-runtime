@@ -64,7 +64,7 @@ final class URIValueToNodeEncoder {
         )
     }
 
-    func translateValue(_ value: some Encodable) throws -> URIEncodedNode {
+    func encodeValue(_ value: some Encodable) throws -> URIEncodedNode {
         defer {
             _codingPath = []
             currentStackEntry = CodingStackEntry(
@@ -112,14 +112,14 @@ extension URIValueToNodeEncoder: Encoder {
     func container<Key>(
         keyedBy type: Key.Type
     ) -> KeyedEncodingContainer<Key> where Key: CodingKey {
-        KeyedEncodingContainer(URIKeyedEncodingContainer(translator: self))
+        KeyedEncodingContainer(URIKeyedEncodingContainer(encoder: self))
     }
 
     func unkeyedContainer() -> any UnkeyedEncodingContainer {
-        URIUnkeyedEncodingContainer(translator: self)
+        URIUnkeyedEncodingContainer(encoder: self)
     }
 
     func singleValueContainer() -> any SingleValueEncodingContainer {
-        URISingleValueEncodingContainer(translator: self)
+        URISingleValueEncodingContainer(encoder: self)
     }
 }

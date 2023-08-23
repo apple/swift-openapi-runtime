@@ -14,11 +14,9 @@
 
 import Foundation
 
-/// A type that encodes an `Encodable` objects to an URL-encoded string
+/// A type that encodes an `Encodable` objects to an URI-encoded string
 /// using the rules from RFC 6570, RFC 1866, and OpenAPI 3.0.3, depending on
 /// the configuration.
-///
-/// - [OpenAPI 3.0.3 styles](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#style-examples)
 struct URIEncoder: Sendable {
     
     private let serializer: URISerializer
@@ -27,8 +25,8 @@ struct URIEncoder: Sendable {
         self.serializer = serializer
     }
     
-    init(serializerConfiguration: URISerializationConfiguration) {
-        self.init(serializer: .init(configuration: serializerConfiguration))
+    init(configuration: URICoderConfiguration) {
+        self.init(serializer: .init(configuration: configuration))
     }
 }
 
@@ -46,12 +44,12 @@ extension URIEncoder {
     ///     - key: The key for which to encode the value. Can be an empty key,
     ///       in which case you still get a key-value pair, like `=foo`.
     /// - Returns: The URI string.
-    public func encode(
+    func encode(
         _ value: some Encodable,
         forKey key: String
     ) throws -> String {
-        let translator = URIValueToNodeEncoder()
-        let node = try translator.translateValue(value)
+        let encoder = URIValueToNodeEncoder()
+        let node = try encoder.encodeValue(value)
         var serializer = serializer
         let encodedString = try serializer.serializeNode(node, forKey: key)
         return encodedString

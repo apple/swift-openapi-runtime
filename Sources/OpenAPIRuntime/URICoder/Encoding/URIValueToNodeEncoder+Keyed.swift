@@ -15,12 +15,12 @@
 import Foundation
 
 struct URIKeyedEncodingContainer<Key: CodingKey> {
-    let translator: URIValueToNodeEncoder
+    let encoder: URIValueToNodeEncoder
 }
 
 extension URIKeyedEncodingContainer {
     private func _insertValue(_ node: URIEncodedNode, atKey key: Key) throws {
-        try translator.currentStackEntry.storage.insert(node, atKey: key)
+        try encoder.currentStackEntry.storage.insert(node, atKey: key)
     }
 
     private func _insertValue(_ node: URIEncodedNode.Primitive, atKey key: Key) throws {
@@ -48,7 +48,7 @@ extension URIKeyedEncodingContainer {
 extension URIKeyedEncodingContainer: KeyedEncodingContainerProtocol {
 
     var codingPath: [any CodingKey] {
-        translator.codingPath
+        encoder.codingPath
     }
 
     mutating func encodeNil(forKey key: Key) throws {
@@ -142,9 +142,9 @@ extension URIKeyedEncodingContainer: KeyedEncodingContainerProtocol {
         case let value as Bool:
             try encode(value, forKey: key)
         default:
-            translator.push(key: .init(key), newStorage: .unset)
-            try value.encode(to: translator)
-            try translator.pop()
+            encoder.push(key: .init(key), newStorage: .unset)
+            try value.encode(to: encoder)
+            try encoder.pop()
         }
     }
 
@@ -152,20 +152,20 @@ extension URIKeyedEncodingContainer: KeyedEncodingContainerProtocol {
         keyedBy keyType: NestedKey.Type,
         forKey key: Key
     ) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
-        translator.container(keyedBy: NestedKey.self)
+        encoder.container(keyedBy: NestedKey.self)
     }
 
     mutating func nestedUnkeyedContainer(
         forKey key: Key
     ) -> any UnkeyedEncodingContainer {
-        translator.unkeyedContainer()
+        encoder.unkeyedContainer()
     }
 
     mutating func superEncoder() -> any Encoder {
-        translator
+        encoder
     }
 
     mutating func superEncoder(forKey key: Key) -> any Encoder {
-        translator
+        encoder
     }
 }

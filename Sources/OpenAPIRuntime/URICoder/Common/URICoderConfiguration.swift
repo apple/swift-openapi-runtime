@@ -15,7 +15,7 @@
 import Foundation
 
 /// A bag of configuration values used by the URI parser and serializer.
-struct URISerializationConfiguration {
+struct URICoderConfiguration {
     
     // TODO: Wrap in a struct, as this will grow.
     // https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#style-values

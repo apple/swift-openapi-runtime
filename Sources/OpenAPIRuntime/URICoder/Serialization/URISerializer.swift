@@ -45,10 +45,10 @@ import Foundation
 /// | `{keys\*}`       | `semi=%3B,dot=.,comma=%2C`        |
 struct URISerializer {
         
-    private let configuration: URISerializationConfiguration
+    private let configuration: URICoderConfiguration
     private var data: String
     
-    init(configuration: URISerializationConfiguration) {
+    init(configuration: URICoderConfiguration) {
         self.configuration = configuration
         self.data = ""
     }
@@ -80,7 +80,7 @@ extension URISerializer {
 
 extension URISerializer {
     
-    enum SerializationError: Swift.Error {
+    private enum SerializationError: Swift.Error {
         case nestedContainersNotSupported
     }
 
@@ -268,7 +268,7 @@ extension URISerializer {
     }
 }
 
-extension URISerializationConfiguration {
+extension URICoderConfiguration {
     fileprivate var containerKeyAndValueSeparator: String? {
         switch (style, explode) {
         case (.form, false):

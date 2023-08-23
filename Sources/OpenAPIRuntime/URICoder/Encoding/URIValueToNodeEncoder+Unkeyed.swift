@@ -15,12 +15,12 @@
 import Foundation
 
 struct URIUnkeyedEncodingContainer {
-    let translator: URIValueToNodeEncoder
+    let encoder: URIValueToNodeEncoder
 }
 
 extension URIUnkeyedEncodingContainer {
     private func _appendValue(_ node: URIEncodedNode) throws {
-        try translator.currentStackEntry.storage.append(node)
+        try encoder.currentStackEntry.storage.append(node)
     }
 
     private func _appendValue(_ node: URIEncodedNode.Primitive) throws {
@@ -42,32 +42,32 @@ extension URIUnkeyedEncodingContainer {
 extension URIUnkeyedEncodingContainer: UnkeyedEncodingContainer {
 
     var codingPath: [any CodingKey] {
-        translator.codingPath
+        encoder.codingPath
     }
 
     var count: Int {
-        switch translator.currentStackEntry.storage {
+        switch encoder.currentStackEntry.storage {
         case .array(let array):
             return array.count
         case .unset:
             return 0
         default:
-            fatalError("Cannot have an unkeyed container at \(translator.currentStackEntry).")
+            fatalError("Cannot have an unkeyed container at \(encoder.currentStackEntry).")
         }
     }
 
     func nestedUnkeyedContainer() -> any UnkeyedEncodingContainer {
-        translator.unkeyedContainer()
+        encoder.unkeyedContainer()
     }
 
     func nestedContainer<NestedKey>(
         keyedBy keyType: NestedKey.Type
     ) -> KeyedEncodingContainer<NestedKey> where NestedKey: CodingKey {
-        translator.container(keyedBy: NestedKey.self)
+        encoder.container(keyedBy: NestedKey.self)
     }
 
     func superEncoder() -> any Encoder {
-        translator
+        encoder
     }
 
     func encodeNil() throws {
@@ -161,9 +161,9 @@ extension URIUnkeyedEncodingContainer: UnkeyedEncodingContainer {
         case let value as Bool:
             try encode(value)
         default:
-            translator.push(key: .init(intValue: count), newStorage: .unset)
-            try value.encode(to: translator)
-            try translator.pop()
+            encoder.push(key: .init(intValue: count), newStorage: .unset)
+            try value.encode(to: encoder)
+            try encoder.pop()
         }
     }
 }
