@@ -16,6 +16,22 @@ import XCTest
 
 final class Test_ServerConverterExtensions: Test_Runtime {
 
+    func testExtractAccept() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "accept", value: "application/json, */*; q=0.8")
+        ]
+        let accept: [AcceptHeaderContentType<TestAcceptable>] = try converter.extractAcceptHeaderIfPresent(
+            in: headerFields
+        )
+        XCTAssertEqual(
+            accept,
+            [
+                .init(contentType: .json, quality: 1.0),
+                .init(contentType: .other("*/*"), quality: 0.8),
+            ]
+        )
+    }
+
     // MARK: Miscs
 
     func testValidateAccept() throws {
