@@ -17,11 +17,13 @@ import Foundation
 final class URIValueFromNodeDecoder {
 
     private let node: URIParsedNode
+    private let rootKey: URIParsedKey
     private let explode: Bool
     private var codingStack: [CodingStackEntry]
 
-    init(node: URIParsedNode, explode: Bool) {
+    init(node: URIParsedNode, rootKey: URIParsedKey, explode: Bool) {
         self.node = node
+        self.rootKey = rootKey
         self.explode = explode
         self.codingStack = []
     }
@@ -44,28 +46,34 @@ extension URIValueFromNodeDecoder {
         case codingKeyOutOfBounds
         case codingKeyNotFound
     }
+    
+    private enum URIDecodedNode {
+        case single(URIParsedValue)
+        case array(URIParsedValueArray)
+        case dictionary(URIParsedNode)
+    }
 
     /// An entry in the coding stack for URIValueFromNodeDecoder.
     ///
     /// This is used to keep track of where we are in the decode.
     private struct CodingStackEntry {
         var key: URICoderCodingKey
-        var element: URIParsedNode
+        var element: URIDecodedNode
     }
 
     /// The element at the current head of the coding stack.
-    private var currentElement: URIParsedNode {
-        codingStack.last?.element ?? node
+    private var currentElement: URIDecodedNode {
+        codingStack.last?.element ?? .dictionary(node)
     }
 
     func push(_ codingKey: URICoderCodingKey) throws {
-        let nextElement: URIParsedNode
+        let nextElement: URIDecodedNode
         if let intValue = codingKey.intValue {
             let value = try nestedValueInCurrentElementAsArray(at: intValue)
-            nextElement = ["": [value]]
+            nextElement = .single(value)
         } else {
-            let value = try nestedValuesInCurrentElementAsDictionary(forKey: codingKey.stringValue)
-            nextElement = ["": value]
+            let values = try nestedValuesInCurrentElementAsDictionary(forKey: codingKey.stringValue)
+            nextElement = .array(values)
         }
         codingStack.append(CodingStackEntry(key: codingKey, element: nextElement))
     }
@@ -83,22 +91,35 @@ extension URIValueFromNodeDecoder {
             )
         )
     }
+    
+    private func rootValue(in node: URIParsedNode) throws -> URIParsedValueArray {
+        guard let value = node[rootKey] else {
+            throw DecodingError.keyNotFound(
+                URICoderCodingKey(stringValue: String(rootKey)),
+                .init(codingPath: codingPath, debugDescription: "Value for root key not found.")
+            )
+        }
+        return value
+    }
 
     private func currentElementAsDictionary() throws -> URIParsedNode {
         try nodeAsDictionary(currentElement)
     }
 
-    private func nodeAsDictionary(_ node: URIParsedNode) throws -> URIParsedNode {
+    private func nodeAsDictionary(_ node: URIDecodedNode) throws -> URIParsedNode {
         // There are multiple ways a valid dictionary is represented in a node,
         // depends on the explode parameter.
         // 1. exploded: Key-value pairs in the node: ["R":["100"]]
         // 2. unexploded form: Flattened key-value pairs in the only top level
-        //    key's value array: ["<anything>":["R","100"]]
+        //    key's value array: ["<root key>":["R","100"]]
         // To simplify the code, when asked for a keyed container here and explode
         // is false, we convert (2) to (1), and then treat everything as (1).
         // The conversion only works if the number of values is even, including 0.
         if explode {
-            return node
+            guard case let .dictionary(values) = node else {
+                try throwMismatch("Cannot treat a single value or an array as a dictionary.")
+            }
+            return values
         }
         let values = try nodeAsArray(node)
         guard values.count % 2 == 0 else {
@@ -120,42 +141,38 @@ extension URIValueFromNodeDecoder {
         try nodeAsArray(currentElement)
     }
 
-    private func nodeAsArray(_ node: URIParsedNode) throws -> URIParsedValueArray {
-        // A valid array represented in a node is a single key-value pair,
-        // doesn't matter what the key is, and the values are the elements
-        // of the array.
-        guard !node.isEmpty else {
-            try throwMismatch("Cannot parse a value from an empty node.")
+    private func nodeAsArray(_ node: URIDecodedNode) throws -> URIParsedValueArray {
+        switch node {
+        case .single(let value):
+            return [value]
+        case .array(let values):
+            return values
+        case .dictionary(let values):
+            return try rootValue(in: values)
         }
-        guard node.count == 1 else {
-            try throwMismatch("Cannot parse a value from a node with multiple key-value pairs.")
-        }
-        let values = node.first!.value
-        return values
     }
 
     private func currentElementAsSingleValue() throws -> URIParsedValue {
-        try nodeAsSingleValue(node: currentElement)
+        try nodeAsSingleValue(currentElement)
     }
 
-    private func nodeAsSingleValue(node: URIParsedNode) throws -> URIParsedValue {
+    private func nodeAsSingleValue(_ node: URIDecodedNode) throws -> URIParsedValue {
         // A single value can be parsed from a node that:
         // 1. Has a single key-value pair
         // 2. The value array has a single element.
-        guard !node.isEmpty else {
-            try throwMismatch("Cannot parse a value from an empty node.")
+        let array: URIParsedValueArray
+        switch node {
+        case .single(let value):
+            return value
+        case .array(let values):
+            array = values
+        case .dictionary(let values):
+            array = try rootValue(in: values)
         }
-        guard node.count == 1 else {
-            try throwMismatch("Cannot parse a value from a node with multiple key-value pairs.")
-        }
-        let values = node.first!.value
-        guard !values.isEmpty else {
-            try throwMismatch("Cannot parse a value from a node with an empty value array.")
-        }
-        guard values.count == 1 else {
+        guard array.count == 1 else {
             try throwMismatch("Cannot parse a value from a node with multiple values.")
         }
-        let value = values[0]
+        let value = array[0]
         return value
     }
 
@@ -213,7 +230,7 @@ extension URIValueFromNodeDecoder: Decoder {
     func singleValueContainer() throws -> any SingleValueDecodingContainer {
         let value = try currentElementAsSingleValue()
         return URISingleValueDecodingContainer(
-            _codingPath: codingPath,
+            codingPath: codingPath,
             value: value
         )
     }

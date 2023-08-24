@@ -31,74 +31,94 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
 
         // An empty string.
         try test(
-            ["": [""]],
-            ""
+            ["root": [""]],
+            "",
+            key: "root"
         )
 
         // A string with a space.
         try test(
-            ["": ["Hello World"]],
-            "Hello World"
+            ["root": ["Hello World"]],
+            "Hello World",
+            key: "root"
         )
 
         // An enum.
         try test(
-            ["": ["red"]],
-            SimpleEnum.red
+            ["root": ["red"]],
+            SimpleEnum.red,
+            key: "root"
         )
 
         // An integer.
         try test(
-            ["": ["1234"]],
-            1234
+            ["root": ["1234"]],
+            1234,
+            key: "root"
         )
 
         // A float.
         try test(
-            ["": ["12.34"]],
-            12.34
+            ["root": ["12.34"]],
+            12.34,
+            key: "root"
         )
 
         // A bool.
         try test(
-            ["": ["true"]],
-            true
+            ["root": ["true"]],
+            true,
+            key: "root"
         )
 
         // A simple array of strings.
         try test(
-            ["": ["a", "b", "c"]],
-            ["a", "b", "c"]
+            ["root": ["a", "b", "c"]],
+            ["a", "b", "c"],
+            key: "root"
         )
 
         // A simple array of enums.
         try test(
-            ["": ["red", "green", "blue"]],
-            [.red, .green, .blue] as [SimpleEnum]
+            ["root": ["red", "green", "blue"]],
+            [.red, .green, .blue] as [SimpleEnum],
+            key: "root"
         )
 
         // A struct.
         try test(
             ["foo": ["bar"]],
-            SimpleStruct(foo: "bar")
+            SimpleStruct(foo: "bar"), 
+            key: "root"
         )
 
         // A struct with a nested enum.
         try test(
             ["foo": ["bar"], "color": ["blue"]],
-            SimpleStruct(foo: "bar", color: .blue)
+            SimpleStruct(foo: "bar", color: .blue), 
+            key: "root"
         )
 
         // A simple dictionary.
         try test(
             ["one": ["1"], "two": ["2"]],
-            ["one": 1, "two": 2]
+            ["one": 1, "two": 2],
+            key: "root"
+        )
+        
+        // A unexploded simple dictionary.
+        try test(
+            ["root": ["one", "1", "two", "2"]],
+            ["one": 1, "two": 2],
+            key: "root",
+            .unexploded
         )
 
         // A dictionary of enums.
         try test(
             ["one": ["blue"], "two": ["green"]],
-            ["one": .blue, "two": .green] as [String: SimpleEnum]
+            ["one": .blue, "two": .green] as [String: SimpleEnum],
+            key: "root"
         )
 
         enum IsExploded: Equatable {
@@ -109,12 +129,14 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
         func test<T: Decodable & Equatable>(
             _ node: URIParsedNode,
             _ expectedValue: T,
+            key: String,
             _ isExploded: IsExploded = .exploded,
             file: StaticString = #file,
             line: UInt = #line
         ) throws {
             let decoder = URIValueFromNodeDecoder(
-                node: node,
+                node: node, 
+                rootKey: key[...],
                 explode: isExploded == .exploded
             )
             let decodedValue = try decoder.decodeRoot(T.self)

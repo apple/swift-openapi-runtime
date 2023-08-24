@@ -21,7 +21,11 @@ final class Test_URIDecoder: Test_Runtime {
             var bar: String
         }
         let decoder = URIDecoder(configuration: .formDataExplode)
-        let decodedValue = try decoder.decode(Foo.self, from: "bar=hello+world")
+        let decodedValue = try decoder.decode(
+            Foo.self, 
+            forKey: "",
+            from: "bar=hello+world"
+        )
         XCTAssertEqual(decodedValue, Foo(bar: "hello world"))
     }
 }

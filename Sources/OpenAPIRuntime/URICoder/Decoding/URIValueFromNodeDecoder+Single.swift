@@ -15,7 +15,7 @@
 import Foundation
 
 struct URISingleValueDecodingContainer {
-    let _codingPath: [any CodingKey]
+    let codingPath: [any CodingKey]
     let value: URIParsedValue
 }
 
@@ -67,10 +67,6 @@ extension URISingleValueDecodingContainer {
 }
 
 extension URISingleValueDecodingContainer: SingleValueDecodingContainer {
-
-    var codingPath: [any CodingKey] {
-        _codingPath
-    }
 
     func decodeNil() -> Bool {
         false
