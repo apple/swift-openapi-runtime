@@ -1179,4 +1179,36 @@ extension Converter {
             convert: convertTextToDate
         )
     }
+
+    // MARK: - Deprecated as part of moving to URI coder
+
+    //    | common | set | header field | text | string-convertible | both | setHeaderFieldAsText |
+    @available(*, deprecated)
+    public func setHeaderFieldAsText<T: _StringConvertible>(
+        in headerFields: inout [HeaderField],
+        name: String,
+        value: T?
+    ) throws {
+        try setHeaderField(
+            in: &headerFields,
+            name: name,
+            value: value,
+            convert: convertStringConvertibleToText
+        )
+    }
+
+    //    | common | set | header field | text | array of string-convertibles | both | setHeaderFieldAsText |
+    @available(*, deprecated)
+    public func setHeaderFieldAsText<T: _StringConvertible>(
+        in headerFields: inout [HeaderField],
+        name: String,
+        value values: [T]?
+    ) throws {
+        try setHeaderFields(
+            in: &headerFields,
+            name: name,
+            values: values,
+            convert: convertStringConvertibleToText
+        )
+    }
 }

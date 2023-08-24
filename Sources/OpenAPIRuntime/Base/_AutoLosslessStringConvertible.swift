@@ -19,10 +19,12 @@
 ///
 /// Cannot be marked as SPI, as it's added on public types, but should be
 /// considered an internal implementation detail of the generator.
+@available(*, deprecated)
 public protocol _AutoLosslessStringConvertible:
     RawRepresentable, LosslessStringConvertible, _StringConvertible
 where RawValue == String {}
 
+@available(*, deprecated)
 extension _AutoLosslessStringConvertible {
     public init?(_ description: String) {
         self.init(rawValue: description)

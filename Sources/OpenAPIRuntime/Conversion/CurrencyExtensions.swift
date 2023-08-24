@@ -124,12 +124,14 @@ extension Converter {
 
     // MARK: Common functions for Converter's SPI helper methods
 
+    @available(*, deprecated)
     func convertStringConvertibleToText<T: _StringConvertible>(
         _ value: T
     ) throws -> String {
         value.description
     }
 
+    @available(*, deprecated)
     func convertStringConvertibleToTextData<T: _StringConvertible>(
         _ value: T
     ) throws -> Data {
@@ -184,6 +186,7 @@ extension Converter {
         return try decoder.decode(T.self, from: data)
     }
 
+    @available(*, deprecated)
     func convertTextToStringConvertible<T: _StringConvertible>(
         _ stringValue: String
     ) throws -> T {
@@ -195,6 +198,7 @@ extension Converter {
         return value
     }
 
+    @available(*, deprecated)
     func convertTextDataToStringConvertible<T: _StringConvertible>(
         _ data: Data
     ) throws -> T {

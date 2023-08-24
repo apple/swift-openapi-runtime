@@ -16,6 +16,7 @@ import Foundation
 extension Converter {
 
     //    | client | set | request path | text | string-convertible | required | renderedRequestPath |
+    @available(*, deprecated)
     public func renderedRequestPath(
         template: String,
         parameters: [any _StringConvertible]
@@ -34,6 +35,7 @@ extension Converter {
     }
 
     //    | client | set | request query | text | string-convertible | both | setQueryItemAsText |
+    @available(*, deprecated)
     public func setQueryItemAsText<T: _StringConvertible>(
         in request: inout Request,
         style: ParameterStyle?,
@@ -52,6 +54,7 @@ extension Converter {
     }
 
     //    | client | set | request query | text | array of string-convertibles | both | setQueryItemAsText |
+    @available(*, deprecated)
     public func setQueryItemAsText<T: _StringConvertible>(
         in request: inout Request,
         style: ParameterStyle?,
@@ -106,6 +109,7 @@ extension Converter {
     }
 
     //    | client | set | request body | text | string-convertible | optional | setOptionalRequestBodyAsText |
+    @available(*, deprecated)
     public func setOptionalRequestBodyAsText<T: _StringConvertible>(
         _ value: T?,
         headerFields: inout [HeaderField],
@@ -120,6 +124,7 @@ extension Converter {
     }
 
     //    | client | set | request body | text | string-convertible | required | setRequiredRequestBodyAsText |
+    @available(*, deprecated)
     public func setRequiredRequestBodyAsText<T: _StringConvertible>(
         _ value: T,
         headerFields: inout [HeaderField],
@@ -218,6 +223,7 @@ extension Converter {
     }
 
     //    | client | get | response body | text | string-convertible | required | getResponseBodyAsText |
+    @available(*, deprecated)
     public func getResponseBodyAsText<T: _StringConvertible, C>(
         _ type: T.Type,
         from data: Data,

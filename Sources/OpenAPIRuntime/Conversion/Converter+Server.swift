@@ -58,6 +58,7 @@ public extension Converter {
     }
 
     //    | server | get | request path | text | string-convertible | required | getPathParameterAsText |
+    @available(*, deprecated)
     func getPathParameterAsText<T: _StringConvertible>(
         in pathParameters: [String: String],
         name: String,
@@ -72,6 +73,7 @@ public extension Converter {
     }
 
     //    | server | get | request query | text | string-convertible | optional | getOptionalQueryItemAsText |
+    @available(*, deprecated)
     func getOptionalQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         style: ParameterStyle?,
@@ -90,6 +92,7 @@ public extension Converter {
     }
 
     //    | server | get | request query | text | string-convertible | required | getRequiredQueryItemAsText |
+    @available(*, deprecated)
     func getRequiredQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         style: ParameterStyle?,
@@ -108,6 +111,7 @@ public extension Converter {
     }
 
     //    | server | get | request query | text | array of string-convertibles | optional | getOptionalQueryItemAsText |
+    @available(*, deprecated)
     func getOptionalQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         style: ParameterStyle?,
@@ -126,6 +130,7 @@ public extension Converter {
     }
 
     //    | server | get | request query | text | array of string-convertibles | required | getRequiredQueryItemAsText |
+    @available(*, deprecated)
     func getRequiredQueryItemAsText<T: _StringConvertible>(
         in queryParameters: [URLQueryItem],
         style: ParameterStyle?,
@@ -216,6 +221,7 @@ public extension Converter {
     }
 
     //    | server | get | request body | text | string-convertible | optional | getOptionalRequestBodyAsText |
+    @available(*, deprecated)
     func getOptionalRequestBodyAsText<T: _StringConvertible, C>(
         _ type: T.Type,
         from data: Data?,
@@ -230,6 +236,7 @@ public extension Converter {
     }
 
     //    | server | get | request body | text | string-convertible | required | getRequiredRequestBodyAsText |
+    @available(*, deprecated)
     func getRequiredRequestBodyAsText<T: _StringConvertible, C>(
         _ type: T.Type,
         from data: Data?,
@@ -328,6 +335,7 @@ public extension Converter {
     }
 
     //    | server | set | response body | text | string-convertible | required | setResponseBodyAsText |
+    @available(*, deprecated)
     func setResponseBodyAsText<T: _StringConvertible>(
         _ value: T,
         headerFields: inout [HeaderField],
