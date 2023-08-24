@@ -109,7 +109,7 @@ public struct AcceptHeaderContentType<ContentType: AcceptableProtocol>: Sendable
     /// - Parameters:
     ///   - value: The value representing the content type.
     ///   - quality: The quality of the content type, between 0.0 and 1.0.
-    /// - Precondition: Priority must be in the range 0.0 and 1.0 inclusive.
+    /// - Precondition: Quality must be in the range 0.0 and 1.0 inclusive.
     public init(contentType: ContentType, quality: QualityValue = 1.0) {
         self.quality = quality
         self.contentType = contentType
