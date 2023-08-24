@@ -16,6 +16,20 @@ import XCTest
 
 final class Test_ClientConverterExtensions: Test_Runtime {
 
+    func test_setAcceptHeader() throws {
+        var headerFields: [HeaderField] = []
+        converter.setAcceptHeader(
+            in: &headerFields,
+            contentTypes: [.init(contentType: TestAcceptable.json, quality: 0.8)]
+        )
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "accept", value: "application/json; q=0.800")
+            ]
+        )
+    }
+
     // MARK: Converter helper methods
 
     //    | client | set | request path | text | string-convertible | required | renderedRequestPath |

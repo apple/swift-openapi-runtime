@@ -101,3 +101,12 @@ extension URLComponents {
         queryItems = groups.otherItems + [newItem]
     }
 }
+
+extension String {
+
+    /// Returns the string with leading and trailing whitespace (such as spaces
+    /// and newlines) removed.
+    var trimmingLeadingAndTrailingSpaces: Self {
+        trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
