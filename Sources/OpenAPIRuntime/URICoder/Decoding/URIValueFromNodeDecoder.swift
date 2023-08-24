@@ -107,10 +107,7 @@ extension URIValueFromNodeDecoder {
                 // string key.
                 return valueForFallbackKey
             }
-            throw DecodingError.keyNotFound(
-                URICoderCodingKey(stringValue: String(rootKey)),
-                .init(codingPath: codingPath, debugDescription: "Value for root key not found.")
-            )
+            return []
         }
         return value
     }
@@ -135,6 +132,11 @@ extension URIValueFromNodeDecoder {
             return values
         }
         let values = try nodeAsArray(node)
+        if values == [""] && style == .simple {
+            // An unexploded simple combination produces a ["":[""]] for an
+            // empty string. It should be parsed as an empty dictionary.
+            return ["": [""]]
+        }
         guard values.count % 2 == 0 else {
             try throwMismatch("Cannot parse an unexploded dictionary an odd number of elements.")
         }

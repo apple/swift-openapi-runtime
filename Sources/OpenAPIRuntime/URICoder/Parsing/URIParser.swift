@@ -64,9 +64,15 @@ private enum ParsingError: Swift.Error {
 extension URIParser {
     mutating func parseRoot() throws -> URIParsedNode {
         // A completely empty string should get parsed as a single
-        // empty key with a single element array with an empty string.
+        // empty key with a single element array with an empty string
+        // if the style is simple, otherwise it's an empty dictionary.
         if data.isEmpty {
-            return ["": [""]]
+            switch configuration.style {
+            case .form:
+                return [:]
+            case .simple:
+                return ["": [""]]
+            }
         }
         switch (configuration.style, configuration.explode) {
         case (.form, true):

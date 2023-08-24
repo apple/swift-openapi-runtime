@@ -22,6 +22,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             var foo: String
             var bar: Int
             var color: SimpleEnum
+            var empty: String
         }
 
         enum SimpleEnum: String, Codable, Equatable {
@@ -127,6 +128,20 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 formDataUnexplode: "list=a,b,c"
             )
         )
+        
+        // An empty array of strings.
+        try _test(
+            [] as [String],
+            key: "list",
+            .init(
+                formExplode: "",
+                formUnexplode: "",
+                simpleExplode: .custom("", value: [""]),
+                simpleUnexplode: .custom("", value: [""]),
+                formDataExplode: "",
+                formDataUnexplode: ""
+            )
+        )
 
         // A simple array of enums.
         try _test(
@@ -144,29 +159,58 @@ final class Test_URICodingRoundtrip: Test_Runtime {
 
         // A struct.
         try _test(
-            SimpleStruct(foo: "hi!", bar: 24, color: .red),
+            SimpleStruct(foo: "hi!", bar: 24, color: .red, empty: ""),
             key: "keys",
             .init(
-                formExplode: "bar=24&color=red&foo=hi%21",
-                formUnexplode: "keys=bar,24,color,red,foo,hi%21",
-                simpleExplode: "bar=24,color=red,foo=hi%21",
-                simpleUnexplode: "bar,24,color,red,foo,hi%21",
-                formDataExplode: "bar=24&color=red&foo=hi%21",
-                formDataUnexplode: "keys=bar,24,color,red,foo,hi%21"
+                formExplode: "bar=24&color=red&empty=&foo=hi%21",
+                formUnexplode: "keys=bar,24,color,red,empty,,foo,hi%21",
+                simpleExplode: "bar=24,color=red,empty=,foo=hi%21",
+                simpleUnexplode: "bar,24,color,red,empty,,foo,hi%21",
+                formDataExplode: "bar=24&color=red&empty=&foo=hi%21",
+                formDataUnexplode: "keys=bar,24,color,red,empty,,foo,hi%21"
+            )
+        )
+        
+        // An empty struct.
+        struct EmptyStruct: Codable, Equatable { }
+        try _test(
+            EmptyStruct(),
+            key: "keys",
+            .init(
+                formExplode: "",
+                formUnexplode: "",
+                simpleExplode: "",
+                simpleUnexplode: "",
+                formDataExplode: "",
+                formDataUnexplode: ""
             )
         )
 
         // A simple dictionary.
         try _test(
-            ["foo": "hi!", "bar": "24", "color": "red"],
+            ["foo": "hi!", "bar": "24", "color": "red", "empty": ""],
             key: "keys",
             .init(
-                formExplode: "bar=24&color=red&foo=hi%21",
-                formUnexplode: "keys=bar,24,color,red,foo,hi%21",
-                simpleExplode: "bar=24,color=red,foo=hi%21",
-                simpleUnexplode: "bar,24,color,red,foo,hi%21",
-                formDataExplode: "bar=24&color=red&foo=hi%21",
-                formDataUnexplode: "keys=bar,24,color,red,foo,hi%21"
+                formExplode: "bar=24&color=red&empty=&foo=hi%21",
+                formUnexplode: "keys=bar,24,color,red,empty,,foo,hi%21",
+                simpleExplode: "bar=24,color=red,empty=,foo=hi%21",
+                simpleUnexplode: "bar,24,color,red,empty,,foo,hi%21",
+                formDataExplode: "bar=24&color=red&empty=&foo=hi%21",
+                formDataUnexplode: "keys=bar,24,color,red,empty,,foo,hi%21"
+            )
+        )
+        
+        // An empty dictionary.
+        try _test(
+            [:] as [String: String],
+            key: "keys",
+            .init(
+                formExplode: "",
+                formUnexplode: "",
+                simpleExplode: .custom("", value: ["": ""]),
+                simpleUnexplode: .custom("", value: ["": ""]),
+                formDataExplode: "",
+                formDataUnexplode: ""
             )
         )
     }
@@ -200,32 +244,51 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             configuration: .formDataUnexplode
         )
     }
-    struct Variants {
-        var formExplode: String
-        var formUnexplode: String
-        var simpleExplode: String
-        var simpleUnexplode: String
-        var formDataExplode: String
-        var formDataUnexplode: String
+    struct Variants<T: Codable & Equatable> {
+        
+        struct Input: ExpressibleByStringLiteral {
+            var string: String
+            var customValue: T?
+            
+            init(string: String, customValue: T?) {
+                self.string = string
+                self.customValue = customValue
+            }
+            
+            init(stringLiteral value: String) {
+                self.init(string: value, customValue: nil)
+            }
+            
+            static func custom(_ string: String, value: T) -> Self {
+                .init(string: string, customValue: value)
+            }
+        }
+        
+        var formExplode: Input
+        var formUnexplode: Input
+        var simpleExplode: Input
+        var simpleUnexplode: Input
+        var formDataExplode: Input
+        var formDataUnexplode: Input
     }
 
     func _test<T: Codable & Equatable>(
         _ value: T,
         key: String,
-        _ variants: Variants,
+        _ variants: Variants<T>,
         file: StaticString = #file,
         line: UInt = #line
     ) throws {
         func testVariant(
             name: String,
             configuration: URICoderConfiguration,
-            expectedString: String
+            variant: Variants<T>.Input
         ) throws {
             let encoder = URIEncoder(configuration: configuration)
             let encodedString = try encoder.encode(value, forKey: key)
             XCTAssertEqual(
                 encodedString,
-                expectedString,
+                variant.string,
                 "Variant: \(name)",
                 file: file,
                 line: line
@@ -238,7 +301,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             )
             XCTAssertEqual(
                 decodedValue,
-                value,
+                variant.customValue ?? value,
                 "Variant: \(name)",
                 file: file,
                 line: line
@@ -247,32 +310,32 @@ final class Test_URICodingRoundtrip: Test_Runtime {
         try testVariant(
             name: "formExplode",
             configuration: .formExplode,
-            expectedString: variants.formExplode
+            variant: variants.formExplode
         )
         try testVariant(
             name: "formUnexplode",
             configuration: .formUnexplode,
-            expectedString: variants.formUnexplode
+            variant: variants.formUnexplode
         )
         try testVariant(
             name: "simpleExplode",
             configuration: .simpleExplode,
-            expectedString: variants.simpleExplode
+            variant: variants.simpleExplode
         )
         try testVariant(
             name: "simpleUnexplode",
             configuration: .simpleUnexplode,
-            expectedString: variants.simpleUnexplode
+            variant: variants.simpleUnexplode
         )
         try testVariant(
             name: "formDataExplode",
             configuration: .formDataExplode,
-            expectedString: variants.formDataExplode
+            variant: variants.formDataExplode
         )
         try testVariant(
             name: "formDataUnexplode",
             configuration: .formDataUnexplode,
-            expectedString: variants.formDataUnexplode
+            variant: variants.formDataUnexplode
         )
     }
 

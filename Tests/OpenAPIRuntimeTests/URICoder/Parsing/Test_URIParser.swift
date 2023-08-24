@@ -42,6 +42,17 @@ final class Test_URIParser: Test_Runtime {
             ),
             makeCase(
                 .init(
+                    formExplode: "",
+                    formUnexplode: "",
+                    simpleExplode: .custom("", value: ["": [""]]),
+                    simpleUnexplode: .custom("", value: ["": [""]]),
+                    formDataExplode: "",
+                    formDataUnexplode: ""
+                ),
+                value: [:]
+            ),
+            makeCase(
+                .init(
                     formExplode: "who=fred",
                     formUnexplode: "who=fred",
                     simpleExplode: .custom("fred", value: ["": ["fred"]]),
