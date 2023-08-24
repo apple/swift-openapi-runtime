@@ -42,16 +42,16 @@ extension URIDecoder {
     /// - Returns: The decoded value.
     func decode<T: Decodable>(
         _ type: T.Type = T.self,
-        forKey key: String,
+        forKey key: String = "",
         from data: String
     ) throws -> T {
         try withCachedParser(from: data) { decoder in
             try decoder.decode(type, forKey: key)
         }
     }
-    
+
     /// Make multiple decode calls on the parsed URI.
-    /// 
+    ///
     /// Use to avoid repeatedly reparsing the raw string.
     /// - Parameters:
     ///   - data: The URI-encoded string.
@@ -70,10 +70,10 @@ extension URIDecoder {
 }
 
 struct URICachedDecoder {
-    
+
     fileprivate let configuration: URICoderConfiguration
     fileprivate let node: URIParsedNode
-    
+
     /// Attempt to decode an object from an URI string.
     ///
     /// Under the hood, URICachedDecoder already has a pre-parsed URIParsedNode
@@ -86,7 +86,7 @@ struct URICachedDecoder {
     /// - Returns: The decoded value.
     func decode<T: Decodable>(
         _ type: T.Type = T.self,
-        forKey key: String
+        forKey key: String = ""
     ) throws -> T {
         let decoder = URIValueFromNodeDecoder(
             node: node,

@@ -88,14 +88,14 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
         // A struct.
         try test(
             ["foo": ["bar"]],
-            SimpleStruct(foo: "bar"), 
+            SimpleStruct(foo: "bar"),
             key: "root"
         )
 
         // A struct with a nested enum.
         try test(
             ["foo": ["bar"], "color": ["blue"]],
-            SimpleStruct(foo: "bar", color: .blue), 
+            SimpleStruct(foo: "bar", color: .blue),
             key: "root"
         )
 
@@ -105,7 +105,7 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
             ["one": 1, "two": 2],
             key: "root"
         )
-        
+
         // A unexploded simple dictionary.
         try test(
             ["root": ["one", "1", "two", "2"]],
@@ -135,7 +135,7 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
             line: UInt = #line
         ) throws {
             let decoder = URIValueFromNodeDecoder(
-                node: node, 
+                node: node,
                 rootKey: key[...],
                 explode: isExploded == .exploded
             )

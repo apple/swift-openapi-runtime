@@ -46,7 +46,7 @@ extension URIValueFromNodeDecoder {
         case codingKeyOutOfBounds
         case codingKeyNotFound
     }
-    
+
     private enum URIDecodedNode {
         case single(URIParsedValue)
         case array(URIParsedValueArray)
@@ -91,7 +91,7 @@ extension URIValueFromNodeDecoder {
             )
         )
     }
-    
+
     private func rootValue(in node: URIParsedNode) throws -> URIParsedValueArray {
         guard let value = node[rootKey] else {
             throw DecodingError.keyNotFound(

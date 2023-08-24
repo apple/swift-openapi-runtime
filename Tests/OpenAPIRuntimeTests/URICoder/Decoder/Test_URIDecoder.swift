@@ -22,7 +22,7 @@ final class Test_URIDecoder: Test_Runtime {
         }
         let decoder = URIDecoder(configuration: .formDataExplode)
         let decodedValue = try decoder.decode(
-            Foo.self, 
+            Foo.self,
             forKey: "",
             from: "bar=hello+world"
         )
