@@ -128,7 +128,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 formDataUnexplode: "list=a,b,c"
             )
         )
-        
+
         // An empty array of strings.
         try _test(
             [] as [String],
@@ -170,9 +170,9 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 formDataUnexplode: "keys=bar,24,color,red,empty,,foo,hi%21"
             )
         )
-        
+
         // An empty struct.
-        struct EmptyStruct: Codable, Equatable { }
+        struct EmptyStruct: Codable, Equatable {}
         try _test(
             EmptyStruct(),
             key: "keys",
@@ -199,7 +199,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 formDataUnexplode: "keys=bar,24,color,red,empty,,foo,hi%21"
             )
         )
-        
+
         // An empty dictionary.
         try _test(
             [:] as [String: String],
@@ -245,25 +245,25 @@ final class Test_URICodingRoundtrip: Test_Runtime {
         )
     }
     struct Variants<T: Codable & Equatable> {
-        
+
         struct Input: ExpressibleByStringLiteral {
             var string: String
             var customValue: T?
-            
+
             init(string: String, customValue: T?) {
                 self.string = string
                 self.customValue = customValue
             }
-            
+
             init(stringLiteral value: String) {
                 self.init(string: value, customValue: nil)
             }
-            
+
             static func custom(_ string: String, value: T) -> Self {
                 .init(string: string, customValue: value)
             }
         }
-        
+
         var formExplode: Input
         var formUnexplode: Input
         var simpleExplode: Input
