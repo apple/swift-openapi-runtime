@@ -92,8 +92,8 @@ final class Test_AcceptHeaderContentType: Test_Runtime {
 
 final class Test_QualityValue: Test_Runtime {
     func test() {
-        XCTAssertEqual(QualityValue().doubleValue, 1.0)
-        XCTAssertTrue(QualityValue().isDefault)
+        XCTAssertEqual((1 as QualityValue).doubleValue, 1.0)
+        XCTAssertTrue((1 as QualityValue).isDefault)
         XCTAssertFalse(QualityValue(doubleValue: 0.5).isDefault)
         XCTAssertEqual(QualityValue(doubleValue: 0.5).doubleValue, 0.5)
         XCTAssertEqual(QualityValue(floatLiteral: 0.5).doubleValue, 0.5)
@@ -101,7 +101,7 @@ final class Test_QualityValue: Test_Runtime {
         XCTAssertEqual(QualityValue(rawValue: "1.0")?.doubleValue, 1.0)
         XCTAssertEqual(QualityValue(rawValue: "0.0")?.doubleValue, 0.0)
         XCTAssertEqual(QualityValue(rawValue: "0.3")?.doubleValue, 0.3)
-        XCTAssertEqual(QualityValue(rawValue: "0.5")?.rawValue, "0.500")
+        XCTAssertEqual(QualityValue(rawValue: "0.54321")?.rawValue, "0.543")
         XCTAssertNil(QualityValue(rawValue: "hi"))
     }
 }

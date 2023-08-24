@@ -27,11 +27,6 @@ public struct QualityValue: Sendable, Hashable {
     /// For example, 1000 thousands is the quality value of 1.0.
     private let thousands: UInt16
 
-    /// Creates a new quality value of the default value 1.0.
-    public init() {
-        self.thousands = 1000
-    }
-
     /// Returns a Boolean value indicating whether the quality value is
     /// at its default value 1.0.
     public var isDefault: Bool {
