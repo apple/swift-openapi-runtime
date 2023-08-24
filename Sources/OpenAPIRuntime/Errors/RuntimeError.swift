@@ -37,6 +37,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     case missingRequiredHeaderField(String)
     case unexpectedContentTypeHeader(String)
     case unexpectedAcceptHeader(String)
+    case malformedAcceptHeader(String)
 
     // Path
     case missingRequiredPathParameter(String)
@@ -74,6 +75,8 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
             return "Unexpected Content-Type header: \(contentType)"
         case .unexpectedAcceptHeader(let accept):
             return "Unexpected Accept header: \(accept)"
+        case .malformedAcceptHeader(let accept):
+            return "Malformed Accept header: \(accept)"
         case .missingRequiredPathParameter(let name):
             return "Missing required path parameter named: \(name)"
         case .missingRequiredQueryParameter(let name):
