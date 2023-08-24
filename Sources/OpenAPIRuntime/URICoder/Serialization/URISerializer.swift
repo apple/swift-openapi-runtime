@@ -73,7 +73,7 @@ extension URISerializer {
             ) ?? ""
         let fullyEncoded = partiallyEncoded.replacingOccurrences(
             of: " ",
-            with: configuration.spaceEscapingCharacter
+            with: configuration.spaceEscapingCharacter.rawValue
         )
         return fullyEncoded
     }
