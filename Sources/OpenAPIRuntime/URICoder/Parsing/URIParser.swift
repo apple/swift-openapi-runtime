@@ -238,11 +238,11 @@ extension URIParser {
 
     private static func unescapeValue(
         _ escapedValue: Raw,
-        spaceEscapingCharacter: String
+        spaceEscapingCharacter: URICoderConfiguration.SpaceEscapingCharacter
     ) -> Raw {
         // The inverse of URISerializer.computeSafeString.
         let partiallyDecoded = escapedValue.replacingOccurrences(
-            of: spaceEscapingCharacter,
+            of: spaceEscapingCharacter.rawValue,
             with: " "
         )
         return (partiallyDecoded.removingPercentEncoding ?? "")[...]

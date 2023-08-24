@@ -22,11 +22,16 @@ struct URICoderConfiguration {
         case form
     }
 
+    enum SpaceEscapingCharacter: String {
+        case percentEncoded = "%20"
+        case plus = "+"
+    }
+
     var style: Style
     var explode: Bool
-    var spaceEscapingCharacter: String
+    var spaceEscapingCharacter: SpaceEscapingCharacter
 
-    private init(style: Style, explode: Bool, spaceEscapingCharacter: String) {
+    private init(style: Style, explode: Bool, spaceEscapingCharacter: SpaceEscapingCharacter) {
         self.style = style
         self.explode = explode
         self.spaceEscapingCharacter = spaceEscapingCharacter
@@ -35,36 +40,36 @@ struct URICoderConfiguration {
     static let formExplode: Self = .init(
         style: .form,
         explode: true,
-        spaceEscapingCharacter: "%20"
+        spaceEscapingCharacter: .percentEncoded
     )
 
     static let formUnexplode: Self = .init(
         style: .form,
         explode: false,
-        spaceEscapingCharacter: "%20"
+        spaceEscapingCharacter: .percentEncoded
     )
 
     static let simpleExplode: Self = .init(
         style: .simple,
         explode: true,
-        spaceEscapingCharacter: "%20"
+        spaceEscapingCharacter: .percentEncoded
     )
 
     static let simpleUnexplode: Self = .init(
         style: .simple,
         explode: false,
-        spaceEscapingCharacter: "%20"
+        spaceEscapingCharacter: .percentEncoded
     )
 
     static let formDataExplode: Self = .init(
         style: .form,
         explode: true,
-        spaceEscapingCharacter: "+"
+        spaceEscapingCharacter: .plus
     )
 
     static let formDataUnexplode: Self = .init(
         style: .form,
         explode: false,
-        spaceEscapingCharacter: "+"
+        spaceEscapingCharacter: .plus
     )
 }
