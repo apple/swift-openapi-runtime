@@ -15,6 +15,22 @@ import Foundation
 
 extension Converter {
 
+    /// Sets the "accept" header according to the provided content types.
+    /// - Parameters:
+    ///   - headerFields: The header fields where to add the "accept" header.
+    ///   - contentTypes: The array of acceptable content types by the client.
+    public func setAcceptHeader<T: AcceptableProtocol>(
+        in headerFields: inout [HeaderField],
+        contentTypes: [AcceptHeaderContentType<T>]
+    ) {
+        headerFields.append(
+            .init(
+                name: "accept",
+                value: contentTypes.map(\.rawValue).joined(separator: ", ")
+            )
+        )
+    }
+
     //    | client | set | request path | text | string-convertible | required | renderedRequestPath |
     public func renderedRequestPath(
         template: String,

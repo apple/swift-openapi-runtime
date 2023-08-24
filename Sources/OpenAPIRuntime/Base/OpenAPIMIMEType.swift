@@ -165,9 +165,3 @@ extension OpenAPIMIMEType: LosslessStringConvertible {
             .joined(separator: "; ")
     }
 }
-
-extension String {
-    fileprivate var trimmingLeadingAndTrailingSpaces: Self {
-        trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-}
