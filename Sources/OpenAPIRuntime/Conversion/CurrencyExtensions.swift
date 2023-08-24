@@ -138,6 +138,43 @@ extension Converter {
         try Data(convertStringConvertibleToText(value).utf8)
     }
 
+    func uriCoderConfiguration(
+        style: ParameterStyle,
+        explode: Bool,
+        inBody: Bool
+    ) -> URICoderConfiguration {
+        let configStyle: URICoderConfiguration.Style
+        switch style {
+        case .form:
+            configStyle = .form
+        case .simple:
+            configStyle = .simple
+        }
+        return .init(
+            style: configStyle,
+            explode: explode,
+            spaceEscapingCharacter: inBody ? .plus : .percentEncoded
+        )
+    }
+
+    func convertToURI<T: Encodable>(
+        style: ParameterStyle,
+        explode: Bool,
+        inBody: Bool,
+        key: String,
+        value: T
+    ) throws -> String {
+        let encoder = URIEncoder(
+            configuration: uriCoderConfiguration(
+                style: style,
+                explode: explode,
+                inBody: inBody
+            )
+        )
+        let encodedString = try encoder.encode(value, forKey: key)
+        return encodedString
+    }
+
     func convertDateToText(_ value: Date) throws -> String {
         try configuration.dateTranscoder.encode(value)
     }
@@ -195,6 +232,28 @@ extension Converter {
                 type: String(describing: T.self)
             )
         }
+        return value
+    }
+
+    func convertFromURI<T: Decodable>(
+        style: ParameterStyle,
+        explode: Bool,
+        inBody: Bool,
+        key: String,
+        encodedValue: String
+    ) throws -> T {
+        let decoder = URIDecoder(
+            configuration: uriCoderConfiguration(
+                style: style,
+                explode: explode,
+                inBody: inBody
+            )
+        )
+        let value = try decoder.decode(
+            T.self,
+            forKey: key,
+            from: encodedValue
+        )
         return value
     }
 

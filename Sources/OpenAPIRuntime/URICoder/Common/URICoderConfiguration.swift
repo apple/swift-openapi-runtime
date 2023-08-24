@@ -31,12 +31,6 @@ struct URICoderConfiguration {
     var explode: Bool
     var spaceEscapingCharacter: SpaceEscapingCharacter
 
-    private init(style: Style, explode: Bool, spaceEscapingCharacter: SpaceEscapingCharacter) {
-        self.style = style
-        self.explode = explode
-        self.spaceEscapingCharacter = spaceEscapingCharacter
-    }
-
     static let formExplode: Self = .init(
         style: .form,
         explode: true,

@@ -1211,4 +1211,155 @@ extension Converter {
             convert: convertStringConvertibleToText
         )
     }
+
+    //    | common | set | header field | text | date | both | setHeaderFieldAsText |
+    @available(*, deprecated)
+    public func setHeaderFieldAsText(
+        in headerFields: inout [HeaderField],
+        name: String,
+        value: Date?
+    ) throws {
+        try setHeaderField(
+            in: &headerFields,
+            name: name,
+            value: value,
+            convert: convertDateToText
+        )
+    }
+
+    //    | common | set | header field | text | array of dates | both | setHeaderFieldAsText |
+    @available(*, deprecated)
+    public func setHeaderFieldAsText(
+        in headerFields: inout [HeaderField],
+        name: String,
+        value values: [Date]?
+    ) throws {
+        try setHeaderFields(
+            in: &headerFields,
+            name: name,
+            values: values,
+            convert: convertDateToText
+        )
+    }
+
+    //    | common | get | header field | text | string-convertible | optional | getOptionalHeaderFieldAsText |
+    @available(*, deprecated)
+    public func getOptionalHeaderFieldAsText<T: _StringConvertible>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: T.Type
+    ) throws -> T? {
+        try getOptionalHeaderField(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
+    }
+
+    //    | common | get | header field | text | string-convertible | required | getRequiredHeaderFieldAsText |
+    @available(*, deprecated)
+    public func getRequiredHeaderFieldAsText<T: _StringConvertible>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: T.Type
+    ) throws -> T {
+        try getRequiredHeaderField(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
+    }
+
+    //    | common | get | header field | text | array of string-convertibles | optional | getOptionalHeaderFieldAsText |
+    @available(*, deprecated)
+    public func getOptionalHeaderFieldAsText<T: _StringConvertible>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: [T].Type
+    ) throws -> [T]? {
+        try getOptionalHeaderFields(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
+    }
+
+    //    | common | get | header field | text | array of string-convertibles | required | getRequiredHeaderFieldAsText |
+    @available(*, deprecated)
+    public func getRequiredHeaderFieldAsText<T: _StringConvertible>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: [T].Type
+    ) throws -> [T] {
+        try getRequiredHeaderFields(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
+    }
+
+    //    | common | get | header field | text | date | optional | getOptionalHeaderFieldAsText |
+    @available(*, deprecated)
+    public func getOptionalHeaderFieldAsText(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: Date.Type
+    ) throws -> Date? {
+        try getOptionalHeaderField(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertHeaderFieldTextToDate
+        )
+    }
+
+    //    | common | get | header field | text | date | required | getRequiredHeaderFieldAsText |
+    @available(*, deprecated)
+    public func getRequiredHeaderFieldAsText(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: Date.Type
+    ) throws -> Date {
+        try getRequiredHeaderField(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertHeaderFieldTextToDate
+        )
+    }
+
+    //    | common | get | header field | text | array of dates | optional | getOptionalHeaderFieldAsText |
+    @available(*, deprecated)
+    public func getOptionalHeaderFieldAsText(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: [Date].Type
+    ) throws -> [Date]? {
+        try getOptionalHeaderFields(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertHeaderFieldTextToDate
+        )
+    }
+
+    //    | common | get | header field | text | array of dates | required | getRequiredHeaderFieldAsText |
+    @available(*, deprecated)
+    public func getRequiredHeaderFieldAsText(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: [Date].Type
+    ) throws -> [Date] {
+        try getRequiredHeaderFields(
+            in: headerFields,
+            name: name,
+            as: type,
+            convert: convertHeaderFieldTextToDate
+        )
+    }
+
 }
