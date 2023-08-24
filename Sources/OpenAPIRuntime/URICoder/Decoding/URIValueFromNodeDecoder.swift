@@ -18,12 +18,19 @@ final class URIValueFromNodeDecoder {
 
     private let node: URIParsedNode
     private let rootKey: URIParsedKey
+    private let style: URICoderConfiguration.Style
     private let explode: Bool
     private var codingStack: [CodingStackEntry]
 
-    init(node: URIParsedNode, rootKey: URIParsedKey, explode: Bool) {
+    init(
+        node: URIParsedNode,
+        rootKey: URIParsedKey,
+        style: URICoderConfiguration.Style,
+        explode: Bool
+    ) {
         self.node = node
         self.rootKey = rootKey
+        self.style = style
         self.explode = explode
         self.codingStack = []
     }
@@ -94,6 +101,12 @@ extension URIValueFromNodeDecoder {
 
     private func rootValue(in node: URIParsedNode) throws -> URIParsedValueArray {
         guard let value = node[rootKey] else {
+            if style == .simple, let valueForFallbackKey = node[""] {
+                // The simple style doesn't encode the key, so single values
+                // get encoded as a value only, and parsed under the empty
+                // string key.
+                return valueForFallbackKey
+            }
             throw DecodingError.keyNotFound(
                 URICoderCodingKey(stringValue: String(rootKey)),
                 .init(codingPath: codingPath, debugDescription: "Value for root key not found.")

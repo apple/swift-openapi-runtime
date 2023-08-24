@@ -31,8 +31,8 @@ final class Test_URIParser: Test_Runtime {
                 .init(
                     formExplode: "empty=",
                     formUnexplode: "empty=",
-                    simpleExplode: .custom("", value: [:]),
-                    simpleUnexplode: .custom("", value: [:]),
+                    simpleExplode: .custom("", value: ["": [""]]),
+                    simpleUnexplode: .custom("", value: ["": [""]]),
                     formDataExplode: "empty=",
                     formDataUnexplode: "empty="
                 ),

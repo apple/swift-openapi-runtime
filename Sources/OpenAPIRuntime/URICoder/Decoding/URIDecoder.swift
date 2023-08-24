@@ -91,6 +91,7 @@ struct URICachedDecoder {
         let decoder = URIValueFromNodeDecoder(
             node: node,
             rootKey: key[...],
+            style: configuration.style,
             explode: configuration.explode
         )
         return try decoder.decodeRoot()

@@ -36,6 +36,14 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
             key: "root"
         )
 
+        // An empty string with a simple style.
+        try test(
+            ["root": [""]],
+            "",
+            key: "root",
+            style: .simple
+        )
+
         // A string with a space.
         try test(
             ["root": ["Hello World"]],
@@ -111,7 +119,7 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
             ["root": ["one", "1", "two", "2"]],
             ["one": 1, "two": 2],
             key: "root",
-            .unexploded
+            explode: false
         )
 
         // A dictionary of enums.
@@ -121,23 +129,20 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
             key: "root"
         )
 
-        enum IsExploded: Equatable {
-            case exploded
-            case unexploded
-        }
-
         func test<T: Decodable & Equatable>(
             _ node: URIParsedNode,
             _ expectedValue: T,
             key: String,
-            _ isExploded: IsExploded = .exploded,
+            style: URICoderConfiguration.Style = .form,
+            explode: Bool = true,
             file: StaticString = #file,
             line: UInt = #line
         ) throws {
             let decoder = URIValueFromNodeDecoder(
                 node: node,
                 rootKey: key[...],
-                explode: isExploded == .exploded
+                style: style,
+                explode: explode
             )
             let decodedValue = try decoder.decodeRoot(T.self)
             XCTAssertEqual(
