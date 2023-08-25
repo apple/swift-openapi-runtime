@@ -20,18 +20,21 @@ final class URIValueFromNodeDecoder {
     private let rootKey: URIParsedKey
     private let style: URICoderConfiguration.Style
     private let explode: Bool
+    let dateTranscoder: any DateTranscoder
     private var codingStack: [CodingStackEntry]
 
     init(
         node: URIParsedNode,
         rootKey: URIParsedKey,
         style: URICoderConfiguration.Style,
-        explode: Bool
+        explode: Bool,
+        dateTranscoder: any DateTranscoder
     ) {
         self.node = node
         self.rootKey = rootKey
         self.style = style
         self.explode = explode
+        self.dateTranscoder = dateTranscoder
         self.codingStack = []
     }
 
@@ -40,7 +43,18 @@ final class URIValueFromNodeDecoder {
         defer {
             precondition(codingStack.isEmpty)
         }
-        return try T.init(from: self)
+
+        // We have to catch the special values early, otherwise we fall
+        // back to their Codable implementations, which don't give us
+        // a chance to customize the coding in the containers.
+        let value: T
+        switch type {
+        case is Date.Type:
+            value = try singleValueContainer().decode(Date.self) as! T
+        default:
+            value = try T.init(from: self)
+        }
+        return value
     }
 }
 
@@ -245,6 +259,7 @@ extension URIValueFromNodeDecoder: Decoder {
     func singleValueContainer() throws -> any SingleValueDecodingContainer {
         let value = try currentElementAsSingleValue()
         return URISingleValueDecodingContainer(
+            dateTranscoder: dateTranscoder,
             codingPath: codingPath,
             value: value
         )

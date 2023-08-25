@@ -23,6 +23,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             var bar: Int
             var color: SimpleEnum
             var empty: String
+            var date: Date
         }
 
         enum SimpleEnum: String, Codable, Equatable {
@@ -115,6 +116,20 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             )
         )
 
+        // A Date.
+        try _test(
+            Date(timeIntervalSince1970: 1_692_948_899),
+            key: "root",
+            .init(
+                formExplode: "root=2023-08-25T07:34:59Z",
+                formUnexplode: "root=2023-08-25T07:34:59Z",
+                simpleExplode: "2023-08-25T07:34:59Z",
+                simpleUnexplode: "2023-08-25T07:34:59Z",
+                formDataExplode: "root=2023-08-25T07:34:59Z",
+                formDataUnexplode: "root=2023-08-25T07:34:59Z"
+            )
+        )
+
         // A simple array of strings.
         try _test(
             ["a", "b", "c"],
@@ -126,6 +141,23 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "a,b,c",
                 formDataExplode: "list=a&list=b&list=c",
                 formDataUnexplode: "list=a,b,c"
+            )
+        )
+
+        // A simple array of dates.
+        try _test(
+            [
+                Date(timeIntervalSince1970: 1_692_948_899),
+                Date(timeIntervalSince1970: 1_692_948_901),
+            ],
+            key: "list",
+            .init(
+                formExplode: "list=2023-08-25T07:34:59Z&list=2023-08-25T07:35:01Z",
+                formUnexplode: "list=2023-08-25T07:34:59Z,2023-08-25T07:35:01Z",
+                simpleExplode: "2023-08-25T07:34:59Z,2023-08-25T07:35:01Z",
+                simpleUnexplode: "2023-08-25T07:34:59Z,2023-08-25T07:35:01Z",
+                formDataExplode: "list=2023-08-25T07:34:59Z&list=2023-08-25T07:35:01Z",
+                formDataUnexplode: "list=2023-08-25T07:34:59Z,2023-08-25T07:35:01Z"
             )
         )
 
@@ -159,15 +191,21 @@ final class Test_URICodingRoundtrip: Test_Runtime {
 
         // A struct.
         try _test(
-            SimpleStruct(foo: "hi!", bar: 24, color: .red, empty: ""),
+            SimpleStruct(
+                foo: "hi!",
+                bar: 24,
+                color: .red,
+                empty: "",
+                date: Date(timeIntervalSince1970: 1_692_948_899)
+            ),
             key: "keys",
             .init(
-                formExplode: "bar=24&color=red&empty=&foo=hi%21",
-                formUnexplode: "keys=bar,24,color,red,empty,,foo,hi%21",
-                simpleExplode: "bar=24,color=red,empty=,foo=hi%21",
-                simpleUnexplode: "bar,24,color,red,empty,,foo,hi%21",
-                formDataExplode: "bar=24&color=red&empty=&foo=hi%21",
-                formDataUnexplode: "keys=bar,24,color,red,empty,,foo,hi%21"
+                formExplode: "bar=24&color=red&date=2023-08-25T07:34:59Z&empty=&foo=hi%21",
+                formUnexplode: "keys=bar,24,color,red,date,2023-08-25T07:34:59Z,empty,,foo,hi%21",
+                simpleExplode: "bar=24,color=red,date=2023-08-25T07:34:59Z,empty=,foo=hi%21",
+                simpleUnexplode: "bar,24,color,red,date,2023-08-25T07:34:59Z,empty,,foo,hi%21",
+                formDataExplode: "bar=24&color=red&date=2023-08-25T07:34:59Z&empty=&foo=hi%21",
+                formDataUnexplode: "keys=bar,24,color,red,date,2023-08-25T07:34:59Z,empty,,foo,hi%21"
             )
         )
 

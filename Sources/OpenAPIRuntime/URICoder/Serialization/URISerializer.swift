@@ -158,6 +158,8 @@ extension URISerializer {
             stringValue = int.description
         case .double(let double):
             stringValue = double.description
+        case .date(let date):
+            stringValue = try configuration.dateTranscoder.encode(date)
         }
         data.append(stringValue)
     }

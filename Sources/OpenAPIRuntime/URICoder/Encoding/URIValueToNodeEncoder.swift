@@ -51,7 +51,17 @@ final class URIValueToNodeEncoder {
                 storage: .unset
             )
         }
-        try value.encode(to: self)
+
+        // We have to catch the special values early, otherwise we fall
+        // back to their Codable implementations, which don't give us
+        // a chance to customize the coding in the containers.
+        if let date = value as? Date {
+            var container = singleValueContainer()
+            try container.encode(date)
+        } else {
+            try value.encode(to: self)
+        }
+
         let encodedValue = currentStackEntry.storage
         return encodedValue
     }

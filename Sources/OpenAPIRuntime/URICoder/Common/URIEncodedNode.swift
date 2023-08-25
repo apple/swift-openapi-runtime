@@ -26,6 +26,7 @@ enum URIEncodedNode: Equatable {
         case string(String)
         case integer(Int)
         case double(Double)
+        case date(Date)
     }
 }
 

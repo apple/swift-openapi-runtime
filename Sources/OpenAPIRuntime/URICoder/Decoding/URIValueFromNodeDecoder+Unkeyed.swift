@@ -198,6 +198,10 @@ extension URIUnkeyedDecodingContainer: UnkeyedDecodingContainer {
             return try decode(UInt32.self) as! T
         case is UInt64.Type:
             return try decode(UInt64.self) as! T
+        case is Date.Type:
+            return try decoder
+                .dateTranscoder
+                .decode(String(_decodeNext())) as! T
         default:
             return try _decodingNext { [decoder, currentIndex] in
                 try decoder.push(.init(intValue: currentIndex))

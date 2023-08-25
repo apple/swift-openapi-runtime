@@ -15,6 +15,7 @@
 import Foundation
 
 struct URISingleValueDecodingContainer {
+    let dateTranscoder: any DateTranscoder
     let codingPath: [any CodingKey]
     let value: URIParsedValue
 }
@@ -158,6 +159,8 @@ extension URISingleValueDecodingContainer: SingleValueDecodingContainer {
             return try decode(UInt32.self) as! T
         case is UInt64.Type:
             return try decode(UInt64.self) as! T
+        case is Date.Type:
+            return try dateTranscoder.decode(String(value)) as! T
         default:
             throw URIValueFromNodeDecoder.GeneralError.unsupportedType(T.self)
         }

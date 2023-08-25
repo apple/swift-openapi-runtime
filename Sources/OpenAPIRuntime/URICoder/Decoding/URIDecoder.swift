@@ -92,7 +92,8 @@ struct URICachedDecoder {
             node: node,
             rootKey: key[...],
             style: configuration.style,
-            explode: configuration.explode
+            explode: configuration.explode,
+            dateTranscoder: configuration.dateTranscoder
         )
         return try decoder.decodeRoot()
     }

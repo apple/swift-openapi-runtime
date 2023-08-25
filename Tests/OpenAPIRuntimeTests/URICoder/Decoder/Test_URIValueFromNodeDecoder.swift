@@ -142,7 +142,8 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
                 node: node,
                 rootKey: key[...],
                 style: style,
-                explode: explode
+                explode: explode,
+                dateTranscoder: .iso8601
             )
             let decodedValue = try decoder.decodeRoot(T.self)
             XCTAssertEqual(

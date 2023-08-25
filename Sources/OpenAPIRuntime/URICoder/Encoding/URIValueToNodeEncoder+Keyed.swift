@@ -141,6 +141,8 @@ extension URIKeyedEncodingContainer: KeyedEncodingContainerProtocol {
             try encode(value, forKey: key)
         case let value as Bool:
             try encode(value, forKey: key)
+        case let value as Date:
+            try _insertValue(.date(value), atKey: key)
         default:
             encoder.push(key: .init(key), newStorage: .unset)
             try value.encode(to: encoder)
