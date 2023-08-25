@@ -14,13 +14,45 @@
 
 import Foundation
 
-/// A type that decodes a `Decodable` objects from an URI-encoded string
+/// A type that decodes a `Decodable` value from an URI-encoded string
 /// using the rules from RFC 6570, RFC 1866, and OpenAPI 3.0.3, depending on
 /// the configuration.
+///
+/// [RFC 6570 - Form-style query expansion.](https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.8)
+///
+/// | Example Template |   Expansion                       |
+/// | ---------------- | ----------------------------------|
+/// | `{?who}`         | `?who=fred`                       |
+/// | `{?half}`        | `?half=50%25`                     |
+/// | `{?x,y}`         | `?x=1024&y=768`                   |
+/// | `{?x,y,empty}`   | `?x=1024&y=768&empty=`            |
+/// | `{?x,y,undef}`   | `?x=1024&y=768`                   |
+/// | `{?list}`        | `?list=red,green,blue`            |
+/// | `{?list\*}`      | `?list=red&list=green&list=blue`  |
+/// | `{?keys}`        | `?keys=semi,%3B,dot,.,comma,%2C`  |
+/// | `{?keys\*}`      | `?semi=%3B&dot=.&comma=%2C`       |
+///
+/// [RFC 6570 - Simple string expansion.](https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.2)
+///
+/// | Example Template |   Expansion                       |
+/// | ---------------- | ----------------------------------|
+/// | `{hello}`        | `Hello%20World%21`                |
+/// | `{half}`         | `50%25`                           |
+/// | `{x,y}`          | `1024,768`                        |
+/// | `{x,empty}`      | `1024,`                           |
+/// | `{x,undef}`      | `1024`                            |
+/// | `{list}`         | `red,green,blue`                  |
+/// | `{list\*}`       | `red,green,blue`                  |
+/// | `{keys}`         | `semi,%3B,dot,.,comma,%2C`        |
+/// | `{keys\*}`       | `semi=%3B,dot=.,comma=%2C`        |
 struct URIDecoder: Sendable {
 
+    /// The configuration instructing the decoder how to interpret the raw
+    /// string.
     private let configuration: URICoderConfiguration
 
+    /// Creates a new decoder with the provided configuration.
+    /// - Parameter configuration: The configuration used by the decoder.
     init(configuration: URICoderConfiguration) {
         self.configuration = configuration
     }
@@ -30,15 +62,15 @@ extension URIDecoder {
 
     /// Attempt to decode an object from an URI string.
     ///
-    /// Under the hood, URIDecoder first parses the string into a URIParsedNode
-    /// using URIParser, and then uses URIValueFromNodeDecoder to decode
-    /// the Decodable value.
+    /// Under the hood, `URIDecoder` first parses the string into a
+    /// `URIParsedNode` using `URIParser`, and then uses
+    /// `URIValueFromNodeDecoder` to decode the `Decodable` value.
     ///
     /// - Parameters:
-    ///     - type: The type to decode.
-    ///     - key: The key of the decoded value. Only used with certain styles
-    ///       and explode options, ignored otherwise.
-    ///     - data: The URI-encoded string.
+    ///   - type: The type to decode.
+    ///   - key: The key of the decoded value. Only used with certain styles
+    ///     and explode options, ignored otherwise.
+    ///   - data: The URI-encoded string.
     /// - Returns: The decoded value.
     func decode<T: Decodable>(
         _ type: T.Type = T.self,
@@ -56,7 +88,7 @@ extension URIDecoder {
     /// - Parameters:
     ///   - data: The URI-encoded string.
     ///   - calls: The closure that contains 0 or more calls to
-    ///     URICachedDecoder's decode method.
+    ///     the `decode` method on `URICachedDecoder`.
     /// - Returns: The result of the closure invocation.
     func withCachedParser<R>(
         from data: String,
@@ -71,18 +103,22 @@ extension URIDecoder {
 
 struct URICachedDecoder {
 
+    /// The configuration used by the decoder.
     fileprivate let configuration: URICoderConfiguration
+
+    /// The node from which to decode a value on demand.
     fileprivate let node: URIParsedNode
 
-    /// Attempt to decode an object from an URI string.
+    /// Attempt to decode an object from an URI-encoded string.
     ///
-    /// Under the hood, URICachedDecoder already has a pre-parsed URIParsedNode
-    /// and uses URIValueFromNodeDecoder to decode the Decodable value.
+    /// Under the hood, `URICachedDecoder` already has a pre-parsed
+    /// `URIParsedNode` and uses `URIValueFromNodeDecoder` to decode
+    /// the `Decodable` value.
     ///
     /// - Parameters:
-    ///     - type: The type to decode.
-    ///     - key: The key of the decoded value. Only used with certain styles
-    ///       and explode options, ignored otherwise.
+    ///   - type: The type to decode.
+    ///   - key: The key of the decoded value. Only used with certain styles
+    ///     and explode options, ignored otherwise.
     /// - Returns: The decoded value.
     func decode<T: Decodable>(
         _ type: T.Type = T.self,

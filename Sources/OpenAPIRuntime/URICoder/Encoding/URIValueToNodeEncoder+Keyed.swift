@@ -14,19 +14,38 @@
 
 import Foundation
 
+/// A keyed container used by `URIValueToNodeEncoder`.
 struct URIKeyedEncodingContainer<Key: CodingKey> {
+
+    /// The associated encoder.
     let encoder: URIValueToNodeEncoder
 }
 
 extension URIKeyedEncodingContainer {
+
+    /// Inserts the provided node into the underlying dictionary at
+    /// the provided key.
+    /// - Parameters:
+    ///   - node: The child node to insert.
+    ///   - key: The key for the child node.
     private func _insertValue(_ node: URIEncodedNode, atKey key: Key) throws {
         try encoder.currentStackEntry.storage.insert(node, atKey: key)
     }
 
+    /// Inserts the provided primitive value into the underlying dictionary at
+    /// the provided key.
+    /// - Parameters:
+    ///   - node: The primitive value to insert.
+    ///   - key: The key for the value.
     private func _insertValue(_ node: URIEncodedNode.Primitive, atKey key: Key) throws {
         try _insertValue(.primitive(node), atKey: key)
     }
 
+    /// Inserts the provided value into the underlying dictionary at
+    /// the provided key.
+    /// - Parameters:
+    ///   - node: The value to insert.
+    ///   - key: The key for the value.
     private func _insertBinaryFloatingPoint(
         _ value: some BinaryFloatingPoint,
         atKey key: Key
@@ -34,6 +53,11 @@ extension URIKeyedEncodingContainer {
         try _insertValue(.double(Double(value)), atKey: key)
     }
 
+    /// Inserts the provided value into the underlying dictionary at
+    /// the provided key.
+    /// - Parameters:
+    ///   - node: The value to insert.
+    ///   - key: The key for the value.
     private func _insertFixedWidthInteger(
         _ value: some FixedWidthInteger,
         atKey key: Key

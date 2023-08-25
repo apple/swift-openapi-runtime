@@ -14,10 +14,25 @@
 
 import Foundation
 
-/// The coding key.
-struct URICoderCodingKey: CodingKey {
+/// The coding key used by the URI encoder and decoder.
+struct URICoderCodingKey {
+
+    /// The string to use in a named collection (e.g. a string-keyed dictionary).
     var stringValue: String
+
+    /// The value to use in an integer-indexed collection (e.g. an int-keyed
+    /// dictionary).
     var intValue: Int?
+
+    /// Creates a new key with the same string and int value as the provided key.
+    /// - Parameter key: The key whose values to copy.
+    init(_ key: some CodingKey) {
+        self.stringValue = key.stringValue
+        self.intValue = key.intValue
+    }
+}
+
+extension URICoderCodingKey: CodingKey {
 
     init(stringValue: String) {
         self.stringValue = stringValue
@@ -27,10 +42,5 @@ struct URICoderCodingKey: CodingKey {
     init(intValue: Int) {
         self.stringValue = "\(intValue)"
         self.intValue = intValue
-    }
-
-    init(_ key: some CodingKey) {
-        self.stringValue = key.stringValue
-        self.intValue = key.intValue
     }
 }

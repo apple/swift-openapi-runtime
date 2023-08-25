@@ -14,7 +14,14 @@
 
 import Foundation
 
+/// The type used for keys by `URIParser`.
 typealias URIParsedKey = String.SubSequence
+
+/// The type used for values by `URIParser`.
 typealias URIParsedValue = String.SubSequence
+
+/// The type used for an array of values by `URIParser`.
 typealias URIParsedValueArray = [URIParsedValue]
+
+/// The type used for a node and a dictionary by `URIParser`.
 typealias URIParsedNode = [URIParsedKey: URIParsedValueArray]

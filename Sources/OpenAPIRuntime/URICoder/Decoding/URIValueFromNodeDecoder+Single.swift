@@ -14,13 +14,25 @@
 
 import Foundation
 
+/// A single value container used by `URIValueFromNodeDecoder`.
 struct URISingleValueDecodingContainer {
+
+    /// The coder used to serialize Date values.
     let dateTranscoder: any DateTranscoder
+
+    /// The coding path of the container.
     let codingPath: [any CodingKey]
+
+    /// The underlying value.
     let value: URIParsedValue
 }
 
 extension URISingleValueDecodingContainer {
+
+    /// Returns the value found in the underlying node converted to
+    /// the provided type.
+    /// - Returns: The converted value found.
+    /// - Throws: An error if the conversion failed.
     private func _decodeBinaryFloatingPoint<T: BinaryFloatingPoint>(
         _: T.Type = T.self
     ) throws -> T {
@@ -36,6 +48,10 @@ extension URISingleValueDecodingContainer {
         return T(double)
     }
 
+    /// Returns the value found in the underlying node converted to
+    /// the provided type.
+    /// - Returns: The converted value found.
+    /// - Throws: An error if the conversion failed.
     private func _decodeFixedWidthInteger<T: FixedWidthInteger>(
         _: T.Type = T.self
     ) throws -> T {
@@ -51,6 +67,10 @@ extension URISingleValueDecodingContainer {
         return parsedValue
     }
 
+    /// Returns the value found in the underlying node converted to
+    /// the provided type.
+    /// - Returns: The converted value found.
+    /// - Throws: An error if the conversion failed.
     private func _decodeLosslessStringConvertible<T: LosslessStringConvertible>(
         _: T.Type = T.self
     ) throws -> T {
