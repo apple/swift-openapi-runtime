@@ -2057,4 +2057,94 @@ extension Converter {
         return value
     }
 
+    //    | server | get | request body | text | string-convertible | optional | getOptionalRequestBodyAsText |
+    @available(*, deprecated)
+    public func getOptionalRequestBodyAsText<T: _StringConvertible, C>(
+        _ type: T.Type,
+        from data: Data?,
+        transforming transform: (T) -> C
+    ) throws -> C? {
+        try getOptionalRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertTextDataToStringConvertible
+        )
+    }
+
+    //    | server | get | request body | text | string-convertible | required | getRequiredRequestBodyAsText |
+    @available(*, deprecated)
+    public func getRequiredRequestBodyAsText<T: _StringConvertible, C>(
+        _ type: T.Type,
+        from data: Data?,
+        transforming transform: (T) -> C
+    ) throws -> C {
+        try getRequiredRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertTextDataToStringConvertible
+        )
+    }
+
+    //    | server | get | request body | text | date | optional | getOptionalRequestBodyAsText |
+    @available(*, deprecated)
+    public func getOptionalRequestBodyAsText<C>(
+        _ type: Date.Type,
+        from data: Data?,
+        transforming transform: (Date) -> C
+    ) throws -> C? {
+        try getOptionalRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertTextDataToDate
+        )
+    }
+
+    //    | server | get | request body | text | date | required | getRequiredRequestBodyAsText |
+    @available(*, deprecated)
+    public func getRequiredRequestBodyAsText<C>(
+        _ type: Date.Type,
+        from data: Data?,
+        transforming transform: (Date) -> C
+    ) throws -> C {
+        try getRequiredRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertTextDataToDate
+        )
+    }
+
+    //    | server | set | response body | text | string-convertible | required | setResponseBodyAsText |
+    @available(*, deprecated)
+    public func setResponseBodyAsText<T: _StringConvertible>(
+        _ value: T,
+        headerFields: inout [HeaderField],
+        contentType: String
+    ) throws -> Data {
+        try setResponseBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: convertStringConvertibleToTextData
+        )
+    }
+
+    //    | server | set | response body | text | date | required | setResponseBodyAsText |
+    @available(*, deprecated)
+    public func setResponseBodyAsText(
+        _ value: Date,
+        headerFields: inout [HeaderField],
+        contentType: String
+    ) throws -> Data {
+        try setResponseBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: convertDateToTextData
+        )
+    }
+
 }

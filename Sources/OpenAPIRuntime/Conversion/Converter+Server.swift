@@ -177,9 +177,8 @@ extension Converter {
         )
     }
 
-    //    | server | get | request body | text | string-convertible | optional | getOptionalRequestBodyAsText |
-    @available(*, deprecated)
-    public func getOptionalRequestBodyAsText<T: _StringConvertible, C>(
+    //    | server | get | request body | string | codable | optional | getOptionalRequestBodyAsString |
+    public func getOptionalRequestBodyAsString<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
         transforming transform: (T) -> C
@@ -188,13 +187,18 @@ extension Converter {
             type,
             from: data,
             transforming: transform,
-            convert: convertTextDataToStringConvertible
+            convert: { encodedData in
+                let decoder = StringDecoder(
+                    dateTranscoder: configuration.dateTranscoder
+                )
+                let encodedString = String(decoding: encodedData, as: UTF8.self)
+                return try decoder.decode(T.self, from: encodedString)
+            }
         )
     }
 
-    //    | server | get | request body | text | string-convertible | required | getRequiredRequestBodyAsText |
-    @available(*, deprecated)
-    public func getRequiredRequestBodyAsText<T: _StringConvertible, C>(
+    //    | server | get | request body | string | codable | required | getRequiredRequestBodyAsString |
+    public func getRequiredRequestBodyAsString<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
         transforming transform: (T) -> C
@@ -203,37 +207,13 @@ extension Converter {
             type,
             from: data,
             transforming: transform,
-            convert: convertTextDataToStringConvertible
-        )
-    }
-
-    //    | server | get | request body | text | date | optional | getOptionalRequestBodyAsText |
-    @available(*, deprecated)
-    public func getOptionalRequestBodyAsText<C>(
-        _ type: Date.Type,
-        from data: Data?,
-        transforming transform: (Date) -> C
-    ) throws -> C? {
-        try getOptionalRequestBody(
-            type,
-            from: data,
-            transforming: transform,
-            convert: convertTextDataToDate
-        )
-    }
-
-    //    | server | get | request body | text | date | required | getRequiredRequestBodyAsText |
-    @available(*, deprecated)
-    public func getRequiredRequestBodyAsText<C>(
-        _ type: Date.Type,
-        from data: Data?,
-        transforming transform: (Date) -> C
-    ) throws -> C {
-        try getRequiredRequestBody(
-            type,
-            from: data,
-            transforming: transform,
-            convert: convertTextDataToDate
+            convert: { encodedData in
+                let decoder = StringDecoder(
+                    dateTranscoder: configuration.dateTranscoder
+                )
+                let encodedString = String(decoding: encodedData, as: UTF8.self)
+                return try decoder.decode(T.self, from: encodedString)
+            }
         )
     }
 
@@ -293,9 +273,8 @@ extension Converter {
         )
     }
 
-    //    | server | set | response body | text | string-convertible | required | setResponseBodyAsText |
-    @available(*, deprecated)
-    public func setResponseBodyAsText<T: _StringConvertible>(
+    //    | server | set | response body | string | codable | required | setResponseBodyAsString |
+    public func setResponseBodyAsString<T: Encodable>(
         _ value: T,
         headerFields: inout [HeaderField],
         contentType: String
@@ -304,22 +283,14 @@ extension Converter {
             value,
             headerFields: &headerFields,
             contentType: contentType,
-            convert: convertStringConvertibleToTextData
-        )
-    }
-
-    //    | server | set | response body | text | date | required | setResponseBodyAsText |
-    @available(*, deprecated)
-    public func setResponseBodyAsText(
-        _ value: Date,
-        headerFields: inout [HeaderField],
-        contentType: String
-    ) throws -> Data {
-        try setResponseBody(
-            value,
-            headerFields: &headerFields,
-            contentType: contentType,
-            convert: convertDateToTextData
+            convert: { value in
+                let encoder = StringEncoder(
+                    dateTranscoder: configuration.dateTranscoder
+                )
+                let encodedString = try encoder.encode(value)
+                let encodedData = Data(encodedString.utf8)
+                return encodedData
+            }
         )
     }
 
