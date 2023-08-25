@@ -1837,3 +1837,20 @@ extension URLComponents {
         queryItems = groups.otherItems + [newItem]
     }
 }
+
+extension Converter {
+    //    | server | get | request path | text | string-convertible | required | getPathParameterAsText |
+    @available(*, deprecated)
+    public func getPathParameterAsText<T: _StringConvertible>(
+        in pathParameters: [String: String],
+        name: String,
+        as type: T.Type
+    ) throws -> T {
+        try getRequiredRequestPath(
+            in: pathParameters,
+            name: name,
+            as: type,
+            convert: convertTextToStringConvertible
+        )
+    }
+}

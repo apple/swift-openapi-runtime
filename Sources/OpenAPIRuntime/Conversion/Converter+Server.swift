@@ -82,9 +82,8 @@ public extension Converter {
         throw RuntimeError.unexpectedAcceptHeader(acceptHeader)
     }
 
-    //    | server | get | request path | text | string-convertible | required | getPathParameterAsText |
-    @available(*, deprecated)
-    func getPathParameterAsText<T: _StringConvertible>(
+    //    | server | get | request path | uri | codable | required | getPathParameterAsURI |
+    func getPathParameterAsURI<T: Decodable>(
         in pathParameters: [String: String],
         name: String,
         as type: T.Type
@@ -92,8 +91,23 @@ public extension Converter {
         try getRequiredRequestPath(
             in: pathParameters,
             name: name,
-            as: type,
-            convert: convertTextToStringConvertible
+            as: T.self,
+            convert: { encodedString in
+                let decoder = URIDecoder(
+                    configuration: .init(
+                        style: .simple,
+                        explode: false,
+                        spaceEscapingCharacter: .percentEncoded,
+                        dateTranscoder: configuration.dateTranscoder
+                    )
+                )
+                let value = try decoder.decode(
+                    T.self,
+                    forKey: name,
+                    from: encodedString
+                )
+                return value
+            }
         )
     }
 

@@ -234,6 +234,7 @@ public struct ServerRequestMetadata: Hashable, Sendable {
     public var pathParameters: [String: String]
 
     /// The query parameters parsed from the URL of the HTTP request.
+    @available(*, deprecated, message: "Use the Request.query string directly.")
     public var queryParameters: [URLQueryItem]
 
     /// Creates a new metadata wrapper with the specified path and query parameters.
@@ -242,12 +243,24 @@ public struct ServerRequestMetadata: Hashable, Sendable {
     ///   request.
     ///   - queryParameters: The query parameters parsed from the URL of
     ///   the HTTP request.
+    @available(*, deprecated, message: "Use the Request.query string directly.")
     public init(
         pathParameters: [String: String] = [:],
         queryParameters: [URLQueryItem] = []
     ) {
         self.pathParameters = pathParameters
         self.queryParameters = queryParameters
+    }
+
+    /// Creates a new metadata wrapper with the specified path and query parameters.
+    /// - Parameters:
+    ///   - pathParameters: Path parameters parsed from the URL of the HTTP
+    ///   request.
+    public init(
+        pathParameters: [String: String] = [:]
+    ) {
+        self.pathParameters = pathParameters
+        self.queryParameters = []
     }
 }
 
