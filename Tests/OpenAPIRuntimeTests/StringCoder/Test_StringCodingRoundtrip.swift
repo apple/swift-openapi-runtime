@@ -95,6 +95,12 @@ final class Test_StringCodingRoundtrip: Test_Runtime {
             true,
             "true"
         )
+
+        // A Date.
+        try _test(
+            Date(timeIntervalSince1970: 1_692_948_899),
+            "2023-08-25T07:34:59Z"
+        )
     }
 
     func _test<T: Codable & Equatable>(
@@ -103,7 +109,7 @@ final class Test_StringCodingRoundtrip: Test_Runtime {
         file: StaticString = #file,
         line: UInt = #line
     ) throws {
-        let encoder = StringEncoder()
+        let encoder = StringEncoder(dateTranscoder: .iso8601)
         let encodedString = try encoder.encode(value)
         XCTAssertEqual(
             encodedString,
@@ -111,7 +117,7 @@ final class Test_StringCodingRoundtrip: Test_Runtime {
             file: file,
             line: line
         )
-        let decoder = StringDecoder()
+        let decoder = StringDecoder(dateTranscoder: .iso8601)
         let decodedValue = try decoder.decode(
             T.self,
             from: encodedString

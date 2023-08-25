@@ -983,13 +983,15 @@ extension Converter {
         name: String,
         value: T?
     ) throws {
-        try setQueryItem(
+        try setUnescapedQueryItem(
             in: &request,
             style: nil,
             explode: nil,
             name: name,
             value: value,
-            convert: convertStringConvertibleToText
+            convert: { value, _, _ in
+                try convertStringConvertibleToText(value)
+            }
         )
     }
 
@@ -1017,13 +1019,15 @@ extension Converter {
         name: String,
         value: Date?
     ) throws {
-        try setQueryItem(
+        try setUnescapedQueryItem(
             in: &request,
             style: nil,
             explode: nil,
             name: name,
             value: value,
-            convert: convertDateToText
+            convert: { value, _, _ in
+                try convertDateToText(value)
+            }
         )
     }
 
@@ -1390,13 +1394,15 @@ extension Converter {
         name: String,
         value: T?
     ) throws {
-        try setQueryItem(
+        try setUnescapedQueryItem(
             in: &request,
             style: style,
             explode: explode,
             name: name,
             value: value,
-            convert: convertStringConvertibleToText
+            convert: { value, _, _ in
+                try convertStringConvertibleToText(value)
+            }
         )
     }
 
@@ -1428,13 +1434,15 @@ extension Converter {
         name: String,
         value: Date?
     ) throws {
-        try setQueryItem(
+        try setUnescapedQueryItem(
             in: &request,
             style: style,
             explode: explode,
             name: name,
             value: value,
-            convert: convertDateToText
+            convert: { value, _, _ in
+                try convertDateToText(value)
+            }
         )
     }
 
@@ -1456,7 +1464,7 @@ extension Converter {
             convert: convertDateToText
         )
     }
-    
+
     //    | client | get | response body | text | string-convertible | required | getResponseBodyAsText |
     @available(*, deprecated)
     public func getResponseBodyAsText<T: _StringConvertible, C>(
@@ -1486,7 +1494,7 @@ extension Converter {
             convert: convertTextDataToDate
         )
     }
-    
+
     //    | client | set | request body | text | string-convertible | optional | setOptionalRequestBodyAsText |
     @available(*, deprecated)
     public func setOptionalRequestBodyAsText<T: _StringConvertible>(
@@ -1586,7 +1594,7 @@ extension Converter {
     func convertHeaderFieldTextToDate(_ stringValue: String) throws -> Date {
         try convertTextToDate(stringValue)
     }
-    
+
     @available(*, deprecated)
     func convertTextToStringConvertible<T: _StringConvertible>(
         _ stringValue: String
@@ -1671,7 +1679,7 @@ extension Converter {
             explode: explode
         )
         for value in values {
-            request.addQueryItem(
+            request.addUnescapedQueryItem(
                 name: name,
                 value: try convert(value),
                 explode: resolvedExplode
@@ -1736,4 +1744,96 @@ extension Converter {
         return values
     }
 
+    @available(*, deprecated)
+    func setUnescapedQueryItem<T>(
+        in request: inout Request,
+        style: ParameterStyle?,
+        explode: Bool?,
+        name: String,
+        value: T?,
+        convert: (T, ParameterStyle, Bool) throws -> String
+    ) throws {
+        guard let value else {
+            return
+        }
+        let (resolvedStyle, resolvedExplode) = try ParameterStyle.resolvedQueryStyleAndExplode(
+            name: name,
+            style: style,
+            explode: explode
+        )
+        request.addUnescapedQueryItem(
+            name: name,
+            value: try convert(value, resolvedStyle, resolvedExplode),
+            explode: resolvedExplode
+        )
+    }
+}
+
+extension Request {
+    /// Adds the provided name and value to the URL's query.
+    /// - Parameters:
+    ///   - name: The name of the query item.
+    ///   - value: The value of the query item.
+    ///   - explode: A Boolean value indicating whether query items with the
+    ///   same name should be provided as separate key-value pairs (`true`) or
+    ///   if all the values for one key should be concatenated with a comma
+    ///   and provided as a single key-value pair (`false`).
+    @available(*, deprecated)
+    mutating func addUnescapedQueryItem(name: String, value: String, explode: Bool) {
+        mutateQuery { urlComponents in
+            urlComponents.addUnescapedStringQueryItem(
+                name: name,
+                value: value,
+                explode: explode
+            )
+        }
+    }
+}
+
+extension URLComponents {
+
+    /// Adds the provided name and value to the URL's query.
+    /// - Parameters:
+    ///   - name: The name of the query item.
+    ///   - value: The value of the query item.
+    ///   - explode: A Boolean value indicating whether query items with the
+    ///   same name should be provided as separate key-value pairs (`true`) or
+    ///   if all the values for one key should be concatenated with a comma
+    ///   and provided as a single key-value pair (`false`).
+    @available(*, deprecated)
+    mutating func addUnescapedStringQueryItem(
+        name: String,
+        value: String,
+        explode: Bool
+    ) {
+        if explode {
+            queryItems =
+                (queryItems ?? []) + [
+                    .init(name: name, value: value)
+                ]
+            return
+        }
+        // When explode is false, we need to collect all the potential existing
+        // values from the array with the same name, add the new one, and
+        // concatenate them with a comma.
+        let originalQueryItems = queryItems ?? []
+        struct GroupedQueryItems {
+            var matchingValues: [String] = []
+            var otherItems: [URLQueryItem] = []
+        }
+        let groups =
+            originalQueryItems
+            .reduce(into: GroupedQueryItems()) { partialResult, item in
+                if item.name == name {
+                    partialResult.matchingValues.append(item.value ?? "")
+                } else {
+                    partialResult.otherItems.append(item)
+                }
+            }
+        let newItem = URLQueryItem(
+            name: name,
+            value: (groups.matchingValues + [value]).joined(separator: ",")
+        )
+        queryItems = groups.otherItems + [newItem]
+    }
 }

@@ -129,15 +129,8 @@ extension Converter {
         explode: Bool,
         inBody: Bool
     ) -> URICoderConfiguration {
-        let configStyle: URICoderConfiguration.Style
-        switch style {
-        case .form:
-            configStyle = .form
-        case .simple:
-            configStyle = .simple
-        }
-        return .init(
-            style: configStyle,
+        .init(
+            style: .init(style),
             explode: explode,
             spaceEscapingCharacter: inBody ? .plus : .percentEncoded,
             dateTranscoder: configuration.dateTranscoder
@@ -161,7 +154,7 @@ extension Converter {
         let encodedString = try encoder.encode(value, forKey: key)
         return encodedString
     }
-    
+
     func convertFromURI<T: Decodable>(
         style: ParameterStyle,
         explode: Bool,
@@ -210,12 +203,14 @@ extension Converter {
         let data = Data(stringValue.utf8)
         return try decoder.decode(T.self, from: data)
     }
-    
+
     func convertFromStringData<T: Decodable>(
         _ data: Data
     ) throws -> T {
         let encodedString = String(decoding: data, as: UTF8.self)
-        let decoder = StringDecoder()
+        let decoder = StringDecoder(
+            dateTranscoder: configuration.dateTranscoder
+        )
         let value = try decoder.decode(
             T.self,
             from: encodedString
@@ -226,11 +221,13 @@ extension Converter {
     func convertToStringData<T: Encodable>(
         _ value: T
     ) throws -> Data {
-        let encoder = StringEncoder()
+        let encoder = StringEncoder(
+            dateTranscoder: configuration.dateTranscoder
+        )
         let encodedString = try encoder.encode(value)
         return Data(encodedString.utf8)
     }
-    
+
     func convertBinaryToData(
         _ binary: Data
     ) throws -> Data {
@@ -244,7 +241,7 @@ extension Converter {
     }
 
     // MARK: - Helpers for specific types of parameters
-    
+
     func setHeaderField<T>(
         in headerFields: inout [HeaderField],
         name: String,
@@ -284,27 +281,24 @@ extension Converter {
         return try convert(stringValue)
     }
 
-    func setQueryItem<T>(
+    func setEscapedQueryItem<T>(
         in request: inout Request,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
         value: T?,
-        convert: (T) throws -> String
+        convert: (T, ParameterStyle, Bool) throws -> String
     ) throws {
         guard let value else {
             return
         }
-        let (_, resolvedExplode) = try ParameterStyle.resolvedQueryStyleAndExplode(
+        let (resolvedStyle, resolvedExplode) = try ParameterStyle.resolvedQueryStyleAndExplode(
             name: name,
             style: style,
             explode: explode
         )
-        request.addQueryItem(
-            name: name,
-            value: try convert(value),
-            explode: resolvedExplode
-        )
+        let uriSnippet = try convert(value, resolvedStyle, resolvedExplode)
+        request.addEscapedQuerySnippet(uriSnippet)
     }
 
     func getOptionalQueryItem<T>(

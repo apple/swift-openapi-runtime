@@ -49,3 +49,14 @@ extension ParameterStyle {
         style == .form
     }
 }
+
+extension URICoderConfiguration.Style {
+    init(_ style: ParameterStyle) {
+        switch style {
+        case .form:
+            self = .form
+        case .simple:
+            self = .simple
+        }
+    }
+}

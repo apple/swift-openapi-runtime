@@ -37,7 +37,14 @@ extension Converter {
         parameters: [any Encodable]
     ) throws -> String {
         var renderedString = template
-        let encoder = URIEncoder(configuration: .simpleUnexplode)
+        let encoder = URIEncoder(
+            configuration: .init(
+                style: .simple,
+                explode: false,
+                spaceEscapingCharacter: .percentEncoded,
+                dateTranscoder: configuration.dateTranscoder
+            )
+        )
         for parameter in parameters {
             let value = try encoder.encode(parameter, forKey: "")
             if let range = renderedString.range(of: "{}") {
@@ -59,18 +66,18 @@ extension Converter {
         name: String,
         value: T?
     ) throws {
-        try setQueryItem(
+        try setEscapedQueryItem(
             in: &request,
             style: style,
             explode: explode,
             name: name,
             value: value,
-            convert: { value in
+            convert: { value, style, explode in
                 try convertToURI(
-                    style: .simple,
-                    explode: false,
+                    style: style,
+                    explode: explode,
                     inBody: false,
-                    key: "",
+                    key: name,
                     value: value
                 )
             }

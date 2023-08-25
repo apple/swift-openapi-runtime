@@ -16,7 +16,9 @@ import Foundation
 
 /// A type that encodes an `Encodable` objects to a string, if it conforms
 /// to `CustomStringConvertible`.
-struct StringEncoder: Sendable {}
+struct StringEncoder: Sendable {
+    let dateTranscoder: any DateTranscoder
+}
 
 extension StringEncoder {
 
@@ -26,14 +28,36 @@ extension StringEncoder {
     ///     - value: The value to encode.
     /// - Returns: The string.
     func encode(_ value: some Encodable) throws -> String {
-        let encoder = CustomStringConvertibleEncoder()
-        try value.encode(to: encoder)
+        let encoder = CustomStringConvertibleEncoder(
+            dateTranscoder: dateTranscoder
+        )
+
+        // We have to catch the special values early, otherwise we fall
+        // back to their Codable implementations, which don't give us
+        // a chance to customize the coding in the containers.
+        // We have to catch the special values early, otherwise we fall
+        // back to their Codable implementations, which don't give us
+        // a chance to customize the coding in the containers.
+        if let date = value as? Date {
+            var container = encoder.singleValueContainer()
+            try container.encode(date)
+        } else {
+            try value.encode(to: encoder)
+        }
+
         return try encoder.nonNilEncodedString()
     }
 }
 
 private final class CustomStringConvertibleEncoder {
+    let dateTranscoder: any DateTranscoder
+
     private(set) var encodedString: String?
+
+    init(dateTranscoder: any DateTranscoder) {
+        self.dateTranscoder = dateTranscoder
+        self.encodedString = nil
+    }
 }
 
 extension CustomStringConvertibleEncoder {
@@ -185,6 +209,8 @@ extension CustomStringConvertibleEncoder {
                 try encode(value)
             case let value as Bool:
                 try encode(value)
+            case let value as Date:
+                try _encodeCustomStringConvertible(encoder.dateTranscoder.encode(value))
             default:
                 guard let customStringConvertible = value as? any CustomStringConvertible else {
                     throw CustomStringConvertibleEncoder.EncoderError.containersNotSupported

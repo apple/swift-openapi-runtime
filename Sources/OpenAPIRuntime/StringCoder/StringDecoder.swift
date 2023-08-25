@@ -16,7 +16,9 @@ import Foundation
 
 /// A type that decodes a `Decodable` objects from a string
 /// using `LosslessStringConvertible`.
-struct StringDecoder: Sendable {}
+struct StringDecoder: Sendable {
+    let dateTranscoder: any DateTranscoder
+}
 
 extension StringDecoder {
 
@@ -30,13 +32,26 @@ extension StringDecoder {
         _ type: T.Type = T.self,
         from data: String
     ) throws -> T {
-        let decoder = LosslessStringConvertibleDecoder(encodedString: data)
-        let value = try T.init(from: decoder)
+        let decoder = LosslessStringConvertibleDecoder(
+            dateTranscoder: dateTranscoder,
+            encodedString: data
+        )
+        // We have to catch the special values early, otherwise we fall
+        // back to their Codable implementations, which don't give us
+        // a chance to customize the coding in the containers.
+        let value: T
+        switch type {
+        case is Date.Type:
+            value = try decoder.singleValueContainer().decode(Date.self) as! T
+        default:
+            value = try T.init(from: decoder)
+        }
         return value
     }
 }
 
 private struct LosslessStringConvertibleDecoder {
+    let dateTranscoder: any DateTranscoder
     let encodedString: String
 }
 
@@ -385,6 +400,10 @@ extension LosslessStringConvertibleDecoder {
                 return try decode(UInt32.self) as! T
             case is UInt64.Type:
                 return try decode(UInt64.self) as! T
+            case is Date.Type:
+                return try decoder
+                    .dateTranscoder
+                    .decode(String(decoder.encodedString)) as! T
             default:
                 guard let convertileType = T.self as? any LosslessStringConvertible.Type else {
                     throw LosslessStringConvertibleDecoder.DecoderError.containersNotSupported
