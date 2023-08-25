@@ -302,42 +302,35 @@ extension Converter {
     }
 
     func getOptionalQueryItem<T>(
-        in queryParameters: [URLQueryItem],
+        in query: String?,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
         as type: T.Type,
-        convert: (String) throws -> T
+        convert: (String, ParameterStyle, Bool) throws -> T
     ) throws -> T? {
-        // Even though the return value isn't used, the validation
-        // in the method is important for consistently handling
-        // style+explode combinations in all the helper functions.
-        let (_, _) = try ParameterStyle.resolvedQueryStyleAndExplode(
+        guard let query else {
+            return nil
+        }
+        let (resolvedStyle, resolvedExplode) = try ParameterStyle.resolvedQueryStyleAndExplode(
             name: name,
             style: style,
             explode: explode
         )
-        guard
-            let untypedValue =
-                queryParameters
-                .first(where: { $0.name == name })
-        else {
-            return nil
-        }
-        return try convert(untypedValue.value ?? "")
+        return try convert(query, resolvedStyle, resolvedExplode)
     }
 
     func getRequiredQueryItem<T>(
-        in queryParameters: [URLQueryItem],
+        in query: String?,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
         as type: T.Type,
-        convert: (String) throws -> T
+        convert: (String, ParameterStyle, Bool) throws -> T
     ) throws -> T {
         guard
             let value = try getOptionalQueryItem(
-                in: queryParameters,
+                in: query,
                 style: style,
                 explode: explode,
                 name: name,

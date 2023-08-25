@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 import Foundation
 
-public extension Converter {
+extension Converter {
 
     // MARK: Miscs
 
@@ -22,7 +22,7 @@ public extension Converter {
     ///   header.
     /// - Returns: The parsed content types, or the default content types if
     ///   the header was not provided.
-    func extractAcceptHeaderIfPresent<T: AcceptableProtocol>(
+    public func extractAcceptHeaderIfPresent<T: AcceptableProtocol>(
         in headerFields: [HeaderField]
     ) throws -> [AcceptHeaderContentType<T>] {
         guard let rawValue = headerFields.firstValue(name: "accept") else {
@@ -48,7 +48,7 @@ public extension Converter {
     ///   - substring: Expected content type, for example "application/json".
     ///   - headerFields: Header fields in which to look for "Accept".
     ///   Also supports wildcars, such as "application/\*" and "\*/\*".
-    func validateAcceptIfPresent(
+    public func validateAcceptIfPresent(
         _ substring: String,
         in headerFields: [HeaderField]
     ) throws {
@@ -83,7 +83,7 @@ public extension Converter {
     }
 
     //    | server | get | request path | uri | codable | required | getPathParameterAsURI |
-    func getPathParameterAsURI<T: Decodable>(
+    public func getPathParameterAsURI<T: Decodable>(
         in pathParameters: [String: String],
         name: String,
         as type: T.Type
@@ -111,157 +111,75 @@ public extension Converter {
         )
     }
 
-    //    | server | get | request query | text | string-convertible | optional | getOptionalQueryItemAsText |
-    @available(*, deprecated)
-    func getOptionalQueryItemAsText<T: _StringConvertible>(
-        in queryParameters: [URLQueryItem],
+    //    | server | get | request query | uri | codable | optional | getOptionalQueryItemAsURI |
+    public func getOptionalQueryItemAsURI<T: Decodable>(
+        in query: String?,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
         as type: T.Type
     ) throws -> T? {
         try getOptionalQueryItem(
-            in: queryParameters,
+            in: query,
             style: style,
             explode: explode,
             name: name,
             as: type,
-            convert: convertTextToStringConvertible
+            convert: { query, style, explode in
+                let decoder = URIDecoder(
+                    configuration: .init(
+                        style: .init(style),
+                        explode: explode,
+                        spaceEscapingCharacter: .percentEncoded,
+                        dateTranscoder: configuration.dateTranscoder
+                    )
+                )
+                let value = try decoder.decode(
+                    T.self,
+                    forKey: name,
+                    from: query
+                )
+                return value
+            }
         )
     }
 
-    //    | server | get | request query | text | string-convertible | required | getRequiredQueryItemAsText |
-    @available(*, deprecated)
-    func getRequiredQueryItemAsText<T: _StringConvertible>(
-        in queryParameters: [URLQueryItem],
+    //    | server | get | request query | uri | codable | required | getRequiredQueryItemAsURI |
+    public func getRequiredQueryItemAsText<T: Decodable>(
+        in query: String?,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
         as type: T.Type
     ) throws -> T {
         try getRequiredQueryItem(
-            in: queryParameters,
+            in: query,
             style: style,
             explode: explode,
             name: name,
             as: type,
-            convert: convertTextToStringConvertible
-        )
-    }
-
-    //    | server | get | request query | text | array of string-convertibles | optional | getOptionalQueryItemAsText |
-    @available(*, deprecated)
-    func getOptionalQueryItemAsText<T: _StringConvertible>(
-        in queryParameters: [URLQueryItem],
-        style: ParameterStyle?,
-        explode: Bool?,
-        name: String,
-        as type: [T].Type
-    ) throws -> [T]? {
-        try getOptionalQueryItems(
-            in: queryParameters,
-            style: style,
-            explode: explode,
-            name: name,
-            as: type,
-            convert: convertTextToStringConvertible
-        )
-    }
-
-    //    | server | get | request query | text | array of string-convertibles | required | getRequiredQueryItemAsText |
-    @available(*, deprecated)
-    func getRequiredQueryItemAsText<T: _StringConvertible>(
-        in queryParameters: [URLQueryItem],
-        style: ParameterStyle?,
-        explode: Bool?,
-        name: String,
-        as type: [T].Type
-    ) throws -> [T] {
-        try getRequiredQueryItems(
-            in: queryParameters,
-            style: style,
-            explode: explode,
-            name: name,
-            as: type,
-            convert: convertTextToStringConvertible
-        )
-    }
-
-    //    | server | get | request query | text | date | optional | getOptionalQueryItemAsText |
-    func getOptionalQueryItemAsText(
-        in queryParameters: [URLQueryItem],
-        style: ParameterStyle?,
-        explode: Bool?,
-        name: String,
-        as type: Date.Type
-    ) throws -> Date? {
-        try getOptionalQueryItem(
-            in: queryParameters,
-            style: style,
-            explode: explode,
-            name: name,
-            as: type,
-            convert: convertTextToDate
-        )
-    }
-
-    //    | server | get | request query | text | date | required | getRequiredQueryItemAsText |
-    func getRequiredQueryItemAsText(
-        in queryParameters: [URLQueryItem],
-        style: ParameterStyle?,
-        explode: Bool?,
-        name: String,
-        as type: Date.Type
-    ) throws -> Date {
-        try getRequiredQueryItem(
-            in: queryParameters,
-            style: style,
-            explode: explode,
-            name: name,
-            as: type,
-            convert: convertTextToDate
-        )
-    }
-
-    //    | server | get | request query | text | array of dates | optional | getOptionalQueryItemAsText |
-    func getOptionalQueryItemAsText(
-        in queryParameters: [URLQueryItem],
-        style: ParameterStyle?,
-        explode: Bool?,
-        name: String,
-        as type: [Date].Type
-    ) throws -> [Date]? {
-        try getOptionalQueryItems(
-            in: queryParameters,
-            style: style,
-            explode: explode,
-            name: name,
-            as: type,
-            convert: convertTextToDate
-        )
-    }
-
-    //    | server | get | request query | text | array of dates | required | getRequiredQueryItemAsText |
-    func getRequiredQueryItemAsText(
-        in queryParameters: [URLQueryItem],
-        style: ParameterStyle?,
-        explode: Bool?,
-        name: String,
-        as type: [Date].Type
-    ) throws -> [Date] {
-        try getRequiredQueryItems(
-            in: queryParameters,
-            style: style,
-            explode: explode,
-            name: name,
-            as: type,
-            convert: convertTextToDate
+            convert: { query, style, explode in
+                let decoder = URIDecoder(
+                    configuration: .init(
+                        style: .init(style),
+                        explode: explode,
+                        spaceEscapingCharacter: .percentEncoded,
+                        dateTranscoder: configuration.dateTranscoder
+                    )
+                )
+                let value = try decoder.decode(
+                    T.self,
+                    forKey: name,
+                    from: query
+                )
+                return value
+            }
         )
     }
 
     //    | server | get | request body | text | string-convertible | optional | getOptionalRequestBodyAsText |
     @available(*, deprecated)
-    func getOptionalRequestBodyAsText<T: _StringConvertible, C>(
+    public func getOptionalRequestBodyAsText<T: _StringConvertible, C>(
         _ type: T.Type,
         from data: Data?,
         transforming transform: (T) -> C
@@ -276,7 +194,7 @@ public extension Converter {
 
     //    | server | get | request body | text | string-convertible | required | getRequiredRequestBodyAsText |
     @available(*, deprecated)
-    func getRequiredRequestBodyAsText<T: _StringConvertible, C>(
+    public func getRequiredRequestBodyAsText<T: _StringConvertible, C>(
         _ type: T.Type,
         from data: Data?,
         transforming transform: (T) -> C
@@ -290,7 +208,8 @@ public extension Converter {
     }
 
     //    | server | get | request body | text | date | optional | getOptionalRequestBodyAsText |
-    func getOptionalRequestBodyAsText<C>(
+    @available(*, deprecated)
+    public func getOptionalRequestBodyAsText<C>(
         _ type: Date.Type,
         from data: Data?,
         transforming transform: (Date) -> C
@@ -304,7 +223,8 @@ public extension Converter {
     }
 
     //    | server | get | request body | text | date | required | getRequiredRequestBodyAsText |
-    func getRequiredRequestBodyAsText<C>(
+    @available(*, deprecated)
+    public func getRequiredRequestBodyAsText<C>(
         _ type: Date.Type,
         from data: Data?,
         transforming transform: (Date) -> C
@@ -318,7 +238,7 @@ public extension Converter {
     }
 
     //    | server | get | request body | JSON | codable | optional | getOptionalRequestBodyAsJSON |
-    func getOptionalRequestBodyAsJSON<T: Decodable, C>(
+    public func getOptionalRequestBodyAsJSON<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
         transforming transform: (T) -> C
@@ -332,7 +252,7 @@ public extension Converter {
     }
 
     //    | server | get | request body | JSON | codable | required | getRequiredRequestBodyAsJSON |
-    func getRequiredRequestBodyAsJSON<T: Decodable, C>(
+    public func getRequiredRequestBodyAsJSON<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
         transforming transform: (T) -> C
@@ -346,7 +266,7 @@ public extension Converter {
     }
 
     //    | server | get | request body | binary | data | optional | getOptionalRequestBodyAsBinary |
-    func getOptionalRequestBodyAsBinary<C>(
+    public func getOptionalRequestBodyAsBinary<C>(
         _ type: Data.Type,
         from data: Data?,
         transforming transform: (Data) -> C
@@ -360,7 +280,7 @@ public extension Converter {
     }
 
     //    | server | get | request body | binary | data | required | getRequiredRequestBodyAsBinary |
-    func getRequiredRequestBodyAsBinary<C>(
+    public func getRequiredRequestBodyAsBinary<C>(
         _ type: Data.Type,
         from data: Data?,
         transforming transform: (Data) -> C
@@ -375,7 +295,7 @@ public extension Converter {
 
     //    | server | set | response body | text | string-convertible | required | setResponseBodyAsText |
     @available(*, deprecated)
-    func setResponseBodyAsText<T: _StringConvertible>(
+    public func setResponseBodyAsText<T: _StringConvertible>(
         _ value: T,
         headerFields: inout [HeaderField],
         contentType: String
@@ -389,7 +309,8 @@ public extension Converter {
     }
 
     //    | server | set | response body | text | date | required | setResponseBodyAsText |
-    func setResponseBodyAsText(
+    @available(*, deprecated)
+    public func setResponseBodyAsText(
         _ value: Date,
         headerFields: inout [HeaderField],
         contentType: String
@@ -403,7 +324,7 @@ public extension Converter {
     }
 
     //    | server | set | response body | JSON | codable | required | setResponseBodyAsJSON |
-    func setResponseBodyAsJSON<T: Encodable>(
+    public func setResponseBodyAsJSON<T: Encodable>(
         _ value: T,
         headerFields: inout [HeaderField],
         contentType: String
@@ -417,7 +338,7 @@ public extension Converter {
     }
 
     //    | server | set | response body | binary | data | required | setResponseBodyAsBinary |
-    func setResponseBodyAsBinary(
+    public func setResponseBodyAsBinary(
         _ value: Data,
         headerFields: inout [HeaderField],
         contentType: String
