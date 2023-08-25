@@ -82,7 +82,7 @@ extension Converter {
         throw RuntimeError.unexpectedAcceptHeader(acceptHeader)
     }
 
-    //    | server | get | request path | uri | codable | required | getPathParameterAsURI |
+    //    | server | get | request path | URI | required | getPathParameterAsURI |
     public func getPathParameterAsURI<T: Decodable>(
         in pathParameters: [String: String],
         name: String,
@@ -111,7 +111,7 @@ extension Converter {
         )
     }
 
-    //    | server | get | request query | uri | codable | optional | getOptionalQueryItemAsURI |
+    //    | server | get | request query | URI | optional | getOptionalQueryItemAsURI |
     public func getOptionalQueryItemAsURI<T: Decodable>(
         in query: String?,
         style: ParameterStyle?,
@@ -144,8 +144,8 @@ extension Converter {
         )
     }
 
-    //    | server | get | request query | uri | codable | required | getRequiredQueryItemAsURI |
-    public func getRequiredQueryItemAsText<T: Decodable>(
+    //    | server | get | request query | URI | required | getRequiredQueryItemAsURI |
+    public func getRequiredQueryItemAsURI<T: Decodable>(
         in query: String?,
         style: ParameterStyle?,
         explode: Bool?,
@@ -177,7 +177,7 @@ extension Converter {
         )
     }
 
-    //    | server | get | request body | string | codable | optional | getOptionalRequestBodyAsString |
+    //    | server | get | request body | string | optional | getOptionalRequestBodyAsString |
     public func getOptionalRequestBodyAsString<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
@@ -197,7 +197,7 @@ extension Converter {
         )
     }
 
-    //    | server | get | request body | string | codable | required | getRequiredRequestBodyAsString |
+    //    | server | get | request body | string | required | getRequiredRequestBodyAsString |
     public func getRequiredRequestBodyAsString<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
@@ -217,7 +217,7 @@ extension Converter {
         )
     }
 
-    //    | server | get | request body | JSON | codable | optional | getOptionalRequestBodyAsJSON |
+    //    | server | get | request body | JSON | optional | getOptionalRequestBodyAsJSON |
     public func getOptionalRequestBodyAsJSON<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
@@ -231,7 +231,7 @@ extension Converter {
         )
     }
 
-    //    | server | get | request body | JSON | codable | required | getRequiredRequestBodyAsJSON |
+    //    | server | get | request body | JSON | required | getRequiredRequestBodyAsJSON |
     public func getRequiredRequestBodyAsJSON<T: Decodable, C>(
         _ type: T.Type,
         from data: Data?,
@@ -245,7 +245,7 @@ extension Converter {
         )
     }
 
-    //    | server | get | request body | binary | data | optional | getOptionalRequestBodyAsBinary |
+    //    | server | get | request body | binary | optional | getOptionalRequestBodyAsBinary |
     public func getOptionalRequestBodyAsBinary<C>(
         _ type: Data.Type,
         from data: Data?,
@@ -259,7 +259,7 @@ extension Converter {
         )
     }
 
-    //    | server | get | request body | binary | data | required | getRequiredRequestBodyAsBinary |
+    //    | server | get | request body | binary | required | getRequiredRequestBodyAsBinary |
     public func getRequiredRequestBodyAsBinary<C>(
         _ type: Data.Type,
         from data: Data?,
@@ -273,7 +273,7 @@ extension Converter {
         )
     }
 
-    //    | server | set | response body | string | codable | required | setResponseBodyAsString |
+    //    | server | set | response body | string | required | setResponseBodyAsString |
     public func setResponseBodyAsString<T: Encodable>(
         _ value: T,
         headerFields: inout [HeaderField],
@@ -294,7 +294,7 @@ extension Converter {
         )
     }
 
-    //    | server | set | response body | JSON | codable | required | setResponseBodyAsJSON |
+    //    | server | set | response body | JSON | required | setResponseBodyAsJSON |
     public func setResponseBodyAsJSON<T: Encodable>(
         _ value: T,
         headerFields: inout [HeaderField],
@@ -308,7 +308,7 @@ extension Converter {
         )
     }
 
-    //    | server | set | response body | binary | data | required | setResponseBodyAsBinary |
+    //    | server | set | response body | binary | required | setResponseBodyAsBinary |
     public func setResponseBodyAsBinary(
         _ value: Data,
         headerFields: inout [HeaderField],

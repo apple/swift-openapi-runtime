@@ -14,8 +14,9 @@
 import XCTest
 @_spi(Generated)@testable import OpenAPIRuntime
 
-final class Test_StringConvertible: XCTestCase {
+final class Test_Deprecated_StringConvertible: XCTestCase {
 
+    @available(*, deprecated)
     func testConformances() throws {
         let values: [(any _StringConvertible, String)] = [
             ("hello" as String, "hello"),

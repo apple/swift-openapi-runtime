@@ -70,7 +70,7 @@ extension Converter {
 
     // MARK: - Converter helper methods
 
-    //    | common | set | header field | uri | codable | both | setHeaderFieldAsURI |
+    //    | common | set | header field | URI | both | setHeaderFieldAsURI |
     public func setHeaderFieldAsURI<T: Encodable>(
         in headerFields: inout [HeaderField],
         name: String,
@@ -95,7 +95,7 @@ extension Converter {
         )
     }
 
-    //    | common | set | header field | JSON | codable | both | setHeaderFieldAsJSON |
+    //    | common | set | header field | JSON | both | setHeaderFieldAsJSON |
     public func setHeaderFieldAsJSON<T: Encodable>(
         in headerFields: inout [HeaderField],
         name: String,
@@ -109,7 +109,7 @@ extension Converter {
         )
     }
 
-    //    | common | get | header field | text | codable | optional | getOptionalHeaderFieldAsURI |
+    //    | common | get | header field | URI | optional | getOptionalHeaderFieldAsURI |
     public func getOptionalHeaderFieldAsURI<T: Decodable>(
         in headerFields: [HeaderField],
         name: String,
@@ -131,7 +131,7 @@ extension Converter {
         )
     }
 
-    //    | common | get | header field | text | codable | required | getRequiredHeaderFieldAsURI |
+    //    | common | get | header field | URI | required | getRequiredHeaderFieldAsURI |
     public func getRequiredHeaderFieldAsURI<T: Decodable>(
         in headerFields: [HeaderField],
         name: String,
@@ -153,7 +153,7 @@ extension Converter {
         )
     }
 
-    //    | common | get | header field | JSON | codable | optional | getOptionalHeaderFieldAsJSON |
+    //    | common | get | header field | JSON | optional | getOptionalHeaderFieldAsJSON |
     public func getOptionalHeaderFieldAsJSON<T: Decodable>(
         in headerFields: [HeaderField],
         name: String,
@@ -167,7 +167,7 @@ extension Converter {
         )
     }
 
-    //    | common | get | header field | JSON | codable | required | getRequiredHeaderFieldAsJSON |
+    //    | common | get | header field | JSON | required | getRequiredHeaderFieldAsJSON |
     public func getRequiredHeaderFieldAsJSON<T: Decodable>(
         in headerFields: [HeaderField],
         name: String,

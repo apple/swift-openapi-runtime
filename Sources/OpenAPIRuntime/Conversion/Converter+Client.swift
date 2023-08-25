@@ -31,7 +31,7 @@ extension Converter {
         )
     }
 
-    //    | client | set | request path | uri | codable | required | renderedPath |
+    //    | client | set | request path | URI | required | renderedPath |
     public func renderedPath(
         template: String,
         parameters: [any Encodable]
@@ -58,7 +58,7 @@ extension Converter {
         return renderedString
     }
 
-    //    | client | set | request query | uri | codable | both | setQueryItemAsURI |
+    //    | client | set | request query | URI | both | setQueryItemAsURI |
     public func setQueryItemAsURI<T: Encodable>(
         in request: inout Request,
         style: ParameterStyle?,
@@ -84,7 +84,7 @@ extension Converter {
         )
     }
 
-    //    | client | set | request body | string | codable | optional | setOptionalRequestBodyAsString |
+    //    | client | set | request body | string | optional | setOptionalRequestBodyAsString |
     public func setOptionalRequestBodyAsString<T: Encodable>(
         _ value: T?,
         headerFields: inout [HeaderField],
@@ -98,7 +98,7 @@ extension Converter {
         )
     }
 
-    //    | client | set | request body | string | codable | required | setRequiredRequestBodyAsString |
+    //    | client | set | request body | string | required | setRequiredRequestBodyAsString |
     public func setRequiredRequestBodyAsString<T: Encodable>(
         _ value: T,
         headerFields: inout [HeaderField],
@@ -112,7 +112,7 @@ extension Converter {
         )
     }
 
-    //    | client | set | request body | JSON | codable | optional | setOptionalRequestBodyAsJSON |
+    //    | client | set | request body | JSON | optional | setOptionalRequestBodyAsJSON |
     public func setOptionalRequestBodyAsJSON<T: Encodable>(
         _ value: T?,
         headerFields: inout [HeaderField],
@@ -126,7 +126,7 @@ extension Converter {
         )
     }
 
-    //    | client | set | request body | JSON | codable | required | setRequiredRequestBodyAsJSON |
+    //    | client | set | request body | JSON | required | setRequiredRequestBodyAsJSON |
     public func setRequiredRequestBodyAsJSON<T: Encodable>(
         _ value: T,
         headerFields: inout [HeaderField],
@@ -140,7 +140,7 @@ extension Converter {
         )
     }
 
-    //    | client | set | request body | binary | data | optional | setOptionalRequestBodyAsBinary |
+    //    | client | set | request body | binary | optional | setOptionalRequestBodyAsBinary |
     public func setOptionalRequestBodyAsBinary(
         _ value: Data?,
         headerFields: inout [HeaderField],
@@ -154,7 +154,7 @@ extension Converter {
         )
     }
 
-    //    | client | set | request body | binary | data | required | setRequiredRequestBodyAsBinary |
+    //    | client | set | request body | binary | required | setRequiredRequestBodyAsBinary |
     public func setRequiredRequestBodyAsBinary(
         _ value: Data,
         headerFields: inout [HeaderField],
@@ -168,7 +168,7 @@ extension Converter {
         )
     }
 
-    //    | client | get | response body | string | codable | required | getResponseBodyAsString |
+    //    | client | get | response body | string | required | getResponseBodyAsString |
     public func getResponseBodyAsString<T: Decodable, C>(
         _ type: T.Type,
         from data: Data,
@@ -182,7 +182,7 @@ extension Converter {
         )
     }
 
-    //    | client | get | response body | JSON | codable | required | getResponseBodyAsJSON |
+    //    | client | get | response body | JSON | required | getResponseBodyAsJSON |
     public func getResponseBodyAsJSON<T: Decodable, C>(
         _ type: T.Type,
         from data: Data,
@@ -196,7 +196,7 @@ extension Converter {
         )
     }
 
-    //    | client | get | response body | binary | data | required | getResponseBodyAsBinary |
+    //    | client | get | response body | binary | required | getResponseBodyAsBinary |
     public func getResponseBodyAsBinary<C>(
         _ type: Data.Type,
         from data: Data,
