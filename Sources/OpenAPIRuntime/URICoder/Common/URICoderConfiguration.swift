@@ -30,46 +30,5 @@ struct URICoderConfiguration {
     var style: Style
     var explode: Bool
     var spaceEscapingCharacter: SpaceEscapingCharacter
-
-    private init(style: Style, explode: Bool, spaceEscapingCharacter: SpaceEscapingCharacter) {
-        self.style = style
-        self.explode = explode
-        self.spaceEscapingCharacter = spaceEscapingCharacter
-    }
-
-    static let formExplode: Self = .init(
-        style: .form,
-        explode: true,
-        spaceEscapingCharacter: .percentEncoded
-    )
-
-    static let formUnexplode: Self = .init(
-        style: .form,
-        explode: false,
-        spaceEscapingCharacter: .percentEncoded
-    )
-
-    static let simpleExplode: Self = .init(
-        style: .simple,
-        explode: true,
-        spaceEscapingCharacter: .percentEncoded
-    )
-
-    static let simpleUnexplode: Self = .init(
-        style: .simple,
-        explode: false,
-        spaceEscapingCharacter: .percentEncoded
-    )
-
-    static let formDataExplode: Self = .init(
-        style: .form,
-        explode: true,
-        spaceEscapingCharacter: .plus
-    )
-
-    static let formDataUnexplode: Self = .init(
-        style: .form,
-        explode: false,
-        spaceEscapingCharacter: .plus
-    )
+    var dateTranscoder: any DateTranscoder
 }

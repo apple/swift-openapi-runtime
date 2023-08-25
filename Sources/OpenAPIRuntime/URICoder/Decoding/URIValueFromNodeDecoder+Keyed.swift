@@ -186,6 +186,10 @@ extension URIKeyedDecodingContainer: KeyedDecodingContainerProtocol {
             return try decode(UInt32.self, forKey: key) as! T
         case is UInt64.Type:
             return try decode(UInt64.self, forKey: key) as! T
+        case is Date.Type:
+            return try decoder
+                .dateTranscoder
+                .decode(String(_decodeValue(forKey: key))) as! T
         default:
             try decoder.push(.init(key))
             defer {

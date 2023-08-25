@@ -160,6 +160,8 @@ extension URIUnkeyedEncodingContainer: UnkeyedEncodingContainer {
             try encode(value)
         case let value as Bool:
             try encode(value)
+        case let value as Date:
+            try _appendValue(.date(value))
         default:
             encoder.push(key: .init(intValue: count), newStorage: .unset)
             try value.encode(to: encoder)

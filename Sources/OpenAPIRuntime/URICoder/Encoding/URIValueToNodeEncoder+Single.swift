@@ -131,6 +131,8 @@ extension URISingleValueEncodingContainer {
             try encode(value)
         case let value as Bool:
             try encode(value)
+        case let value as Date:
+            try _setValue(.date(value))
         default:
             throw URIValueToNodeEncoder.GeneralError.nestedValueInSingleValueContainer
         }
