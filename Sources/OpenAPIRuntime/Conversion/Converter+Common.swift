@@ -163,7 +163,7 @@ extension Converter {
             in: headerFields,
             name: name,
             as: type,
-            convert: convertHeaderFieldJSONToCodable
+            convert: convertJSONToHeaderFieldCodable
         )
     }
 
@@ -177,7 +177,7 @@ extension Converter {
             in: headerFields,
             name: name,
             as: type,
-            convert: convertHeaderFieldJSONToCodable
+            convert: convertJSONToHeaderFieldCodable
         )
     }
 }

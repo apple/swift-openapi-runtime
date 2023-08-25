@@ -313,7 +313,7 @@ public extension Converter {
             type,
             from: data,
             transforming: transform,
-            convert: convertJSONToCodable
+            convert: convertJSONToBodyCodable
         )
     }
 
@@ -327,7 +327,7 @@ public extension Converter {
             type,
             from: data,
             transforming: transform,
-            convert: convertJSONToCodable
+            convert: convertJSONToBodyCodable
         )
     }
 

@@ -1362,4 +1362,378 @@ extension Converter {
         )
     }
 
+    //    | client | set | request path | text | string-convertible | required | renderedRequestPath |
+    @available(*, deprecated)
+    public func renderedRequestPath(
+        template: String,
+        parameters: [any _StringConvertible]
+    ) throws -> String {
+        var renderedString = template
+        for parameter in parameters {
+            if let range = renderedString.range(of: "{}") {
+                renderedString = renderedString.replacingOccurrences(
+                    of: "{}",
+                    with: parameter.description,
+                    range: range
+                )
+            }
+        }
+        return renderedString
+    }
+
+    //    | client | set | request query | text | string-convertible | both | setQueryItemAsText |
+    @available(*, deprecated)
+    public func setQueryItemAsText<T: _StringConvertible>(
+        in request: inout Request,
+        style: ParameterStyle?,
+        explode: Bool?,
+        name: String,
+        value: T?
+    ) throws {
+        try setQueryItem(
+            in: &request,
+            style: style,
+            explode: explode,
+            name: name,
+            value: value,
+            convert: convertStringConvertibleToText
+        )
+    }
+
+    //    | client | set | request query | text | array of string-convertibles | both | setQueryItemAsText |
+    @available(*, deprecated)
+    public func setQueryItemAsText<T: _StringConvertible>(
+        in request: inout Request,
+        style: ParameterStyle?,
+        explode: Bool?,
+        name: String,
+        value: [T]?
+    ) throws {
+        try setQueryItems(
+            in: &request,
+            style: style,
+            explode: explode,
+            name: name,
+            values: value,
+            convert: convertStringConvertibleToText
+        )
+    }
+
+    //    | client | set | request query | text | date | both | setQueryItemAsText |
+    @available(*, deprecated)
+    public func setQueryItemAsText(
+        in request: inout Request,
+        style: ParameterStyle?,
+        explode: Bool?,
+        name: String,
+        value: Date?
+    ) throws {
+        try setQueryItem(
+            in: &request,
+            style: style,
+            explode: explode,
+            name: name,
+            value: value,
+            convert: convertDateToText
+        )
+    }
+
+    //    | client | set | request query | text | array of dates | both | setQueryItemAsText |
+    @available(*, deprecated)
+    public func setQueryItemAsText(
+        in request: inout Request,
+        style: ParameterStyle?,
+        explode: Bool?,
+        name: String,
+        value: [Date]?
+    ) throws {
+        try setQueryItems(
+            in: &request,
+            style: style,
+            explode: explode,
+            name: name,
+            values: value,
+            convert: convertDateToText
+        )
+    }
+    
+    //    | client | get | response body | text | string-convertible | required | getResponseBodyAsText |
+    @available(*, deprecated)
+    public func getResponseBodyAsText<T: _StringConvertible, C>(
+        _ type: T.Type,
+        from data: Data,
+        transforming transform: (T) -> C
+    ) throws -> C {
+        try getResponseBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertTextDataToStringConvertible
+        )
+    }
+
+    //    | client | get | response body | text | date | required | getResponseBodyAsText |
+    @available(*, deprecated)
+    public func getResponseBodyAsText<C>(
+        _ type: Date.Type,
+        from data: Data,
+        transforming transform: (Date) -> C
+    ) throws -> C {
+        try getResponseBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertTextDataToDate
+        )
+    }
+    
+    //    | client | set | request body | text | string-convertible | optional | setOptionalRequestBodyAsText |
+    @available(*, deprecated)
+    public func setOptionalRequestBodyAsText<T: _StringConvertible>(
+        _ value: T?,
+        headerFields: inout [HeaderField],
+        contentType: String
+    ) throws -> Data? {
+        try setOptionalRequestBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: convertStringConvertibleToTextData
+        )
+    }
+
+    //    | client | set | request body | text | string-convertible | required | setRequiredRequestBodyAsText |
+    @available(*, deprecated)
+    public func setRequiredRequestBodyAsText<T: _StringConvertible>(
+        _ value: T,
+        headerFields: inout [HeaderField],
+        contentType: String
+    ) throws -> Data {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: convertStringConvertibleToTextData
+        )
+    }
+
+    //    | client | set | request body | text | date | optional | setOptionalRequestBodyAsText |
+    @available(*, deprecated)
+    public func setOptionalRequestBodyAsText(
+        _ value: Date?,
+        headerFields: inout [HeaderField],
+        contentType: String
+    ) throws -> Data? {
+        try setOptionalRequestBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: convertDateToTextData
+        )
+    }
+
+    //    | client | set | request body | text | date | required | setRequiredRequestBodyAsText |
+    @available(*, deprecated)
+    public func setRequiredRequestBodyAsText(
+        _ value: Date,
+        headerFields: inout [HeaderField],
+        contentType: String
+    ) throws -> Data {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: convertDateToTextData
+        )
+    }
+
+    @available(*, deprecated)
+    func convertStringConvertibleToText<T: _StringConvertible>(
+        _ value: T
+    ) throws -> String {
+        value.description
+    }
+
+    @available(*, deprecated)
+    func convertStringConvertibleToTextData<T: _StringConvertible>(
+        _ value: T
+    ) throws -> Data {
+        try Data(convertStringConvertibleToText(value).utf8)
+    }
+
+    @available(*, deprecated)
+    func convertDateToText(_ value: Date) throws -> String {
+        try configuration.dateTranscoder.encode(value)
+    }
+
+    @available(*, deprecated)
+    func convertDateToTextData(_ value: Date) throws -> Data {
+        try Data(convertDateToText(value).utf8)
+    }
+
+    @available(*, deprecated)
+    func convertTextToDate(_ stringValue: String) throws -> Date {
+        try configuration.dateTranscoder.decode(stringValue)
+    }
+
+    @available(*, deprecated)
+    func convertTextDataToDate(_ data: Data) throws -> Date {
+        let stringValue = String(decoding: data, as: UTF8.self)
+        return try convertTextToDate(stringValue)
+    }
+
+    @available(*, deprecated)
+    func convertHeaderFieldTextToDate(_ stringValue: String) throws -> Date {
+        try convertTextToDate(stringValue)
+    }
+    
+    @available(*, deprecated)
+    func convertTextToStringConvertible<T: _StringConvertible>(
+        _ stringValue: String
+    ) throws -> T {
+        guard let value = T.init(stringValue) else {
+            throw RuntimeError.failedToDecodeStringConvertibleValue(
+                type: String(describing: T.self)
+            )
+        }
+        return value
+    }
+
+    @available(*, deprecated)
+    func convertTextDataToStringConvertible<T: _StringConvertible>(
+        _ data: Data
+    ) throws -> T {
+        let stringValue = String(decoding: data, as: UTF8.self)
+        return try convertTextToStringConvertible(stringValue)
+    }
+
+    @available(*, deprecated)
+    func setHeaderFields<T>(
+        in headerFields: inout [HeaderField],
+        name: String,
+        values: [T]?,
+        convert: (T) throws -> String
+    ) throws {
+        guard let values else {
+            return
+        }
+        for value in values {
+            headerFields.add(
+                name: name,
+                value: try convert(value)
+            )
+        }
+    }
+
+    @available(*, deprecated)
+    func getOptionalHeaderFields<T>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: [T].Type,
+        convert: (String) throws -> T
+    ) throws -> [T]? {
+        let values = headerFields.values(name: name)
+        if values.isEmpty {
+            return nil
+        }
+        return try values.map { value in try convert(value) }
+    }
+
+    @available(*, deprecated)
+    func getRequiredHeaderFields<T>(
+        in headerFields: [HeaderField],
+        name: String,
+        as type: [T].Type,
+        convert: (String) throws -> T
+    ) throws -> [T] {
+        let values = headerFields.values(name: name)
+        if values.isEmpty {
+            throw RuntimeError.missingRequiredHeaderField(name)
+        }
+        return try values.map { value in try convert(value) }
+    }
+
+    @available(*, deprecated)
+    func setQueryItems<T>(
+        in request: inout Request,
+        style: ParameterStyle?,
+        explode: Bool?,
+        name: String,
+        values: [T]?,
+        convert: (T) throws -> String
+    ) throws {
+        guard let values else {
+            return
+        }
+        let (_, resolvedExplode) = try ParameterStyle.resolvedQueryStyleAndExplode(
+            name: name,
+            style: style,
+            explode: explode
+        )
+        for value in values {
+            request.addQueryItem(
+                name: name,
+                value: try convert(value),
+                explode: resolvedExplode
+            )
+        }
+    }
+
+    @available(*, deprecated)
+    func getOptionalQueryItems<T>(
+        in queryParameters: [URLQueryItem],
+        style: ParameterStyle?,
+        explode: Bool?,
+        name: String,
+        as type: [T].Type,
+        convert: (String) throws -> T
+    ) throws -> [T]? {
+        let (_, resolvedExplode) = try ParameterStyle.resolvedQueryStyleAndExplode(
+            name: name,
+            style: style,
+            explode: explode
+        )
+        let untypedValues =
+            queryParameters
+            .filter { $0.name == name }
+            .map { $0.value ?? "" }
+        // If explode is false, some of the items might have multiple
+        // comma-separate values, so we need to split them here.
+        let processedValues: [String]
+        if resolvedExplode {
+            processedValues = untypedValues
+        } else {
+            processedValues = untypedValues.flatMap { multiValue in
+                multiValue
+                    .split(separator: ",", omittingEmptySubsequences: false)
+                    .map(String.init)
+            }
+        }
+        return try processedValues.map(convert)
+    }
+
+    @available(*, deprecated)
+    func getRequiredQueryItems<T>(
+        in queryParameters: [URLQueryItem],
+        style: ParameterStyle?,
+        explode: Bool?,
+        name: String,
+        as type: [T].Type,
+        convert: (String) throws -> T
+    ) throws -> [T] {
+        guard
+            let values = try getOptionalQueryItems(
+                in: queryParameters,
+                style: style,
+                explode: explode,
+                name: name,
+                as: type,
+                convert: convert
+            ), !values.isEmpty
+        else {
+            throw RuntimeError.missingRequiredQueryParameter(name)
+        }
+        return values
+    }
+
 }

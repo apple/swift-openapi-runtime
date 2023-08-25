@@ -31,18 +31,19 @@ extension Converter {
         )
     }
 
-    //    | client | set | request path | text | string-convertible | required | renderedRequestPath |
-    @available(*, deprecated)
-    public func renderedRequestPath(
+    //    | client | set | request path | uri | codable | required | renderedPath |
+    public func renderedPath(
         template: String,
-        parameters: [any _StringConvertible]
+        parameters: [any Encodable]
     ) throws -> String {
         var renderedString = template
+        let encoder = URIEncoder(configuration: .simpleUnexplode)
         for parameter in parameters {
+            let value = try encoder.encode(parameter, forKey: "")
             if let range = renderedString.range(of: "{}") {
                 renderedString = renderedString.replacingOccurrences(
                     of: "{}",
-                    with: parameter.description,
+                    with: value,
                     range: range
                 )
             }
@@ -50,9 +51,8 @@ extension Converter {
         return renderedString
     }
 
-    //    | client | set | request query | text | string-convertible | both | setQueryItemAsText |
-    @available(*, deprecated)
-    public func setQueryItemAsText<T: _StringConvertible>(
+    //    | client | set | request query | uri | codable | both | setQueryItemAsURI |
+    public func setQueryItemAsURI<T: Encodable>(
         in request: inout Request,
         style: ParameterStyle?,
         explode: Bool?,
@@ -65,68 +65,20 @@ extension Converter {
             explode: explode,
             name: name,
             value: value,
-            convert: convertStringConvertibleToText
+            convert: { value in
+                try convertToURI(
+                    style: .simple,
+                    explode: false,
+                    inBody: false,
+                    key: "",
+                    value: value
+                )
+            }
         )
     }
 
-    //    | client | set | request query | text | array of string-convertibles | both | setQueryItemAsText |
-    @available(*, deprecated)
-    public func setQueryItemAsText<T: _StringConvertible>(
-        in request: inout Request,
-        style: ParameterStyle?,
-        explode: Bool?,
-        name: String,
-        value: [T]?
-    ) throws {
-        try setQueryItems(
-            in: &request,
-            style: style,
-            explode: explode,
-            name: name,
-            values: value,
-            convert: convertStringConvertibleToText
-        )
-    }
-
-    //    | client | set | request query | text | date | both | setQueryItemAsText |
-    public func setQueryItemAsText(
-        in request: inout Request,
-        style: ParameterStyle?,
-        explode: Bool?,
-        name: String,
-        value: Date?
-    ) throws {
-        try setQueryItem(
-            in: &request,
-            style: style,
-            explode: explode,
-            name: name,
-            value: value,
-            convert: convertDateToText
-        )
-    }
-
-    //    | client | set | request query | text | array of dates | both | setQueryItemAsText |
-    public func setQueryItemAsText(
-        in request: inout Request,
-        style: ParameterStyle?,
-        explode: Bool?,
-        name: String,
-        value: [Date]?
-    ) throws {
-        try setQueryItems(
-            in: &request,
-            style: style,
-            explode: explode,
-            name: name,
-            values: value,
-            convert: convertDateToText
-        )
-    }
-
-    //    | client | set | request body | text | string-convertible | optional | setOptionalRequestBodyAsText |
-    @available(*, deprecated)
-    public func setOptionalRequestBodyAsText<T: _StringConvertible>(
+    //    | client | set | request body | string | codable | optional | setOptionalRequestBodyAsString |
+    public func setOptionalRequestBodyAsString<T: Encodable>(
         _ value: T?,
         headerFields: inout [HeaderField],
         contentType: String
@@ -135,13 +87,12 @@ extension Converter {
             value,
             headerFields: &headerFields,
             contentType: contentType,
-            convert: convertStringConvertibleToTextData
+            convert: convertToStringData
         )
     }
 
-    //    | client | set | request body | text | string-convertible | required | setRequiredRequestBodyAsText |
-    @available(*, deprecated)
-    public func setRequiredRequestBodyAsText<T: _StringConvertible>(
+    //    | client | set | request body | string | codable | required | setRequiredRequestBodyAsString |
+    public func setRequiredRequestBodyAsString<T: Encodable>(
         _ value: T,
         headerFields: inout [HeaderField],
         contentType: String
@@ -150,35 +101,7 @@ extension Converter {
             value,
             headerFields: &headerFields,
             contentType: contentType,
-            convert: convertStringConvertibleToTextData
-        )
-    }
-
-    //    | client | set | request body | text | date | optional | setOptionalRequestBodyAsText |
-    public func setOptionalRequestBodyAsText(
-        _ value: Date?,
-        headerFields: inout [HeaderField],
-        contentType: String
-    ) throws -> Data? {
-        try setOptionalRequestBody(
-            value,
-            headerFields: &headerFields,
-            contentType: contentType,
-            convert: convertDateToTextData
-        )
-    }
-
-    //    | client | set | request body | text | date | required | setRequiredRequestBodyAsText |
-    public func setRequiredRequestBodyAsText(
-        _ value: Date,
-        headerFields: inout [HeaderField],
-        contentType: String
-    ) throws -> Data {
-        try setRequiredRequestBody(
-            value,
-            headerFields: &headerFields,
-            contentType: contentType,
-            convert: convertDateToTextData
+            convert: convertToStringData
         )
     }
 
@@ -238,9 +161,8 @@ extension Converter {
         )
     }
 
-    //    | client | get | response body | text | string-convertible | required | getResponseBodyAsText |
-    @available(*, deprecated)
-    public func getResponseBodyAsText<T: _StringConvertible, C>(
+    //    | client | get | response body | string | codable | required | getResponseBodyAsString |
+    public func getResponseBodyAsString<T: Decodable, C>(
         _ type: T.Type,
         from data: Data,
         transforming transform: (T) -> C
@@ -249,21 +171,7 @@ extension Converter {
             type,
             from: data,
             transforming: transform,
-            convert: convertTextDataToStringConvertible
-        )
-    }
-
-    //    | client | get | response body | text | date | required | getResponseBodyAsText |
-    public func getResponseBodyAsText<C>(
-        _ type: Date.Type,
-        from data: Data,
-        transforming transform: (Date) -> C
-    ) throws -> C {
-        try getResponseBody(
-            type,
-            from: data,
-            transforming: transform,
-            convert: convertTextDataToDate
+            convert: convertFromStringData
         )
     }
 
@@ -277,7 +185,7 @@ extension Converter {
             type,
             from: data,
             transforming: transform,
-            convert: convertJSONToCodable
+            convert: convertJSONToBodyCodable
         )
     }
 

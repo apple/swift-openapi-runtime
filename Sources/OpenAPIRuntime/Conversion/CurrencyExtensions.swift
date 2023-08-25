@@ -122,21 +122,7 @@ extension ParameterStyle {
 
 extension Converter {
 
-    // MARK: Common functions for Converter's SPI helper methods
-
-    @available(*, deprecated)
-    func convertStringConvertibleToText<T: _StringConvertible>(
-        _ value: T
-    ) throws -> String {
-        value.description
-    }
-
-    @available(*, deprecated)
-    func convertStringConvertibleToTextData<T: _StringConvertible>(
-        _ value: T
-    ) throws -> Data {
-        try Data(convertStringConvertibleToText(value).utf8)
-    }
+    // MARK: Converter helpers
 
     func uriCoderConfiguration(
         style: ParameterStyle,
@@ -153,7 +139,8 @@ extension Converter {
         return .init(
             style: configStyle,
             explode: explode,
-            spaceEscapingCharacter: inBody ? .plus : .percentEncoded
+            spaceEscapingCharacter: inBody ? .plus : .percentEncoded,
+            dateTranscoder: configuration.dateTranscoder
         )
     }
 
@@ -174,67 +161,7 @@ extension Converter {
         let encodedString = try encoder.encode(value, forKey: key)
         return encodedString
     }
-
-    func convertDateToText(_ value: Date) throws -> String {
-        try configuration.dateTranscoder.encode(value)
-    }
-
-    func convertDateToTextData(_ value: Date) throws -> Data {
-        try Data(convertDateToText(value).utf8)
-    }
-
-    func convertTextToDate(_ stringValue: String) throws -> Date {
-        try configuration.dateTranscoder.decode(stringValue)
-    }
-
-    func convertTextDataToDate(_ data: Data) throws -> Date {
-        let stringValue = String(decoding: data, as: UTF8.self)
-        return try convertTextToDate(stringValue)
-    }
-
-    func convertJSONToCodable<T: Decodable>(
-        _ data: Data
-    ) throws -> T {
-        try decoder.decode(T.self, from: data)
-    }
-
-    func convertBodyCodableToJSON<T: Encodable>(
-        _ value: T
-    ) throws -> Data {
-        try encoder.encode(value)
-    }
-
-    func convertHeaderFieldTextToDate(_ stringValue: String) throws -> Date {
-        try convertTextToDate(stringValue)
-    }
-
-    func convertHeaderFieldCodableToJSON<T: Encodable>(
-        _ value: T
-    ) throws -> String {
-        let data = try headerFieldEncoder.encode(value)
-        let stringValue = String(decoding: data, as: UTF8.self)
-        return stringValue
-    }
-
-    func convertHeaderFieldJSONToCodable<T: Decodable>(
-        _ stringValue: String
-    ) throws -> T {
-        let data = Data(stringValue.utf8)
-        return try decoder.decode(T.self, from: data)
-    }
-
-    @available(*, deprecated)
-    func convertTextToStringConvertible<T: _StringConvertible>(
-        _ stringValue: String
-    ) throws -> T {
-        guard let value = T.init(stringValue) else {
-            throw RuntimeError.failedToDecodeStringConvertibleValue(
-                type: String(describing: T.self)
-            )
-        }
-        return value
-    }
-
+    
     func convertFromURI<T: Decodable>(
         style: ParameterStyle,
         explode: Bool,
@@ -257,14 +184,67 @@ extension Converter {
         return value
     }
 
-    @available(*, deprecated)
-    func convertTextDataToStringConvertible<T: _StringConvertible>(
+    func convertJSONToBodyCodable<T: Decodable>(
         _ data: Data
     ) throws -> T {
-        let stringValue = String(decoding: data, as: UTF8.self)
-        return try convertTextToStringConvertible(stringValue)
+        try decoder.decode(T.self, from: data)
     }
 
+    func convertBodyCodableToJSON<T: Encodable>(
+        _ value: T
+    ) throws -> Data {
+        try encoder.encode(value)
+    }
+
+    func convertHeaderFieldCodableToJSON<T: Encodable>(
+        _ value: T
+    ) throws -> String {
+        let data = try headerFieldEncoder.encode(value)
+        let stringValue = String(decoding: data, as: UTF8.self)
+        return stringValue
+    }
+
+    func convertJSONToHeaderFieldCodable<T: Decodable>(
+        _ stringValue: String
+    ) throws -> T {
+        let data = Data(stringValue.utf8)
+        return try decoder.decode(T.self, from: data)
+    }
+    
+    func convertFromStringData<T: Decodable>(
+        _ data: Data
+    ) throws -> T {
+        let encodedString = String(decoding: data, as: UTF8.self)
+        let decoder = StringDecoder()
+        let value = try decoder.decode(
+            T.self,
+            from: encodedString
+        )
+        return value
+    }
+
+    func convertToStringData<T: Encodable>(
+        _ value: T
+    ) throws -> Data {
+        let encoder = StringEncoder()
+        let encodedString = try encoder.encode(value)
+        return Data(encodedString.utf8)
+    }
+    
+    func convertBinaryToData(
+        _ binary: Data
+    ) throws -> Data {
+        binary
+    }
+
+    func convertDataToBinary(
+        _ data: Data
+    ) throws -> Data {
+        data
+    }
+
+    // MARK: - Helpers for specific types of parameters
+    
     func setHeaderField<T>(
         in headerFields: inout [HeaderField],
         name: String,
@@ -278,23 +258,6 @@ extension Converter {
             name: name,
             value: try convert(value)
         )
-    }
-
-    func setHeaderFields<T>(
-        in headerFields: inout [HeaderField],
-        name: String,
-        values: [T]?,
-        convert: (T) throws -> String
-    ) throws {
-        guard let values else {
-            return
-        }
-        for value in values {
-            headerFields.add(
-                name: name,
-                value: try convert(value)
-            )
-        }
     }
 
     func getOptionalHeaderField<T>(
@@ -321,32 +284,6 @@ extension Converter {
         return try convert(stringValue)
     }
 
-    func getOptionalHeaderFields<T>(
-        in headerFields: [HeaderField],
-        name: String,
-        as type: [T].Type,
-        convert: (String) throws -> T
-    ) throws -> [T]? {
-        let values = headerFields.values(name: name)
-        if values.isEmpty {
-            return nil
-        }
-        return try values.map { value in try convert(value) }
-    }
-
-    func getRequiredHeaderFields<T>(
-        in headerFields: [HeaderField],
-        name: String,
-        as type: [T].Type,
-        convert: (String) throws -> T
-    ) throws -> [T] {
-        let values = headerFields.values(name: name)
-        if values.isEmpty {
-            throw RuntimeError.missingRequiredHeaderField(name)
-        }
-        return try values.map { value in try convert(value) }
-    }
-
     func setQueryItem<T>(
         in request: inout Request,
         style: ParameterStyle?,
@@ -368,31 +305,6 @@ extension Converter {
             value: try convert(value),
             explode: resolvedExplode
         )
-    }
-
-    func setQueryItems<T>(
-        in request: inout Request,
-        style: ParameterStyle?,
-        explode: Bool?,
-        name: String,
-        values: [T]?,
-        convert: (T) throws -> String
-    ) throws {
-        guard let values else {
-            return
-        }
-        let (_, resolvedExplode) = try ParameterStyle.resolvedQueryStyleAndExplode(
-            name: name,
-            style: style,
-            explode: explode
-        )
-        for value in values {
-            request.addQueryItem(
-                name: name,
-                value: try convert(value),
-                explode: resolvedExplode
-            )
-        }
     }
 
     func getOptionalQueryItem<T>(
@@ -442,61 +354,6 @@ extension Converter {
             throw RuntimeError.missingRequiredQueryParameter(name)
         }
         return value
-    }
-
-    func getOptionalQueryItems<T>(
-        in queryParameters: [URLQueryItem],
-        style: ParameterStyle?,
-        explode: Bool?,
-        name: String,
-        as type: [T].Type,
-        convert: (String) throws -> T
-    ) throws -> [T]? {
-        let (_, resolvedExplode) = try ParameterStyle.resolvedQueryStyleAndExplode(
-            name: name,
-            style: style,
-            explode: explode
-        )
-        let untypedValues =
-            queryParameters
-            .filter { $0.name == name }
-            .map { $0.value ?? "" }
-        // If explode is false, some of the items might have multiple
-        // comma-separate values, so we need to split them here.
-        let processedValues: [String]
-        if resolvedExplode {
-            processedValues = untypedValues
-        } else {
-            processedValues = untypedValues.flatMap { multiValue in
-                multiValue
-                    .split(separator: ",", omittingEmptySubsequences: false)
-                    .map(String.init)
-            }
-        }
-        return try processedValues.map(convert)
-    }
-
-    func getRequiredQueryItems<T>(
-        in queryParameters: [URLQueryItem],
-        style: ParameterStyle?,
-        explode: Bool?,
-        name: String,
-        as type: [T].Type,
-        convert: (String) throws -> T
-    ) throws -> [T] {
-        guard
-            let values = try getOptionalQueryItems(
-                in: queryParameters,
-                style: style,
-                explode: explode,
-                name: name,
-                as: type,
-                convert: convert
-            ), !values.isEmpty
-        else {
-            throw RuntimeError.missingRequiredQueryParameter(name)
-        }
-        return values
     }
 
     func setRequiredRequestBody<T>(
@@ -577,18 +434,6 @@ extension Converter {
     ) throws -> Data {
         headerFields.add(name: "content-type", value: contentType)
         return try convert(value)
-    }
-
-    func convertBinaryToData(
-        _ binary: Data
-    ) throws -> Data {
-        binary
-    }
-
-    func convertDataToBinary(
-        _ data: Data
-    ) throws -> Data {
-        data
     }
 
     func getRequiredRequestPath<T>(
