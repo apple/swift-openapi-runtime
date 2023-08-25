@@ -14,54 +14,44 @@
 
 import Foundation
 
-/// Parses data from a subset of variable expansions from RFC 6570.
-///
-/// [RFC 6570 - Form-style query expansion.](https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.8)
-///
-/// | Example Template |   Expansion                       |
-/// | ---------------- | ----------------------------------|
-/// | `{?who}`         | `?who=fred`                       |
-/// | `{?half}`        | `?half=50%25`                     |
-/// | `{?x,y}`         | `?x=1024&y=768`                   |
-/// | `{?x,y,empty}`   | `?x=1024&y=768&empty=`            |
-/// | `{?x,y,undef}`   | `?x=1024&y=768`                   |
-/// | `{?list}`        | `?list=red,green,blue`            |
-/// | `{?list\*}`      | `?list=red&list=green&list=blue`  |
-/// | `{?keys}`        | `?keys=semi,%3B,dot,.,comma,%2C`  |
-/// | `{?keys\*}`      | `?semi=%3B&dot=.&comma=%2C`       |
-///
-/// [RFC 6570 - Simple string expansion.](https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.2)
-///
-/// | Example Template |   Expansion                       |
-/// | ---------------- | ----------------------------------|
-/// | `{hello}`        | `Hello%20World%21`                |
-/// | `{half}`         | `50%25`                           |
-/// | `{x,y}`          | `1024,768`                        |
-/// | `{x,empty}`      | `1024,`                           |
-/// | `{x,undef}`      | `1024`                            |
-/// | `{list}`         | `red,green,blue`                  |
-/// | `{list\*}`       | `red,green,blue`                  |
-/// | `{keys}`         | `semi,%3B,dot,.,comma,%2C`        |
-/// | `{keys\*}`       | `semi=%3B,dot=.,comma=%2C`        |
+/// A type that parses a `URIParsedNode` from a URI-encoded string.
 struct URIParser: Sendable {
 
+    /// The configuration instructing the parser how to interpret the raw
+    /// string.
     private let configuration: URICoderConfiguration
-    private typealias Raw = String.SubSequence
+
+    /// The underlying raw string storage.
     private var data: Raw
 
+    /// Creates a new parser.
+    /// - Parameters:
+    ///   - configuration: The configuration instructing the parser how
+    ///   to interpret the raw string.
+    ///   - data: The string to parse.
     init(configuration: URICoderConfiguration, data: String) {
         self.configuration = configuration
         self.data = data[...]
     }
 }
 
+/// A typealias for the underlying raw string storage.
+private typealias Raw = String.SubSequence
+
+/// A parser error.
 private enum ParsingError: Swift.Error {
-    case malformedKeyValuePair(String.SubSequence)
+
+    /// A malformed key-value pair was detected.
+    case malformedKeyValuePair(Raw)
 }
 
 // MARK: - Parser implementations
 
 extension URIParser {
+
+    /// Parses the root node from the underlying string, selecting the logic
+    /// based on the configuration.
+    /// - Returns: The parsed root node.
     mutating func parseRoot() throws -> URIParsedNode {
         // A completely empty string should get parsed as a single
         // empty key with a single element array with an empty string
@@ -86,6 +76,9 @@ extension URIParser {
         }
     }
 
+    /// Parses the root node assuming the raw string uses the form style
+    /// and the explode parameter is enabled.
+    /// - Returns: The parsed root node.
     private mutating func parseExplodedFormRoot() throws -> URIParsedNode {
         try parseGenericRoot { data, appendPair in
             let keyValueSeparator: Character = "="
@@ -114,6 +107,9 @@ extension URIParser {
         }
     }
 
+    /// Parses the root node assuming the raw string uses the form style
+    /// and the explode parameter is disabled.
+    /// - Returns: The parsed root node.
     private mutating func parseUnexplodedFormRoot() throws -> URIParsedNode {
         try parseGenericRoot { data, appendPair in
             let keyValueSeparator: Character = "="
@@ -163,6 +159,9 @@ extension URIParser {
         }
     }
 
+    /// Parses the root node assuming the raw string uses the simple style
+    /// and the explode parameter is enabled.
+    /// - Returns: The parsed root node.
     private mutating func parseExplodedSimpleRoot() throws -> URIParsedNode {
         try parseGenericRoot { data, appendPair in
             let keyValueSeparator: Character = "="
@@ -191,6 +190,9 @@ extension URIParser {
         }
     }
 
+    /// Parses the root node assuming the raw string uses the simple style
+    /// and the explode parameter is disabled.
+    /// - Returns: The parsed root node.
     private mutating func parseUnexplodedSimpleRoot() throws -> URIParsedNode {
         // Unexploded simple dictionary cannot be told apart from
         // an array, so we just accumulate all pairs as standalone
@@ -212,6 +214,11 @@ extension URIParser {
 // MARK: - URIParser utilities
 
 extension URIParser {
+
+    /// Parses the underlying string using a parser closure.
+    /// - Parameter parser: A closure that accepts another closure, which should
+    ///   be called 0 or more times, once for each parsed key-value pair.
+    /// - Returns: The accumulated node.
     private mutating func parseGenericRoot(
         _ parser: (inout Raw, (Raw, [Raw]) -> Void) throws -> Void
     ) throws -> URIParsedNode {
@@ -229,6 +236,9 @@ extension URIParser {
         return root
     }
 
+    /// Removes escaping from the provided string.
+    /// - Parameter escapedValue: An escaped string.
+    /// - Returns: The provided string with escaping removed.
     private func unescapeValue(_ escapedValue: Raw) -> Raw {
         Self.unescapeValue(
             escapedValue,
@@ -236,6 +246,12 @@ extension URIParser {
         )
     }
 
+    /// Removes escaping from the provided string.
+    /// - Parameters:
+    ///   - escapedValue: An escaped string.
+    ///   - spaceEscapingCharacter: The character used to escape the space
+    ///     character.
+    /// - Returns: The provided string with escaping removed.
     private static func unescapeValue(
         _ escapedValue: Raw,
         spaceEscapingCharacter: URICoderConfiguration.SpaceEscapingCharacter
@@ -253,11 +269,23 @@ extension URIParser {
 
 extension String.SubSequence {
 
+    /// A result of calling `parseUpToEitherCharacterOrEnd`.
     fileprivate enum ParseUpToEitherCharacterResult {
+
+        /// The first character was detected.
         case foundFirst
+
+        /// The second character was detected, or the end was reached.
         case foundSecondOrEnd
     }
 
+    /// Accumulates characters until one of the parameter characters is found,
+    /// or the end is reached. Moves the underlying startIndex.
+    /// - Parameters:
+    ///   - first: A character to stop at.
+    ///   - second: Another character to stop at.
+    /// - Returns: A result indicating which character was detected, if any, and
+    ///   the accumulated substring.
     fileprivate mutating func parseUpToEitherCharacterOrEnd(
         first: Character,
         second: Character
@@ -292,6 +320,11 @@ extension String.SubSequence {
         return finalize(.foundSecondOrEnd)
     }
 
+    /// Accumulates characters until the provided character is found,
+    /// or the end is reached. Moves the underlying startIndex.
+    /// - Parameters:
+    ///   - character: A character to stop at.
+    /// - Returns: The accumulated substring.
     fileprivate mutating func parseUpToCharacterOrEnd(
         _ character: Character
     ) -> Self {

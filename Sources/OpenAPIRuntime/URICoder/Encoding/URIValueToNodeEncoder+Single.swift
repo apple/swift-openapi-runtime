@@ -14,19 +14,29 @@
 
 import Foundation
 
-struct URISingleValueEncodingContainer: SingleValueEncodingContainer {
+/// A single value container used by `URIValueToNodeEncoder`.
+struct URISingleValueEncodingContainer {
+
+    /// The associated encoder.
     let encoder: URIValueToNodeEncoder
 }
 
 extension URISingleValueEncodingContainer {
+
+    /// Sets the provided primitive value to the underlying node.
+    /// - Parameter node: The primitive value to set.
     private func _setValue(_ node: URIEncodedNode.Primitive) throws {
         try encoder.currentStackEntry.storage.set(node)
     }
 
+    /// Sets the provided value to the underlying node.
+    /// - Parameter node: The value to set.
     private func _setBinaryFloatingPoint(_ value: some BinaryFloatingPoint) throws {
         try _setValue(.double(Double(value)))
     }
 
+    /// Sets the provided value to the underlying node.
+    /// - Parameter node: The value to set.
     private func _setFixedWidthInteger(_ value: some FixedWidthInteger) throws {
         guard let validatedValue = Int(exactly: value) else {
             throw URIValueToNodeEncoder.GeneralError.integerOutOfRange
@@ -35,7 +45,7 @@ extension URISingleValueEncodingContainer {
     }
 }
 
-extension URISingleValueEncodingContainer {
+extension URISingleValueEncodingContainer: SingleValueEncodingContainer {
 
     var codingPath: [any CodingKey] {
         encoder.codingPath

@@ -14,27 +14,45 @@
 
 import Foundation
 
-/// Converts an Encodable type into a URIEncodableNode.
+/// A type that converts an `Encodable` type into a `URIEncodableNode` value.
 final class URIValueToNodeEncoder {
 
-    /// An entry in the coding stack for \_URIEncoder.
+    /// An entry in the coding stack for `URIEncoder`.
     ///
     /// This is used to keep track of where we are in the encode.
     struct CodingStackEntry {
+
+        /// The key at which to write the node.
         var key: URICoderCodingKey
+
+        /// The node at the key inside its parent.
         var storage: URIEncodedNode
     }
 
+    /// An encoder error.
     enum GeneralError: Swift.Error {
+
+        /// The encoder set a nil value, which isn't supported.
         case nilNotSupported
+
+        /// The encoder set a Data value, which isn't supported.
         case dataNotSupported
-        case invalidEncoderCallForValue
+
+        /// The encoder set a value for an index out of range of the container.
         case integerOutOfRange
+
+        /// The encoder tried to treat
         case nestedValueInSingleValueContainer
     }
 
-    var _codingPath: [CodingStackEntry]
+    /// The stack of nested values within the root node.
+    private var _codingPath: [CodingStackEntry]
+
+    /// The current value, which will be added on top of the stack once
+    /// finished encoding.
     var currentStackEntry: CodingStackEntry
+
+    /// Creates a new encoder.
     init() {
         self._codingPath = []
         self.currentStackEntry = CodingStackEntry(
@@ -43,6 +61,9 @@ final class URIValueToNodeEncoder {
         )
     }
 
+    /// Encodes the provided value into a node.
+    /// - Parameter value: The value to encode.
+    /// - Returns: The node with the encoded contents of the value.
     func encodeValue(_ value: some Encodable) throws -> URIEncodedNode {
         defer {
             _codingPath = []
@@ -67,7 +88,33 @@ final class URIValueToNodeEncoder {
     }
 }
 
+extension URIValueToNodeEncoder {
+
+    /// Pushes a new container on top of the current stack, nesting into the
+    /// value at the provided key.
+    /// - Parameters:
+    ///   - key: The coding key for the new value on top of the stack.
+    ///   - newStorage: The node to push on top of the stack.
+    func push(key: URICoderCodingKey, newStorage: URIEncodedNode) {
+        _codingPath.append(currentStackEntry)
+        currentStackEntry = .init(key: key, storage: newStorage)
+    }
+
+    /// Pops the top container from the stack and restores the previously top
+    /// container to be the current top container.
+    func pop() throws {
+        // This is called when we've completed the storage in the current container.
+        // We can pop the value at the base of the stack, then "insert" the current one
+        // into it, and save the new value as the new current.
+        let current = currentStackEntry
+        var newCurrent = _codingPath.removeLast()
+        try newCurrent.storage.insert(current.storage, atKey: current.key)
+        currentStackEntry = newCurrent
+    }
+}
+
 extension URIValueToNodeEncoder: Encoder {
+
     var codingPath: [any CodingKey] {
         // The coding path meaningful to the types conforming to Codable.
         // 1. Omit the root coding path.
@@ -81,21 +128,6 @@ extension URIValueToNodeEncoder: Encoder {
 
     var userInfo: [CodingUserInfoKey: Any] {
         [:]
-    }
-
-    func push(key: URICoderCodingKey, newStorage: URIEncodedNode) {
-        _codingPath.append(currentStackEntry)
-        currentStackEntry = .init(key: key, storage: newStorage)
-    }
-
-    func pop() throws {
-        // This is called when we've completed the storage in the current container.
-        // We can pop the value at the base of the stack, then "insert" the current one
-        // into it, and save the new value as the new current.
-        let current = currentStackEntry
-        var newCurrent = _codingPath.removeLast()
-        try newCurrent.storage.insert(current.storage, atKey: current.key)
-        currentStackEntry = newCurrent
     }
 
     func container<Key>(

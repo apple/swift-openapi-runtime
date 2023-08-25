@@ -14,55 +14,70 @@
 
 import Foundation
 
-/// Serializes data into a subset of variable expansions from RFC 6570.
-///
-/// [RFC 6570 - Form-style query expansion.](https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.8)
-///
-/// | Example Template |   Expansion                       |
-/// | ---------------- | ----------------------------------|
-/// | `{?who}`         | `?who=fred`                       |
-/// | `{?half}`        | `?half=50%25`                     |
-/// | `{?x,y}`         | `?x=1024&y=768`                   |
-/// | `{?x,y,empty}`   | `?x=1024&y=768&empty=`            |
-/// | `{?x,y,undef}`   | `?x=1024&y=768`                   |
-/// | `{?list}`        | `?list=red,green,blue`            |
-/// | `{?list\*}`      | `?list=red&list=green&list=blue`  |
-/// | `{?keys}`        | `?keys=semi,%3B,dot,.,comma,%2C`  |
-/// | `{?keys\*}`      | `?semi=%3B&dot=.&comma=%2C`       |
-///
-/// [RFC 6570 - Simple string expansion.](https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.2)
-///
-/// | Example Template |   Expansion                       |
-/// | ---------------- | ----------------------------------|
-/// | `{hello}`        | `Hello%20World%21`                |
-/// | `{half}`         | `50%25`                           |
-/// | `{x,y}`          | `1024,768`                        |
-/// | `{x,empty}`      | `1024,`                           |
-/// | `{x,undef}`      | `1024`                            |
-/// | `{list}`         | `red,green,blue`                  |
-/// | `{list\*}`       | `red,green,blue`                  |
-/// | `{keys}`         | `semi,%3B,dot,.,comma,%2C`        |
-/// | `{keys\*}`       | `semi=%3B,dot=.,comma=%2C`        |
+/// A type that serializes a `URIEncodedNode` to a URI-encoded string.
 struct URISerializer {
 
+    /// The configuration instructing the serializer how to format the raw
+    /// string.
     private let configuration: URICoderConfiguration
+
+    /// The underlying raw string storage.
     private var data: String
 
+    /// Creates a new serializer.
+    /// - Parameter configuration: The configuration instructing the serializer
+    /// how to format the raw string.
     init(configuration: URICoderConfiguration) {
         self.configuration = configuration
         self.data = ""
     }
+
+    /// Serializes the provided node into the underlying string.
+    /// - Parameters:
+    ///   - value: The node to serialize.
+    ///   - key: The key to serialize the node under (details depend on the
+    ///     style and explode parameters in the configuration).
+    /// - Returns: The URI-encoded data for the provided node.
+    mutating func serializeNode(
+        _ value: URIEncodedNode,
+        forKey key: String
+    ) throws -> String {
+        defer {
+            data.removeAll(keepingCapacity: true)
+        }
+        try serializeTopLevelNode(value, forKey: key)
+        return data
+    }
 }
 
 extension CharacterSet {
+
+    /// A character set of unreserved symbols only from RFC 6570 (excludes
+    /// alphanumeric characters).
     fileprivate static let unreservedSymbols: CharacterSet = .init(charactersIn: "-._~")
+
+    /// A character set of unreserved characters from RFC 6570.
     fileprivate static let unreserved: CharacterSet = .alphanumerics.union(unreservedSymbols)
+
+    /// A character set with only the space character.
     fileprivate static let space: CharacterSet = .init(charactersIn: " ")
+
+    /// A character set of unreserved characters and a space.
     fileprivate static let unreservedAndSpace: CharacterSet = .unreserved.union(space)
 }
 
 extension URISerializer {
 
+    /// A serializer error.
+    private enum SerializationError: Swift.Error {
+
+        /// Nested containers are not supported.
+        case nestedContainersNotSupported
+    }
+
+    /// Computes an escaped version of the provided string.
+    /// - Parameter unsafeString: A string that needs escaping.
+    /// - Returns: The provided string with percent-escaping applied.
     private func computeSafeString(_ unsafeString: String) -> String {
         // The space character needs to be encoded based on the config,
         // so first allow it to be unescaped, and then we'll do a second
@@ -77,25 +92,10 @@ extension URISerializer {
         )
         return fullyEncoded
     }
-}
 
-extension URISerializer {
-
-    private enum SerializationError: Swift.Error {
-        case nestedContainersNotSupported
-    }
-
-    mutating func serializeNode(
-        _ value: URIEncodedNode,
-        forKey key: String
-    ) throws -> String {
-        defer {
-            data.removeAll(keepingCapacity: true)
-        }
-        try serializeTopLevelNode(value, forKey: key)
-        return data
-    }
-
+    /// Provides a raw string value for the provided key.
+    /// - Parameter key: The key to stringify.
+    /// - Returns: The escaped version of the provided key.
     private func stringifiedKey(_ key: String) throws -> String {
         // The root key is handled separately.
         guard !key.isEmpty else {
@@ -105,6 +105,11 @@ extension URISerializer {
         return safeTopLevelKey
     }
 
+    /// Serializes the provided value into the underlying string.
+    /// - Parameters:
+    ///   - value: The value to serialize.
+    ///   - key: The key to serialize the value under (details depend on the
+    ///     style and explode parameters in the configuration).
     private mutating func serializeTopLevelNode(
         _ value: URIEncodedNode,
         forKey key: String
@@ -145,6 +150,8 @@ extension URISerializer {
         }
     }
 
+    /// Serializes the provided value into the underlying string.
+    /// - Parameter value: The primitive value to serialize.
     private mutating func serializePrimitiveValue(
         _ value: URIEncodedNode.Primitive
     ) throws {
@@ -164,6 +171,13 @@ extension URISerializer {
         data.append(stringValue)
     }
 
+    /// Serializes the provided key-value pair into the underlying string.
+    /// - Parameters:
+    ///   - value: The value to serialize.
+    ///   - key: The key to serialize the value under (details depend on the
+    ///     style and explode parameters in the configuration).
+    ///   - separator: The separator to use, if nil, the key is not serialized,
+    ///     only the value.
     private mutating func serializePrimitiveKeyValuePair(
         _ value: URIEncodedNode.Primitive,
         forKey key: String,
@@ -176,6 +190,11 @@ extension URISerializer {
         try serializePrimitiveValue(value)
     }
 
+    /// Serializes the provided array into the underlying string.
+    /// - Parameters:
+    ///   - array: The value to serialize.
+    ///   - key: The key to serialize the value under (details depend on the
+    ///     style and explode parameters in the configuration).
     private mutating func serializeArray(
         _ array: [URIEncodedNode.Primitive],
         forKey key: String
@@ -220,6 +239,11 @@ extension URISerializer {
         }
     }
 
+    /// Serializes the provided dictionary into the underlying string.
+    /// - Parameters:
+    ///   - dictionary: The value to serialize.
+    ///   - key: The key to serialize the value under (details depend on the
+    ///     style and explode parameters in the configuration).
     private mutating func serializeDictionary(
         _ dictionary: [String: URIEncodedNode.Primitive],
         forKey key: String
@@ -273,6 +297,10 @@ extension URISerializer {
 }
 
 extension URICoderConfiguration {
+
+    /// Returns the separator of a key and value in a pair for
+    /// the configuration. Can be nil, in which case no key should be
+    /// serialized, only the value.
     fileprivate var containerKeyAndValueSeparator: String? {
         switch (style, explode) {
         case (.form, false):

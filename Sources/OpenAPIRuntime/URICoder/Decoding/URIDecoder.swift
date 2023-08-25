@@ -14,9 +14,37 @@
 
 import Foundation
 
-/// A type that decodes a `Decodable` objects from an URI-encoded string
+/// A type that decodes a `Decodable` value from an URI-encoded string
 /// using the rules from RFC 6570, RFC 1866, and OpenAPI 3.0.3, depending on
 /// the configuration.
+///
+/// [RFC 6570 - Form-style query expansion.](https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.8)
+///
+/// | Example Template |   Expansion                       |
+/// | ---------------- | ----------------------------------|
+/// | `{?who}`         | `?who=fred`                       |
+/// | `{?half}`        | `?half=50%25`                     |
+/// | `{?x,y}`         | `?x=1024&y=768`                   |
+/// | `{?x,y,empty}`   | `?x=1024&y=768&empty=`            |
+/// | `{?x,y,undef}`   | `?x=1024&y=768`                   |
+/// | `{?list}`        | `?list=red,green,blue`            |
+/// | `{?list\*}`      | `?list=red&list=green&list=blue`  |
+/// | `{?keys}`        | `?keys=semi,%3B,dot,.,comma,%2C`  |
+/// | `{?keys\*}`      | `?semi=%3B&dot=.&comma=%2C`       |
+///
+/// [RFC 6570 - Simple string expansion.](https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.2)
+///
+/// | Example Template |   Expansion                       |
+/// | ---------------- | ----------------------------------|
+/// | `{hello}`        | `Hello%20World%21`                |
+/// | `{half}`         | `50%25`                           |
+/// | `{x,y}`          | `1024,768`                        |
+/// | `{x,empty}`      | `1024,`                           |
+/// | `{x,undef}`      | `1024`                            |
+/// | `{list}`         | `red,green,blue`                  |
+/// | `{list\*}`       | `red,green,blue`                  |
+/// | `{keys}`         | `semi,%3B,dot,.,comma,%2C`        |
+/// | `{keys\*}`       | `semi=%3B,dot=.,comma=%2C`        |
 struct URIDecoder: Sendable {
 
     /// The configuration instructing the decoder how to interpret the raw
