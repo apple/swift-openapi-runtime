@@ -14,11 +14,22 @@
 
 import Foundation
 
+/// An unkeyed container used by `URIValueFromNodeDecoder`.
 struct URIUnkeyedDecodingContainer {
+
+    /// The associated decoder.
     let decoder: URIValueFromNodeDecoder
+
+    /// The underlying array.
     let values: URIParsedValueArray
+
+    /// The index of the item being currently decoded.
     private var index: Int
 
+    /// Creates a new unkeyed container ready to decode the first key.
+    /// - Parameters:
+    ///   - decoder: The underlying decoder.
+    ///   - values: The underlying array.
     init(decoder: URIValueFromNodeDecoder, values: URIParsedValueArray) {
         self.decoder = decoder
         self.values = values
@@ -28,6 +39,11 @@ struct URIUnkeyedDecodingContainer {
 
 extension URIUnkeyedDecodingContainer {
 
+    /// Returns the result from the provided closure run on the current
+    /// item in the underlying array and increments the index.
+    /// - Parameter work: The closure of work to run for the current item.
+    /// - Returns: The result of the closure.
+    /// - Throws: An error if the container ran out of items.
     private mutating func _decodingNext<R>(in work: () throws -> R) throws -> R {
         guard !isAtEnd else {
             throw URIValueFromNodeDecoder.GeneralError.reachedEndOfUnkeyedContainer
@@ -38,12 +54,20 @@ extension URIUnkeyedDecodingContainer {
         return try work()
     }
 
+    /// Returns the the current item in the underlying array and increments
+    /// the index.
+    /// - Returns: The next value found.
+    /// - Throws: An error if the container ran out of items.
     private mutating func _decodeNext() throws -> URIParsedValue {
         try _decodingNext { [values, index] in
             values[index]
         }
     }
 
+    /// Returns the next value converted to the provided type.
+    /// - Returns: The converted value.
+    /// - Throws: An error if the container ran out of items or if
+    ///   the conversion failed.
     private mutating func _decodeNextBinaryFloatingPoint<T: BinaryFloatingPoint>(
         _: T.Type = T.self
     ) throws -> T {
@@ -59,6 +83,10 @@ extension URIUnkeyedDecodingContainer {
         return T(double)
     }
 
+    /// Returns the next value converted to the provided type.
+    /// - Returns: The converted value.
+    /// - Throws: An error if the container ran out of items or if
+    ///   the conversion failed.
     private mutating func _decodeNextFixedWidthInteger<T: FixedWidthInteger>(
         _: T.Type = T.self
     ) throws -> T {
@@ -74,6 +102,10 @@ extension URIUnkeyedDecodingContainer {
         return parsedValue
     }
 
+    /// Returns the next value converted to the provided type.
+    /// - Returns: The converted value.
+    /// - Throws: An error if the container ran out of items or if
+    ///   the conversion failed.
     private mutating func _decodeNextLosslessStringConvertible<T: LosslessStringConvertible>(
         _: T.Type = T.self
     ) throws -> T {

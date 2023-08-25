@@ -19,8 +19,12 @@ import Foundation
 /// the configuration.
 struct URIDecoder: Sendable {
 
+    /// The configuration instructing the decoder how to interpret the raw
+    /// string.
     private let configuration: URICoderConfiguration
 
+    /// Creates a new decoder with the provided configuration.
+    /// - Parameter configuration: The configuration used by the decoder.
     init(configuration: URICoderConfiguration) {
         self.configuration = configuration
     }
@@ -30,15 +34,15 @@ extension URIDecoder {
 
     /// Attempt to decode an object from an URI string.
     ///
-    /// Under the hood, URIDecoder first parses the string into a URIParsedNode
-    /// using URIParser, and then uses URIValueFromNodeDecoder to decode
-    /// the Decodable value.
+    /// Under the hood, `URIDecoder` first parses the string into a
+    /// `URIParsedNode` using `URIParser`, and then uses
+    /// `URIValueFromNodeDecoder` to decode the `Decodable` value.
     ///
     /// - Parameters:
-    ///     - type: The type to decode.
-    ///     - key: The key of the decoded value. Only used with certain styles
-    ///       and explode options, ignored otherwise.
-    ///     - data: The URI-encoded string.
+    ///   - type: The type to decode.
+    ///   - key: The key of the decoded value. Only used with certain styles
+    ///     and explode options, ignored otherwise.
+    ///   - data: The URI-encoded string.
     /// - Returns: The decoded value.
     func decode<T: Decodable>(
         _ type: T.Type = T.self,
@@ -56,7 +60,7 @@ extension URIDecoder {
     /// - Parameters:
     ///   - data: The URI-encoded string.
     ///   - calls: The closure that contains 0 or more calls to
-    ///     URICachedDecoder's decode method.
+    ///     the `decode` method on `URICachedDecoder`.
     /// - Returns: The result of the closure invocation.
     func withCachedParser<R>(
         from data: String,
@@ -71,18 +75,22 @@ extension URIDecoder {
 
 struct URICachedDecoder {
 
+    /// The configuration used by the decoder.
     fileprivate let configuration: URICoderConfiguration
+
+    /// The node from which to decode a value on demand.
     fileprivate let node: URIParsedNode
 
-    /// Attempt to decode an object from an URI string.
+    /// Attempt to decode an object from an URI-encoded string.
     ///
-    /// Under the hood, URICachedDecoder already has a pre-parsed URIParsedNode
-    /// and uses URIValueFromNodeDecoder to decode the Decodable value.
+    /// Under the hood, `URICachedDecoder` already has a pre-parsed
+    /// `URIParsedNode` and uses `URIValueFromNodeDecoder` to decode
+    /// the `Decodable` value.
     ///
     /// - Parameters:
-    ///     - type: The type to decode.
-    ///     - key: The key of the decoded value. Only used with certain styles
-    ///       and explode options, ignored otherwise.
+    ///   - type: The type to decode.
+    ///   - key: The key of the decoded value. Only used with certain styles
+    ///     and explode options, ignored otherwise.
     /// - Returns: The decoded value.
     func decode<T: Decodable>(
         _ type: T.Type = T.self,

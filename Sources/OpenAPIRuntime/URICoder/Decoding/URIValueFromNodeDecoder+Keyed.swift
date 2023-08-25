@@ -14,13 +14,23 @@
 
 import Foundation
 
+/// A keyed container used by `URIValueFromNodeDecoder`.
 struct URIKeyedDecodingContainer<Key: CodingKey> {
+
+    /// The associated decoder.
     let decoder: URIValueFromNodeDecoder
+
+    /// The underlying dictionary.
     let values: URIParsedNode
 }
 
 extension URIKeyedDecodingContainer {
 
+    /// Returns the value found for the provided key in the underlying
+    /// dictionary.
+    /// - Parameter key: The key for which to return the value.
+    /// - Returns: The value found for the provided key.
+    /// - Throws: An error if no value for the key was found.
     private func _decodeValue(forKey key: Key) throws -> URIParsedValue {
         guard let value = values[key.stringValue[...]]?.first else {
             throw DecodingError.keyNotFound(
@@ -31,6 +41,12 @@ extension URIKeyedDecodingContainer {
         return value
     }
 
+    /// Returns the value found for the provided key in the underlying
+    /// dictionary converted to the provided type.
+    /// - Parameter key: The key for which to return the value.
+    /// - Returns: The converted value found for the provided key.
+    /// - Throws: An error if no value for the key was found or if the
+    ///   conversion failed.
     private func _decodeBinaryFloatingPoint<T: BinaryFloatingPoint>(
         _: T.Type = T.self,
         forKey key: Key
@@ -47,6 +63,12 @@ extension URIKeyedDecodingContainer {
         return T(double)
     }
 
+    /// Returns the value found for the provided key in the underlying
+    /// dictionary converted to the provided type.
+    /// - Parameter key: The key for which to return the value.
+    /// - Returns: The converted value found for the provided key.
+    /// - Throws: An error if no value for the key was found or if the
+    ///   conversion failed.
     private func _decodeFixedWidthInteger<T: FixedWidthInteger>(
         _: T.Type = T.self,
         forKey key: Key
@@ -63,6 +85,12 @@ extension URIKeyedDecodingContainer {
         return parsedValue
     }
 
+    /// Returns the value found for the provided key in the underlying
+    /// dictionary converted to the provided type.
+    /// - Parameter key: The key for which to return the value.
+    /// - Returns: The converted value found for the provided key.
+    /// - Throws: An error if no value for the key was found or if the
+    ///   conversion failed.
     private func _decodeNextLosslessStringConvertible<T: LosslessStringConvertible>(
         _: T.Type = T.self,
         forKey key: Key
