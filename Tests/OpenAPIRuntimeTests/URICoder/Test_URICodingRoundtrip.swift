@@ -121,12 +121,12 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             Date(timeIntervalSince1970: 1_692_948_899),
             key: "root",
             .init(
-                formExplode: "root=2023-08-25T07:34:59Z",
-                formUnexplode: "root=2023-08-25T07:34:59Z",
-                simpleExplode: "2023-08-25T07:34:59Z",
-                simpleUnexplode: "2023-08-25T07:34:59Z",
-                formDataExplode: "root=2023-08-25T07:34:59Z",
-                formDataUnexplode: "root=2023-08-25T07:34:59Z"
+                formExplode: "root=2023-08-25T07%3A34%3A59Z",
+                formUnexplode: "root=2023-08-25T07%3A34%3A59Z",
+                simpleExplode: "2023-08-25T07%3A34%3A59Z",
+                simpleUnexplode: "2023-08-25T07%3A34%3A59Z",
+                formDataExplode: "root=2023-08-25T07%3A34%3A59Z",
+                formDataUnexplode: "root=2023-08-25T07%3A34%3A59Z"
             )
         )
 
@@ -152,12 +152,12 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             ],
             key: "list",
             .init(
-                formExplode: "list=2023-08-25T07:34:59Z&list=2023-08-25T07:35:01Z",
-                formUnexplode: "list=2023-08-25T07:34:59Z,2023-08-25T07:35:01Z",
-                simpleExplode: "2023-08-25T07:34:59Z,2023-08-25T07:35:01Z",
-                simpleUnexplode: "2023-08-25T07:34:59Z,2023-08-25T07:35:01Z",
-                formDataExplode: "list=2023-08-25T07:34:59Z&list=2023-08-25T07:35:01Z",
-                formDataUnexplode: "list=2023-08-25T07:34:59Z,2023-08-25T07:35:01Z"
+                formExplode: "list=2023-08-25T07%3A34%3A59Z&list=2023-08-25T07%3A35%3A01Z",
+                formUnexplode: "list=2023-08-25T07%3A34%3A59Z,2023-08-25T07%3A35%3A01Z",
+                simpleExplode: "2023-08-25T07%3A34%3A59Z,2023-08-25T07%3A35%3A01Z",
+                simpleUnexplode: "2023-08-25T07%3A34%3A59Z,2023-08-25T07%3A35%3A01Z",
+                formDataExplode: "list=2023-08-25T07%3A34%3A59Z&list=2023-08-25T07%3A35%3A01Z",
+                formDataUnexplode: "list=2023-08-25T07%3A34%3A59Z,2023-08-25T07%3A35%3A01Z"
             )
         )
 
@@ -200,12 +200,12 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             ),
             key: "keys",
             .init(
-                formExplode: "bar=24&color=red&date=2023-08-25T07:34:59Z&empty=&foo=hi%21",
-                formUnexplode: "keys=bar,24,color,red,date,2023-08-25T07:34:59Z,empty,,foo,hi%21",
-                simpleExplode: "bar=24,color=red,date=2023-08-25T07:34:59Z,empty=,foo=hi%21",
-                simpleUnexplode: "bar,24,color,red,date,2023-08-25T07:34:59Z,empty,,foo,hi%21",
-                formDataExplode: "bar=24&color=red&date=2023-08-25T07:34:59Z&empty=&foo=hi%21",
-                formDataUnexplode: "keys=bar,24,color,red,date,2023-08-25T07:34:59Z,empty,,foo,hi%21"
+                formExplode: "bar=24&color=red&date=2023-08-25T07%3A34%3A59Z&empty=&foo=hi%21",
+                formUnexplode: "keys=bar,24,color,red,date,2023-08-25T07%3A34%3A59Z,empty,,foo,hi%21",
+                simpleExplode: "bar=24,color=red,date=2023-08-25T07%3A34%3A59Z,empty=,foo=hi%21",
+                simpleUnexplode: "bar,24,color,red,date,2023-08-25T07%3A34%3A59Z,empty,,foo,hi%21",
+                formDataExplode: "bar=24&color=red&date=2023-08-25T07%3A34%3A59Z&empty=&foo=hi%21",
+                formDataUnexplode: "keys=bar,24,color,red,date,2023-08-25T07%3A34%3A59Z,empty,,foo,hi%21"
             )
         )
 

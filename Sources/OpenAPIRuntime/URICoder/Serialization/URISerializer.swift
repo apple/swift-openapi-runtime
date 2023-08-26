@@ -166,7 +166,7 @@ extension URISerializer {
         case .double(let double):
             stringValue = double.description
         case .date(let date):
-            stringValue = try configuration.dateTranscoder.encode(date)
+            stringValue = try computeSafeString(configuration.dateTranscoder.encode(date))
         }
         data.append(stringValue)
     }
