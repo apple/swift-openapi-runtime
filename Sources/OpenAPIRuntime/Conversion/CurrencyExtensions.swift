@@ -257,13 +257,29 @@ extension Converter {
         )
     }
 
+    func getHeaderFieldValuesString(
+        in headerFields: [HeaderField],
+        name: String
+    ) -> String? {
+        let values = headerFields.values(name: name)
+        guard !values.isEmpty else {
+            return nil
+        }
+        return values.joined(separator: ",")
+    }
+
     func getOptionalHeaderField<T>(
         in headerFields: [HeaderField],
         name: String,
         as type: T.Type,
         convert: (String) throws -> T
     ) throws -> T? {
-        guard let stringValue = headerFields.firstValue(name: name) else {
+        guard
+            let stringValue = getHeaderFieldValuesString(
+                in: headerFields,
+                name: name
+            )
+        else {
             return nil
         }
         return try convert(stringValue)
@@ -275,7 +291,12 @@ extension Converter {
         as type: T.Type,
         convert: (String) throws -> T
     ) throws -> T {
-        guard let stringValue = headerFields.firstValue(name: name) else {
+        guard
+            let stringValue = getHeaderFieldValuesString(
+                in: headerFields,
+                name: name
+            )
+        else {
             throw RuntimeError.missingRequiredHeaderField(name)
         }
         return try convert(stringValue)
