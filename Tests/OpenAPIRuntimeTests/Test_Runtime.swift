@@ -54,8 +54,16 @@ class Test_Runtime: XCTestCase {
         "2023-01-18T10:04:11Z"
     }
 
+    var testDateEscapedString: String {
+        "2023-01-18T10%3A04%3A11Z"
+    }
+
     var testDateStringData: Data {
         Data(testDateString.utf8)
+    }
+
+    var testDateEscapedStringData: Data {
+        Data(testDateEscapedString.utf8)
     }
 
     var testString: String {
@@ -90,6 +98,14 @@ class Test_Runtime: XCTestCase {
         """#
     }
 
+    var testEnum: TestHabitat {
+        .water
+    }
+
+    var testEnumString: String {
+        "water"
+    }
+
     var testStructData: Data {
         Data(testStructString.utf8)
     }
@@ -122,6 +138,12 @@ public func XCTAssertEqualURLString(_ lhs: URL?, _ rhs: String, file: StaticStri
 
 struct TestPet: Codable, Equatable {
     var name: String
+}
+
+enum TestHabitat: String, Codable, Equatable {
+    case water
+    case land
+    case air
 }
 
 /// Injects an authentication header to every request.

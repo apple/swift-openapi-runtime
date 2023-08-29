@@ -32,22 +32,23 @@ final class Test_ClientConverterExtensions: Test_Runtime {
 
     // MARK: Converter helper methods
 
-    //    | client | set | request path | text | string-convertible | required | renderedRequestPath |
-    func test_renderedRequestPath_stringConvertible() throws {
-        let renderedPath = try converter.renderedRequestPath(
-            template: "/items/{}/detail/{}",
+    //    | client | set | request path | URI | required | renderedPath |
+    func test_renderedPath_string() throws {
+        let renderedPath = try converter.renderedPath(
+            template: "/items/{}/detail/{}/habitats/{}",
             parameters: [
                 1 as Int,
                 "foo" as String,
+                [.land, .air] as [TestHabitat],
             ]
         )
-        XCTAssertEqual(renderedPath, "/items/1/detail/foo")
+        XCTAssertEqual(renderedPath, "/items/1/detail/foo/habitats/land,air")
     }
 
-    //    | client | set | request query | text | string-convertible | both | setQueryItemAsText |
-    func test_setQueryItemAsText_stringConvertible() throws {
+    //    | client | set | request query | URI | both | setQueryItemAsURI |
+    func test_setQueryItemAsURI_string() throws {
         var request = testRequest
-        try converter.setQueryItemAsText(
+        try converter.setQueryItemAsURI(
             in: &request,
             style: nil,
             explode: nil,
@@ -57,9 +58,9 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(request.query, "search=foo")
     }
 
-    func test_setQueryItemAsText_stringConvertible_needsEncoding() throws {
+    func test_setQueryItemAsURI_stringConvertible_needsEncoding() throws {
         var request = testRequest
-        try converter.setQueryItemAsText(
+        try converter.setQueryItemAsURI(
             in: &request,
             style: nil,
             explode: nil,
@@ -69,10 +70,9 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(request.query, "search=h%25llo")
     }
 
-    //    | client | set | request query | text | array of string-convertibles | both | setQueryItemAsText |
-    func test_setQueryItemAsText_arrayOfStringConvertibles() throws {
+    func test_setQueryItemAsURI_arrayOfStrings() throws {
         var request = testRequest
-        try converter.setQueryItemAsText(
+        try converter.setQueryItemAsURI(
             in: &request,
             style: nil,
             explode: nil,
@@ -82,10 +82,9 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(request.query, "search=foo&search=bar")
     }
 
-    //    | client | set | request query | text | array of string-convertibles | both | setQueryItemAsText |
-    func test_setQueryItemAsText_arrayOfStringConvertibles_unexploded() throws {
+    func test_setQueryItemAsURI_arrayOfStrings_unexploded() throws {
         var request = testRequest
-        try converter.setQueryItemAsText(
+        try converter.setQueryItemAsURI(
             in: &request,
             style: nil,
             explode: false,
@@ -95,36 +94,34 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(request.query, "search=foo,bar")
     }
 
-    //    | client | set | request query | text | date | both | setQueryItemAsText |
-    func test_setQueryItemAsText_date() throws {
+    func test_setQueryItemAsURI_date() throws {
         var request = testRequest
-        try converter.setQueryItemAsText(
+        try converter.setQueryItemAsURI(
             in: &request,
             style: nil,
             explode: nil,
             name: "search",
             value: testDate
         )
-        XCTAssertEqual(request.query, "search=2023-01-18T10:04:11Z")
+        XCTAssertEqual(request.query, "search=2023-01-18T10%3A04%3A11Z")
     }
 
-    //    | client | set | request query | text | array of dates | both | setQueryItemAsText |
-    func test_setQueryItemAsText_arrayOfDates() throws {
+    func test_setQueryItemAsURI_arrayOfDates() throws {
         var request = testRequest
-        try converter.setQueryItemAsText(
+        try converter.setQueryItemAsURI(
             in: &request,
             style: nil,
             explode: nil,
             name: "search",
             value: [testDate, testDate]
         )
-        XCTAssertEqual(request.query, "search=2023-01-18T10:04:11Z&search=2023-01-18T10:04:11Z")
+        XCTAssertEqual(request.query, "search=2023-01-18T10%3A04%3A11Z&search=2023-01-18T10%3A04%3A11Z")
     }
 
-    //    | client | set | request body | text | string-convertible | optional | setOptionalRequestBodyAsText |
-    func test_setOptionalRequestBodyAsText_stringConvertible() throws {
+    //    | client | set | request body | string | optional | setOptionalRequestBodyAsString |
+    func test_setOptionalRequestBodyAsString_string() throws {
         var headerFields: [HeaderField] = []
-        let body = try converter.setOptionalRequestBodyAsText(
+        let body = try converter.setOptionalRequestBodyAsString(
             testString,
             headerFields: &headerFields,
             contentType: "text/plain"
@@ -138,10 +135,10 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         )
     }
 
-    //    | client | set | request body | text | string-convertible | required | setRequiredRequestBodyAsText |
-    func test_setRequiredRequestBodyAsText_stringConvertible() throws {
+    //    | client | set | request body | string | required | setRequiredRequestBodyAsString |
+    func test_setRequiredRequestBodyAsString_string() throws {
         var headerFields: [HeaderField] = []
-        let body = try converter.setRequiredRequestBodyAsText(
+        let body = try converter.setRequiredRequestBodyAsString(
             testString,
             headerFields: &headerFields,
             contentType: "text/plain"
@@ -155,10 +152,9 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         )
     }
 
-    //    | client | set | request body | text | date | optional | setOptionalRequestBodyAsText |
-    func test_setOptionalRequestBodyAsText_date() throws {
+    func test_setOptionalRequestBodyAsString_date() throws {
         var headerFields: [HeaderField] = []
-        let body = try converter.setOptionalRequestBodyAsText(
+        let body = try converter.setOptionalRequestBodyAsString(
             testDate,
             headerFields: &headerFields,
             contentType: "text/plain"
@@ -172,10 +168,9 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         )
     }
 
-    //    | client | set | request body | text | date | required | setRequiredRequestBodyAsText |
-    func test_setRequiredRequestBodyAsText_date() throws {
+    func test_setRequiredRequestBodyAsString_date() throws {
         var headerFields: [HeaderField] = []
-        let body = try converter.setRequiredRequestBodyAsText(
+        let body = try converter.setRequiredRequestBodyAsString(
             testDate,
             headerFields: &headerFields,
             contentType: "text/plain"
@@ -189,7 +184,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         )
     }
 
-    //    | client | set | request body | JSON | codable | optional | setOptionalRequestBodyAsJSON |
+    //    | client | set | request body | JSON | optional | setOptionalRequestBodyAsJSON |
     func test_setOptionalRequestBodyAsJSON_codable() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setOptionalRequestBodyAsJSON(
@@ -222,7 +217,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         )
     }
 
-    //    | client | set | request body | JSON | codable | required | setRequiredRequestBodyAsJSON |
+    //    | client | set | request body | JSON | required | setRequiredRequestBodyAsJSON |
     func test_setRequiredRequestBodyAsJSON_codable() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setRequiredRequestBodyAsJSON(
@@ -239,7 +234,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         )
     }
 
-    //    | client | set | request body | binary | data | optional | setOptionalRequestBodyAsBinary |
+    //    | client | set | request body | binary | optional | setOptionalRequestBodyAsBinary |
     func test_setOptionalRequestBodyAsBinary_data() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setOptionalRequestBodyAsBinary(
@@ -256,7 +251,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         )
     }
 
-    //    | client | set | request body | binary | data | required | setRequiredRequestBodyAsBinary |
+    //    | client | set | request body | binary | required | setRequiredRequestBodyAsBinary |
     func test_setRequiredRequestBodyAsBinary_data() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setRequiredRequestBodyAsBinary(
@@ -273,9 +268,9 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         )
     }
 
-    //    | client | get | response body | text | string-convertible | required | getResponseBodyAsText |
-    func test_getResponseBodyAsText_stringConvertible() throws {
-        let value: String = try converter.getResponseBodyAsText(
+    //    | client | get | response body | string | required | getResponseBodyAsString |
+    func test_getResponseBodyAsString_stringConvertible() throws {
+        let value: String = try converter.getResponseBodyAsString(
             String.self,
             from: testStringData,
             transforming: { $0 }
@@ -283,9 +278,9 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(value, testString)
     }
 
-    //    | client | get | response body | text | date | required | getResponseBodyAsText |
-    func test_getResponseBodyAsText_date() throws {
-        let value: Date = try converter.getResponseBodyAsText(
+    //    | client | get | response body | string | required | getResponseBodyAsString |
+    func test_getResponseBodyAsString_date() throws {
+        let value: Date = try converter.getResponseBodyAsString(
             Date.self,
             from: testDateStringData,
             transforming: { $0 }
@@ -293,7 +288,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(value, testDate)
     }
 
-    //    | client | get | response body | JSON | codable | required | getResponseBodyAsJSON |
+    //    | client | get | response body | JSON | required | getResponseBodyAsJSON |
     func test_getResponseBodyAsJSON_codable() throws {
         let value: TestPet = try converter.getResponseBodyAsJSON(
             TestPet.self,
@@ -303,7 +298,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(value, testStruct)
     }
 
-    //    | client | get | response body | binary | data | required | getResponseBodyAsBinary |
+    //    | client | get | response body | binary | required | getResponseBodyAsBinary |
     func test_getResponseBodyAsBinary_data() throws {
         let value: Data = try converter.getResponseBodyAsBinary(
             Data.self,

@@ -18,12 +18,26 @@ import Foundation
 ///
 /// Cannot be marked as SPI, as it's added on public types, but should be
 /// considered an internal implementation detail of the generator.
+@available(*, deprecated)
 public protocol _StringConvertible: LosslessStringConvertible {}
 
+@available(*, deprecated)
 extension String: _StringConvertible {}
+
+@available(*, deprecated)
 extension Bool: _StringConvertible {}
+
+@available(*, deprecated)
 extension Int: _StringConvertible {}
+
+@available(*, deprecated)
 extension Int64: _StringConvertible {}
+
+@available(*, deprecated)
 extension Int32: _StringConvertible {}
+
+@available(*, deprecated)
 extension Float: _StringConvertible {}
+
+@available(*, deprecated)
 extension Double: _StringConvertible {}
