@@ -37,9 +37,6 @@ extension StringEncoder {
         // We have to catch the special values early, otherwise we fall
         // back to their Codable implementations, which don't give us
         // a chance to customize the coding in the containers.
-        // We have to catch the special values early, otherwise we fall
-        // back to their Codable implementations, which don't give us
-        // a chance to customize the coding in the containers.
         if let date = value as? Date {
             var container = encoder.singleValueContainer()
             try container.encode(date)
