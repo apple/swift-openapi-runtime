@@ -117,7 +117,11 @@ extension URIEncodedNode {
             array.append(childValue)
             self = .array(array)
         case .unset:
-            if let _ = key.intValue {
+            if let intValue = key.intValue {
+                precondition(
+                    intValue == 0,
+                    "Unkeyed container inserting at an incorrect index"
+                )
                 self = .array([childValue])
             } else {
                 self = .dictionary([key.stringValue: childValue])
