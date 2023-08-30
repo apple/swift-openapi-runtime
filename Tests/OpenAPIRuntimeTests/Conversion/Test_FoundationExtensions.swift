@@ -16,25 +16,28 @@ import XCTest
 
 final class Test_FoundationExtensions: Test_Runtime {
 
+    @available(*, deprecated)
     func testURLComponents_addStringQueryItem() throws {
         var components = testComponents
-        components.addStringQueryItem(name: "key", value: "value", explode: true)
+        components.addUnescapedStringQueryItem(name: "key", value: "value", explode: true)
         XCTAssertEqualURLString(components.url, "/api?key=value")
     }
 
+    @available(*, deprecated)
     func testURLComponents_addStringQueryItems() throws {
         var components = testComponents
-        components.addStringQueryItem(name: "key2", value: "value3", explode: true)
-        components.addStringQueryItem(name: "key", value: "value1", explode: true)
-        components.addStringQueryItem(name: "key", value: "value2", explode: true)
+        components.addUnescapedStringQueryItem(name: "key2", value: "value3", explode: true)
+        components.addUnescapedStringQueryItem(name: "key", value: "value1", explode: true)
+        components.addUnescapedStringQueryItem(name: "key", value: "value2", explode: true)
         XCTAssertEqualURLString(components.url, "/api?key2=value3&key=value1&key=value2")
     }
 
+    @available(*, deprecated)
     func testURLComponents_addStringQueryItems_unexploded() throws {
         var components = testComponents
-        components.addStringQueryItem(name: "key2", value: "value3", explode: false)
-        components.addStringQueryItem(name: "key", value: "value1", explode: false)
-        components.addStringQueryItem(name: "key", value: "value2", explode: false)
+        components.addUnescapedStringQueryItem(name: "key2", value: "value3", explode: false)
+        components.addUnescapedStringQueryItem(name: "key", value: "value1", explode: false)
+        components.addUnescapedStringQueryItem(name: "key", value: "value2", explode: false)
         XCTAssertEqualURLString(components.url, "/api?key2=value3&key=value1,value2")
     }
 }

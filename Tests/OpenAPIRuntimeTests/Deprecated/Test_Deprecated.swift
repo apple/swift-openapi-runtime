@@ -375,4 +375,621 @@ final class Test_Deprecated: Test_Runtime {
         )
     }
 
+    //    | common | set | header field | text | string-convertible | both | setHeaderFieldAsText |
+    @available(*, deprecated)
+    func test_setHeaderFieldAsText_stringConvertible() throws {
+        var headerFields: [HeaderField] = []
+        try converter.setHeaderFieldAsText(
+            in: &headerFields,
+            name: "foo",
+            value: "bar"
+        )
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "foo", value: "bar")
+            ]
+        )
+    }
+
+    //    | common | set | header field | text | array of string-convertibles | both | setHeaderFieldAsText |
+    @available(*, deprecated)
+    func test_setHeaderFieldAsText_arrayOfStringConvertible() throws {
+        var headerFields: [HeaderField] = []
+        try converter.setHeaderFieldAsText(
+            in: &headerFields,
+            name: "foo",
+            value: ["bar", "baz"] as [String]
+        )
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "foo", value: "bar"),
+                .init(name: "foo", value: "baz"),
+            ]
+        )
+    }
+
+    //    | common | set | header field | text | date | both | setHeaderFieldAsText |
+    @available(*, deprecated)
+    func test_setHeaderFieldAsText_date() throws {
+        var headerFields: [HeaderField] = []
+        try converter.setHeaderFieldAsText(
+            in: &headerFields,
+            name: "foo",
+            value: testDate
+        )
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "foo", value: testDateString)
+            ]
+        )
+    }
+
+    //    | common | set | header field | text | array of dates | both | setHeaderFieldAsText |
+    @available(*, deprecated)
+    func test_setHeaderFieldAsText_arrayOfDates() throws {
+        var headerFields: [HeaderField] = []
+        try converter.setHeaderFieldAsText(
+            in: &headerFields,
+            name: "foo",
+            value: [testDate, testDate]
+        )
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "foo", value: testDateString),
+                .init(name: "foo", value: testDateString),
+            ]
+        )
+    }
+
+    //    | common | get | header field | text | string-convertible | optional | getOptionalHeaderFieldAsText |
+    @available(*, deprecated)
+    func test_getOptionalHeaderFieldAsText_stringConvertible() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: "bar")
+        ]
+        let value: String? = try converter.getOptionalHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: String.self
+        )
+        XCTAssertEqual(value, "bar")
+    }
+
+    //    | common | get | header field | text | string-convertible | required | getRequiredHeaderFieldAsText |
+    @available(*, deprecated)
+    func test_getRequiredHeaderFieldAsText_stringConvertible() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: "bar")
+        ]
+        let value: String = try converter.getRequiredHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: String.self
+        )
+        XCTAssertEqual(value, "bar")
+    }
+
+    //    | common | get | header field | text | array of string-convertibles | optional | getOptionalHeaderFieldAsText |
+    @available(*, deprecated)
+    func test_getOptionalHeaderFieldAsText_arrayOfStringConvertibles() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: "bar"),
+            .init(name: "foo", value: "baz"),
+        ]
+        let value: [String]? = try converter.getOptionalHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: [String].self
+        )
+        XCTAssertEqual(value, ["bar", "baz"])
+    }
+
+    //    | common | get | header field | text | array of string-convertibles | required | getRequiredHeaderFieldAsText |
+    @available(*, deprecated)
+    func test_getRequiredHeaderFieldAsText_arrayOfStringConvertibles() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: "bar"),
+            .init(name: "foo", value: "baz"),
+        ]
+        let value: [String] = try converter.getRequiredHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: [String].self
+        )
+        XCTAssertEqual(value, ["bar", "baz"])
+    }
+
+    //    | common | get | header field | text | date | optional | getOptionalHeaderFieldAsText |
+    @available(*, deprecated)
+    func test_getOptionalHeaderFieldAsText_date() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: testDateString)
+        ]
+        let value: Date? = try converter.getOptionalHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: Date.self
+        )
+        XCTAssertEqual(value, testDate)
+    }
+
+    //    | common | get | header field | text | date | required | getRequiredHeaderFieldAsText |
+    @available(*, deprecated)
+    func test_getRequiredHeaderFieldAsText_date() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: testDateString)
+        ]
+        let value: Date = try converter.getRequiredHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: Date.self
+        )
+        XCTAssertEqual(value, testDate)
+    }
+
+    //    | common | get | header field | text | array of dates | optional | getOptionalHeaderFieldAsText |
+    @available(*, deprecated)
+    func test_getOptionalHeaderFieldAsText_arrayOfDates() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: testDateString),
+            .init(name: "foo", value: testDateString),
+        ]
+        let value: [Date]? = try converter.getOptionalHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: [Date].self
+        )
+        XCTAssertEqual(value, [testDate, testDate])
+    }
+
+    //    | common | get | header field | text | array of dates | required | getRequiredHeaderFieldAsText |
+    @available(*, deprecated)
+    func test_getRequiredHeaderFieldAsText_arrayOfDates() throws {
+        let headerFields: [HeaderField] = [
+            .init(name: "foo", value: testDateString),
+            .init(name: "foo", value: testDateString),
+        ]
+        let value: [Date] = try converter.getRequiredHeaderFieldAsText(
+            in: headerFields,
+            name: "foo",
+            as: [Date].self
+        )
+        XCTAssertEqual(value, [testDate, testDate])
+    }
+
+    //    | client | set | request path | text | string-convertible | required | renderedRequestPath |
+    @available(*, deprecated)
+    func test_renderedRequestPath_stringConvertible() throws {
+        let renderedPath = try converter.renderedRequestPath(
+            template: "/items/{}/detail/{}",
+            parameters: [
+                1 as Int,
+                "foo" as String,
+            ]
+        )
+        XCTAssertEqual(renderedPath, "/items/1/detail/foo")
+    }
+
+    //    | client | set | request query | text | string-convertible | both | setQueryItemAsText |
+    @available(*, deprecated)
+    func test_setQueryItemAsText_stringConvertible() throws {
+        var request = testRequest
+        try converter.setQueryItemAsText(
+            in: &request,
+            style: nil,
+            explode: nil,
+            name: "search",
+            value: "foo"
+        )
+        XCTAssertEqual(request.query, "search=foo")
+    }
+
+    @available(*, deprecated)
+    func test_setQueryItemAsText_stringConvertible_needsEncoding() throws {
+        var request = testRequest
+        try converter.setQueryItemAsText(
+            in: &request,
+            style: nil,
+            explode: nil,
+            name: "search",
+            value: "h%llo"
+        )
+        XCTAssertEqual(request.query, "search=h%25llo")
+    }
+
+    //    | client | set | request query | text | array of string-convertibles | both | setQueryItemAsText |
+    @available(*, deprecated)
+    func test_setQueryItemAsText_arrayOfStringConvertibles() throws {
+        var request = testRequest
+        try converter.setQueryItemAsText(
+            in: &request,
+            style: nil,
+            explode: nil,
+            name: "search",
+            value: ["foo", "bar"]
+        )
+        XCTAssertEqual(request.query, "search=foo&search=bar")
+    }
+
+    //    | client | set | request query | text | array of string-convertibles | both | setQueryItemAsText |
+    @available(*, deprecated)
+    func test_setQueryItemAsText_arrayOfStringConvertibles_unexploded() throws {
+        var request = testRequest
+        try converter.setQueryItemAsText(
+            in: &request,
+            style: nil,
+            explode: false,
+            name: "search",
+            value: ["foo", "bar"]
+        )
+        XCTAssertEqual(request.query, "search=foo,bar")
+    }
+
+    //    | client | set | request query | text | date | both | setQueryItemAsText |
+    @available(*, deprecated)
+    func test_setQueryItemAsText_date() throws {
+        var request = testRequest
+        try converter.setQueryItemAsText(
+            in: &request,
+            style: nil,
+            explode: nil,
+            name: "search",
+            value: testDate
+        )
+        XCTAssertEqual(request.query, "search=2023-01-18T10:04:11Z")
+    }
+
+    //    | client | set | request query | text | array of dates | both | setQueryItemAsText |
+    @available(*, deprecated)
+    func test_setQueryItemAsText_arrayOfDates() throws {
+        var request = testRequest
+        try converter.setQueryItemAsText(
+            in: &request,
+            style: nil,
+            explode: nil,
+            name: "search",
+            value: [testDate, testDate]
+        )
+        XCTAssertEqual(request.query, "search=2023-01-18T10:04:11Z&search=2023-01-18T10:04:11Z")
+    }
+
+    //    | client | set | request body | text | string-convertible | optional | setOptionalRequestBodyAsText |
+    @available(*, deprecated)
+    func test_setOptionalRequestBodyAsText_stringConvertible() throws {
+        var headerFields: [HeaderField] = []
+        let body = try converter.setOptionalRequestBodyAsText(
+            testString,
+            headerFields: &headerFields,
+            contentType: "text/plain"
+        )
+        XCTAssertEqual(body, testStringData)
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "content-type", value: "text/plain")
+            ]
+        )
+    }
+
+    //    | client | set | request body | text | string-convertible | required | setRequiredRequestBodyAsText |
+    @available(*, deprecated)
+    func test_setRequiredRequestBodyAsText_stringConvertible() throws {
+        var headerFields: [HeaderField] = []
+        let body = try converter.setRequiredRequestBodyAsText(
+            testString,
+            headerFields: &headerFields,
+            contentType: "text/plain"
+        )
+        XCTAssertEqual(body, testStringData)
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "content-type", value: "text/plain")
+            ]
+        )
+    }
+
+    //    | client | set | request body | text | date | optional | setOptionalRequestBodyAsText |
+    @available(*, deprecated)
+    func test_setOptionalRequestBodyAsText_date() throws {
+        var headerFields: [HeaderField] = []
+        let body = try converter.setOptionalRequestBodyAsText(
+            testDate,
+            headerFields: &headerFields,
+            contentType: "text/plain"
+        )
+        XCTAssertEqual(body, testDateStringData)
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "content-type", value: "text/plain")
+            ]
+        )
+    }
+
+    //    | client | set | request body | text | date | required | setRequiredRequestBodyAsText |
+    @available(*, deprecated)
+    func test_setRequiredRequestBodyAsText_date() throws {
+        var headerFields: [HeaderField] = []
+        let body = try converter.setRequiredRequestBodyAsText(
+            testDate,
+            headerFields: &headerFields,
+            contentType: "text/plain"
+        )
+        XCTAssertEqual(body, testDateStringData)
+        XCTAssertEqual(
+            headerFields,
+            [
+                .init(name: "content-type", value: "text/plain")
+            ]
+        )
+    }
+
+    //    | client | get | response body | text | string-convertible | required | getResponseBodyAsText |
+    @available(*, deprecated)
+    func test_getResponseBodyAsText_stringConvertible() throws {
+        let value: String = try converter.getResponseBodyAsText(
+            String.self,
+            from: testStringData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(value, testString)
+    }
+
+    //    | client | get | response body | text | date | required | getResponseBodyAsText |
+    @available(*, deprecated)
+    func test_getResponseBodyAsText_date() throws {
+        let value: Date = try converter.getResponseBodyAsText(
+            Date.self,
+            from: testDateStringData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(value, testDate)
+    }
+
+    //    | server | get | request path | text | string-convertible | required | getPathParameterAsText |
+    @available(*, deprecated)
+    func test_getPathParameterAsText_stringConvertible() throws {
+        let path: [String: String] = [
+            "foo": "bar"
+        ]
+        let value: String = try converter.getPathParameterAsText(
+            in: path,
+            name: "foo",
+            as: String.self
+        )
+        XCTAssertEqual(value, "bar")
+    }
+
+    //    | server | get | request query | text | string-convertible | optional | getOptionalQueryItemAsText |
+    @available(*, deprecated)
+    func test_getOptionalQueryItemAsText_stringConvertible() throws {
+        let query: [URLQueryItem] = [
+            .init(name: "search", value: "foo")
+        ]
+        let value: String? = try converter.getOptionalQueryItemAsText(
+            in: query,
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: String.self
+        )
+        XCTAssertEqual(value, "foo")
+    }
+
+    //    | server | get | request query | text | string-convertible | required | getRequiredQueryItemAsText |
+    @available(*, deprecated)
+    func test_getRequiredQueryItemAsText_stringConvertible() throws {
+        let query: [URLQueryItem] = [
+            .init(name: "search", value: "foo")
+        ]
+        let value: String = try converter.getRequiredQueryItemAsText(
+            in: query,
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: String.self
+        )
+        XCTAssertEqual(value, "foo")
+    }
+
+    //    | server | get | request query | text | array of string-convertibles | optional | getOptionalQueryItemAsText |
+    @available(*, deprecated)
+    func test_getOptionalQueryItemAsText_arrayOfStringConvertibles() throws {
+        let query: [URLQueryItem] = [
+            .init(name: "search", value: "foo"),
+            .init(name: "search", value: "bar"),
+        ]
+        let value: [String]? = try converter.getOptionalQueryItemAsText(
+            in: query,
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: [String].self
+        )
+        XCTAssertEqual(value, ["foo", "bar"])
+    }
+
+    //    | server | get | request query | text | array of string-convertibles | required | getRequiredQueryItemAsText |
+    @available(*, deprecated)
+    func test_getRequiredQueryItemAsText_arrayOfStringConvertibles() throws {
+        let query: [URLQueryItem] = [
+            .init(name: "search", value: "foo"),
+            .init(name: "search", value: "bar"),
+        ]
+        let value: [String] = try converter.getRequiredQueryItemAsText(
+            in: query,
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: [String].self
+        )
+        XCTAssertEqual(value, ["foo", "bar"])
+    }
+
+    //    | server | get | request query | text | array of string-convertibles | required | getRequiredQueryItemAsText |
+    @available(*, deprecated)
+    func test_getRequiredQueryItemAsText_arrayOfStringConvertibles_unexploded() throws {
+        let query: [URLQueryItem] = [
+            .init(name: "search", value: "foo,bar")
+        ]
+        let value: [String] = try converter.getRequiredQueryItemAsText(
+            in: query,
+            style: nil,
+            explode: false,
+            name: "search",
+            as: [String].self
+        )
+        XCTAssertEqual(value, ["foo", "bar"])
+    }
+
+    //    | server | get | request query | text | date | optional | getOptionalQueryItemAsText |
+    @available(*, deprecated)
+    func test_getOptionalQueryItemAsText_date() throws {
+        let query: [URLQueryItem] = [
+            .init(name: "search", value: testDateString)
+        ]
+        let value: Date? = try converter.getOptionalQueryItemAsText(
+            in: query,
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: Date.self
+        )
+        XCTAssertEqual(value, testDate)
+    }
+
+    //    | server | get | request query | text | date | required | getRequiredQueryItemAsText |
+    @available(*, deprecated)
+    func test_getRequiredQueryItemAsText_date() throws {
+        let query: [URLQueryItem] = [
+            .init(name: "search", value: testDateString)
+        ]
+        let value: Date = try converter.getRequiredQueryItemAsText(
+            in: query,
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: Date.self
+        )
+        XCTAssertEqual(value, testDate)
+    }
+
+    //    | server | get | request query | text | array of dates | optional | getOptionalQueryItemAsText |
+    @available(*, deprecated)
+    func test_getOptionalQueryItemAsText_arrayOfDates() throws {
+        let query: [URLQueryItem] = [
+            .init(name: "search", value: testDateString),
+            .init(name: "search", value: testDateString),
+        ]
+        let value: [Date]? = try converter.getOptionalQueryItemAsText(
+            in: query,
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: [Date].self
+        )
+        XCTAssertEqual(value, [testDate, testDate])
+    }
+
+    //    | server | get | request query | text | array of dates | required | getRequiredQueryItemAsText |
+    @available(*, deprecated)
+    func test_getRequiredQueryItemAsText_arrayOfDates() throws {
+        let query: [URLQueryItem] = [
+            .init(name: "search", value: testDateString),
+            .init(name: "search", value: testDateString),
+        ]
+        let value: [Date] = try converter.getRequiredQueryItemAsText(
+            in: query,
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: [Date].self
+        )
+        XCTAssertEqual(value, [testDate, testDate])
+    }
+
+    //    | server | get | request body | text | string-convertible | optional | getOptionalRequestBodyAsText |
+    @available(*, deprecated)
+    func test_getOptionalRequestBodyAsText_stringConvertible() throws {
+        let body: String? = try converter.getOptionalRequestBodyAsText(
+            String.self,
+            from: testStringData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testString)
+    }
+
+    //    | server | get | request body | text | string-convertible | required | getRequiredRequestBodyAsText |
+    @available(*, deprecated)
+    func test_getRequiredRequestBodyAsText_stringConvertible() throws {
+        let body: String = try converter.getRequiredRequestBodyAsText(
+            String.self,
+            from: testStringData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testString)
+    }
+
+    //    | server | get | request body | text | date | optional | getOptionalRequestBodyAsText |
+    @available(*, deprecated)
+    func test_getOptionalRequestBodyAsText_date() throws {
+        let body: Date? = try converter.getOptionalRequestBodyAsText(
+            Date.self,
+            from: testDateStringData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testDate)
+    }
+
+    //    | server | get | request body | text | date | required | getRequiredRequestBodyAsText |
+    @available(*, deprecated)
+    func test_getRequiredRequestBodyAsText_date() throws {
+        let body: Date = try converter.getRequiredRequestBodyAsText(
+            Date.self,
+            from: testDateStringData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testDate)
+    }
+
+    //    | server | set | response body | text | string-convertible | required | setResponseBodyAsText |
+    @available(*, deprecated)
+    func test_setResponseBodyAsText_stringConvertible() throws {
+        var headers: [HeaderField] = []
+        let data = try converter.setResponseBodyAsText(
+            testString,
+            headerFields: &headers,
+            contentType: "text/plain"
+        )
+        XCTAssertEqual(data, testStringData)
+        XCTAssertEqual(
+            headers,
+            [
+                .init(name: "content-type", value: "text/plain")
+            ]
+        )
+    }
+
+    //    | server | set | response body | text | date | required | setResponseBodyAsText |
+    @available(*, deprecated)
+    func test_setResponseBodyAsText_date() throws {
+        var headers: [HeaderField] = []
+        let data = try converter.setResponseBodyAsText(
+            testDate,
+            headerFields: &headers,
+            contentType: "text/plain"
+        )
+        XCTAssertEqual(data, testDateStringData)
+        XCTAssertEqual(
+            headers,
+            [
+                .init(name: "content-type", value: "text/plain")
+            ]
+        )
+    }
 }

@@ -36,69 +36,19 @@ extension Request {
         query = urlComponents.percentEncodedQuery
     }
 
-    /// Adds the provided name and value to the URL's query.
+    /// Adds the provided URI snippet to the URL's query.
+    ///
+    /// Percent encoding is already applied.
     /// - Parameters:
-    ///   - name: The name of the query item.
-    ///   - value: The value of the query item.
-    ///   - explode: A Boolean value indicating whether query items with the
-    ///   same name should be provided as separate key-value pairs (`true`) or
-    ///   if all the values for one key should be concatenated with a comma
-    ///   and provided as a single key-value pair (`false`).
-    mutating func addQueryItem(name: String, value: String, explode: Bool) {
-        mutateQuery { urlComponents in
-            urlComponents.addStringQueryItem(
-                name: name,
-                value: value,
-                explode: explode
-            )
+    ///   - snippet: A full URI snippet.
+    mutating func addEscapedQuerySnippet(_ snippet: String) {
+        let prefix: String
+        if let query {
+            prefix = query + "&"
+        } else {
+            prefix = ""
         }
-    }
-}
-
-extension URLComponents {
-
-    /// Adds the provided name and value to the URL's query.
-    /// - Parameters:
-    ///   - name: The name of the query item.
-    ///   - value: The value of the query item.
-    ///   - explode: A Boolean value indicating whether query items with the
-    ///   same name should be provided as separate key-value pairs (`true`) or
-    ///   if all the values for one key should be concatenated with a comma
-    ///   and provided as a single key-value pair (`false`).
-    mutating func addStringQueryItem(
-        name: String,
-        value: String,
-        explode: Bool
-    ) {
-        if explode {
-            queryItems =
-                (queryItems ?? []) + [
-                    .init(name: name, value: value)
-                ]
-            return
-        }
-        // When explode is false, we need to collect all the potential existing
-        // values from the array with the same name, add the new one, and
-        // concatenate them with a comma.
-        let originalQueryItems = queryItems ?? []
-        struct GroupedQueryItems {
-            var matchingValues: [String] = []
-            var otherItems: [URLQueryItem] = []
-        }
-        let groups =
-            originalQueryItems
-            .reduce(into: GroupedQueryItems()) { partialResult, item in
-                if item.name == name {
-                    partialResult.matchingValues.append(item.value ?? "")
-                } else {
-                    partialResult.otherItems.append(item)
-                }
-            }
-        let newItem = URLQueryItem(
-            name: name,
-            value: (groups.matchingValues + [value]).joined(separator: ",")
-        )
-        queryItems = groups.otherItems + [newItem]
+        query = prefix + snippet
     }
 }
 
