@@ -11,52 +11,35 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import Foundation
 
-/// An error thrown by a server handling an OpenAPI operation.
+import HTTPTypes
+import protocol Foundation.LocalizedError
+
 public struct ServerError: Error {
-    /// Identifier of the operation that threw the error.
+
     public var operationID: String
 
-    /// HTTP request provided to the server.
-    public var request: Request
+    public var request: HTTPRequest
 
-    /// Request metadata extracted by the server.
-    public var requestMetadata: ServerRequestMetadata
+    public var requestBody: HTTPBody?
 
-    /// Operation-specific Input value.
-    ///
-    /// Is nil if error was thrown during request -> Input conversion.
     public var operationInput: (any Sendable)?
 
-    /// Operation-specific Output value.
-    ///
-    /// Is nil if error was thrown before/during Output -> response conversion.
     public var operationOutput: (any Sendable)?
 
-    /// The underlying error that caused the operation to fail.
     public var underlyingError: any Error
 
-    /// Creates a new error.
-    /// - Parameters:
-    ///   - operationID: The OpenAPI operation identifier.
-    ///   - request: HTTP request provided to the server.
-    ///   - requestMetadata: Request metadata extracted by the server.
-    ///   - operationInput: Operation-specific Input value.
-    ///   - operationOutput: Operation-specific Output value.
-    ///   - underlyingError: The underlying error that caused the operation
-    ///     to fail.
     public init(
         operationID: String,
-        request: Request,
-        requestMetadata: ServerRequestMetadata,
+        request: HTTPRequest,
+        requestBody: HTTPBody?,
         operationInput: (any Sendable)? = nil,
         operationOutput: (any Sendable)? = nil,
         underlyingError: (any Error)
     ) {
         self.operationID = operationID
         self.request = request
-        self.requestMetadata = requestMetadata
+        self.requestBody = requestBody
         self.operationInput = operationInput
         self.operationOutput = operationOutput
         self.underlyingError = underlyingError
@@ -72,9 +55,11 @@ public struct ServerError: Error {
     }
 }
 
+// TODO: Make pretty printable (except the body)
+
 extension ServerError: CustomStringConvertible {
     public var description: String {
-        "Server error - operationID: \(operationID), request: \(request.description), metadata: \(requestMetadata.description), operationInput: \(operationInput.map { String(describing: $0) } ?? "<nil>"), operationOutput: \(operationOutput.map { String(describing: $0) } ?? "<nil>"), underlying error: \(underlyingErrorDescription)"
+        "Server error - operationID: \(operationID), underlying error: \(underlyingErrorDescription)"
     }
 }
 

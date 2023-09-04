@@ -12,80 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import Foundation
-
-extension HeaderField: CustomStringConvertible {
-    public var description: String {
-        "\(name): \(value)"
-    }
-}
-
-extension Request: CustomStringConvertible {
-    public var description: String {
-        "path: \(path), query: \(query ?? "<nil>"), method: \(method), header fields: \(headerFields.description), body (prefix): \(body?.prettyPrefix ?? "<nil>")"
-    }
-}
-
-extension Response: CustomStringConvertible {
-    public var description: String {
-        "status: \(statusCode), header fields: \(headerFields.description), body: \(body.prettyPrefix)"
-    }
-}
-
-extension ServerRequestMetadata: CustomStringConvertible {
-    public var description: String {
-        "path parameters: \(pathParameters.description), query parameters: \(queryParameters.description)"
-    }
-}
-
-extension Array where Element == HeaderField {
-
-    /// Adds a header for the provided name and value.
-    /// - Parameters:
-    ///   - name: Header name.
-    ///   - value: Header value. If nil, the header is not added.
-    mutating func add(name: String, value: String?) {
-        guard let value = value else {
-            return
-        }
-        append(.init(name: name, value: value))
-    }
-
-    /// Adds headers for the provided name and values.
-    /// - Parameters:
-    ///   - name: Header name.
-    ///   - value: Header values.
-    mutating func add(name: String, values: [String]?) {
-        guard let values = values else {
-            return
-        }
-        for value in values {
-            append(.init(name: name, value: value))
-        }
-    }
-
-    /// Removes all headers matching the provided (case-insensitive) name.
-    /// - Parameters:
-    ///   - name: Header name.
-    mutating func removeAll(named name: String) {
-        removeAll {
-            $0.name.caseInsensitiveCompare(name) == .orderedSame
-        }
-    }
-
-    /// Returns the first header value for the provided (case-insensitive) name.
-    /// - Parameter name: Header name.
-    /// - Returns: First value for the given name. Nil if one does not exist.
-    func firstValue(name: String) -> String? {
-        first { $0.name.caseInsensitiveCompare(name) == .orderedSame }?.value
-    }
-
-    /// Returns all header values for the given (case-insensitive) name.
-    /// - Parameter name: Header name.
-    /// - Returns: All values for the given name, might be empty if none are found.
-    func values(name: String) -> [String] {
-        filter { $0.name.caseInsensitiveCompare(name) == .orderedSame }.map { $0.value }
-    }
-}
+import HTTPTypes
 
 extension ParameterStyle {
 
@@ -111,6 +38,30 @@ extension ParameterStyle {
             )
         }
         return (resolvedStyle, resolvedExplode)
+    }
+}
+
+extension HTTPField.Name {
+
+    // TODO: Docs
+    init(validated name: String) throws {
+        guard let fieldName = Self.init(name) else {
+            throw RuntimeError.invalidHeaderFieldName(name)
+        }
+        self = fieldName
+    }
+}
+
+extension HTTPRequest {
+
+    // TODO: Docs
+    var requiredPath: Substring {
+        get throws {
+            guard let path else {
+                throw RuntimeError.pathUnset
+            }
+            return path[...]
+        }
     }
 }
 
@@ -172,15 +123,17 @@ extension Converter {
     }
 
     func convertJSONToBodyCodable<T: Decodable>(
-        _ data: Data
-    ) throws -> T {
-        try decoder.decode(T.self, from: data)
+        _ body: HTTPBody
+    ) async throws -> T {
+        let data = try await body.collectAsData(upTo: .max)
+        return try decoder.decode(T.self, from: data)
     }
 
     func convertBodyCodableToJSON<T: Encodable>(
         _ value: T
-    ) throws -> Data {
-        try encoder.encode(value)
+    ) throws -> HTTPBody {
+        let data = try encoder.encode(value)
+        return HTTPBody(data: data)
     }
 
     func convertHeaderFieldCodableToJSON<T: Encodable>(
@@ -199,8 +152,9 @@ extension Converter {
     }
 
     func convertFromStringData<T: Decodable>(
-        _ data: Data
-    ) throws -> T {
+        _ body: HTTPBody
+    ) async throws -> T {
+        let data = try await body.collect(upTo: .max)
         let encodedString = String(decoding: data, as: UTF8.self)
         let decoder = StringDecoder(
             dateTranscoder: configuration.dateTranscoder
@@ -214,30 +168,30 @@ extension Converter {
 
     func convertToStringData<T: Encodable>(
         _ value: T
-    ) throws -> Data {
+    ) throws -> HTTPBody {
         let encoder = StringEncoder(
             dateTranscoder: configuration.dateTranscoder
         )
         let encodedString = try encoder.encode(value)
-        return Data(encodedString.utf8)
+        return HTTPBody(data: Array(encodedString.utf8))
     }
 
     func convertBinaryToData(
-        _ binary: Data
-    ) throws -> Data {
+        _ binary: HTTPBody
+    ) throws -> HTTPBody {
         binary
     }
 
     func convertDataToBinary(
-        _ data: Data
-    ) throws -> Data {
+        _ data: HTTPBody
+    ) throws -> HTTPBody {
         data
     }
 
     // MARK: - Helpers for specific types of parameters
 
     func setHeaderField<T>(
-        in headerFields: inout [HeaderField],
+        in headerFields: inout HTTPFields,
         name: String,
         value: T?,
         convert: (T) throws -> String
@@ -245,31 +199,29 @@ extension Converter {
         guard let value else {
             return
         }
-        headerFields.add(
-            name: name,
-            value: try convert(value)
+        try headerFields.append(
+            .init(
+                name: .init(validated: name),
+                value: convert(value)
+            )
         )
     }
 
     func getHeaderFieldValuesString(
-        in headerFields: [HeaderField],
+        in headerFields: HTTPFields,
         name: String
-    ) -> String? {
-        let values = headerFields.values(name: name)
-        guard !values.isEmpty else {
-            return nil
-        }
-        return values.joined(separator: ",")
+    ) throws -> String? {
+        try headerFields[.init(validated: name)]
     }
 
     func getOptionalHeaderField<T>(
-        in headerFields: [HeaderField],
+        in headerFields: HTTPFields,
         name: String,
         as type: T.Type,
         convert: (String) throws -> T
     ) throws -> T? {
         guard
-            let stringValue = getHeaderFieldValuesString(
+            let stringValue = try getHeaderFieldValuesString(
                 in: headerFields,
                 name: name
             )
@@ -280,13 +232,13 @@ extension Converter {
     }
 
     func getRequiredHeaderField<T>(
-        in headerFields: [HeaderField],
+        in headerFields: HTTPFields,
         name: String,
         as type: T.Type,
         convert: (String) throws -> T
     ) throws -> T {
         guard
-            let stringValue = getHeaderFieldValuesString(
+            let stringValue = try getHeaderFieldValuesString(
                 in: headerFields,
                 name: name
             )
@@ -297,7 +249,7 @@ extension Converter {
     }
 
     func setEscapedQueryItem<T>(
-        in request: inout Request,
+        in request: inout HTTPRequest,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
@@ -312,8 +264,31 @@ extension Converter {
             style: style,
             explode: explode
         )
-        let uriSnippet = try convert(value, resolvedStyle, resolvedExplode)
-        request.addEscapedQuerySnippet(uriSnippet)
+        let escapedUriSnippet = try convert(value, resolvedStyle, resolvedExplode)
+
+        let pathAndAll = try request.requiredPath
+
+        // https://datatracker.ietf.org/doc/html/rfc3986#section-3.4
+        // > The query component is indicated by the first question
+        // > mark ("?") character and terminated by a number sign ("#")
+        // > character or by the end of the URI.
+
+        let fragmentStart = pathAndAll.firstIndex(of: "#") ?? pathAndAll.endIndex
+        let fragment = pathAndAll[fragmentStart..<pathAndAll.endIndex]
+
+        let queryStart = pathAndAll.firstIndex(of: "?")
+
+        let pathEnd = queryStart ?? fragmentStart
+        let path = pathAndAll[pathAndAll.startIndex..<pathEnd]
+
+        guard let queryStart else {
+            // No existing query substring, add the question mark.
+            request.path = pathAndAll.appending("\(path)?\(escapedUriSnippet)\(fragment)")
+            return
+        }
+
+        let query = pathAndAll[pathAndAll.index(after: queryStart)..<fragmentStart]
+        request.path = pathAndAll.appending("\(path)?\(query)&\(escapedUriSnippet)\(fragment)")
     }
 
     func getOptionalQueryItem<T>(
@@ -360,20 +335,20 @@ extension Converter {
 
     func setRequiredRequestBody<T>(
         _ value: T,
-        headerFields: inout [HeaderField],
+        headerFields: inout HTTPFields,
         contentType: String,
-        convert: (T) throws -> Data
-    ) throws -> Data {
-        headerFields.add(name: "content-type", value: contentType)
+        convert: (T) throws -> HTTPBody
+    ) throws -> HTTPBody {
+        headerFields[.contentType] = contentType
         return try convert(value)
     }
 
     func setOptionalRequestBody<T>(
         _ value: T?,
-        headerFields: inout [HeaderField],
+        headerFields: inout HTTPFields,
         contentType: String,
-        convert: (T) throws -> Data
-    ) throws -> Data? {
+        convert: (T) throws -> HTTPBody
+    ) throws -> HTTPBody? {
         guard let value else {
             return nil
         }
@@ -385,11 +360,24 @@ extension Converter {
         )
     }
 
+    func getOptionalBufferingRequestBody<T, C>(
+        _ type: T.Type,
+        from data: HTTPBody?,
+        transforming transform: (T) -> C,
+        convert: (HTTPBody) async throws -> T
+    ) async throws -> C? {
+        guard let data else {
+            return nil
+        }
+        let decoded = try await convert(data)
+        return transform(decoded)
+    }
+
     func getOptionalRequestBody<T, C>(
         _ type: T.Type,
-        from data: Data?,
+        from data: HTTPBody?,
         transforming transform: (T) -> C,
-        convert: (Data) throws -> T
+        convert: (HTTPBody) throws -> T
     ) throws -> C? {
         guard let data else {
             return nil
@@ -398,11 +386,30 @@ extension Converter {
         return transform(decoded)
     }
 
+    func getRequiredBufferingRequestBody<T, C>(
+        _ type: T.Type,
+        from data: HTTPBody?,
+        transforming transform: (T) -> C,
+        convert: (HTTPBody) async throws -> T
+    ) async throws -> C {
+        guard
+            let body = try await getOptionalBufferingRequestBody(
+                type,
+                from: data,
+                transforming: transform,
+                convert: convert
+            )
+        else {
+            throw RuntimeError.missingRequiredRequestBody
+        }
+        return body
+    }
+
     func getRequiredRequestBody<T, C>(
         _ type: T.Type,
-        from data: Data?,
+        from data: HTTPBody?,
         transforming transform: (T) -> C,
-        convert: (Data) throws -> T
+        convert: (HTTPBody) throws -> T
     ) throws -> C {
         guard
             let body = try getOptionalRequestBody(
@@ -417,11 +424,22 @@ extension Converter {
         return body
     }
 
+    func getBufferingResponseBody<T, C>(
+        _ type: T.Type,
+        from data: HTTPBody,
+        transforming transform: (T) -> C,
+        convert: (HTTPBody) async throws -> T
+    ) async throws -> C {
+        let parsedValue = try await convert(data)
+        let transformedValue = transform(parsedValue)
+        return transformedValue
+    }
+
     func getResponseBody<T, C>(
         _ type: T.Type,
-        from data: Data,
+        from data: HTTPBody,
         transforming transform: (T) -> C,
-        convert: (Data) throws -> T
+        convert: (HTTPBody) throws -> T
     ) throws -> C {
         let parsedValue = try convert(data)
         let transformedValue = transform(parsedValue)
@@ -430,11 +448,11 @@ extension Converter {
 
     func setResponseBody<T>(
         _ value: T,
-        headerFields: inout [HeaderField],
+        headerFields: inout HTTPFields,
         contentType: String,
-        convert: (T) throws -> Data
-    ) throws -> Data {
-        headerFields.add(name: "content-type", value: contentType)
+        convert: (T) throws -> HTTPBody
+    ) throws -> HTTPBody {
+        headerFields[.contentType] = contentType
         return try convert(value)
     }
 

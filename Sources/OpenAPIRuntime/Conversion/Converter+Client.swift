@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import Foundation
+import HTTPTypes
 
 extension Converter {
 
@@ -20,15 +21,10 @@ extension Converter {
     ///   - headerFields: The header fields where to add the "accept" header.
     ///   - contentTypes: The array of acceptable content types by the client.
     public func setAcceptHeader<T: AcceptableProtocol>(
-        in headerFields: inout [HeaderField],
+        in headerFields: inout HTTPFields,
         contentTypes: [AcceptHeaderContentType<T>]
     ) {
-        headerFields.append(
-            .init(
-                name: "accept",
-                value: contentTypes.map(\.rawValue).joined(separator: ", ")
-            )
-        )
+        headerFields[.accept] = contentTypes.map(\.rawValue).joined(separator: ", ")
     }
 
     //    | client | set | request path | URI | required | renderedPath |
@@ -60,7 +56,7 @@ extension Converter {
 
     //    | client | set | request query | URI | both | setQueryItemAsURI |
     public func setQueryItemAsURI<T: Encodable>(
-        in request: inout Request,
+        in request: inout HTTPRequest,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
@@ -84,40 +80,12 @@ extension Converter {
         )
     }
 
-    //    | client | set | request body | string | optional | setOptionalRequestBodyAsString |
-    public func setOptionalRequestBodyAsString<T: Encodable>(
-        _ value: T?,
-        headerFields: inout [HeaderField],
-        contentType: String
-    ) throws -> Data? {
-        try setOptionalRequestBody(
-            value,
-            headerFields: &headerFields,
-            contentType: contentType,
-            convert: convertToStringData
-        )
-    }
-
-    //    | client | set | request body | string | required | setRequiredRequestBodyAsString |
-    public func setRequiredRequestBodyAsString<T: Encodable>(
-        _ value: T,
-        headerFields: inout [HeaderField],
-        contentType: String
-    ) throws -> Data {
-        try setRequiredRequestBody(
-            value,
-            headerFields: &headerFields,
-            contentType: contentType,
-            convert: convertToStringData
-        )
-    }
-
     //    | client | set | request body | JSON | optional | setOptionalRequestBodyAsJSON |
     public func setOptionalRequestBodyAsJSON<T: Encodable>(
         _ value: T?,
-        headerFields: inout [HeaderField],
+        headerFields: inout HTTPFields,
         contentType: String
-    ) throws -> Data? {
+    ) throws -> HTTPBody? {
         try setOptionalRequestBody(
             value,
             headerFields: &headerFields,
@@ -129,9 +97,9 @@ extension Converter {
     //    | client | set | request body | JSON | required | setRequiredRequestBodyAsJSON |
     public func setRequiredRequestBodyAsJSON<T: Encodable>(
         _ value: T,
-        headerFields: inout [HeaderField],
+        headerFields: inout HTTPFields,
         contentType: String
-    ) throws -> Data {
+    ) throws -> HTTPBody {
         try setRequiredRequestBody(
             value,
             headerFields: &headerFields,
@@ -142,10 +110,10 @@ extension Converter {
 
     //    | client | set | request body | binary | optional | setOptionalRequestBodyAsBinary |
     public func setOptionalRequestBodyAsBinary(
-        _ value: Data?,
-        headerFields: inout [HeaderField],
+        _ value: HTTPBody?,
+        headerFields: inout HTTPFields,
         contentType: String
-    ) throws -> Data? {
+    ) throws -> HTTPBody? {
         try setOptionalRequestBody(
             value,
             headerFields: &headerFields,
@@ -156,10 +124,10 @@ extension Converter {
 
     //    | client | set | request body | binary | required | setRequiredRequestBodyAsBinary |
     public func setRequiredRequestBodyAsBinary(
-        _ value: Data,
-        headerFields: inout [HeaderField],
+        _ value: HTTPBody,
+        headerFields: inout HTTPFields,
         contentType: String
-    ) throws -> Data {
+    ) throws -> HTTPBody {
         try setRequiredRequestBody(
             value,
             headerFields: &headerFields,
@@ -168,27 +136,13 @@ extension Converter {
         )
     }
 
-    //    | client | get | response body | string | required | getResponseBodyAsString |
-    public func getResponseBodyAsString<T: Decodable, C>(
-        _ type: T.Type,
-        from data: Data,
-        transforming transform: (T) -> C
-    ) throws -> C {
-        try getResponseBody(
-            type,
-            from: data,
-            transforming: transform,
-            convert: convertFromStringData
-        )
-    }
-
     //    | client | get | response body | JSON | required | getResponseBodyAsJSON |
     public func getResponseBodyAsJSON<T: Decodable, C>(
         _ type: T.Type,
-        from data: Data,
+        from data: HTTPBody,
         transforming transform: (T) -> C
-    ) throws -> C {
-        try getResponseBody(
+    ) async throws -> C {
+        try await getBufferingResponseBody(
             type,
             from: data,
             transforming: transform,
@@ -198,9 +152,9 @@ extension Converter {
 
     //    | client | get | response body | binary | required | getResponseBodyAsBinary |
     public func getResponseBodyAsBinary<C>(
-        _ type: Data.Type,
-        from data: Data,
-        transforming transform: (Data) -> C
+        _ type: HTTPBody.Type,
+        from data: HTTPBody,
+        transforming transform: (HTTPBody) -> C
     ) throws -> C {
         try getResponseBody(
             type,

@@ -37,12 +37,15 @@ let package = Package(
         ),
     ],
     dependencies: [
+        .package(url: "https://github.com/apple/swift-http-types", branch: "main"),
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
     ],
     targets: [
         .target(
             name: "OpenAPIRuntime",
-            dependencies: [],
+            dependencies: [
+                .product(name: "HTTPTypes", package: "swift-http-types"),
+            ],
             swiftSettings: swiftSettings
         ),
         .testTarget(

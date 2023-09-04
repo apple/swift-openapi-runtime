@@ -11,35 +11,28 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+import HTTPTypes
+
 #if canImport(Darwin)
-import Foundation
+import struct Foundation.URL
+import struct Foundation.URLComponents
 #else
 @preconcurrency import struct Foundation.URL
 @preconcurrency import struct Foundation.URLComponents
 #endif
 
-/// OpenAPI document-agnostic HTTP server used by OpenAPI document-specific,
-/// generated servers to perform request deserialization, middleware and handler
-/// invocation, and response serialization.
-///
-/// Do not call this directly, only invoked by generated code.
 @_spi(Generated)
 public struct UniversalServer<APIHandler: Sendable>: Sendable {
 
-    /// The URL of the server, used to determine the path prefix for
-    /// registered request handlers.
     public var serverURL: URL
 
-    /// Helper for configuration driven data conversion
     public var converter: Converter
 
-    /// Implements the handler for each HTTP operation.
     public var handler: APIHandler
 
-    /// Middlewares to be invoked before `api` handles the request.
     public var middlewares: [any ServerMiddleware]
 
-    /// Internal initializer that takes an initialized converter.
     internal init(
         serverURL: URL,
         converter: Converter,
@@ -52,7 +45,6 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
         self.middlewares = middlewares
     }
 
-    /// Creates a new server with the specified parameters.
     public init(
         serverURL: URL = .defaultOpenAPIServerURL,
         handler: APIHandler,
@@ -67,32 +59,14 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
         )
     }
 
-    /// Performs the operation.
-    ///
-    /// Should only be called by generated code, not directly.
-    ///
-    /// An operation consists of three steps (middlewares happen before 1 and after 3):
-    /// 1. Convert HTTP request into Input.
-    /// 2. Invoke the user handler to perform the user logic.
-    /// 3. Convert Output into an HTTP response.
-    ///
-    /// It wraps any thrown errors and attaching appropriate context.
-    /// - Parameters:
-    ///   - request: HTTP request.
-    ///   - metadata: HTTP request metadata.
-    ///   - operationID: The OpenAPI operation identifier.
-    ///   - handlerMethod: User handler method.
-    ///   - deserializer: Creates an Input value from the provided HTTP request.
-    ///   - serializer: Creates an HTTP response from the provided Output value.
-    /// - Returns: The HTTP response produced by `serializer`.
     public func handle<OperationInput, OperationOutput>(
-        request: Request,
-        with metadata: ServerRequestMetadata,
+        request: HTTPRequest,
+        requestBody: HTTPBody?,
         forOperation operationID: String,
         using handlerMethod: @Sendable @escaping (APIHandler) -> ((OperationInput) async throws -> OperationOutput),
-        deserializer: @Sendable @escaping (Request, ServerRequestMetadata) throws -> OperationInput,
-        serializer: @Sendable @escaping (OperationOutput, Request) throws -> Response
-    ) async throws -> Response where OperationInput: Sendable, OperationOutput: Sendable {
+        deserializer: @Sendable @escaping (HTTPRequest, HTTPBody?) throws -> OperationInput,
+        serializer: @Sendable @escaping (OperationOutput, HTTPRequest) throws -> (HTTPResponse, HTTPBody)
+    ) async throws -> (HTTPResponse, HTTPBody) where OperationInput: Sendable, OperationOutput: Sendable {
         @Sendable
         func wrappingErrors<R>(
             work: () async throws -> R,
@@ -113,15 +87,17 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
             ServerError(
                 operationID: operationID,
                 request: request,
-                requestMetadata: metadata,
+                requestBody: requestBody,
                 operationInput: input,
                 operationOutput: output,
                 underlyingError: error
             )
         }
-        var next: @Sendable (Request, ServerRequestMetadata) async throws -> Response = { _request, _metadata in
+        var next: @Sendable (HTTPRequest, HTTPBody?) async throws -> (HTTPResponse, HTTPBody) = {
+            _request,
+            _requestBody in
             let input: OperationInput = try await wrappingErrors {
-                try deserializer(_request, _metadata)
+                try deserializer(_request, _requestBody)
             } mapError: { error in
                 makeError(error: error)
             }
@@ -146,29 +122,24 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
             next = {
                 try await middleware.intercept(
                     $0,
-                    metadata: $1,
+                    body: $1,
                     operationID: operationID,
                     next: tmp
                 )
             }
         }
-        return try await next(request, metadata)
+        return try await next(request, requestBody)
     }
 
-    /// Prepends the path components for the selected remote server URL.
     public func apiPathComponentsWithServerPrefix(
-        _ path: [RouterPathComponent]
-    ) throws -> [RouterPathComponent] {
+        _ path: String
+    ) throws -> String {
         // Operation path is for example [pets, 42]
         // Server may be configured with a prefix, for example http://localhost/foo/bar/v1
         // Goal is to return something like [foo, bar, v1, pets, 42]
         guard let components = URLComponents(url: serverURL, resolvingAgainstBaseURL: false) else {
             throw RuntimeError.invalidServerURL(serverURL.absoluteString)
         }
-        let prefixComponents = components.path
-            .split(separator: "/")
-            .filter { !$0.isEmpty }
-            .map { RouterPathComponent.constant(String($0)) }
-        return prefixComponents + path
+        return components.path + path
     }
 }

@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import Foundation
+import HTTPTypes
 
 extension Converter {
 
@@ -21,8 +22,8 @@ extension Converter {
     /// - Parameter headerFields: The header fields to inspect for the content
     /// type header.
     /// - Returns: The content type value, or nil if not found or invalid.
-    public func extractContentTypeIfPresent(in headerFields: [HeaderField]) -> OpenAPIMIMEType? {
-        guard let rawValue = headerFields.firstValue(name: "content-type") else {
+    public func extractContentTypeIfPresent(in headerFields: HTTPFields) -> OpenAPIMIMEType? {
+        guard let rawValue = headerFields[.contentType] else {
             return nil
         }
         return OpenAPIMIMEType(rawValue)
@@ -72,7 +73,7 @@ extension Converter {
 
     //    | common | set | header field | URI | both | setHeaderFieldAsURI |
     public func setHeaderFieldAsURI<T: Encodable>(
-        in headerFields: inout [HeaderField],
+        in headerFields: inout HTTPFields,
         name: String,
         value: T?
     ) throws {
@@ -97,7 +98,7 @@ extension Converter {
 
     //    | common | set | header field | JSON | both | setHeaderFieldAsJSON |
     public func setHeaderFieldAsJSON<T: Encodable>(
-        in headerFields: inout [HeaderField],
+        in headerFields: inout HTTPFields,
         name: String,
         value: T?
     ) throws {
@@ -111,7 +112,7 @@ extension Converter {
 
     //    | common | get | header field | URI | optional | getOptionalHeaderFieldAsURI |
     public func getOptionalHeaderFieldAsURI<T: Decodable>(
-        in headerFields: [HeaderField],
+        in headerFields: HTTPFields,
         name: String,
         as type: T.Type
     ) throws -> T? {
@@ -133,7 +134,7 @@ extension Converter {
 
     //    | common | get | header field | URI | required | getRequiredHeaderFieldAsURI |
     public func getRequiredHeaderFieldAsURI<T: Decodable>(
-        in headerFields: [HeaderField],
+        in headerFields: HTTPFields,
         name: String,
         as type: T.Type
     ) throws -> T {
@@ -155,7 +156,7 @@ extension Converter {
 
     //    | common | get | header field | JSON | optional | getOptionalHeaderFieldAsJSON |
     public func getOptionalHeaderFieldAsJSON<T: Decodable>(
-        in headerFields: [HeaderField],
+        in headerFields: HTTPFields,
         name: String,
         as type: T.Type
     ) throws -> T? {
@@ -169,7 +170,7 @@ extension Converter {
 
     //    | common | get | header field | JSON | required | getRequiredHeaderFieldAsJSON |
     public func getRequiredHeaderFieldAsJSON<T: Decodable>(
-        in headerFields: [HeaderField],
+        in headerFields: HTTPFields,
         name: String,
         as type: T.Type
     ) throws -> T {
