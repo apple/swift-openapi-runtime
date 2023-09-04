@@ -128,7 +128,7 @@ final class Test_URIParser: Test_Runtime {
             ) throws {
                 var parser = URIParser(
                     configuration: variant.config,
-                    data: input.string
+                    data: input.string[...]
                 )
                 let parsedNode = try parser.parseRoot()
                 XCTAssertEqual(

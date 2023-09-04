@@ -14,6 +14,7 @@
 
 import XCTest
 @_spi(Generated) import OpenAPIRuntime
+import HTTPTypes
 
 class Test_Runtime: XCTestCase {
 
@@ -42,9 +43,9 @@ class Test_Runtime: XCTestCase {
         return components
     }
 
-    var testRequest: OpenAPIRuntime.Request {
-        .init(path: "/api", query: nil, method: .get)
-    }
+//    var testRequest: OpenAPIRuntime.Request {
+//        .init(path: "/api", query: nil, method: .get)
+//    }
 
     var testDate: Date {
         Date(timeIntervalSince1970: 1_674_036_251)
@@ -153,35 +154,32 @@ struct AuthenticationMiddleware: ClientMiddleware {
     var token: String
 
     func intercept(
-        _ request: Request,
+        _ request: HTTPRequest,
+        body: HTTPBody?,
         baseURL: URL,
         operationID: String,
-        next: (Request, URL) async throws -> Response
-    ) async throws -> Response {
+        next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody)
+    ) async throws -> (HTTPResponse, HTTPBody) {
         var request = request
-        request.headerFields.append(
-            .init(
-                name: "Authorization",
-                value: "Bearer \(token)"
-            )
-        )
-        return try await next(request, baseURL)
+        request.headerFields[.authorization] = "Bearer \(token)"
+        return try await next(request, body, baseURL)
     }
 }
 
 /// Prints the request method + path and response status code.
 struct PrintingMiddleware: ClientMiddleware {
     func intercept(
-        _ request: Request,
+        _ request: HTTPRequest,
+        body: HTTPBody?,
         baseURL: URL,
         operationID: String,
-        next: (Request, URL) async throws -> Response
-    ) async throws -> Response {
-        print("Sending \(request.method.name) \(request.path)")
+        next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody)
+    ) async throws -> (HTTPResponse, HTTPBody) {
+        print("Sending \(request.method) \(request.path ?? "<no path>")")
         do {
-            let response = try await next(request, baseURL)
-            print("Received: \(response.statusCode)")
-            return response
+            let (response, responseBody) = try await next(request, body, baseURL)
+            print("Received: \(response.status)")
+            return (response, responseBody)
         } catch {
             print("Failed with error: \(error.localizedDescription)")
             throw error

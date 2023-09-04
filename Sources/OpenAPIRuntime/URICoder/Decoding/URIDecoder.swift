@@ -75,7 +75,7 @@ extension URIDecoder {
     func decode<T: Decodable>(
         _ type: T.Type = T.self,
         forKey key: String = "",
-        from data: String
+        from data: Substring
     ) throws -> T {
         try withCachedParser(from: data) { decoder in
             try decoder.decode(type, forKey: key)
@@ -91,7 +91,7 @@ extension URIDecoder {
     ///     the `decode` method on `URICachedDecoder`.
     /// - Returns: The result of the closure invocation.
     func withCachedParser<R>(
-        from data: String,
+        from data: Substring,
         calls: (URICachedDecoder) throws -> R
     ) throws -> R {
         var parser = URIParser(configuration: configuration, data: data)

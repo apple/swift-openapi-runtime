@@ -335,7 +335,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             let decodedValue = try decoder.decode(
                 T.self,
                 forKey: key,
-                from: encodedString
+                from: encodedString[...]
             )
             XCTAssertEqual(
                 decodedValue,

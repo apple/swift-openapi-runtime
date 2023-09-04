@@ -17,7 +17,7 @@ import HTTPTypes
 public protocol ServerTransport {
 
     func register(
-        _ handler: @Sendable @escaping (HTTPRequest, HTTPBody?) async throws -> (HTTPResponse, HTTPBody),
+        _ handler: @Sendable @escaping (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody),
         method: HTTPRequest.Method,
         path: String
     ) throws
@@ -28,7 +28,8 @@ public protocol ServerMiddleware: Sendable {
     func intercept(
         _ request: HTTPRequest,
         body: HTTPBody?,
+        metadata: ServerRequestMetadata,
         operationID: String,
-        next: @Sendable (HTTPRequest, HTTPBody?) async throws -> (HTTPResponse, HTTPBody)
+        next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody)
     ) async throws -> (HTTPResponse, HTTPBody)
 }

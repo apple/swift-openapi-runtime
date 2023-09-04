@@ -62,9 +62,10 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
     public func handle<OperationInput, OperationOutput>(
         request: HTTPRequest,
         requestBody: HTTPBody?,
+        metadata: ServerRequestMetadata,
         forOperation operationID: String,
         using handlerMethod: @Sendable @escaping (APIHandler) -> ((OperationInput) async throws -> OperationOutput),
-        deserializer: @Sendable @escaping (HTTPRequest, HTTPBody?) throws -> OperationInput,
+        deserializer: @Sendable @escaping (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> OperationInput,
         serializer: @Sendable @escaping (OperationOutput, HTTPRequest) throws -> (HTTPResponse, HTTPBody)
     ) async throws -> (HTTPResponse, HTTPBody) where OperationInput: Sendable, OperationOutput: Sendable {
         @Sendable
@@ -88,16 +89,18 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
                 operationID: operationID,
                 request: request,
                 requestBody: requestBody,
+                metadata: metadata,
                 operationInput: input,
                 operationOutput: output,
                 underlyingError: error
             )
         }
-        var next: @Sendable (HTTPRequest, HTTPBody?) async throws -> (HTTPResponse, HTTPBody) = {
+        var next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody) = {
             _request,
-            _requestBody in
+            _requestBody,
+            _metadata in
             let input: OperationInput = try await wrappingErrors {
-                try deserializer(_request, _requestBody)
+                try await deserializer(_request, _requestBody, _metadata)
             } mapError: { error in
                 makeError(error: error)
             }
@@ -123,12 +126,13 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
                 try await middleware.intercept(
                     $0,
                     body: $1,
+                    metadata: $2,
                     operationID: operationID,
                     next: tmp
                 )
             }
         }
-        return try await next(request, requestBody)
+        return try await next(request, requestBody, metadata)
     }
 
     public func apiPathComponentsWithServerPrefix(

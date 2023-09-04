@@ -97,6 +97,14 @@ extension HTTPBody: Hashable {
 
 extension HTTPBody {
 
+    public convenience init() {
+        self.init(
+            dataChunks: [],
+            length: .known(0),
+            iterationBehavior: .multiple
+        )
+    }
+    
     public convenience init(
         data: DataType,
         length: Length

@@ -24,13 +24,13 @@ public struct UniversalClient: Sendable {
     public let serverURL: URL
     public let converter: Converter
     public var transport: any ClientTransport
-    public var middlewares: [any NewClientMiddleware]
+    public var middlewares: [any ClientMiddleware]
 
     internal init(
         serverURL: URL,
         converter: Converter,
         transport: any ClientTransport,
-        middlewares: [any NewClientMiddleware]
+        middlewares: [any ClientMiddleware]
     ) {
         self.serverURL = serverURL
         self.converter = converter
@@ -42,7 +42,7 @@ public struct UniversalClient: Sendable {
         serverURL: URL = .defaultOpenAPIServerURL,
         configuration: Configuration = .init(),
         transport: any ClientTransport,
-        middlewares: [any NewClientMiddleware] = []
+        middlewares: [any ClientMiddleware] = []
     ) {
         self.init(
             serverURL: serverURL,
@@ -56,7 +56,7 @@ public struct UniversalClient: Sendable {
         input: OperationInput,
         forOperation operationID: String,
         serializer: @Sendable (OperationInput) throws -> (HTTPRequest, HTTPBody?),
-        deserializer: @Sendable (HTTPResponse, HTTPBody) throws -> OperationOutput
+        deserializer: @Sendable (HTTPResponse, HTTPBody) async throws -> OperationOutput
     ) async throws -> OperationOutput where OperationInput: Sendable, OperationOutput: Sendable {
         @Sendable
         func wrappingErrors<R>(
@@ -125,7 +125,7 @@ public struct UniversalClient: Sendable {
             makeError(request: request, baseURL: baseURL, error: error)
         }
         return try await wrappingErrors {
-            try deserializer(response, responseBody)
+            try await deserializer(response, responseBody)
         } mapError: { error in
             makeError(request: request, baseURL: baseURL, response: response, error: error)
         }

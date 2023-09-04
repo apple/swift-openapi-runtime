@@ -65,6 +65,35 @@ extension HTTPRequest {
     }
 }
 
+extension HTTPRequest {
+    
+    @_spi(Generated)
+    public init(path: String, method: Method) {
+        self.init(method: method, scheme: nil, authority: nil, path: path)
+    }
+    
+    @_spi(Generated)
+    public var query: Substring? {
+        guard let path else {
+            return nil
+        }
+        guard let queryStart = path.firstIndex(of: "?") else {
+            return nil
+        }
+        let queryEnd = path.firstIndex(of: "#") ?? path.endIndex
+        let query = path[path.index(after: queryStart) ..< queryEnd]
+        return query
+    }
+}
+
+extension HTTPResponse {
+    
+    @_spi(Generated)
+    public init(statusCode: Int) {
+        self.init(status: .init(code: statusCode))
+    }
+}
+
 extension Converter {
 
     // MARK: Converter helpers
@@ -105,7 +134,7 @@ extension Converter {
         explode: Bool,
         inBody: Bool,
         key: String,
-        encodedValue: String
+        encodedValue: some StringProtocol
     ) throws -> T {
         let decoder = URIDecoder(
             configuration: uriCoderConfiguration(
@@ -117,7 +146,7 @@ extension Converter {
         let value = try decoder.decode(
             T.self,
             forKey: key,
-            from: encodedValue
+            from: Substring(encodedValue)
         )
         return value
     }
@@ -283,21 +312,21 @@ extension Converter {
 
         guard let queryStart else {
             // No existing query substring, add the question mark.
-            request.path = pathAndAll.appending("\(path)?\(escapedUriSnippet)\(fragment)")
+            request.path = path.appending("?\(escapedUriSnippet)\(fragment)")
             return
         }
 
         let query = pathAndAll[pathAndAll.index(after: queryStart)..<fragmentStart]
-        request.path = pathAndAll.appending("\(path)?\(query)&\(escapedUriSnippet)\(fragment)")
+        request.path = path.appending("?\(query)&\(escapedUriSnippet)\(fragment)")
     }
 
     func getOptionalQueryItem<T>(
-        in query: String?,
+        in query: Substring?,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
         as type: T.Type,
-        convert: (String, ParameterStyle, Bool) throws -> T
+        convert: (Substring, ParameterStyle, Bool) throws -> T
     ) throws -> T? {
         guard let query else {
             return nil
@@ -311,12 +340,12 @@ extension Converter {
     }
 
     func getRequiredQueryItem<T>(
-        in query: String?,
+        in query: Substring?,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
         as type: T.Type,
-        convert: (String, ParameterStyle, Bool) throws -> T
+        convert: (Substring, ParameterStyle, Bool) throws -> T
     ) throws -> T {
         guard
             let value = try getOptionalQueryItem(
@@ -457,10 +486,10 @@ extension Converter {
     }
 
     func getRequiredRequestPath<T>(
-        in pathParameters: [String: String],
+        in pathParameters: [String: Substring],
         name: String,
         as type: T.Type,
-        convert: (String) throws -> T
+        convert: (Substring) throws -> T
     ) throws -> T {
         guard let untypedValue = pathParameters[name] else {
             throw RuntimeError.missingRequiredPathParameter(name)

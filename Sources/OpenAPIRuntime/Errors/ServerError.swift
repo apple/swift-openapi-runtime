@@ -22,6 +22,8 @@ public struct ServerError: Error {
     public var request: HTTPRequest
 
     public var requestBody: HTTPBody?
+    
+    public var metadata: ServerRequestMetadata
 
     public var operationInput: (any Sendable)?
 
@@ -33,6 +35,7 @@ public struct ServerError: Error {
         operationID: String,
         request: HTTPRequest,
         requestBody: HTTPBody?,
+        metadata: ServerRequestMetadata,
         operationInput: (any Sendable)? = nil,
         operationOutput: (any Sendable)? = nil,
         underlyingError: (any Error)
@@ -40,6 +43,7 @@ public struct ServerError: Error {
         self.operationID = operationID
         self.request = request
         self.requestBody = requestBody
+        self.metadata = metadata
         self.operationInput = operationInput
         self.operationOutput = operationOutput
         self.underlyingError = underlyingError

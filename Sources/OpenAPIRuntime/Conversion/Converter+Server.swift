@@ -87,7 +87,7 @@ extension Converter {
 
     //    | server | get | request path | URI | required | getPathParameterAsURI |
     public func getPathParameterAsURI<T: Decodable>(
-        in pathParameters: [String: String],
+        in pathParameters: [String: Substring],
         name: String,
         as type: T.Type
     ) throws -> T {
@@ -116,7 +116,7 @@ extension Converter {
 
     //    | server | get | request query | URI | optional | getOptionalQueryItemAsURI |
     public func getOptionalQueryItemAsURI<T: Decodable>(
-        in query: String?,
+        in query: Substring?,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
@@ -149,7 +149,7 @@ extension Converter {
 
     //    | server | get | request query | URI | required | getRequiredQueryItemAsURI |
     public func getRequiredQueryItemAsURI<T: Decodable>(
-        in query: String?,
+        in query: Substring?,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,

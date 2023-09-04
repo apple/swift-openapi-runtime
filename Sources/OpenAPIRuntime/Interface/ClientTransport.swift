@@ -29,7 +29,7 @@ public protocol ClientTransport: Sendable {
     ) async throws -> (HTTPResponse, HTTPBody)
 }
 
-public protocol NewClientMiddleware: Sendable {
+public protocol ClientMiddleware: Sendable {
 
     func intercept(
         _ request: HTTPRequest,
