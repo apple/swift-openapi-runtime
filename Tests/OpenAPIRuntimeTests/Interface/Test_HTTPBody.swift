@@ -21,7 +21,7 @@ final class Test_Body: Test_Runtime {
 
         // A single string.
         do {
-            let body: Body = Body(data: "hello")
+            let body: HTTPBody = HTTPBody(data: "hello")
             try await _testConsume(
                 body,
                 expected: "hello"
@@ -30,7 +30,7 @@ final class Test_Body: Test_Runtime {
 
         // A literal string.
         do {
-            let body: Body = "hello"
+            let body: HTTPBody = "hello"
             try await _testConsume(
                 body,
                 expected: "hello"
@@ -39,7 +39,7 @@ final class Test_Body: Test_Runtime {
 
         // A sequence of strings.
         do {
-            let body: Body = Body(dataChunks: ["hel", "lo"])
+            let body: HTTPBody = HTTPBody(dataChunks: ["hel", "lo"])
             try await _testConsume(
                 body,
                 expected: "hello"
@@ -48,7 +48,7 @@ final class Test_Body: Test_Runtime {
 
         // A single substring.
         do {
-            let body: Body = Body(data: "hello"[...])
+            let body: HTTPBody = HTTPBody(data: "hello"[...])
             try await _testConsume(
                 body,
                 expected: "hello"[...]
@@ -57,7 +57,7 @@ final class Test_Body: Test_Runtime {
 
         // A sequence of substrings.
         do {
-            let body: Body = Body(dataChunks: [
+            let body: HTTPBody = HTTPBody(dataChunks: [
                 "hel"[...],
                 "lo"[...],
             ])
@@ -69,7 +69,7 @@ final class Test_Body: Test_Runtime {
 
         // A single array of bytes.
         do {
-            let body: Body = Body(data: [0])
+            let body: HTTPBody = HTTPBody(data: [0])
             try await _testConsume(
                 body,
                 expected: [0]
@@ -78,7 +78,7 @@ final class Test_Body: Test_Runtime {
 
         // A literal array of bytes.
         do {
-            let body: Body = [0]
+            let body: HTTPBody = [0]
             try await _testConsume(
                 body,
                 expected: [0]
@@ -87,7 +87,7 @@ final class Test_Body: Test_Runtime {
 
         // A single data.
         do {
-            let body: Body = Body(data: Data([0]))
+            let body: HTTPBody = HTTPBody(data: Data([0]))
             try await _testConsume(
                 body,
                 expected: [0]
@@ -96,7 +96,7 @@ final class Test_Body: Test_Runtime {
 
         // A sequence of arrays of bytes.
         do {
-            let body: Body = Body(dataChunks: [[0], [1]])
+            let body: HTTPBody = HTTPBody(dataChunks: [[0], [1]])
             try await _testConsume(
                 body,
                 expected: [0, 1]
@@ -105,7 +105,7 @@ final class Test_Body: Test_Runtime {
 
         // A single slice of an array of bytes.
         do {
-            let body: Body = Body(data: [0][...])
+            let body: HTTPBody = HTTPBody(data: [0][...])
             try await _testConsume(
                 body,
                 expected: [0][...]
@@ -114,7 +114,7 @@ final class Test_Body: Test_Runtime {
 
         // A sequence of slices of an array of bytes.
         do {
-            let body: Body = Body(dataChunks: [
+            let body: HTTPBody = HTTPBody(dataChunks: [
                 [0][...],
                 [1][...],
             ])
@@ -126,7 +126,7 @@ final class Test_Body: Test_Runtime {
 
         // An async throwing stream.
         do {
-            let body: Body = Body(
+            let body: HTTPBody = HTTPBody(
                 stream: AsyncThrowingStream(
                     String.self,
                     { continuation in
@@ -145,7 +145,7 @@ final class Test_Body: Test_Runtime {
 
         // An async stream.
         do {
-            let body: Body = Body(
+            let body: HTTPBody = HTTPBody(
                 stream: AsyncStream(
                     String.self,
                     { continuation in
@@ -173,7 +173,7 @@ final class Test_Body: Test_Runtime {
                 }
             )
             .map { $0 }
-            let body: Body = Body(
+            let body: HTTPBody = HTTPBody(
                 sequence: sequence,
                 length: .known(5),
                 iterationBehavior: .single
@@ -195,12 +195,12 @@ final class Test_Body: Test_Runtime {
             }
         )
         .map { $0 }
-        let body: Body = Body(
+        let body: HTTPBody = HTTPBody(
             sequence: sequence,
             length: .known(5),
             iterationBehavior: .single
         )
-        var chunks: [Body.DataType] = []
+        var chunks: [HTTPBody.DataType] = []
         for try await chunk in body {
             chunks.append(chunk)
         }
@@ -208,7 +208,7 @@ final class Test_Body: Test_Runtime {
     }
 
     func testMapChunks() async throws {
-        let body: Body = Body(
+        let body: HTTPBody = HTTPBody(
             stream: AsyncStream(
                 String.self,
                 { continuation in
@@ -221,11 +221,11 @@ final class Test_Body: Test_Runtime {
             length: .known(5)
         )
         actor Chunker {
-            private var iterator: Array<Body.DataType>.Iterator
-            init(expectedChunks: [Body.DataType]) {
+            private var iterator: Array<HTTPBody.DataType>.Iterator
+            init(expectedChunks: [HTTPBody.DataType]) {
                 self.iterator = expectedChunks.makeIterator()
             }
-            func checkNextChunk(_ actual: Body.DataType) {
+            func checkNextChunk(_ actual: HTTPBody.DataType) {
                 XCTAssertEqual(actual, iterator.next())
             }
         }
@@ -250,8 +250,8 @@ final class Test_Body: Test_Runtime {
 
 extension Test_Body {
     func _testConsume(
-        _ body: Body,
-        expected: Body.DataType,
+        _ body: HTTPBody,
+        expected: HTTPBody.DataType,
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {
@@ -260,7 +260,7 @@ extension Test_Body {
     }
 
     func _testConsume(
-        _ body: Body,
+        _ body: HTTPBody,
         expected: some StringProtocol,
         file: StaticString = #file,
         line: UInt = #line

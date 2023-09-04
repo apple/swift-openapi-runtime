@@ -17,7 +17,7 @@ import protocol Foundation.LocalizedError
 import struct Foundation.Data  // only for convenience initializers
 
 /// The type representing a request or response body.
-public final class Body: @unchecked Sendable {
+public final class HTTPBody: @unchecked Sendable {
 
     /// The underlying data type.
     public typealias DataType = ArraySlice<UInt8>
@@ -78,24 +78,24 @@ public final class Body: @unchecked Sendable {
     }
 }
 
-extension Body: Equatable {
+extension HTTPBody: Equatable {
     public static func == (
-        lhs: Body,
-        rhs: Body
+        lhs: HTTPBody,
+        rhs: HTTPBody
     ) -> Bool {
         ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
 }
 
-extension Body: Hashable {
+extension HTTPBody: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(ObjectIdentifier(self))
     }
 }
 
-// MARK: - Creating the Body
+// MARK: - Creating the HTTPBody
 
-extension Body {
+extension HTTPBody {
 
     public convenience init(
         data: DataType,
@@ -151,7 +151,7 @@ extension Body {
 
     public convenience init(
         stream: AsyncThrowingStream<DataType, any Error>,
-        length: Body.Length
+        length: HTTPBody.Length
     ) {
         self.init(
             sequence: .init(stream),
@@ -162,7 +162,7 @@ extension Body {
 
     public convenience init(
         stream: AsyncStream<DataType>,
-        length: Body.Length
+        length: HTTPBody.Length
     ) {
         self.init(
             sequence: .init(stream),
@@ -173,7 +173,7 @@ extension Body {
 
     public convenience init<S: AsyncSequence>(
         sequence: S,
-        length: Body.Length,
+        length: HTTPBody.Length,
         iterationBehavior: IterationBehavior
     ) where S.Element == DataType {
         self.init(
@@ -186,7 +186,7 @@ extension Body {
 
 // MARK: - Consuming the body
 
-extension Body: AsyncSequence {
+extension HTTPBody: AsyncSequence {
     public typealias Element = DataType
     public typealias AsyncIterator = Iterator
     public func makeAsyncIterator() -> AsyncIterator {
@@ -197,7 +197,7 @@ extension Body: AsyncSequence {
             }
             guard !locked_iteratorCreated else {
                 fatalError(
-                    "OpenAPIRuntime.Body attempted to create a second iterator, but the underlying sequence is only safe to be iterated once."
+                    "OpenAPIRuntime.HTTPBody attempted to create a second iterator, but the underlying sequence is only safe to be iterated once."
                 )
             }
             locked_iteratorCreated = true
@@ -208,7 +208,7 @@ extension Body: AsyncSequence {
 
 // MARK: - Transforming the body
 
-extension Body {
+extension HTTPBody {
 
     /// Creates a body where each chunk is transformed by the provided closure.
     /// - Parameter transform: A mapping closure.
@@ -217,7 +217,7 @@ extension Body {
     /// each chunk.
     public func mapChunks(
         _ transform: @escaping @Sendable (Element) async -> Element
-    ) -> Body {
+    ) -> HTTPBody {
         let validatedTransform: @Sendable (Element) async -> Element
         switch length {
         case .known:
@@ -225,7 +225,7 @@ extension Body {
                 let transformedElement = await transform(element)
                 guard transformedElement.count == element.count else {
                     fatalError(
-                        "OpenAPIRuntime.Body.mapChunks transform closure attempted to change the length of a chunk in a body which has a total length specified, this is not allowed."
+                        "OpenAPIRuntime.HTTPBody.mapChunks transform closure attempted to change the length of a chunk in a body which has a total length specified, this is not allowed."
                     )
                 }
                 return transformedElement
@@ -233,7 +233,7 @@ extension Body {
         case .unknown:
             validatedTransform = transform
         }
-        return Body(
+        return HTTPBody(
             sequence: map(validatedTransform),
             length: length,
             iterationBehavior: iterationBehavior
@@ -243,7 +243,7 @@ extension Body {
 
 // MARK: - Consumption utils
 
-extension Body {
+extension HTTPBody {
 
     /// An error thrown by the `collect` function when the body contains more
     /// than the maximum allowed number of bytes.
@@ -251,7 +251,7 @@ extension Body {
         let maxBytes: Int
 
         var description: String {
-            "OpenAPIRuntime.Body contains more than the maximum allowed \(maxBytes) bytes."
+            "OpenAPIRuntime.HTTPBody contains more than the maximum allowed \(maxBytes) bytes."
         }
 
         var errorDescription: String? {
@@ -264,7 +264,7 @@ extension Body {
     private struct TooManyIterationsError: Error, CustomStringConvertible, LocalizedError {
 
         var description: String {
-            "OpenAPIRuntime.Body attempted to create a second iterator, but the underlying sequence is only safe to be iterated once."
+            "OpenAPIRuntime.HTTPBody attempted to create a second iterator, but the underlying sequence is only safe to be iterated once."
         }
 
         var errorDescription: String? {
@@ -311,12 +311,12 @@ extension Body {
 // MARK: - String-based bodies
 
 extension StringProtocol {
-    fileprivate var asBodyChunk: Body.DataType {
+    fileprivate var asBodyChunk: HTTPBody.DataType {
         Array(utf8)[...]
     }
 }
 
-extension Body {
+extension HTTPBody {
 
     public convenience init(
         data: some StringProtocol,
@@ -369,7 +369,7 @@ extension Body {
 
     public convenience init(
         stream: AsyncThrowingStream<some StringProtocol, any Error>,
-        length: Body.Length
+        length: HTTPBody.Length
     ) {
         self.init(
             sequence: .init(stream.map(\.asBodyChunk)),
@@ -380,7 +380,7 @@ extension Body {
 
     public convenience init(
         stream: AsyncStream<some StringProtocol>,
-        length: Body.Length
+        length: HTTPBody.Length
     ) {
         self.init(
             sequence: .init(stream.map(\.asBodyChunk)),
@@ -391,7 +391,7 @@ extension Body {
 
     public convenience init<S: AsyncSequence>(
         sequence: S,
-        length: Body.Length,
+        length: HTTPBody.Length,
         iterationBehavior: IterationBehavior
     ) where S.Element: StringProtocol {
         self.init(
@@ -402,7 +402,7 @@ extension Body {
     }
 }
 
-extension Body {
+extension HTTPBody {
 
     /// Accumulates the full body in-memory into a single buffer
     /// up to `maxBytes`, converts it to String, and returns it.
@@ -417,23 +417,23 @@ extension Body {
     }
 }
 
-// MARK: - Body conversions
+// MARK: - HTTPBody conversions
 
-extension Body: ExpressibleByStringLiteral {
+extension HTTPBody: ExpressibleByStringLiteral {
 
     public convenience init(stringLiteral value: String) {
         self.init(data: value)
     }
 }
 
-extension Body {
+extension HTTPBody {
 
     public convenience init(data: [UInt8]) {
         self.init(data: data[...])
     }
 }
 
-extension Body: ExpressibleByArrayLiteral {
+extension HTTPBody: ExpressibleByArrayLiteral {
 
     public typealias ArrayLiteralElement = UInt8
 
@@ -442,7 +442,7 @@ extension Body: ExpressibleByArrayLiteral {
     }
 }
 
-extension Body {
+extension HTTPBody {
 
     public convenience init(data: Data) {
         self.init(data: ArraySlice(data))
@@ -463,12 +463,12 @@ extension Body {
 
 // MARK: - Underlying async sequences
 
-extension Body {
+extension HTTPBody {
 
     /// Async iterator of both input async sequences and of the body itself.
     public struct Iterator: AsyncIteratorProtocol {
 
-        public typealias Element = Body.DataType
+        public typealias Element = HTTPBody.DataType
 
         private let produceNext: () async throws -> Element?
 
@@ -487,12 +487,12 @@ extension Body {
     }
 }
 
-extension Body {
+extension HTTPBody {
 
     /// A type-erased async sequence that wraps input sequences.
     private struct BodySequence: AsyncSequence {
 
-        typealias AsyncIterator = Body.Iterator
+        typealias AsyncIterator = HTTPBody.Iterator
         typealias Element = DataType
 
         private let produceIterator: () -> AsyncIterator
@@ -521,7 +521,7 @@ extension Body {
 
             var iterator: any IteratorProtocol<Element>
 
-            mutating func next() async throws -> Body.DataType? {
+            mutating func next() async throws -> HTTPBody.DataType? {
                 iterator.next()
             }
         }
