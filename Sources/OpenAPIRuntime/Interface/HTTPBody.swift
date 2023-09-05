@@ -67,7 +67,8 @@ public final class HTTPBody: @unchecked Sendable {
     /// Whether an iterator has already been created.
     private var locked_iteratorCreated: Bool = false
 
-    private init(
+    @usableFromInline
+    init(
         sequence: BodySequence,
         length: Length,
         iterationBehavior: IterationBehavior
@@ -97,6 +98,7 @@ extension HTTPBody: Hashable {
 
 extension HTTPBody {
 
+    @inlinable
     public convenience init() {
         self.init(
             byteChunks: [],
@@ -105,6 +107,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init(
         bytes: DataType,
         length: Length
@@ -115,6 +118,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init(
         bytes: DataType
     ) {
@@ -124,6 +128,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init<S: Sequence>(
         byteChunks: S,
         length: Length,
@@ -136,6 +141,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init<C: Collection>(
         byteChunks: C,
         length: Length
@@ -147,6 +153,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init<C: Collection>(
         byteChunks: C
     ) where C.Element == DataType {
@@ -157,6 +164,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init(
         stream: AsyncThrowingStream<DataType, any Error>,
         length: HTTPBody.Length
@@ -168,6 +176,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init(
         stream: AsyncStream<DataType>,
         length: HTTPBody.Length
@@ -179,6 +188,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init<S: AsyncSequence>(
         sequence: S,
         length: HTTPBody.Length,
@@ -284,13 +294,16 @@ extension HTTPBody {
 // MARK: - String-based bodies
 
 extension StringProtocol {
-    fileprivate var asBodyChunk: HTTPBody.DataType {
+
+    @inlinable
+    var asBodyChunk: HTTPBody.DataType {
         Array(utf8)[...]
     }
 }
 
 extension HTTPBody {
 
+    @inlinable
     public convenience init(
         string: some StringProtocol,
         length: Length
@@ -301,6 +314,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init(
         string: some StringProtocol
     ) {
@@ -310,6 +324,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init<S: Sequence>(
         stringChunks: S,
         length: Length,
@@ -322,6 +337,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init<C: Collection>(
         stringChunks: C,
         length: Length
@@ -332,6 +348,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init<C: Collection>(
         stringChunks: C
     ) where C.Element: StringProtocol {
@@ -340,6 +357,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init(
         stream: AsyncThrowingStream<some StringProtocol, any Error>,
         length: HTTPBody.Length
@@ -351,6 +369,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init(
         stream: AsyncStream<some StringProtocol>,
         length: HTTPBody.Length
@@ -362,6 +381,7 @@ extension HTTPBody {
         )
     }
 
+    @inlinable
     public convenience init<S: AsyncSequence>(
         sequence: S,
         length: HTTPBody.Length,
@@ -401,6 +421,7 @@ extension HTTPBody: ExpressibleByStringLiteral {
 
 extension HTTPBody {
 
+    @inlinable
     public convenience init(bytes: [UInt8]) {
         self.init(bytes: bytes[...])
     }
@@ -445,6 +466,7 @@ extension HTTPBody {
 
         private let produceNext: () async throws -> Element?
 
+        @usableFromInline
         init<Iterator: AsyncIteratorProtocol>(
             _ iterator: Iterator
         ) where Iterator.Element == Element {
@@ -463,44 +485,65 @@ extension HTTPBody {
 extension HTTPBody {
 
     /// A type-erased async sequence that wraps input sequences.
-    private struct BodySequence: AsyncSequence {
+    @usableFromInline
+    struct BodySequence: AsyncSequence {
 
+        @usableFromInline
         typealias AsyncIterator = HTTPBody.Iterator
+
+        @usableFromInline
         typealias Element = DataType
 
-        private let produceIterator: () -> AsyncIterator
+        @usableFromInline
+        let produceIterator: () -> AsyncIterator
 
+        @inlinable
         init<S: AsyncSequence>(_ sequence: S) where S.Element == Element {
             self.produceIterator = {
                 .init(sequence.makeAsyncIterator())
             }
         }
 
+        @usableFromInline
         func makeAsyncIterator() -> AsyncIterator {
             produceIterator()
         }
     }
 
     /// A wrapper for a sync sequence.
-    private struct WrappedSyncSequence<S: Sequence>: AsyncSequence
+    @usableFromInline
+    struct WrappedSyncSequence<S: Sequence>: AsyncSequence
     where S.Element == DataType, S.Iterator.Element == DataType {
 
+        @usableFromInline
         typealias AsyncIterator = Iterator
+
+        @usableFromInline
         typealias Element = DataType
 
+        @usableFromInline
         struct Iterator: AsyncIteratorProtocol {
 
+            @usableFromInline
             typealias Element = DataType
 
             var iterator: any IteratorProtocol<Element>
 
+            @usableFromInline
             mutating func next() async throws -> HTTPBody.DataType? {
                 iterator.next()
             }
         }
 
+        @usableFromInline
         let sequence: S
 
+        @inlinable
+        init(sequence: S) {
+            self.sequence = sequence
+        }
+
+        @usableFromInline
         func makeAsyncIterator() -> Iterator {
             Iterator(iterator: sequence.makeIterator())
         }

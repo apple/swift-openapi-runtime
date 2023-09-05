@@ -67,4 +67,3 @@ extension HTTPResponse {
         self.init(status: .init(code: statusCode))
     }
 }
-
