@@ -66,12 +66,12 @@ extension HTTPRequest {
 }
 
 extension HTTPRequest {
-    
+
     @_spi(Generated)
     public init(path: String, method: Method) {
         self.init(method: method, scheme: nil, authority: nil, path: path)
     }
-    
+
     @_spi(Generated)
     public var query: Substring? {
         guard let path else {
@@ -81,13 +81,13 @@ extension HTTPRequest {
             return nil
         }
         let queryEnd = path.firstIndex(of: "#") ?? path.endIndex
-        let query = path[path.index(after: queryStart) ..< queryEnd]
+        let query = path[path.index(after: queryStart)..<queryEnd]
         return query
     }
 }
 
 extension HTTPResponse {
-    
+
     @_spi(Generated)
     public init(statusCode: Int) {
         self.init(status: .init(code: statusCode))
@@ -202,7 +202,7 @@ extension Converter {
             dateTranscoder: configuration.dateTranscoder
         )
         let encodedString = try encoder.encode(value)
-        return HTTPBody(data: Array(encodedString.utf8))
+        return HTTPBody(bytes: Array(encodedString.utf8))
     }
 
     func convertBinaryToData(

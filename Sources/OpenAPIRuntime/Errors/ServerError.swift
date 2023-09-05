@@ -22,7 +22,7 @@ public struct ServerError: Error {
     public var request: HTTPRequest
 
     public var requestBody: HTTPBody?
-    
+
     public var metadata: ServerRequestMetadata
 
     public var operationInput: (any Sendable)?

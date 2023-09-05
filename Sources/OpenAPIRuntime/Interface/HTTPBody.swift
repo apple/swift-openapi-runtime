@@ -99,60 +99,60 @@ extension HTTPBody {
 
     public convenience init() {
         self.init(
-            dataChunks: [],
+            byteChunks: [],
             length: .known(0),
             iterationBehavior: .multiple
         )
     }
-    
+
     public convenience init(
-        data: DataType,
+        bytes: DataType,
         length: Length
     ) {
         self.init(
-            dataChunks: [data],
+            byteChunks: [bytes],
             length: length
         )
     }
 
     public convenience init(
-        data: DataType
+        bytes: DataType
     ) {
         self.init(
-            dataChunks: [data],
-            length: .known(data.count)
+            byteChunks: [bytes],
+            length: .known(bytes.count)
         )
     }
 
     public convenience init<S: Sequence>(
-        dataChunks: S,
+        byteChunks: S,
         length: Length,
         iterationBehavior: IterationBehavior
     ) where S.Element == DataType {
         self.init(
-            sequence: .init(WrappedSyncSequence(sequence: dataChunks)),
+            sequence: .init(WrappedSyncSequence(sequence: byteChunks)),
             length: length,
             iterationBehavior: iterationBehavior
         )
     }
 
     public convenience init<C: Collection>(
-        dataChunks: C,
+        byteChunks: C,
         length: Length
     ) where C.Element == DataType {
         self.init(
-            sequence: .init(WrappedSyncSequence(sequence: dataChunks)),
+            sequence: .init(WrappedSyncSequence(sequence: byteChunks)),
             length: length,
             iterationBehavior: .multiple
         )
     }
 
     public convenience init<C: Collection>(
-        dataChunks: C
+        byteChunks: C
     ) where C.Element == DataType {
         self.init(
-            sequence: .init(WrappedSyncSequence(sequence: dataChunks)),
-            length: .known(dataChunks.map(\.count).reduce(0, +)),
+            sequence: .init(WrappedSyncSequence(sequence: byteChunks)),
+            length: .known(byteChunks.map(\.count).reduce(0, +)),
             iterationBehavior: .multiple
         )
     }
@@ -327,51 +327,51 @@ extension StringProtocol {
 extension HTTPBody {
 
     public convenience init(
-        data: some StringProtocol,
+        string: some StringProtocol,
         length: Length
     ) {
         self.init(
-            dataChunks: [data.asBodyChunk],
+            bytes: string.asBodyChunk,
             length: length
         )
     }
 
     public convenience init(
-        data: some StringProtocol
+        string: some StringProtocol
     ) {
         self.init(
-            dataChunks: [data.asBodyChunk],
-            length: .known(data.count)
+            bytes: string.asBodyChunk,
+            length: .known(string.count)
         )
     }
 
     public convenience init<S: Sequence>(
-        dataChunks: S,
+        byteChunks: S,
         length: Length,
         iterationBehavior: IterationBehavior
     ) where S.Element: StringProtocol {
         self.init(
-            dataChunks: dataChunks.map(\.asBodyChunk),
+            byteChunks: byteChunks.map(\.asBodyChunk),
             length: length,
             iterationBehavior: iterationBehavior
         )
     }
 
     public convenience init<C: Collection>(
-        dataChunks: C,
+        byteChunks: C,
         length: Length
     ) where C.Element: StringProtocol {
         self.init(
-            dataChunks: dataChunks.map(\.asBodyChunk),
+            byteChunks: byteChunks.map(\.asBodyChunk),
             length: length
         )
     }
 
     public convenience init<C: Collection>(
-        dataChunks: C
+        byteChunks: C
     ) where C.Element: StringProtocol {
         self.init(
-            dataChunks: dataChunks.map(\.asBodyChunk)
+            byteChunks: byteChunks.map(\.asBodyChunk)
         )
     }
 
@@ -430,14 +430,14 @@ extension HTTPBody {
 extension HTTPBody: ExpressibleByStringLiteral {
 
     public convenience init(stringLiteral value: String) {
-        self.init(data: value)
+        self.init(string: value)
     }
 }
 
 extension HTTPBody {
 
-    public convenience init(data: [UInt8]) {
-        self.init(data: data[...])
+    public convenience init(bytes: [UInt8]) {
+        self.init(bytes: bytes[...])
     }
 }
 
@@ -446,14 +446,14 @@ extension HTTPBody: ExpressibleByArrayLiteral {
     public typealias ArrayLiteralElement = UInt8
 
     public convenience init(arrayLiteral elements: UInt8...) {
-        self.init(data: elements)
+        self.init(bytes: elements)
     }
 }
 
 extension HTTPBody {
 
     public convenience init(data: Data) {
-        self.init(data: ArraySlice(data))
+        self.init(bytes: ArraySlice(data))
     }
 
     /// Accumulates the full body in-memory into a single buffer
