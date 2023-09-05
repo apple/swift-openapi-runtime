@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Foundation
+import HTTPTypes
 
 /// A container for request metadata already parsed and validated
 /// by the server transport.
@@ -31,3 +31,40 @@ public struct ServerRequestMetadata: Hashable, Sendable {
         self.pathParameters = pathParameters
     }
 }
+
+extension HTTPRequest {
+
+    /// Creates a new request.
+    /// - Parameters:
+    ///   - path: The URL path of the resource.
+    ///   - method: The HTTP method.
+    @_spi(Generated)
+    public init(path: String, method: Method) {
+        self.init(method: method, scheme: nil, authority: nil, path: path)
+    }
+
+    /// The query substring of the request's path.
+    @_spi(Generated)
+    public var query: Substring? {
+        guard let path else {
+            return nil
+        }
+        guard let queryStart = path.firstIndex(of: "?") else {
+            return nil
+        }
+        let queryEnd = path.firstIndex(of: "#") ?? path.endIndex
+        let query = path[path.index(after: queryStart)..<queryEnd]
+        return query
+    }
+}
+
+extension HTTPResponse {
+
+    /// Creates a new response.
+    /// - Parameter statusCode: The status code of the response.AsString
+    @_spi(Generated)
+    public init(statusCode: Int) {
+        self.init(status: .init(code: statusCode))
+    }
+}
+

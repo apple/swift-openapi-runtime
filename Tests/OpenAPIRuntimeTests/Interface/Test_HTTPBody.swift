@@ -21,7 +21,7 @@ final class Test_Body: Test_Runtime {
 
         // A single string.
         do {
-            let body: HTTPBody = HTTPBody(data: "hello")
+            let body: HTTPBody = HTTPBody(string: "hello")
             try await _testConsume(
                 body,
                 expected: "hello"
@@ -39,7 +39,7 @@ final class Test_Body: Test_Runtime {
 
         // A sequence of strings.
         do {
-            let body: HTTPBody = HTTPBody(dataChunks: ["hel", "lo"])
+            let body: HTTPBody = HTTPBody(stringChunks: ["hel", "lo"])
             try await _testConsume(
                 body,
                 expected: "hello"
@@ -48,18 +48,18 @@ final class Test_Body: Test_Runtime {
 
         // A single substring.
         do {
-            let body: HTTPBody = HTTPBody(data: "hello"[...])
+            let body: HTTPBody = HTTPBody(string: "hello")
             try await _testConsume(
                 body,
-                expected: "hello"[...]
+                expected: "hello"
             )
         }
 
         // A sequence of substrings.
         do {
-            let body: HTTPBody = HTTPBody(dataChunks: [
-                "hel"[...],
-                "lo"[...],
+            let body: HTTPBody = HTTPBody(stringChunks: [
+                "hel",
+                "lo",
             ])
             try await _testConsume(
                 body,
@@ -69,7 +69,7 @@ final class Test_Body: Test_Runtime {
 
         // A single array of bytes.
         do {
-            let body: HTTPBody = HTTPBody(data: [0])
+            let body: HTTPBody = HTTPBody(bytes: [0])
             try await _testConsume(
                 body,
                 expected: [0]
@@ -96,7 +96,7 @@ final class Test_Body: Test_Runtime {
 
         // A sequence of arrays of bytes.
         do {
-            let body: HTTPBody = HTTPBody(dataChunks: [[0], [1]])
+            let body: HTTPBody = HTTPBody(byteChunks: [[0], [1]])
             try await _testConsume(
                 body,
                 expected: [0, 1]
@@ -105,7 +105,7 @@ final class Test_Body: Test_Runtime {
 
         // A single slice of an array of bytes.
         do {
-            let body: HTTPBody = HTTPBody(data: [0][...])
+            let body: HTTPBody = HTTPBody(bytes: [0][...])
             try await _testConsume(
                 body,
                 expected: [0][...]
@@ -114,7 +114,7 @@ final class Test_Body: Test_Runtime {
 
         // A sequence of slices of an array of bytes.
         do {
-            let body: HTTPBody = HTTPBody(dataChunks: [
+            let body: HTTPBody = HTTPBody(byteChunks: [
                 [0][...],
                 [1][...],
             ])
@@ -205,46 +205,6 @@ final class Test_Body: Test_Runtime {
             chunks.append(chunk)
         }
         XCTAssertEqual(chunks, ["hel", "lo"].map { Array($0.utf8)[...] })
-    }
-
-    func testMapChunks() async throws {
-        let body: HTTPBody = HTTPBody(
-            stream: AsyncStream(
-                String.self,
-                { continuation in
-                    continuation.yield("hello")
-                    continuation.yield(" ")
-                    continuation.yield("world")
-                    continuation.finish()
-                }
-            ),
-            length: .known(5)
-        )
-        actor Chunker {
-            private var iterator: Array<HTTPBody.DataType>.Iterator
-            init(expectedChunks: [HTTPBody.DataType]) {
-                self.iterator = expectedChunks.makeIterator()
-            }
-            func checkNextChunk(_ actual: HTTPBody.DataType) {
-                XCTAssertEqual(actual, iterator.next())
-            }
-        }
-        let chunker = Chunker(
-            expectedChunks: [
-                "hello",
-                " ",
-                "world",
-            ]
-            .map { Array($0.utf8)[...] }
-        )
-        let finalString =
-            try await body
-            .mapChunks { element in
-                await chunker.checkNextChunk(element)
-                return element.reversed()[...]
-            }
-            .collectAsString(upTo: .max)
-        XCTAssertEqual(finalString, "olleh dlrow")
     }
 }
 

@@ -214,41 +214,6 @@ extension HTTPBody: AsyncSequence {
     }
 }
 
-// MARK: - Transforming the body
-
-extension HTTPBody {
-
-    /// Creates a body where each chunk is transformed by the provided closure.
-    /// - Parameter transform: A mapping closure.
-    /// - Throws: If a known length was provided to this body at
-    /// creation time, the transform closure must not change the length of
-    /// each chunk.
-    public func mapChunks(
-        _ transform: @escaping @Sendable (Element) async -> Element
-    ) -> HTTPBody {
-        let validatedTransform: @Sendable (Element) async -> Element
-        switch length {
-        case .known:
-            validatedTransform = { element in
-                let transformedElement = await transform(element)
-                guard transformedElement.count == element.count else {
-                    fatalError(
-                        "OpenAPIRuntime.HTTPBody.mapChunks transform closure attempted to change the length of a chunk in a body which has a total length specified, this is not allowed."
-                    )
-                }
-                return transformedElement
-            }
-        case .unknown:
-            validatedTransform = transform
-        }
-        return HTTPBody(
-            sequence: map(validatedTransform),
-            length: length,
-            iterationBehavior: iterationBehavior
-        )
-    }
-}
-
 // MARK: - Consumption utils
 
 extension HTTPBody {
@@ -346,32 +311,32 @@ extension HTTPBody {
     }
 
     public convenience init<S: Sequence>(
-        byteChunks: S,
+        stringChunks: S,
         length: Length,
         iterationBehavior: IterationBehavior
     ) where S.Element: StringProtocol {
         self.init(
-            byteChunks: byteChunks.map(\.asBodyChunk),
+            byteChunks: stringChunks.map(\.asBodyChunk),
             length: length,
             iterationBehavior: iterationBehavior
         )
     }
 
     public convenience init<C: Collection>(
-        byteChunks: C,
+        stringChunks: C,
         length: Length
     ) where C.Element: StringProtocol {
         self.init(
-            byteChunks: byteChunks.map(\.asBodyChunk),
+            byteChunks: stringChunks.map(\.asBodyChunk),
             length: length
         )
     }
 
     public convenience init<C: Collection>(
-        byteChunks: C
+        stringChunks: C
     ) where C.Element: StringProtocol {
         self.init(
-            byteChunks: byteChunks.map(\.asBodyChunk)
+            byteChunks: stringChunks.map(\.asBodyChunk)
         )
     }
 
