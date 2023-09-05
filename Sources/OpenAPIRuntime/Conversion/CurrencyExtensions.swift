@@ -105,7 +105,7 @@ extension Converter {
         explode: Bool,
         inBody: Bool,
         key: String,
-        encodedValue: some StringProtocol
+        encodedValue: Substring
     ) throws -> T {
         let decoder = URIDecoder(
             configuration: uriCoderConfiguration(
@@ -117,7 +117,7 @@ extension Converter {
         let value = try decoder.decode(
             T.self,
             forKey: key,
-            from: Substring(encodedValue)
+            from: encodedValue
         )
         return value
     }
@@ -145,7 +145,7 @@ extension Converter {
     }
 
     func convertJSONToHeaderFieldCodable<T: Decodable>(
-        _ stringValue: String
+        _ stringValue: Substring
     ) throws -> T {
         let data = Data(stringValue.utf8)
         return try decoder.decode(T.self, from: data)
@@ -193,7 +193,7 @@ extension Converter {
         in headerFields: HTTPFields,
         name: String,
         as type: T.Type,
-        convert: (String) throws -> T
+        convert: (Substring) throws -> T
     ) throws -> T? {
         guard
             let stringValue = try getHeaderFieldValuesString(
@@ -203,14 +203,14 @@ extension Converter {
         else {
             return nil
         }
-        return try convert(stringValue)
+        return try convert(stringValue[...])
     }
 
     func getRequiredHeaderField<T>(
         in headerFields: HTTPFields,
         name: String,
         as type: T.Type,
-        convert: (String) throws -> T
+        convert: (Substring) throws -> T
     ) throws -> T {
         guard
             let stringValue = try getHeaderFieldValuesString(
@@ -220,7 +220,7 @@ extension Converter {
         else {
             throw RuntimeError.missingRequiredHeaderField(name)
         }
-        return try convert(stringValue)
+        return try convert(stringValue[...])
     }
 
     func setEscapedQueryItem<T>(
