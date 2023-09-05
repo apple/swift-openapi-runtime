@@ -151,31 +151,6 @@ extension Converter {
         return try decoder.decode(T.self, from: data)
     }
 
-    func convertFromStringData<T: Decodable>(
-        _ body: HTTPBody
-    ) async throws -> T {
-        let data = try await body.collect(upTo: .max)
-        let encodedString = String(decoding: data, as: UTF8.self)
-        let decoder = StringDecoder(
-            dateTranscoder: configuration.dateTranscoder
-        )
-        let value = try decoder.decode(
-            T.self,
-            from: encodedString
-        )
-        return value
-    }
-
-    func convertToStringData<T: Encodable>(
-        _ value: T
-    ) throws -> HTTPBody {
-        let encoder = StringEncoder(
-            dateTranscoder: configuration.dateTranscoder
-        )
-        let encodedString = try encoder.encode(value)
-        return HTTPBody(bytes: Array(encodedString.utf8))
-    }
-
     func convertBinaryToData(
         _ binary: HTTPBody
     ) throws -> HTTPBody {

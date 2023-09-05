@@ -43,9 +43,9 @@ class Test_Runtime: XCTestCase {
         return components
     }
 
-    //    var testRequest: OpenAPIRuntime.Request {
-    //        .init(path: "/api", query: nil, method: .get)
-    //    }
+    var testRequest: HTTPRequest {
+        .init(path: "/api", method: .get)
+    }
 
     var testDate: Date {
         Date(timeIntervalSince1970: 1_674_036_251)
@@ -185,4 +185,34 @@ struct PrintingMiddleware: ClientMiddleware {
             throw error
         }
     }
+}
+
+public func XCTAssertEqualStringifiedData<S: Sequence>(
+    _ expression1: @autoclosure () throws -> S?,
+    _ expression2: @autoclosure () throws -> String,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #filePath,
+    line: UInt = #line
+) where S.Element == UInt8 {
+    do {
+        guard let value1 = try expression1() else {
+            XCTFail("First value is nil", file: file, line: line)
+            return
+        }
+        let actualString = String(decoding: Array(value1), as: UTF8.self)
+        XCTAssertEqual(actualString, try expression2(), file: file, line: line)
+    } catch {
+        XCTFail(error.localizedDescription, file: file, line: line)
+    }
+}
+
+public func XCTAssertEqualStringifiedData(
+    _ expression1: @autoclosure () throws -> HTTPBody?,
+    _ expression2: @autoclosure () throws -> String,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #filePath,
+    line: UInt = #line
+) async throws {
+    let data = try await expression1()?.collectAsData(upTo: .max)
+    XCTAssertEqualStringifiedData(data, try expression2(), message(), file: file, line: line)
 }
