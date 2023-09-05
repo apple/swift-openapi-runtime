@@ -139,12 +139,16 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
     public func apiPathComponentsWithServerPrefix(
         _ path: String
     ) throws -> String {
-        // Operation path is for example [pets, 42]
+        // Operation path is for example "/pets/42"
         // Server may be configured with a prefix, for example http://localhost/foo/bar/v1
-        // Goal is to return something like [foo, bar, v1, pets, 42]
+        // Goal is to return something like "/foo/bar/v1/pets/42".
         guard let components = URLComponents(url: serverURL, resolvingAgainstBaseURL: false) else {
             throw RuntimeError.invalidServerURL(serverURL.absoluteString)
         }
-        return components.path + path
+        let prefixPath = components.path
+        guard prefixPath == "/" else {
+            return prefixPath + path
+        }
+        return path
     }
 }

@@ -11,41 +11,31 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-//import XCTest
-//@_spi(Generated)@testable import OpenAPIRuntime
-//
-//final class Test_UniversalServer: Test_Runtime {
-//
-//    struct MockHandler: Sendable {}
-//
-//    func testApiPathComponentsWithServerPrefix_noPrefix() throws {
-//        let server = UniversalServer(
-//            handler: MockHandler()
-//        )
-//        let components: [RouterPathComponent] = [
-//            .constant("foo"),
-//            .parameter("bar"),
-//        ]
-//        let prefixed = try server.apiPathComponentsWithServerPrefix(components)
-//        // When no server path prefix, components stay the same
-//        XCTAssertEqual(prefixed, components)
-//    }
-//
-//    func testApiPathComponentsWithServerPrefix_withPrefix() throws {
-//        let server = UniversalServer(
-//            serverURL: try serverURL,
-//            handler: MockHandler()
-//        )
-//        let components: [RouterPathComponent] = [
-//            .constant("foo"),
-//            .parameter("bar"),
-//        ]
-//        let prefixed = try server.apiPathComponentsWithServerPrefix(components)
-//        let expected: [RouterPathComponent] = [
-//            .constant("api"),
-//            .constant("foo"),
-//            .parameter("bar"),
-//        ]
-//        XCTAssertEqual(prefixed, expected)
-//    }
-//}
+import XCTest
+@_spi(Generated)@testable import OpenAPIRuntime
+
+final class Test_UniversalServer: Test_Runtime {
+
+    struct MockHandler: Sendable {}
+
+    func testApiPathComponentsWithServerPrefix_noPrefix() throws {
+        let server = UniversalServer(
+            handler: MockHandler()
+        )
+        let components = "/foo/{bar}"
+        let prefixed = try server.apiPathComponentsWithServerPrefix(components)
+        // When no server path prefix, components stay the same
+        XCTAssertEqual(prefixed, components)
+    }
+
+    func testApiPathComponentsWithServerPrefix_withPrefix() throws {
+        let server = UniversalServer(
+            serverURL: try serverURL,
+            handler: MockHandler()
+        )
+        let components = "/foo/{bar}"
+        let prefixed = try server.apiPathComponentsWithServerPrefix(components)
+        let expected = "/api/foo/{bar}"
+        XCTAssertEqual(prefixed, expected)
+    }
+}
