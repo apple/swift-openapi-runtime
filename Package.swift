@@ -34,7 +34,7 @@ let package = Package(
         .library(
             name: "OpenAPIRuntime",
             targets: ["OpenAPIRuntime"]
-        ),
+        )
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-http-types", branch: "main"),
@@ -44,7 +44,7 @@ let package = Package(
         .target(
             name: "OpenAPIRuntime",
             dependencies: [
-                .product(name: "HTTPTypes", package: "swift-http-types"),
+                .product(name: "HTTPTypes", package: "swift-http-types")
             ],
             swiftSettings: swiftSettings
         ),

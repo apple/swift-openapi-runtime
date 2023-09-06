@@ -48,7 +48,7 @@ extension HTTPRequest {
     public var query: Substring? {
         soar_query
     }
-    
+
     /// The query substring of the request's path.
     public var soar_query: Substring? {
         guard let path else {
@@ -60,6 +60,15 @@ extension HTTPRequest {
         let queryEnd = path.firstIndex(of: "#") ?? path.endIndex
         let query = path[path.index(after: queryStart)..<queryEnd]
         return query
+    }
+
+    /// The request path, without any query or fragment portions.
+    public var soar_pathOnly: Substring {
+        guard let path else {
+            return ""[...]
+        }
+        let pathEndIndex = path.firstIndex(of: "?") ?? path.firstIndex(of: "#") ?? path.endIndex
+        return path[path.startIndex..<pathEndIndex]
     }
 }
 
