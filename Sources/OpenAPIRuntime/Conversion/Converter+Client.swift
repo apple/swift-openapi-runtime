@@ -118,7 +118,7 @@ extension Converter {
             value,
             headerFields: &headerFields,
             contentType: contentType,
-            convert: convertDataToBinary
+            convert: { $0 }
         )
     }
 
@@ -132,7 +132,7 @@ extension Converter {
             value,
             headerFields: &headerFields,
             contentType: contentType,
-            convert: convertDataToBinary
+            convert: { $0 }
         )
     }
 
@@ -160,7 +160,7 @@ extension Converter {
             type,
             from: data,
             transforming: transform,
-            convert: convertBinaryToData
+            convert: { $0 }
         )
     }
 }
