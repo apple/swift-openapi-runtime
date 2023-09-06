@@ -164,6 +164,42 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         XCTAssertEqual(value, "foo")
     }
 
+    //    | server | get | request query | URI | optional | getOptionalQueryItemAsURI |
+    func test_getOptionalQueryItemAsURI_string_nil() throws {
+        let value: String? = try converter.getOptionalQueryItemAsURI(
+            in: "",
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: String.self
+        )
+        XCTAssertNil(value)
+    }
+
+    //    | server | get | request query | URI | optional | getOptionalQueryItemAsURI |
+    func test_getOptionalQueryItemAsURI_string_notFound() throws {
+        let value: String? = try converter.getOptionalQueryItemAsURI(
+            in: "foo=bar",
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: String.self
+        )
+        XCTAssertNil(value)
+    }
+
+    //    | server | get | request query | URI | optional | getOptionalQueryItemAsURI |
+    func test_getOptionalQueryItemAsURI_string_empty() throws {
+        let value: String? = try converter.getOptionalQueryItemAsURI(
+            in: "search=",
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: String.self
+        )
+        XCTAssertEqual(value, "")
+    }
+
     //    | server | get | request query | URI | required | getRequiredQueryItemAsURI |
     func test_getRequiredQueryItemAsURI_string() throws {
         let value: String = try converter.getRequiredQueryItemAsURI(

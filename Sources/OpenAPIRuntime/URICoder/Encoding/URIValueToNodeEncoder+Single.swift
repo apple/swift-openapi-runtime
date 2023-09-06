@@ -52,7 +52,7 @@ extension URISingleValueEncodingContainer: SingleValueEncodingContainer {
     }
 
     func encodeNil() throws {
-        throw URIValueToNodeEncoder.GeneralError.nilNotSupported
+        // Nil is encoded as no value.
     }
 
     func encode(_ value: Bool) throws {

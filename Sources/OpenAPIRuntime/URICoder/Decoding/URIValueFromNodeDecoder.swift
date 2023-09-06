@@ -79,6 +79,18 @@ final class URIValueFromNodeDecoder {
         }
         return value
     }
+
+    /// Decodes the provided type from the root node.
+    /// - Parameter type: The type to decode from the decoder.
+    /// - Returns: The decoded value.
+    /// - Throws: When a decoding error occurs.
+    func decodeRootIfPresent<T: Decodable>(_ type: T.Type = T.self) throws -> T? {
+        // The root is only nil if the node is empty.
+        if try currentElementAsArray().isEmpty {
+            return nil
+        }
+        return try decodeRoot(type)
+    }
 }
 
 extension URIValueFromNodeDecoder {
@@ -285,7 +297,8 @@ extension URIValueFromNodeDecoder {
             array = try rootValue(in: values)
         }
         guard array.count == 1 else {
-            try throwMismatch("Cannot parse a value from a node with multiple values.")
+            let reason = array.isEmpty ? "an empty node" : "a node with multiple values"
+            try throwMismatch("Cannot parse a value from \(reason).")
         }
         let value = array[0]
         return value
