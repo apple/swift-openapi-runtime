@@ -46,6 +46,11 @@ extension HTTPRequest {
     /// The query substring of the request's path.
     @_spi(Generated)
     public var query: Substring? {
+        soar_query
+    }
+    
+    /// The query substring of the request's path.
+    public var soar_query: Substring? {
         guard let path else {
             return nil
         }
