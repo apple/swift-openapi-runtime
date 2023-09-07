@@ -24,7 +24,7 @@ public struct ServerRequestMetadata: Hashable, Sendable {
     /// Creates a new metadata wrapper with the specified path and query parameters.
     /// - Parameters:
     ///   - pathParameters: Path parameters parsed from the URL of the HTTP
-    ///   request.
+    ///     request.
     public init(
         pathParameters: [String: Substring] = [:]
     ) {
@@ -39,14 +39,8 @@ extension HTTPRequest {
     ///   - path: The URL path of the resource.
     ///   - method: The HTTP method.
     @_spi(Generated)
-    public init(path: String, method: Method) {
+    public init(soar_path path: String, method: Method) {
         self.init(method: method, scheme: nil, authority: nil, path: path)
-    }
-
-    /// The query substring of the request's path.
-    @_spi(Generated)
-    public var query: Substring? {
-        soar_query
     }
 
     /// The query substring of the request's path.
@@ -77,14 +71,14 @@ extension HTTPResponse {
     /// Creates a new response.
     /// - Parameter statusCode: The status code of the response.AsString
     @_spi(Generated)
-    public init(statusCode: Int) {
+    public init(soar_statusCode statusCode: Int) {
         self.init(status: .init(code: statusCode))
     }
 }
 
 extension ServerRequestMetadata: CustomStringConvertible {
     public var description: String {
-        "path parameters: \(pathParameters.description)"
+        "Path parameters: \(pathParameters.description)"
     }
 }
 
