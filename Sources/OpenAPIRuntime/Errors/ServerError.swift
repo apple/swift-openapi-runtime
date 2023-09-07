@@ -15,22 +15,44 @@
 import HTTPTypes
 import protocol Foundation.LocalizedError
 
+/// An error thrown by a server handling an OpenAPI operation.
 public struct ServerError: Error {
 
+    /// Identifier of the operation that threw the error.
     public var operationID: String
 
+    /// HTTP request provided to the server.
     public var request: HTTPRequest
 
+    /// HTTP request body provided to the server.
     public var requestBody: HTTPBody?
 
+    /// Request metadata extracted by the server.
     public var metadata: ServerRequestMetadata
 
+    /// Operation-specific Input value.
+    ///
+    /// Is nil if error was thrown during request -> Input conversion.
     public var operationInput: (any Sendable)?
 
+    /// Operation-specific Output value.
+    ///
+    /// Is nil if error was thrown before/during Output -> response conversion.
     public var operationOutput: (any Sendable)?
 
+    /// The underlying error that caused the operation to fail.
     public var underlyingError: any Error
 
+    /// Creates a new error.
+    /// - Parameters:
+    ///   - operationID: The OpenAPI operation identifier.
+    ///   - request: HTTP request provided to the server.
+    ///   - requestBody: HTTP request body provided to the server.
+    ///   - metadata: Request metadata extracted by the server.
+    ///   - operationInput: Operation-specific Input value.
+    ///   - operationOutput: Operation-specific Output value.
+    ///   - underlyingError: The underlying error that caused the operation
+    ///     to fail.
     public init(
         operationID: String,
         request: HTTPRequest,
