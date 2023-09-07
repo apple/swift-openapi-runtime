@@ -125,6 +125,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             "foo": "bar",
             "number": "1",
             "habitats": "land,air",
+            "withEscaping": "Hello%20world%21",
         ]
         do {
             let value = try converter.getPathParameterAsURI(
@@ -149,6 +150,14 @@ final class Test_ServerConverterExtensions: Test_Runtime {
                 as: [TestHabitat].self
             )
             XCTAssertEqual(value, [.land, .air])
+        }
+        do {
+            let value = try converter.getPathParameterAsURI(
+                in: path,
+                name: "withEscaping",
+                as: String.self
+            )
+            XCTAssertEqual(value, "Hello world!")
         }
     }
 
