@@ -38,9 +38,9 @@ extension HTTPRequest {
     /// - Parameters:
     ///   - path: The URL path of the resource.
     ///   - method: The HTTP method.
-    @_spi(Generated)
-    public init(soar_path path: String, method: Method) {
-        self.init(method: method, scheme: nil, authority: nil, path: path)
+    ///   - headerFields: The HTTP header fields.
+    public init(soar_path path: String, method: Method, headerFields: HTTPFields = .init()) {
+        self.init(method: method, scheme: nil, authority: nil, path: path, headerFields: headerFields)
     }
 
     /// The query substring of the request's path.
@@ -69,10 +69,11 @@ extension HTTPRequest {
 extension HTTPResponse {
 
     /// Creates a new response.
-    /// - Parameter statusCode: The status code of the response.AsString
-    @_spi(Generated)
-    public init(soar_statusCode statusCode: Int) {
-        self.init(status: .init(code: statusCode))
+    /// - Parameters:
+    ///   - statusCode: The status code of the response.AsString
+    ///   - headerFields: The HTTP header fields.
+    public init(soar_statusCode statusCode: Int, headerFields: HTTPFields = .init()) {
+        self.init(status: .init(code: statusCode), headerFields: headerFields)
     }
 }
 

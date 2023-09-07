@@ -97,7 +97,7 @@ extension URIDecoder {
     func decodeIfPresent<T: Decodable>(
         _ type: T.Type = T.self,
         forKey key: String = "",
-        from data: String
+        from data: Substring
     ) throws -> T? {
         try withCachedParser(from: data) { decoder in
             try decoder.decodeIfPresent(type, forKey: key)
