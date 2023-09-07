@@ -82,6 +82,28 @@ extension URIDecoder {
         }
     }
 
+    /// Attempt to decode an object from an URI string, if present.
+    ///
+    /// Under the hood, `URIDecoder` first parses the string into a
+    /// `URIParsedNode` using `URIParser`, and then uses
+    /// `URIValueFromNodeDecoder` to decode the `Decodable` value.
+    ///
+    /// - Parameters:
+    ///   - type: The type to decode.
+    ///   - key: The key of the decoded value. Only used with certain styles
+    ///     and explode options, ignored otherwise.
+    ///   - data: The URI-encoded string.
+    /// - Returns: The decoded value.
+    func decodeIfPresent<T: Decodable>(
+        _ type: T.Type = T.self,
+        forKey key: String = "",
+        from data: String
+    ) throws -> T? {
+        try withCachedParser(from: data) { decoder in
+            try decoder.decodeIfPresent(type, forKey: key)
+        }
+    }
+
     /// Make multiple decode calls on the parsed URI.
     ///
     /// Use to avoid repeatedly reparsing the raw string.
@@ -132,5 +154,30 @@ struct URICachedDecoder {
             dateTranscoder: configuration.dateTranscoder
         )
         return try decoder.decodeRoot()
+    }
+
+    /// Attempt to decode an object from an URI-encoded string, if present.
+    ///
+    /// Under the hood, `URICachedDecoder` already has a pre-parsed
+    /// `URIParsedNode` and uses `URIValueFromNodeDecoder` to decode
+    /// the `Decodable` value.
+    ///
+    /// - Parameters:
+    ///   - type: The type to decode.
+    ///   - key: The key of the decoded value. Only used with certain styles
+    ///     and explode options, ignored otherwise.
+    /// - Returns: The decoded value.
+    func decodeIfPresent<T: Decodable>(
+        _ type: T.Type = T.self,
+        forKey key: String = ""
+    ) throws -> T? {
+        let decoder = URIValueFromNodeDecoder(
+            node: node,
+            rootKey: key[...],
+            style: configuration.style,
+            explode: configuration.explode,
+            dateTranscoder: configuration.dateTranscoder
+        )
+        return try decoder.decodeRootIfPresent()
     }
 }

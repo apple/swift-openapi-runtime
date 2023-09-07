@@ -119,6 +119,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             "foo": "bar",
             "number": "1",
             "habitats": "land,air",
+            "withEscaping": "Hello%20world%21",
         ]
         do {
             let value = try converter.getPathParameterAsURI(
@@ -144,6 +145,14 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             )
             XCTAssertEqual(value, [.land, .air])
         }
+        do {
+            let value = try converter.getPathParameterAsURI(
+                in: path,
+                name: "withEscaping",
+                as: String.self
+            )
+            XCTAssertEqual(value, "Hello world!")
+        }
     }
 
     //    | server | get | request query | URI | optional | getOptionalQueryItemAsURI |
@@ -156,6 +165,42 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             as: String.self
         )
         XCTAssertEqual(value, "foo")
+    }
+
+    //    | server | get | request query | URI | optional | getOptionalQueryItemAsURI |
+    func test_getOptionalQueryItemAsURI_string_nil() throws {
+        let value: String? = try converter.getOptionalQueryItemAsURI(
+            in: "",
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: String.self
+        )
+        XCTAssertNil(value)
+    }
+
+    //    | server | get | request query | URI | optional | getOptionalQueryItemAsURI |
+    func test_getOptionalQueryItemAsURI_string_notFound() throws {
+        let value: String? = try converter.getOptionalQueryItemAsURI(
+            in: "foo=bar",
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: String.self
+        )
+        XCTAssertNil(value)
+    }
+
+    //    | server | get | request query | URI | optional | getOptionalQueryItemAsURI |
+    func test_getOptionalQueryItemAsURI_string_empty() throws {
+        let value: String? = try converter.getOptionalQueryItemAsURI(
+            in: "search=",
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: String.self
+        )
+        XCTAssertEqual(value, "")
     }
 
     //    | server | get | request query | URI | required | getRequiredQueryItemAsURI |
