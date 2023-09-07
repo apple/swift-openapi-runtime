@@ -200,7 +200,7 @@ final class Test_Body: Test_Runtime {
             length: .known(5),
             iterationBehavior: .single
         )
-        var chunks: [HTTPBody.DataType] = []
+        var chunks: [HTTPBody.ByteChunk] = []
         for try await chunk in body {
             chunks.append(chunk)
         }
@@ -211,7 +211,7 @@ final class Test_Body: Test_Runtime {
 extension Test_Body {
     func _testConsume(
         _ body: HTTPBody,
-        expected: HTTPBody.DataType,
+        expected: HTTPBody.ByteChunk,
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {

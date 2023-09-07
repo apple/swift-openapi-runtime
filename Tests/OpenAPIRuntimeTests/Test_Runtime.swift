@@ -44,7 +44,7 @@ class Test_Runtime: XCTestCase {
     }
 
     var testRequest: HTTPRequest {
-        .init(path: "/api", method: .get)
+        .init(soar_path: "/api", method: .get)
     }
 
     var testDate: Date {

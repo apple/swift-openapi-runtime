@@ -56,7 +56,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             name: "search",
             value: "foo"
         )
-        XCTAssertEqual(request.query, "search=foo")
+        XCTAssertEqual(request.soar_query, "search=foo")
     }
 
     func test_setQueryItemAsURI_stringConvertible_needsEncoding() throws {
@@ -68,7 +68,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             name: "search",
             value: "h%llo"
         )
-        XCTAssertEqual(request.query, "search=h%25llo")
+        XCTAssertEqual(request.soar_query, "search=h%25llo")
     }
 
     func test_setQueryItemAsURI_arrayOfStrings() throws {
@@ -80,7 +80,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             name: "search",
             value: ["foo", "bar"]
         )
-        XCTAssertEqual(request.query, "search=foo&search=bar")
+        XCTAssertEqual(request.soar_query, "search=foo&search=bar")
     }
 
     func test_setQueryItemAsURI_arrayOfStrings_unexploded() throws {
@@ -92,7 +92,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             name: "search",
             value: ["foo", "bar"]
         )
-        XCTAssertEqual(request.query, "search=foo,bar")
+        XCTAssertEqual(request.soar_query, "search=foo,bar")
     }
 
     func test_setQueryItemAsURI_date() throws {
@@ -104,7 +104,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             name: "search",
             value: testDate
         )
-        XCTAssertEqual(request.query, "search=2023-01-18T10%3A04%3A11Z")
+        XCTAssertEqual(request.soar_query, "search=2023-01-18T10%3A04%3A11Z")
     }
 
     func test_setQueryItemAsURI_arrayOfDates() throws {
@@ -116,7 +116,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             name: "search",
             value: [testDate, testDate]
         )
-        XCTAssertEqual(request.query, "search=2023-01-18T10%3A04%3A11Z&search=2023-01-18T10%3A04%3A11Z")
+        XCTAssertEqual(request.soar_query, "search=2023-01-18T10%3A04%3A11Z&search=2023-01-18T10%3A04%3A11Z")
     }
 
     //    | client | set | request body | JSON | optional | setOptionalRequestBodyAsJSON |
