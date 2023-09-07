@@ -132,7 +132,7 @@ public protocol ClientTransport: Sendable {
     /// HTTP response.
     /// - Parameters:
     ///   - request: An HTTP request.
-    ///   - body: HTTP request body.
+    ///   - body: An HTTP request body.
     ///   - baseURL: A server base URL.
     ///   - operationID: The identifier of the OpenAPI operation.
     /// - Returns: An HTTP response and its body.
@@ -236,8 +236,8 @@ public protocol ClientMiddleware: Sendable {
     /// Intercepts an outgoing HTTP request and an incoming HTTP response.
     /// - Parameters:
     ///   - request: An HTTP request.
-    ///   - body: HTTP request body.
-    ///   - baseURL: baseURL: A server base URL.
+    ///   - body: An HTTP request body.
+    ///   - baseURL: A server base URL.
     ///   - operationID: The identifier of the OpenAPI operation.
     ///   - next: A closure that calls the next middleware, or the transport.
     /// - Returns: An HTTP response and its body.

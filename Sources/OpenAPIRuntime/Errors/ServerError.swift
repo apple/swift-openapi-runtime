@@ -21,21 +21,21 @@ public struct ServerError: Error {
     /// Identifier of the operation that threw the error.
     public var operationID: String
 
-    /// HTTP request provided to the server.
+    /// The HTTP request provided to the server.
     public var request: HTTPRequest
 
-    /// HTTP request body provided to the server.
+    /// The HTTP request body provided to the server.
     public var requestBody: HTTPBody?
 
-    /// Request metadata extracted by the server.
+    /// The request metadata extracted by the server.
     public var metadata: ServerRequestMetadata
 
-    /// Operation-specific Input value.
+    /// An operation-specific Input value.
     ///
     /// Is nil if error was thrown during request -> Input conversion.
     public var operationInput: (any Sendable)?
 
-    /// Operation-specific Output value.
+    /// An operation-specific Output value.
     ///
     /// Is nil if error was thrown before/during Output -> response conversion.
     public var operationOutput: (any Sendable)?
@@ -46,11 +46,11 @@ public struct ServerError: Error {
     /// Creates a new error.
     /// - Parameters:
     ///   - operationID: The OpenAPI operation identifier.
-    ///   - request: HTTP request provided to the server.
-    ///   - requestBody: HTTP request body provided to the server.
-    ///   - metadata: Request metadata extracted by the server.
-    ///   - operationInput: Operation-specific Input value.
-    ///   - operationOutput: Operation-specific Output value.
+    ///   - request: The HTTP request provided to the server.
+    ///   - requestBody: The HTTP request body provided to the server.
+    ///   - metadata: The request metadata extracted by the server.
+    ///   - operationInput: An operation-specific Input value.
+    ///   - operationOutput: An operation-specific Output value.
     ///   - underlyingError: The underlying error that caused the operation
     ///     to fail.
     public init(
