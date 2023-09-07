@@ -20,12 +20,14 @@ import struct Foundation.Data  // only for convenience initializers
 ///
 /// Under the hood, it represents an async sequence of byte chunks.
 ///
-/// ## Consuming a body
-/// TODO
-///
-/// ## Creating a body
+/// ## Creating a body from a buffer
 /// There are convenience initializers to create a body from common types, such
 /// as `Data`, `[UInt8]`, `ArraySlice<UInt8>`, and `String`.
+///
+/// Create an empty body:
+/// ```swift
+/// let body = HTTPBody()
+/// ```
 ///
 /// Create a body from a byte chunk:
 /// ```swift
@@ -33,12 +35,87 @@ import struct Foundation.Data  // only for convenience initializers
 /// let body = HTTPBody(bytes: bytes)
 /// ```
 ///
-/// ## Overriding the body length
-/// TODO
+/// Create a body from `Foundation.Data`:
+/// ```swift
+/// let data: Foundation.Data = ...
+/// let body = HTTPBody(data: data)
+/// ```
 ///
-/// ## Specifying the iteration behavior
-/// TODO
+/// Create a body from a string:
+/// ```swift
+/// let body = HTTPBody(string: "Hello, world!")
+/// ```
 ///
+/// ## Creating a body from an async sequence
+/// The body type also supports initialization from an async sequence.
+///
+/// ```swift
+/// let producingSequence = ... // an AsyncSequence
+/// let length: HTTPBody.Length = .known(1024) // or .unknown
+/// let body = HTTPBody(
+///     sequence: producingSequence,
+///     length: length,
+///     iterationBehavior: .single // or .multiple
+/// )
+/// ```
+///
+/// In addition to the async sequence, also provide the total body length,
+/// if known (this can be sent in the `content-length` header), and whether
+/// the sequence is safe to be iterated multiple times, or can only be iterated
+/// once.
+///
+/// Sequences that can be iterated multiple times work better when an HTTP
+/// request needs to be retried, or if a redirect is encountered.
+///
+/// In addition to providing the async sequence, you can also produce the body
+/// using an `AsyncStream` or `AsyncThrowingStream`:
+///
+/// ```swift
+/// let body = HTTPBody(
+///     stream: AsyncStream(ArraySlice<UInt8>.self, { continuation in
+///         continuation.yield([72, 69])
+///         continuation.yield([76, 76, 79])
+///         continuation.finish()
+///     }),
+///     length: .known(5)
+/// )
+/// ```
+///
+/// ## Consuming a body as an async sequence
+/// The `HTTPBody` type conforms to `AsyncSequence` and uses `ArraySlice<UInt8>`
+/// as its element type, so it can be consumed in a streaming fashion, without
+/// ever buffering the whole body in your process.
+///
+/// For example, to get another sequence that contains only the size of each
+/// chunk, and print each size, use:
+///
+/// ```swift
+/// let chunkSizes = body.map { chunk in chunk.count }
+/// for try await chunkSize in chunkSizes {
+///     print("Chunk size: \(chunkSize)")
+/// }
+/// ```
+///
+/// ## Consuming a body as a buffer
+/// If you need to collect the whole body before processing it, use one of
+/// the convenience `collect` methods on `HTTPBody`.
+///
+/// To get all the bytes, use:
+///
+/// ```swift
+/// let buffer = try await body.collect(upTo: 2 * 1024 * 1024)
+/// ```
+///
+/// Note that you must provide the maximum number of bytes you can buffer in
+/// memory, in the example above we provide 2 MB. If more bytes are available,
+/// the method throws the `TooManyBytesError` to stop the process running out
+/// of memory. While discouraged, you can provide `collect(upTo: .max)` to
+/// read all the available bytes, without a limit.
+///
+/// The body type provides more variants of the `collect` method for commonly
+/// used buffers, such as:
+/// - `collectAsData` provides the buffered data as `Foundation.Data`
+/// - `collectAsString` provides the buffered data as a string decoded as UTF-8
 public final class HTTPBody: @unchecked Sendable {
 
     /// The underlying byte chunk type.
@@ -374,7 +451,7 @@ extension HTTPBody {
             length: .known(string.count)
         )
     }
-    
+
     /// Creates a new body with the provided strings encoded as UTF-8 bytes.
     /// - Parameters:
     ///   - stringChunks: A sequence of string chunks.
