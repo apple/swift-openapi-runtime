@@ -59,11 +59,9 @@ public struct ServerError: Error {
     }
 }
 
-// TODO: Make pretty printable (except the body)
-
 extension ServerError: CustomStringConvertible {
     public var description: String {
-        "Server error - operationID: \(operationID), underlying error: \(underlyingErrorDescription)"
+        "Server error - operationID: \(operationID), request: \(request.prettyDescription), requestBody: \(requestBody?.prettyDescription ?? "<nil>"), metadata: \(metadata.description), operationInput: \(operationInput.map { String(describing: $0) } ?? "<nil>"), operationOutput: \(operationOutput.map { String(describing: $0) } ?? "<nil>"), underlying error: \(underlyingErrorDescription)"
     }
 }
 

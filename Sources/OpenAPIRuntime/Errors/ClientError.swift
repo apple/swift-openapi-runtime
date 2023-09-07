@@ -20,13 +20,12 @@ import Foundation
 @preconcurrency import protocol Foundation.LocalizedError
 #endif
 
-
 /// An error thrown by a client performing an OpenAPI operation.
 ///
-/// Use a `ClientError` to inspect details about the request and response 
+/// Use a `ClientError` to inspect details about the request and response
 /// that resulted in an error.
 ///
-/// You don't create or throw instances of `ClientError` yourself; they are 
+/// You don't create or throw instances of `ClientError` yourself; they are
 /// created and thrown on your behalf by the runtime library when a client
 /// operation fails.
 public struct ClientError: Error {
@@ -109,12 +108,9 @@ public struct ClientError: Error {
     }
 }
 
-// TODO: Adopt pretty descriptions here (except the bodies).
-
 extension ClientError: CustomStringConvertible {
     public var description: String {
-        // TODO: Bring back all the fields for easier debugging.
-        "Client error - operationID: \(operationID), underlying error: \(underlyingErrorDescription)"
+        "Client error - operationID: \(operationID), operationInput: \(String(describing: operationInput)), request: \(request?.prettyDescription ?? "<nil>"), requestBody: \(requestBody?.prettyDescription ?? "<nil>"), baseURL: \(baseURL?.absoluteString ?? "<nil>"), response: \(response?.prettyDescription ?? "<nil>"), responseBody: \(responseBody?.prettyDescription ?? "<nil>") , underlying error: \(underlyingErrorDescription)"
     }
 }
 

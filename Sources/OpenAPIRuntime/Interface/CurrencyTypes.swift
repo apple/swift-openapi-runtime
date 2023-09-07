@@ -81,3 +81,35 @@ extension HTTPResponse {
         self.init(status: .init(code: statusCode))
     }
 }
+
+extension ServerRequestMetadata: CustomStringConvertible {
+    public var description: String {
+        "path parameters: \(pathParameters.description)"
+    }
+}
+
+extension HTTPFields: PrettyStringConvertible {
+    var prettyDescription: String {
+        sorted(by: { $0.name.canonicalName.localizedCompare($1.name.canonicalName) == .orderedAscending })
+            .map { "\($0.name.canonicalName): \($0.value)" }
+            .joined(separator: "; ")
+    }
+}
+
+extension HTTPRequest: PrettyStringConvertible {
+    var prettyDescription: String {
+        "\(method.rawValue) \(path ?? "<nil>") [\(headerFields.prettyDescription)]"
+    }
+}
+
+extension HTTPResponse: PrettyStringConvertible {
+    var prettyDescription: String {
+        "\(status.code) [\(headerFields.prettyDescription)]"
+    }
+}
+
+extension HTTPBody: PrettyStringConvertible {
+    var prettyDescription: String {
+        String(describing: self)
+    }
+}
