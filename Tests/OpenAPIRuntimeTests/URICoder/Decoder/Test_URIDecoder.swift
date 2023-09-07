@@ -28,4 +28,56 @@ final class Test_URIDecoder: Test_Runtime {
         )
         XCTAssertEqual(decodedValue, Foo(bar: "hello world"))
     }
+
+    func testDecoding_structWithOptionalProperty() throws {
+        struct Foo: Decodable, Equatable {
+            var bar: String?
+            var baz: Int
+        }
+        let decoder = URIDecoder(configuration: .formDataExplode)
+        do {
+            let decodedValue = try decoder.decode(
+                Foo.self,
+                forKey: "",
+                from: "baz=1&bar=hello+world"
+            )
+            XCTAssertEqual(decodedValue, Foo(bar: "hello world", baz: 1))
+        }
+        do {
+            let decodedValue = try decoder.decode(
+                Foo.self,
+                forKey: "",
+                from: "baz=1"
+            )
+            XCTAssertEqual(decodedValue, Foo(baz: 1))
+        }
+    }
+
+    func testDecoding_rootValue() throws {
+        let decoder = URIDecoder(configuration: .formDataExplode)
+        do {
+            let decodedValue = try decoder.decode(
+                Int.self,
+                forKey: "root",
+                from: "root=1"
+            )
+            XCTAssertEqual(decodedValue, 1)
+        }
+        do {
+            let decodedValue = try decoder.decodeIfPresent(
+                Int.self,
+                forKey: "root",
+                from: "baz=1"
+            )
+            XCTAssertEqual(decodedValue, nil)
+        }
+        do {
+            let decodedValue = try decoder.decodeIfPresent(
+                Int.self,
+                forKey: "root",
+                from: ""
+            )
+            XCTAssertEqual(decodedValue, nil)
+        }
+    }
 }

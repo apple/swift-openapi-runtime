@@ -89,4 +89,30 @@ extension URIEncoder {
         let encodedString = try serializer.serializeNode(node, forKey: key)
         return encodedString
     }
+
+    /// Attempt to encode an object into an URI string, if not nil.
+    ///
+    /// Under the hood, `URIEncoder` first encodes the `Encodable` type
+    /// into a `URIEncodableNode` using `URIValueToNodeEncoder`, and then
+    /// `URISerializer` encodes the `URIEncodableNode` into a string based
+    /// on the configured behavior.
+    ///
+    /// - Parameters:
+    ///   - value: The value to encode.
+    ///   - key: The key for which to encode the value. Can be an empty key,
+    ///     in which case you still get a key-value pair, like `=foo`.
+    /// - Returns: The URI string.
+    func encodeIfPresent(
+        _ value: (some Encodable)?,
+        forKey key: String
+    ) throws -> String {
+        guard let value else {
+            return ""
+        }
+        let encoder = URIValueToNodeEncoder()
+        let node = try encoder.encodeValue(value)
+        var serializer = serializer
+        let encodedString = try serializer.serializeNode(node, forKey: key)
+        return encodedString
+    }
 }

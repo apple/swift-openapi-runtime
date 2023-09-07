@@ -134,7 +134,7 @@ extension Converter {
                         dateTranscoder: configuration.dateTranscoder
                     )
                 )
-                let value = try decoder.decode(
+                let value = try decoder.decodeIfPresent(
                     T.self,
                     forKey: name,
                     from: query

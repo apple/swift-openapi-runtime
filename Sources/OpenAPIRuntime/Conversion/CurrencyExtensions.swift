@@ -322,9 +322,9 @@ extension Converter {
         explode: Bool?,
         name: String,
         as type: T.Type,
-        convert: (String, ParameterStyle, Bool) throws -> T
+        convert: (String, ParameterStyle, Bool) throws -> T?
     ) throws -> T? {
-        guard let query else {
+        guard let query, !query.isEmpty else {
             return nil
         }
         let (resolvedStyle, resolvedExplode) = try ParameterStyle.resolvedQueryStyleAndExplode(

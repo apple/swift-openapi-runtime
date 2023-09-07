@@ -24,6 +24,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             var color: SimpleEnum
             var empty: String
             var date: Date
+            var maybeFoo: String?
         }
 
         enum SimpleEnum: String, Codable, Equatable {
