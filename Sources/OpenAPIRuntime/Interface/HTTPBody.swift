@@ -101,7 +101,7 @@ extension HTTPBody {
     @inlinable
     public convenience init() {
         self.init(
-            byteChunks: [],
+            sequence: .init(EmptySequence()),
             length: .known(0),
             iterationBehavior: .multiple
         )
@@ -546,6 +546,37 @@ extension HTTPBody {
         @usableFromInline
         func makeAsyncIterator() -> Iterator {
             Iterator(iterator: sequence.makeIterator())
+        }
+    }
+
+    /// A wrapper for a sync sequence.
+    @usableFromInline
+    struct EmptySequence: AsyncSequence {
+
+        @usableFromInline
+        typealias AsyncIterator = EmptyIterator
+
+        @usableFromInline
+        typealias Element = DataType
+
+        @usableFromInline
+        struct EmptyIterator: AsyncIteratorProtocol {
+
+            @usableFromInline
+            typealias Element = DataType
+
+            @usableFromInline
+            mutating func next() async throws -> HTTPBody.DataType? {
+                nil
+            }
+        }
+
+        @inlinable
+        init() {}
+
+        @usableFromInline
+        func makeAsyncIterator() -> EmptyIterator {
+            EmptyIterator()
         }
     }
 }
