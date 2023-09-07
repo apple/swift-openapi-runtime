@@ -22,17 +22,27 @@ import struct Foundation.URLComponents
 @preconcurrency import struct Foundation.URLComponents
 #endif
 
-@_spi(Generated)
-public struct UniversalServer<APIHandler: Sendable>: Sendable {
+/// OpenAPI document-agnostic HTTP server used by OpenAPI document-specific,
+/// generated servers to perform request deserialization, middleware and handler
+/// invocation, and response serialization.
+///
+/// Do not call this directly, only invoked by generated code.
+@_spi(Generated) public struct UniversalServer<APIHandler: Sendable>: Sendable {
 
+    /// The URL of the server, used to determine the path prefix for
+    /// registered request handlers.
     public var serverURL: URL
 
+    /// A converter for encoding/decoding data.
     public var converter: Converter
 
+    /// A type capable of handling HTTP requests and returning HTTP responses.
     public var handler: APIHandler
 
+    /// The middlewares to be invoked before the handler receives the request.
     public var middlewares: [any ServerMiddleware]
 
+    /// Internal initializer that takes an initialized converter.
     internal init(
         serverURL: URL,
         converter: Converter,
@@ -45,6 +55,7 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
         self.middlewares = middlewares
     }
 
+    /// Creates a new server with the specified parameters.
     public init(
         serverURL: URL = .defaultOpenAPIServerURL,
         handler: APIHandler,
@@ -59,6 +70,27 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
         )
     }
 
+    /// Performs the operation.
+    ///
+    /// Should only be called by generated code, not directly.
+    ///
+    /// An operation consists of three steps (middlewares happen before 1 and after 3):
+    /// 1. Convert HTTP request into Input.
+    /// 2. Invoke the user handler to perform the user logic.
+    /// 3. Convert Output into an HTTP response.
+    ///
+    /// It wraps any thrown errors and attaching appropriate context.
+    /// - Parameters:
+    ///   - request: The HTTP request.
+    ///   - requestBody: The HTTP request body.
+    ///   - metadata: The HTTP request metadata.
+    ///   - operationID: The OpenAPI operation identifier.
+    ///   - handlerMethod: The user handler method.
+    ///   - deserializer: A closure that creates an Input value from the
+    ///     provided HTTP request.
+    ///   - serializer: A closure that creates an HTTP response from the
+    ///     provided Output value.
+    /// - Returns: The HTTP response and its body produced by the serializer.
     public func handle<OperationInput, OperationOutput>(
         request: HTTPRequest,
         requestBody: HTTPBody?,
@@ -136,6 +168,9 @@ public struct UniversalServer<APIHandler: Sendable>: Sendable {
         return try await next(request, requestBody, metadata)
     }
 
+    /// Returns the path with the server URL's path prefix prepended.
+    /// - Parameter path: The path suffix.
+    /// - Returns: The path appended to the server URL's path.
     public func apiPathComponentsWithServerPrefix(
         _ path: String
     ) throws -> String {

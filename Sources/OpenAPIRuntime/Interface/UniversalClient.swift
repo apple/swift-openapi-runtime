@@ -18,14 +18,27 @@ import Foundation
 @preconcurrency import struct Foundation.URL
 #endif
 
-@_spi(Generated)
-public struct UniversalClient: Sendable {
+/// OpenAPI document-agnostic HTTP client used by OpenAPI document-specific,
+/// generated clients to perform request serialization, middleware and transport
+/// invocation, and response deserialization.
+///
+/// Do not call this directly, only invoked by generated code.
+@_spi(Generated) public struct UniversalClient: Sendable {
 
+    /// The URL of the server, used as the base URL for requests made by the
+    /// client.
     public let serverURL: URL
+
+    /// A converter for encoding/decoding data.
     public let converter: Converter
+
+    /// A type capable of sending HTTP requests and receiving HTTP responses.
     public var transport: any ClientTransport
+
+    /// The middlewares to be invoked before the transport.
     public var middlewares: [any ClientMiddleware]
 
+    /// Internal initializer that takes an initialized `Converter`.
     internal init(
         serverURL: URL,
         converter: Converter,
@@ -38,6 +51,7 @@ public struct UniversalClient: Sendable {
         self.middlewares = middlewares
     }
 
+    /// Creates a new client.
     public init(
         serverURL: URL = .defaultOpenAPIServerURL,
         configuration: Configuration = .init(),
@@ -52,6 +66,23 @@ public struct UniversalClient: Sendable {
         )
     }
 
+    /// Performs the HTTP operation.
+    ///
+    /// Should only be called by generated code, not directly.
+    ///
+    /// An operation consists of three steps:
+    /// 1. Convert Input into an HTTP request.
+    /// 2. Invoke the `ClientTransport` to perform the HTTP call, wrapped by middlewares.
+    /// 3. Convert the HTTP response into Output.
+    ///
+    /// It wraps any thrown errors and attaches appropriate context.
+    ///
+    /// - Parameters:
+    ///   - input: Operation-specific input value.
+    ///   - operationID: The OpenAPI operation identifier.
+    ///   - serializer: Creates an HTTP request from the provided Input value.
+    ///   - deserializer: Creates an Output value from the provided HTTP response.
+    /// - Returns: The Output value produced by `deserializer`.
     public func send<OperationInput, OperationOutput>(
         input: OperationInput,
         forOperation operationID: String,
