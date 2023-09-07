@@ -125,7 +125,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             "foo": "bar",
             "number": "1",
             "habitats": "land,air",
-            "withEscaping": "Hello%20world%21"
+            "withEscaping": "Hello%20world%21",
         ]
         do {
             let value = try converter.getPathParameterAsURI(
