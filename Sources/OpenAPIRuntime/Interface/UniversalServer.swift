@@ -99,8 +99,8 @@ import struct Foundation.URLComponents
         using handlerMethod: @Sendable @escaping (APIHandler) -> ((OperationInput) async throws -> OperationOutput),
         deserializer: @Sendable @escaping (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws ->
             OperationInput,
-        serializer: @Sendable @escaping (OperationOutput, HTTPRequest) throws -> (HTTPResponse, HTTPBody)
-    ) async throws -> (HTTPResponse, HTTPBody) where OperationInput: Sendable, OperationOutput: Sendable {
+        serializer: @Sendable @escaping (OperationOutput, HTTPRequest) throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?) where OperationInput: Sendable, OperationOutput: Sendable {
         @Sendable
         func wrappingErrors<R>(
             work: () async throws -> R,
@@ -128,31 +128,32 @@ import struct Foundation.URLComponents
                 underlyingError: error
             )
         }
-        var next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody) = {
-            _request,
-            _requestBody,
-            _metadata in
-            let input: OperationInput = try await wrappingErrors {
-                try await deserializer(_request, _requestBody, _metadata)
-            } mapError: { error in
-                makeError(error: error)
-            }
-            let output: OperationOutput = try await wrappingErrors {
-                let method = handlerMethod(handler)
-                return try await wrappingErrors {
-                    try await method(input)
+        var next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?) =
+            {
+                _request,
+                _requestBody,
+                _metadata in
+                let input: OperationInput = try await wrappingErrors {
+                    try await deserializer(_request, _requestBody, _metadata)
                 } mapError: { error in
-                    RuntimeError.handlerFailed(error)
+                    makeError(error: error)
                 }
-            } mapError: { error in
-                makeError(input: input, error: error)
+                let output: OperationOutput = try await wrappingErrors {
+                    let method = handlerMethod(handler)
+                    return try await wrappingErrors {
+                        try await method(input)
+                    } mapError: { error in
+                        RuntimeError.handlerFailed(error)
+                    }
+                } mapError: { error in
+                    makeError(input: input, error: error)
+                }
+                return try await wrappingErrors {
+                    try serializer(output, _request)
+                } mapError: { error in
+                    makeError(input: input, output: output, error: error)
+                }
             }
-            return try await wrappingErrors {
-                try serializer(output, _request)
-            } mapError: { error in
-                makeError(input: input, output: output, error: error)
-            }
-        }
         for middleware in middlewares.reversed() {
             let tmp = next
             next = {

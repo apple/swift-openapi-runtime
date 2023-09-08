@@ -115,7 +115,7 @@ public protocol ServerTransport {
     ///   as `/file/{name}.zip`.
     func register(
         _ handler: @Sendable @escaping (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (
-            HTTPResponse, HTTPBody
+            HTTPResponse, HTTPBody?
         ),
         method: HTTPRequest.Method,
         path: String
@@ -223,6 +223,6 @@ public protocol ServerMiddleware: Sendable {
         body: HTTPBody?,
         metadata: ServerRequestMetadata,
         operationID: String,
-        next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody)
-    ) async throws -> (HTTPResponse, HTTPBody)
+        next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?)
 }
