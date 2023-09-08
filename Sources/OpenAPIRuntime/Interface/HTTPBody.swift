@@ -640,7 +640,7 @@ extension HTTPBody {
             }
         }
 
-        public func next() async throws -> Element? {
+        public mutating func next() async throws -> Element? {
             try await produceNext()
         }
     }
