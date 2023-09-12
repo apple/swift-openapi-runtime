@@ -190,7 +190,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     func test_setRequiredRequestBodyAsBinary_data() async throws {
         var headerFields: HTTPFields = [:]
         let body = try converter.setRequiredRequestBodyAsBinary(
-            .init(string: testString),
+            .init(testString),
             headerFields: &headerFields,
             contentType: "application/octet-stream"
         )
@@ -217,7 +217,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     func test_getResponseBodyAsBinary_data() async throws {
         let value: HTTPBody = try converter.getResponseBodyAsBinary(
             HTTPBody.self,
-            from: .init(string: testString),
+            from: .init(testString),
             transforming: { $0 }
         )
         try await XCTAssertEqualStringifiedData(value, testString)

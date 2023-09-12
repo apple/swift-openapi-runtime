@@ -160,7 +160,7 @@ extension Converter {
     func convertJSONToBodyCodable<T: Decodable>(
         _ body: HTTPBody
     ) async throws -> T {
-        let data = try await body.collectAsData(upTo: .max)
+        let data = try await Data(collecting: body, upTo: .max)
         return try decoder.decode(T.self, from: data)
     }
 

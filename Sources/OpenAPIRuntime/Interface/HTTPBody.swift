@@ -32,18 +32,18 @@ import struct Foundation.Data  // only for convenience initializers
 /// Create a body from a byte chunk:
 /// ```swift
 /// let bytes: ArraySlice<UInt8> = ...
-/// let body = HTTPBody(bytes: bytes)
+/// let body = HTTPBody(bytes)
 /// ```
 ///
 /// Create a body from `Foundation.Data`:
 /// ```swift
 /// let data: Foundation.Data = ...
-/// let body = HTTPBody(data: data)
+/// let body = HTTPBody(data)
 /// ```
 ///
 /// Create a body from a string:
 /// ```swift
-/// let body = HTTPBody(string: "Hello, world!")
+/// let body = HTTPBody("Hello, world!")
 /// ```
 ///
 /// ## Creating a body from an async sequence
@@ -53,7 +53,7 @@ import struct Foundation.Data  // only for convenience initializers
 /// let producingSequence = ... // an AsyncSequence
 /// let length: HTTPBody.Length = .known(1024) // or .unknown
 /// let body = HTTPBody(
-///     sequence: producingSequence,
+///     producingSequence,
 ///     length: length,
 ///     iterationBehavior: .single // or .multiple
 /// )
@@ -72,7 +72,7 @@ import struct Foundation.Data  // only for convenience initializers
 ///
 /// ```swift
 /// let body = HTTPBody(
-///     stream: AsyncStream(ArraySlice<UInt8>.self, { continuation in
+///     AsyncStream(ArraySlice<UInt8>.self, { continuation in
 ///         continuation.yield([72, 69])
 ///         continuation.yield([76, 76, 79])
 ///         continuation.finish()
@@ -98,24 +98,24 @@ import struct Foundation.Data  // only for convenience initializers
 ///
 /// ## Consuming a body as a buffer
 /// If you need to collect the whole body before processing it, use one of
-/// the convenience `collect` methods on `HTTPBody`.
+/// the convenience initializers on the target types that take an `HTTPBody`.
 ///
-/// To get all the bytes, use:
+/// To get all the bytes, use the initializer on `ArraySlice<UInt8>` or `[UInt8]`:
 ///
 /// ```swift
-/// let buffer = try await body.collect(upTo: 2 * 1024 * 1024)
+/// let buffer = try await ArraySlice(collecting: body, upTo: 2 * 1024 * 1024)
 /// ```
 ///
 /// Note that you must provide the maximum number of bytes you can buffer in
 /// memory, in the example above we provide 2 MB. If more bytes are available,
 /// the method throws the `TooManyBytesError` to stop the process running out
-/// of memory. While discouraged, you can provide `collect(upTo: .max)` to
+/// of memory. While discouraged, you can provide `upTo: .max` to
 /// read all the available bytes, without a limit.
 ///
-/// The body type provides more variants of the `collect` method for commonly
+/// The body type provides more variants of the collecting initializer on commonly
 /// used buffers, such as:
-/// - `collectAsData` provides the buffered data as `Foundation.Data`
-/// - `collectAsString` provides the buffered data as a string decoded as UTF-8
+/// - `Foundation.Data`
+/// - `Swift.String`
 public final class HTTPBody: @unchecked Sendable {
 
     /// The underlying byte chunk type.
@@ -175,7 +175,7 @@ public final class HTTPBody: @unchecked Sendable {
     ///   - iterationBehavior: The sequence's iteration behavior, which
     ///     indicates whether the sequence can be iterated multiple times.
     @usableFromInline init(
-        sequence: BodySequence,
+        _ sequence: BodySequence,
         length: Length,
         iterationBehavior: IterationBehavior
     ) {
@@ -207,35 +207,71 @@ extension HTTPBody {
     /// Creates a new empty body.
     @inlinable public convenience init() {
         self.init(
-            sequence: .init(EmptySequence()),
+            .init(EmptySequence()),
             length: .known(0),
             iterationBehavior: .multiple
         )
     }
 
-    /// Creates a new body with the provided single byte chunk.
+    /// Creates a new body with the provided byte chunk.
     /// - Parameters:
     ///   - bytes: A byte chunk.
     ///   - length: The total length of the body.
     @inlinable public convenience init(
-        bytes: ByteChunk,
+        _ bytes: ByteChunk,
         length: Length
     ) {
+        self.init([bytes], length: length)
+    }
+
+    /// Creates a new body with the provided byte chunk.
+    /// - Parameter bytes: A byte chunk.
+    @inlinable public convenience init(
+        _ bytes: ByteChunk
+    ) {
+        self.init([bytes], length: .known(bytes.count))
+    }
+
+    /// Creates a new body with the provided byte sequence.
+    /// - Parameters:
+    ///   - bytes: A byte chunk.
+    ///   - length: The total length of the body.
+    ///   - iterationBehavior: The iteration behavior of the sequence, which
+    ///     indicates whether it can be iterated multiple times.
+    @inlinable public convenience init<S: Sequence>(
+        _ bytes: S,
+        length: Length,
+        iterationBehavior: IterationBehavior
+    ) where S: Sendable, S.Element == UInt8 {
         self.init(
-            byteChunks: [bytes],
-            length: length
+            [ArraySlice(bytes)],
+            length: length,
+            iterationBehavior: iterationBehavior
         )
     }
 
-    /// Creates a new body with the provided single byte chunk.
-    /// - Parameter bytes: A byte chunk.
-    @inlinable public convenience init(
-        bytes: ByteChunk
-    ) {
+    /// Creates a new body with the provided byte collection.
+    /// - Parameters:
+    ///   - bytes: A byte chunk.
+    ///   - length: The total length of the body.
+    @inlinable public convenience init<C: Collection>(
+        _ bytes: C,
+        length: Length
+    ) where C: Sendable, C.Element == UInt8 {
         self.init(
-            byteChunks: [bytes],
-            length: .known(bytes.count)
+            ArraySlice(bytes),
+            length: length,
+            iterationBehavior: .multiple
         )
+    }
+
+    /// Creates a new body with the provided byte collection.
+    /// - Parameters:
+    ///   - bytes: A byte chunk.
+    @inlinable public convenience init<C: Collection>(
+        _ bytes: C
+    ) where C: Sendable, C.Element == UInt8 {
+        self.init(bytes, length: .known(bytes.count))
     }
 
     /// Creates a new body with the provided sequence of byte chunks.
@@ -245,12 +281,12 @@ extension HTTPBody {
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
     @inlinable public convenience init<S: Sequence>(
-        byteChunks: S,
+        _ byteChunks: S,
         length: Length,
         iterationBehavior: IterationBehavior
     ) where S.Element == ByteChunk, S: Sendable {
         self.init(
-            sequence: .init(WrappedSyncSequence(sequence: byteChunks)),
+            .init(WrappedSyncSequence(sequence: byteChunks)),
             length: length,
             iterationBehavior: iterationBehavior
         )
@@ -261,11 +297,11 @@ extension HTTPBody {
     ///   - byteChunks: A collection of byte chunks.
     ///   - length: The total length of the body.
     @inlinable public convenience init<C: Collection>(
-        byteChunks: C,
+        _ byteChunks: C,
         length: Length
     ) where C.Element == ByteChunk, C: Sendable {
         self.init(
-            sequence: .init(WrappedSyncSequence(sequence: byteChunks)),
+            .init(WrappedSyncSequence(sequence: byteChunks)),
             length: length,
             iterationBehavior: .multiple
         )
@@ -274,10 +310,10 @@ extension HTTPBody {
     /// Creates a new body with the provided collection of byte chunks.
     ///   - byteChunks: A collection of byte chunks.
     @inlinable public convenience init<C: Collection>(
-        byteChunks: C
+        _ byteChunks: C
     ) where C.Element == ByteChunk, C: Sendable {
         self.init(
-            sequence: .init(WrappedSyncSequence(sequence: byteChunks)),
+            .init(WrappedSyncSequence(sequence: byteChunks)),
             length: .known(byteChunks.map(\.count).reduce(0, +)),
             iterationBehavior: .multiple
         )
@@ -288,11 +324,11 @@ extension HTTPBody {
     ///   - stream: An async throwing stream that provides the byte chunks.
     ///   - length: The total length of the body.
     @inlinable public convenience init(
-        stream: AsyncThrowingStream<ByteChunk, any Error>,
+        _ stream: AsyncThrowingStream<ByteChunk, any Error>,
         length: HTTPBody.Length
     ) {
         self.init(
-            sequence: .init(stream),
+            .init(stream),
             length: length,
             iterationBehavior: .single
         )
@@ -303,11 +339,11 @@ extension HTTPBody {
     ///   - stream: An async stream that provides the byte chunks.
     ///   - length: The total length of the body.
     @inlinable public convenience init(
-        stream: AsyncStream<ByteChunk>,
+        _ stream: AsyncStream<ByteChunk>,
         length: HTTPBody.Length
     ) {
         self.init(
-            sequence: .init(stream),
+            .init(stream),
             length: length,
             iterationBehavior: .single
         )
@@ -320,12 +356,30 @@ extension HTTPBody {
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
     @inlinable public convenience init<S: AsyncSequence>(
-        sequence: S,
+        _ sequence: S,
         length: HTTPBody.Length,
         iterationBehavior: IterationBehavior
     ) where S.Element == ByteChunk, S: Sendable {
         self.init(
-            sequence: .init(sequence),
+            .init(sequence),
+            length: length,
+            iterationBehavior: iterationBehavior
+        )
+    }
+
+    /// Creates a new body with the provided async sequence of byte sequences.
+    /// - Parameters:
+    ///   - sequence: An async sequence that provides the byte chunks.
+    ///   - length: The total lenght of the body.
+    ///   - iterationBehavior: The iteration behavior of the sequence, which
+    ///     indicates whether it can be iterated multiple times.
+    @inlinable public convenience init<S: AsyncSequence, ES: Sequence>(
+        _ sequence: S,
+        length: HTTPBody.Length,
+        iterationBehavior: IterationBehavior
+    ) where S.Element == ES, S: Sendable, ES.Element == UInt8 {
+        self.init(
+            sequence.map { ArraySlice($0) },
             length: length,
             iterationBehavior: iterationBehavior
         )
@@ -356,7 +410,7 @@ extension HTTPBody: AsyncSequence {
 
 extension HTTPBody {
 
-    /// An error thrown by the `collect` function when the body contains more
+    /// An error thrown by the collecting initializer when the body contains more
     /// than the maximum allowed number of bytes.
     private struct TooManyBytesError: Error, CustomStringConvertible, LocalizedError {
 
@@ -372,7 +426,7 @@ extension HTTPBody {
         }
     }
 
-    /// An error thrown by the `collect` function when another iteration of
+    /// An error thrown by the collecting initializer when another iteration of
     /// the body is not allowed.
     private struct TooManyIterationsError: Error, CustomStringConvertible, LocalizedError {
 
@@ -392,8 +446,8 @@ extension HTTPBody {
     ///     to accumulate in memory before it throws an error.
     /// - Throws: `TooManyBytesError` if the the sequence contains more
     ///   than `maxBytes`.
-    /// - Returns: A single byte chunk containing all the accumulated bytes.
-    public func collect(upTo maxBytes: Int) async throws -> ByteChunk {
+    /// - Returns: A byte chunk containing all the accumulated bytes.
+    fileprivate func collect(upTo maxBytes: Int) async throws -> ByteChunk {
 
         // As a courtesy, check if another iteration is allowed, and throw
         // an error instead of fatalError here if the user is trying to
@@ -422,6 +476,34 @@ extension HTTPBody {
     }
 }
 
+extension HTTPBody.ByteChunk {
+    /// Creates a byte chunk by accumulating the full body in-memory into a single buffer
+    /// up to the provided maximum number of bytes and returning it.
+    /// - Parameters:
+    ///   - body: The HTTP body to collect.
+    ///   - maxBytes: The maximum number of bytes this method is allowed
+    ///     to accumulate in memory before it throws an error.
+    /// - Throws: `TooManyBytesError` if the the sequence contains more
+    ///   than `maxBytes`.
+    public init(collecting body: HTTPBody, upTo maxBytes: Int) async throws {
+        self = try await body.collect(upTo: maxBytes)
+    }
+}
+
+extension Array where Element == UInt8 {
+    /// Creates a byte array by accumulating the full body in-memory into a single buffer
+    /// up to the provided maximum number of bytes and returning it.
+    /// - Parameters:
+    ///   - body: The HTTP body to collect.
+    ///   - maxBytes: The maximum number of bytes this method is allowed
+    ///     to accumulate in memory before it throws an error.
+    /// - Throws: `TooManyBytesError` if the the sequence contains more
+    ///   than `maxBytes`.
+    public init(collecting body: HTTPBody, upTo maxBytes: Int) async throws {
+        self = try await Array(body.collect(upTo: maxBytes))
+    }
+}
+
 // MARK: - String-based bodies
 
 extension HTTPBody {
@@ -431,11 +513,11 @@ extension HTTPBody {
     ///   - string: A string to encode as bytes.
     ///   - length: The total length of the body.
     @inlinable public convenience init<S: StringProtocol>(
-        string: S,
+        _ string: S,
         length: Length
     ) where S: Sendable {
         self.init(
-            bytes: string.asBodyChunk,
+            ByteChunk.init(string),
             length: length
         )
     }
@@ -444,10 +526,10 @@ extension HTTPBody {
     /// - Parameters:
     ///   - string: A string to encode as bytes.
     @inlinable public convenience init<S: StringProtocol>(
-        string: S
+        _ string: S
     ) where S: Sendable {
         self.init(
-            bytes: string.asBodyChunk,
+            ByteChunk.init(string),
             length: .known(string.count)
         )
     }
@@ -459,12 +541,12 @@ extension HTTPBody {
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
     @inlinable public convenience init<S: Sequence>(
-        stringChunks: S,
+        _ stringChunks: S,
         length: Length,
         iterationBehavior: IterationBehavior
     ) where S.Element: StringProtocol, S: Sendable {
         self.init(
-            byteChunks: stringChunks.map(\.asBodyChunk),
+            stringChunks.map(ByteChunk.init),
             length: length,
             iterationBehavior: iterationBehavior
         )
@@ -475,24 +557,19 @@ extension HTTPBody {
     ///   - stringChunks: A collection of string chunks.
     ///   - length: The total length of the body.
     @inlinable public convenience init<C: Collection>(
-        stringChunks: C,
+        _ stringChunks: C,
         length: Length
     ) where C.Element: StringProtocol, C: Sendable {
-        self.init(
-            byteChunks: stringChunks.map(\.asBodyChunk),
-            length: length
-        )
+        self.init(stringChunks.map(ByteChunk.init), length: length)
     }
 
     /// Creates a new body with the provided strings encoded as UTF-8 bytes.
     /// - Parameters:
     ///   - stringChunks: A collection of string chunks.
     @inlinable public convenience init<C: Collection>(
-        stringChunks: C
+        _ stringChunks: C
     ) where C.Element: StringProtocol, C: Sendable {
-        self.init(
-            byteChunks: stringChunks.map(\.asBodyChunk)
-        )
+        self.init(stringChunks.map(ByteChunk.init))
     }
 
     /// Creates a new body with the provided async throwing stream of strings.
@@ -500,11 +577,11 @@ extension HTTPBody {
     ///   - stream: An async throwing stream that provides the string chunks.
     ///   - length: The total length of the body.
     @inlinable public convenience init(
-        stream: AsyncThrowingStream<some StringProtocol, any Error>,
+        _ stream: AsyncThrowingStream<some StringProtocol, any Error>,
         length: HTTPBody.Length
     ) {
         self.init(
-            sequence: .init(stream.map(\.asBodyChunk)),
+            .init(stream.map(ByteChunk.init)),
             length: length,
             iterationBehavior: .single
         )
@@ -515,11 +592,11 @@ extension HTTPBody {
     ///   - stream: An async stream that provides the string chunks.
     ///   - length: The total length of the body.
     @inlinable public convenience init(
-        stream: AsyncStream<some StringProtocol>,
+        _ stream: AsyncStream<some StringProtocol>,
         length: HTTPBody.Length
     ) {
         self.init(
-            sequence: .init(stream.map(\.asBodyChunk)),
+            .init(stream.map(ByteChunk.init)),
             length: length,
             iterationBehavior: .single
         )
@@ -532,40 +609,41 @@ extension HTTPBody {
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
     @inlinable public convenience init<S: AsyncSequence>(
-        sequence: S,
+        _ sequence: S,
         length: HTTPBody.Length,
         iterationBehavior: IterationBehavior
     ) where S.Element: StringProtocol, S: Sendable {
         self.init(
-            sequence: .init(sequence.map(\.asBodyChunk)),
+            .init(sequence.map(ByteChunk.init)),
             length: length,
             iterationBehavior: iterationBehavior
         )
     }
 }
 
-extension StringProtocol {
+extension HTTPBody.ByteChunk {
 
-    /// Returns the string as a byte chunk compatible with the `HTTPBody` type.
-    @inlinable var asBodyChunk: HTTPBody.ByteChunk {
-        Array(utf8)[...]
+    /// Creates a byte chunk compatible with the `HTTPBody` type from the provided string.
+    /// - Parameter string: The string to encode.
+    @inlinable init<S: StringProtocol>(_ string: S) where S: Sendable {
+        self = Array(string.utf8)[...]
     }
 }
 
-extension HTTPBody {
-
-    /// Accumulates the full body in-memory into a single buffer up to
-    /// the provided maximum number of bytes, converts it to string from
-    /// the UTF-8 bytes, and returns it.
+extension String {
+    /// Creates a string by accumulating the full body in-memory into a single buffer up to
+    /// the provided maximum number of bytes, converting it to string using the provided encoding.
     /// - Parameters:
+    ///   - body: The HTTP body to collect.
     ///   - maxBytes: The maximum number of bytes this method is allowed
     ///     to accumulate in memory before it throws an error.
-    /// - Throws: `TooManyBytesError` if the the body contains more
+    /// - Throws: `TooManyBytesError` if the the sequence contains more
     ///   than `maxBytes`.
-    /// - Returns: The string decoded from the UTF-8 bytes.
-    public func collectAsString(upTo maxBytes: Int) async throws -> String {
-        let bytes: ByteChunk = try await collect(upTo: maxBytes)
-        return String(decoding: bytes, as: UTF8.self)
+    public init(collecting body: HTTPBody, upTo maxBytes: Int) async throws {
+        self = try await String(
+            decoding: body.collect(upTo: maxBytes),
+            as: UTF8.self
+        )
     }
 }
 
@@ -573,7 +651,7 @@ extension HTTPBody {
 
 extension HTTPBody: ExpressibleByStringLiteral {
     public convenience init(stringLiteral value: String) {
-        self.init(string: value)
+        self.init(value)
     }
 }
 
@@ -581,15 +659,15 @@ extension HTTPBody {
 
     /// Creates a new body from the provided array of bytes.
     /// - Parameter bytes: An array of bytes.
-    @inlinable public convenience init(bytes: [UInt8]) {
-        self.init(bytes: bytes[...])
+    @inlinable public convenience init(_ bytes: [UInt8]) {
+        self.init(bytes[...])
     }
 }
 
 extension HTTPBody: ExpressibleByArrayLiteral {
     public typealias ArrayLiteralElement = UInt8
     public convenience init(arrayLiteral elements: UInt8...) {
-        self.init(bytes: elements)
+        self.init(elements)
     }
 }
 
@@ -598,21 +676,21 @@ extension HTTPBody {
     /// Creates a new body from the provided data chunk.
     /// - Parameter data: A single data chunk.
     public convenience init(data: Data) {
-        self.init(bytes: ArraySlice(data))
+        self.init(ArraySlice(data))
     }
+}
 
-    /// Accumulates the full body in-memory into a single buffer up to
-    /// the provided maximum number of bytes, converts it to `Data`, and
-    /// returns it.
+extension Data {
+    /// Creates a string by accumulating the full body in-memory into a single buffer up to
+    /// the provided maximum number of bytes and converting it to `Data`.
     /// - Parameters:
+    ///   - body: The HTTP body to collect.
     ///   - maxBytes: The maximum number of bytes this method is allowed
     ///     to accumulate in memory before it throws an error.
-    /// - Throws: `TooManyBytesError` if the the body contains more
+    /// - Throws: `TooManyBytesError` if the the sequence contains more
     ///   than `maxBytes`.
-    /// - Returns: The accumulated bytes wrapped in `Data`.
-    public func collectAsData(upTo maxBytes: Int) async throws -> Data {
-        let bytes: ByteChunk = try await collect(upTo: maxBytes)
-        return Data(bytes)
+    public init(collecting body: HTTPBody, upTo maxBytes: Int) async throws {
+        self = try await Data(body.collect(upTo: maxBytes))
     }
 }
 

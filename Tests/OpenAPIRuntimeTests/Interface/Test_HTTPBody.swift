@@ -21,7 +21,7 @@ final class Test_Body: Test_Runtime {
 
         // A single string.
         do {
-            let body: HTTPBody = HTTPBody(string: "hello")
+            let body: HTTPBody = HTTPBody("hello")
             try await _testConsume(
                 body,
                 expected: "hello"
@@ -39,7 +39,7 @@ final class Test_Body: Test_Runtime {
 
         // A sequence of strings.
         do {
-            let body: HTTPBody = HTTPBody(stringChunks: ["hel", "lo"])
+            let body: HTTPBody = HTTPBody(["hel", "lo"])
             try await _testConsume(
                 body,
                 expected: "hello"
@@ -48,7 +48,7 @@ final class Test_Body: Test_Runtime {
 
         // A single substring.
         do {
-            let body: HTTPBody = HTTPBody(string: "hello")
+            let body: HTTPBody = HTTPBody("hello")
             try await _testConsume(
                 body,
                 expected: "hello"
@@ -57,7 +57,7 @@ final class Test_Body: Test_Runtime {
 
         // A sequence of substrings.
         do {
-            let body: HTTPBody = HTTPBody(stringChunks: [
+            let body: HTTPBody = HTTPBody([
                 "hel",
                 "lo",
             ])
@@ -69,7 +69,7 @@ final class Test_Body: Test_Runtime {
 
         // A single array of bytes.
         do {
-            let body: HTTPBody = HTTPBody(bytes: [0])
+            let body: HTTPBody = HTTPBody([0])
             try await _testConsume(
                 body,
                 expected: [0]
@@ -96,7 +96,7 @@ final class Test_Body: Test_Runtime {
 
         // A sequence of arrays of bytes.
         do {
-            let body: HTTPBody = HTTPBody(byteChunks: [[0], [1]])
+            let body: HTTPBody = HTTPBody([[0], [1]])
             try await _testConsume(
                 body,
                 expected: [0, 1]
@@ -105,7 +105,7 @@ final class Test_Body: Test_Runtime {
 
         // A single slice of an array of bytes.
         do {
-            let body: HTTPBody = HTTPBody(bytes: [0][...])
+            let body: HTTPBody = HTTPBody([0][...])
             try await _testConsume(
                 body,
                 expected: [0][...]
@@ -114,7 +114,7 @@ final class Test_Body: Test_Runtime {
 
         // A sequence of slices of an array of bytes.
         do {
-            let body: HTTPBody = HTTPBody(byteChunks: [
+            let body: HTTPBody = HTTPBody([
                 [0][...],
                 [1][...],
             ])
@@ -127,7 +127,7 @@ final class Test_Body: Test_Runtime {
         // An async throwing stream.
         do {
             let body: HTTPBody = HTTPBody(
-                stream: AsyncThrowingStream(
+                AsyncThrowingStream(
                     String.self,
                     { continuation in
                         continuation.yield("hel")
@@ -146,7 +146,7 @@ final class Test_Body: Test_Runtime {
         // An async stream.
         do {
             let body: HTTPBody = HTTPBody(
-                stream: AsyncStream(
+                AsyncStream(
                     String.self,
                     { continuation in
                         continuation.yield("hel")
@@ -174,7 +174,7 @@ final class Test_Body: Test_Runtime {
             )
             .map { $0 }
             let body: HTTPBody = HTTPBody(
-                sequence: sequence,
+                sequence,
                 length: .known(5),
                 iterationBehavior: .single
             )
@@ -196,7 +196,7 @@ final class Test_Body: Test_Runtime {
         )
         .map { $0 }
         let body: HTTPBody = HTTPBody(
-            sequence: sequence,
+            sequence,
             length: .known(5),
             iterationBehavior: .single
         )
@@ -215,7 +215,7 @@ extension Test_Body {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {
-        let output = try await body.collect(upTo: .max)
+        let output = try await ArraySlice(collecting: body, upTo: .max)
         XCTAssertEqual(output, expected, file: file, line: line)
     }
 
@@ -225,7 +225,7 @@ extension Test_Body {
         file: StaticString = #file,
         line: UInt = #line
     ) async throws {
-        let output = try await body.collectAsString(upTo: .max)
+        let output = try await String(collecting: body, upTo: .max)
         XCTAssertEqual(output, expected.description, file: file, line: line)
     }
 }
