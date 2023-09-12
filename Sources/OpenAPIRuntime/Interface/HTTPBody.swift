@@ -248,7 +248,7 @@ extension HTTPBody {
         byteChunks: S,
         length: Length,
         iterationBehavior: IterationBehavior
-    ) where S.Element == ByteChunk {
+    ) where S.Element == ByteChunk, S: Sendable {
         self.init(
             sequence: .init(WrappedSyncSequence(sequence: byteChunks)),
             length: length,
@@ -263,7 +263,7 @@ extension HTTPBody {
     @inlinable public convenience init<C: Collection>(
         byteChunks: C,
         length: Length
-    ) where C.Element == ByteChunk {
+    ) where C.Element == ByteChunk, C: Sendable {
         self.init(
             sequence: .init(WrappedSyncSequence(sequence: byteChunks)),
             length: length,
@@ -275,7 +275,7 @@ extension HTTPBody {
     ///   - byteChunks: A collection of byte chunks.
     @inlinable public convenience init<C: Collection>(
         byteChunks: C
-    ) where C.Element == ByteChunk {
+    ) where C.Element == ByteChunk, C: Sendable {
         self.init(
             sequence: .init(WrappedSyncSequence(sequence: byteChunks)),
             length: .known(byteChunks.map(\.count).reduce(0, +)),
@@ -323,7 +323,7 @@ extension HTTPBody {
         sequence: S,
         length: HTTPBody.Length,
         iterationBehavior: IterationBehavior
-    ) where S.Element == ByteChunk {
+    ) where S.Element == ByteChunk, S: Sendable {
         self.init(
             sequence: .init(sequence),
             length: length,
@@ -430,10 +430,10 @@ extension HTTPBody {
     /// - Parameters:
     ///   - string: A string to encode as bytes.
     ///   - length: The total length of the body.
-    @inlinable public convenience init(
-        string: some StringProtocol,
+    @inlinable public convenience init<S: StringProtocol>(
+        string: S,
         length: Length
-    ) {
+    ) where S: Sendable {
         self.init(
             bytes: string.asBodyChunk,
             length: length
@@ -443,9 +443,9 @@ extension HTTPBody {
     /// Creates a new body with the provided string encoded as UTF-8 bytes.
     /// - Parameters:
     ///   - string: A string to encode as bytes.
-    @inlinable public convenience init(
-        string: some StringProtocol
-    ) {
+    @inlinable public convenience init<S: StringProtocol>(
+        string: S
+    ) where S: Sendable {
         self.init(
             bytes: string.asBodyChunk,
             length: .known(string.count)
@@ -462,7 +462,7 @@ extension HTTPBody {
         stringChunks: S,
         length: Length,
         iterationBehavior: IterationBehavior
-    ) where S.Element: StringProtocol {
+    ) where S.Element: StringProtocol, S: Sendable {
         self.init(
             byteChunks: stringChunks.map(\.asBodyChunk),
             length: length,
@@ -477,7 +477,7 @@ extension HTTPBody {
     @inlinable public convenience init<C: Collection>(
         stringChunks: C,
         length: Length
-    ) where C.Element: StringProtocol {
+    ) where C.Element: StringProtocol, C: Sendable {
         self.init(
             byteChunks: stringChunks.map(\.asBodyChunk),
             length: length
@@ -489,7 +489,7 @@ extension HTTPBody {
     ///   - stringChunks: A collection of string chunks.
     @inlinable public convenience init<C: Collection>(
         stringChunks: C
-    ) where C.Element: StringProtocol {
+    ) where C.Element: StringProtocol, C: Sendable {
         self.init(
             byteChunks: stringChunks.map(\.asBodyChunk)
         )
@@ -535,7 +535,7 @@ extension HTTPBody {
         sequence: S,
         length: HTTPBody.Length,
         iterationBehavior: IterationBehavior
-    ) where S.Element: StringProtocol {
+    ) where S.Element: StringProtocol, S: Sendable {
         self.init(
             sequence: .init(sequence.map(\.asBodyChunk)),
             length: length,
@@ -649,7 +649,7 @@ extension HTTPBody {
 extension HTTPBody {
 
     /// A type-erased async sequence that wraps input sequences.
-    @usableFromInline struct BodySequence: AsyncSequence {
+    @usableFromInline struct BodySequence: AsyncSequence, Sendable {
 
         /// The type of the type-erased iterator.
         @usableFromInline typealias AsyncIterator = HTTPBody.Iterator
@@ -658,11 +658,11 @@ extension HTTPBody {
         @usableFromInline typealias Element = ByteChunk
 
         /// A closure that produces a new iterator.
-        @usableFromInline let produceIterator: () -> AsyncIterator
+        @usableFromInline let produceIterator: @Sendable () -> AsyncIterator
 
         /// Creates a new sequence.
         /// - Parameter sequence: The input sequence to type-erase.
-        @inlinable init<S: AsyncSequence>(_ sequence: S) where S.Element == Element {
+        @inlinable init<S: AsyncSequence>(_ sequence: S) where S.Element == Element, S: Sendable {
             self.produceIterator = {
                 .init(sequence.makeAsyncIterator())
             }
@@ -674,8 +674,8 @@ extension HTTPBody {
     }
 
     /// An async sequence wrapper for a sync sequence.
-    @usableFromInline struct WrappedSyncSequence<S: Sequence>: AsyncSequence
-    where S.Element == ByteChunk, S.Iterator.Element == ByteChunk {
+    @usableFromInline struct WrappedSyncSequence<S: Sequence>: AsyncSequence, Sendable
+    where S.Element == ByteChunk, S.Iterator.Element == ByteChunk, S: Sendable {
 
         /// The type of the iterator.
         @usableFromInline typealias AsyncIterator = Iterator
@@ -712,7 +712,7 @@ extension HTTPBody {
     }
 
     /// An empty async sequence.
-    @usableFromInline struct EmptySequence: AsyncSequence {
+    @usableFromInline struct EmptySequence: AsyncSequence, Sendable {
 
         /// The type of the empty iterator.
         @usableFromInline typealias AsyncIterator = EmptyIterator
