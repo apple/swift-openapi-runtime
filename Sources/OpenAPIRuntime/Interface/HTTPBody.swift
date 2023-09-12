@@ -106,16 +106,16 @@ import struct Foundation.Data  // only for convenience initializers
 /// let buffer = try await ArraySlice(collecting: body, upTo: 2 * 1024 * 1024)
 /// ```
 ///
-/// Note that you must provide the maximum number of bytes you can buffer in
-/// memory, in the example above we provide 2 MB. If more bytes are available,
-/// the method throws the `TooManyBytesError` to stop the process running out
-/// of memory. While discouraged, you can provide `upTo: .max` to
-/// read all the available bytes, without a limit.
-///
 /// The body type provides more variants of the collecting initializer on commonly
 /// used buffers, such as:
 /// - `Foundation.Data`
 /// - `Swift.String`
+///
+/// > Important: You must provide the maximum number of bytes you can buffer in
+/// memory, in the example above we provide 2 MB. If more bytes are available,
+/// the method throws the `TooManyBytesError` to stop the process running out
+/// of memory. While discouraged, you can provide `upTo: .max` to
+/// read all the available bytes, without a limit.
 public final class HTTPBody: @unchecked Sendable {
 
     /// The underlying byte chunk type.
@@ -183,6 +183,24 @@ public final class HTTPBody: @unchecked Sendable {
         self.length = length
         self.iterationBehavior = iterationBehavior
     }
+
+    /// Creates a new body with the provided sequence of byte chunks.
+    /// - Parameters:
+    ///   - byteChunks: A sequence of byte chunks.
+    ///   - length: The total length of the body.
+    ///   - iterationBehavior: The iteration behavior of the sequence, which
+    ///     indicates whether it can be iterated multiple times.
+    @usableFromInline convenience init<S: Sequence>(
+        _ byteChunks: S,
+        length: Length,
+        iterationBehavior: IterationBehavior
+    ) where S.Element == ByteChunk, S: Sendable {
+        self.init(
+            .init(WrappedSyncSequence(sequence: byteChunks)),
+            length: length,
+            iterationBehavior: iterationBehavior
+        )
+    }
 }
 
 extension HTTPBody: Equatable {
@@ -221,7 +239,7 @@ extension HTTPBody {
         _ bytes: ByteChunk,
         length: Length
     ) {
-        self.init([bytes], length: length)
+        self.init([bytes], length: length, iterationBehavior: .multiple)
     }
 
     /// Creates a new body with the provided byte chunk.
@@ -229,7 +247,7 @@ extension HTTPBody {
     @inlinable public convenience init(
         _ bytes: ByteChunk
     ) {
-        self.init([bytes], length: .known(bytes.count))
+        self.init([bytes], length: .known(bytes.count), iterationBehavior: .multiple)
     }
 
     /// Creates a new body with the provided byte sequence.
@@ -272,51 +290,6 @@ extension HTTPBody {
         _ bytes: C
     ) where C: Sendable, C.Element == UInt8 {
         self.init(bytes, length: .known(bytes.count))
-    }
-
-    /// Creates a new body with the provided sequence of byte chunks.
-    /// - Parameters:
-    ///   - byteChunks: A sequence of byte chunks.
-    ///   - length: The total length of the body.
-    ///   - iterationBehavior: The iteration behavior of the sequence, which
-    ///     indicates whether it can be iterated multiple times.
-    @inlinable public convenience init<S: Sequence>(
-        _ byteChunks: S,
-        length: Length,
-        iterationBehavior: IterationBehavior
-    ) where S.Element == ByteChunk, S: Sendable {
-        self.init(
-            .init(WrappedSyncSequence(sequence: byteChunks)),
-            length: length,
-            iterationBehavior: iterationBehavior
-        )
-    }
-
-    /// Creates a new body with the provided collection of byte chunks.
-    /// - Parameters:
-    ///   - byteChunks: A collection of byte chunks.
-    ///   - length: The total length of the body.
-    @inlinable public convenience init<C: Collection>(
-        _ byteChunks: C,
-        length: Length
-    ) where C.Element == ByteChunk, C: Sendable {
-        self.init(
-            .init(WrappedSyncSequence(sequence: byteChunks)),
-            length: length,
-            iterationBehavior: .multiple
-        )
-    }
-
-    /// Creates a new body with the provided collection of byte chunks.
-    ///   - byteChunks: A collection of byte chunks.
-    @inlinable public convenience init<C: Collection>(
-        _ byteChunks: C
-    ) where C.Element == ByteChunk, C: Sendable {
-        self.init(
-            .init(WrappedSyncSequence(sequence: byteChunks)),
-            length: .known(byteChunks.map(\.count).reduce(0, +)),
-            iterationBehavior: .multiple
-        )
     }
 
     /// Creates a new body with the provided async throwing stream.
@@ -532,44 +505,6 @@ extension HTTPBody {
             ByteChunk.init(string),
             length: .known(string.count)
         )
-    }
-
-    /// Creates a new body with the provided strings encoded as UTF-8 bytes.
-    /// - Parameters:
-    ///   - stringChunks: A sequence of string chunks.
-    ///   - length: The total length of the body.
-    ///   - iterationBehavior: The iteration behavior of the sequence, which
-    ///     indicates whether it can be iterated multiple times.
-    @inlinable public convenience init<S: Sequence>(
-        _ stringChunks: S,
-        length: Length,
-        iterationBehavior: IterationBehavior
-    ) where S.Element: StringProtocol, S: Sendable {
-        self.init(
-            stringChunks.map(ByteChunk.init),
-            length: length,
-            iterationBehavior: iterationBehavior
-        )
-    }
-
-    /// Creates a new body with the provided strings encoded as UTF-8 bytes.
-    /// - Parameters:
-    ///   - stringChunks: A collection of string chunks.
-    ///   - length: The total length of the body.
-    @inlinable public convenience init<C: Collection>(
-        _ stringChunks: C,
-        length: Length
-    ) where C.Element: StringProtocol, C: Sendable {
-        self.init(stringChunks.map(ByteChunk.init), length: length)
-    }
-
-    /// Creates a new body with the provided strings encoded as UTF-8 bytes.
-    /// - Parameters:
-    ///   - stringChunks: A collection of string chunks.
-    @inlinable public convenience init<C: Collection>(
-        _ stringChunks: C
-    ) where C.Element: StringProtocol, C: Sendable {
-        self.init(stringChunks.map(ByteChunk.init))
     }
 
     /// Creates a new body with the provided async throwing stream of strings.

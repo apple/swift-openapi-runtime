@@ -37,33 +37,12 @@ final class Test_Body: Test_Runtime {
             )
         }
 
-        // A sequence of strings.
-        do {
-            let body: HTTPBody = HTTPBody(["hel", "lo"])
-            try await _testConsume(
-                body,
-                expected: "hello"
-            )
-        }
-
         // A single substring.
         do {
             let body: HTTPBody = HTTPBody("hello")
             try await _testConsume(
                 body,
                 expected: "hello"
-            )
-        }
-
-        // A sequence of substrings.
-        do {
-            let body: HTTPBody = HTTPBody([
-                "hel",
-                "lo",
-            ])
-            try await _testConsume(
-                body,
-                expected: "hello"[...]
             )
         }
 
@@ -94,33 +73,12 @@ final class Test_Body: Test_Runtime {
             )
         }
 
-        // A sequence of arrays of bytes.
-        do {
-            let body: HTTPBody = HTTPBody([[0], [1]])
-            try await _testConsume(
-                body,
-                expected: [0, 1]
-            )
-        }
-
         // A single slice of an array of bytes.
         do {
             let body: HTTPBody = HTTPBody([0][...])
             try await _testConsume(
                 body,
                 expected: [0][...]
-            )
-        }
-
-        // A sequence of slices of an array of bytes.
-        do {
-            let body: HTTPBody = HTTPBody([
-                [0][...],
-                [1][...],
-            ])
-            try await _testConsume(
-                body,
-                expected: [0, 1][...]
             )
         }
 
