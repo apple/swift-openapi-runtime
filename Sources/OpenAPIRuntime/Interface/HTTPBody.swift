@@ -675,7 +675,7 @@ extension HTTPBody {
 
         /// Creates a new sequence.
         /// - Parameter sequence: The input sequence to type-erase.
-        @inlinable init<S: AsyncSequence>(_ sequence: S) where S.Element == Element, S: Sendable {
+        @inlinable init<Bytes: AsyncSequence>(_ sequence: Bytes) where Bytes.Element == Element, Bytes: Sendable {
             self.produceIterator = {
                 .init(sequence.makeAsyncIterator())
             }
@@ -687,8 +687,8 @@ extension HTTPBody {
     }
 
     /// An async sequence wrapper for a sync sequence.
-    @usableFromInline struct WrappedSyncSequence<S: Sequence>: AsyncSequence, Sendable
-    where S.Element == ByteChunk, S.Iterator.Element == ByteChunk, S: Sendable {
+    @usableFromInline struct WrappedSyncSequence<Bytes: Sequence>: AsyncSequence, Sendable
+    where Bytes.Element == ByteChunk, Bytes.Iterator.Element == ByteChunk, Bytes: Sendable {
 
         /// The type of the iterator.
         @usableFromInline typealias AsyncIterator = Iterator
