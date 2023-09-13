@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-@testable import OpenAPIRuntime
+@_spi(Generated)@testable import OpenAPIRuntime
 
 final class Test_URICodingRoundtrip: Test_Runtime {
 
@@ -27,10 +27,58 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             var maybeFoo: String?
         }
 
+        struct TrivialStruct: Codable, Equatable {
+            var foo: String
+        }
+
         enum SimpleEnum: String, Codable, Equatable {
             case red
             case green
             case blue
+        }
+
+        struct AnyOf: Codable, Equatable, Sendable {
+            var value1: Foundation.Date?
+            var value2: SimpleEnum?
+            var value3: TrivialStruct?
+            init(value1: Foundation.Date? = nil, value2: SimpleEnum? = nil, value3: TrivialStruct? = nil) {
+                self.value1 = value1
+                self.value2 = value2
+                self.value3 = value3
+            }
+            init(from decoder: any Decoder) throws {
+                do {
+                    let container = try decoder.singleValueContainer()
+                    value1 = try? container.decode(Foundation.Date.self)
+                }
+                do {
+                    let container = try decoder.singleValueContainer()
+                    value2 = try? container.decode(SimpleEnum.self)
+                }
+                do {
+                    let container = try decoder.singleValueContainer()
+                    value3 = try? container.decode(TrivialStruct.self)
+                }
+                try DecodingError.verifyAtLeastOneSchemaIsNotNil(
+                    [value1, value2, value3],
+                    type: Self.self,
+                    codingPath: decoder.codingPath
+                )
+            }
+            func encode(to encoder: any Encoder) throws {
+                if let value1 {
+                    var container = encoder.singleValueContainer()
+                    try container.encode(value1)
+                }
+                if let value2 {
+                    var container = encoder.singleValueContainer()
+                    try container.encode(value2)
+                }
+                if let value3 {
+                    var container = encoder.singleValueContainer()
+                    try container.encode(value3)
+                }
+            }
         }
 
         // An empty string.
@@ -207,6 +255,51 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "bar,24,color,red,date,2023-08-25T07%3A34%3A59Z,empty,,foo,hi%21",
                 formDataExplode: "bar=24&color=red&date=2023-08-25T07%3A34%3A59Z&empty=&foo=hi%21",
                 formDataUnexplode: "keys=bar,24,color,red,date,2023-08-25T07%3A34%3A59Z,empty,,foo,hi%21"
+            )
+        )
+
+        // A struct with a custom Codable implementation that forwards
+        // decoding to nested values.
+        try _test(
+            AnyOf(
+                value1: Date(timeIntervalSince1970: 1_674_036_251)
+            ),
+            key: "root",
+            .init(
+                formExplode: "root=2023-01-18T10%3A04%3A11Z",
+                formUnexplode: "root=2023-01-18T10%3A04%3A11Z",
+                simpleExplode: "2023-01-18T10%3A04%3A11Z",
+                simpleUnexplode: "2023-01-18T10%3A04%3A11Z",
+                formDataExplode: "root=2023-01-18T10%3A04%3A11Z",
+                formDataUnexplode: "root=2023-01-18T10%3A04%3A11Z"
+            )
+        )
+        try _test(
+            AnyOf(
+                value2: .green
+            ),
+            key: "root",
+            .init(
+                formExplode: "root=green",
+                formUnexplode: "root=green",
+                simpleExplode: "green",
+                simpleUnexplode: "green",
+                formDataExplode: "root=green",
+                formDataUnexplode: "root=green"
+            )
+        )
+        try _test(
+            AnyOf(
+                value3: .init(foo: "bar")
+            ),
+            key: "root",
+            .init(
+                formExplode: "foo=bar",
+                formUnexplode: "root=foo,bar",
+                simpleExplode: "foo=bar",
+                simpleUnexplode: "foo,bar",
+                formDataExplode: "foo=bar",
+                formDataUnexplode: "root=foo,bar"
             )
         )
 

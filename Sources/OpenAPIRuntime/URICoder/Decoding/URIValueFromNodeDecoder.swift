@@ -98,9 +98,6 @@ extension URIValueFromNodeDecoder {
     /// A decoder error.
     enum GeneralError: Swift.Error {
 
-        /// The decoder does not support the provided type.
-        case unsupportedType(Any.Type)
-
         /// The decoder was asked to create a nested container.
         case nestedContainersNotSupported
 
@@ -274,7 +271,7 @@ extension URIValueFromNodeDecoder {
     /// Extracts the node at the top of the coding stack and tries to treat it
     /// as a primitive value.
     /// - Returns: The value if it can be treated as a primitive value.
-    private func currentElementAsSingleValue() throws -> URIParsedValue {
+    func currentElementAsSingleValue() throws -> URIParsedValue {
         try nodeAsSingleValue(currentElement)
     }
 
@@ -368,11 +365,6 @@ extension URIValueFromNodeDecoder: Decoder {
     }
 
     func singleValueContainer() throws -> any SingleValueDecodingContainer {
-        let value = try currentElementAsSingleValue()
-        return URISingleValueDecodingContainer(
-            dateTranscoder: dateTranscoder,
-            codingPath: codingPath,
-            value: value
-        )
+        return URISingleValueDecodingContainer(decoder: self)
     }
 }

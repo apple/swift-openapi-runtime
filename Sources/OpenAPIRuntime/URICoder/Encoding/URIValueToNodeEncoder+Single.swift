@@ -144,7 +144,7 @@ extension URISingleValueEncodingContainer: SingleValueEncodingContainer {
         case let value as Date:
             try _setValue(.date(value))
         default:
-            throw URIValueToNodeEncoder.GeneralError.nestedValueInSingleValueContainer
+            try value.encode(to: encoder)
         }
     }
 }

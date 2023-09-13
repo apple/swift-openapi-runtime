@@ -90,6 +90,16 @@ extension Decoder {
         return .init(uniqueKeysWithValues: keyValuePairs)
     }
 
+    /// Returns the decoded value by using a single value container.
+    /// - Parameter type: The type to decode.
+    /// - Returns: The decoded value.
+    public func decodeFromSingleValueContainer<T: Decodable>(
+        _ type: T.Type = T.self
+    ) throws -> T {
+        let container = try singleValueContainer()
+        return try container.decode(T.self)
+    }
+
     // MARK: - Private
 
     /// Returns the keys in the given decoder that are not present
@@ -144,6 +154,29 @@ extension Encoder {
         var container = container(keyedBy: StringKey.self)
         for (key, value) in additionalProperties {
             try container.encode(value, forKey: .init(key))
+        }
+    }
+
+    /// Encodes the value into the encoder using a single value container.
+    /// - Parameter value: The value to encode.
+    public func encodeToSingleValueContainer<T: Encodable>(
+        _ value: T
+    ) throws {
+        var container = singleValueContainer()
+        try container.encode(value)
+    }
+
+    /// Encodes the first non-nil value from the provided array into
+    /// the encoder using a single value container.
+    /// - Parameter values: An array of optional values.
+    public func encodeFirstNonNilValueToSingleValueContainer(
+        _ values: [(any Encodable)?]
+    ) throws {
+        for value in values {
+            if let value {
+                try encodeToSingleValueContainer(value)
+                return
+            }
         }
     }
 }
