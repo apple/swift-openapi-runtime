@@ -100,10 +100,10 @@ import struct Foundation.URL
 ///             body: HTTPBody?,
 ///             baseURL: URL,
 ///             operationID: String
-///         ) async throws -> (HTTPResponse, HTTPBody) {
+///         ) async throws -> (HTTPResponse, HTTPBody?) {
 ///             (
 ///                 HTTPResponse(status: isHealthy ? .ok : .internalServerError),
-///                 HTTPBody()
+///                 nil
 ///             )
 ///         }
 ///     }
@@ -141,7 +141,7 @@ public protocol ClientTransport: Sendable {
         body: HTTPBody?,
         baseURL: URL,
         operationID: String
-    ) async throws -> (HTTPResponse, HTTPBody)
+    ) async throws -> (HTTPResponse, HTTPBody?)
 }
 
 /// A type that intercepts HTTP requests and responses.
@@ -216,8 +216,8 @@ public protocol ClientTransport: Sendable {
 ///             body: HTTPBody?,
 ///             baseURL: URL,
 ///             operationID: String,
-///             next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody)
-///         ) async throws -> (HTTPResponse, HTTPBody) {
+///             next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
+///         ) async throws -> (HTTPResponse, HTTPBody?) {
 ///             var request = request
 ///             request.headerFields[.authorization] = "Bearer \(bearerToken)"
 ///             return try await next(request, body, baseURL)
@@ -246,6 +246,6 @@ public protocol ClientMiddleware: Sendable {
         body: HTTPBody?,
         baseURL: URL,
         operationID: String,
-        next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody)
-    ) async throws -> (HTTPResponse, HTTPBody)
+        next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?)
 }

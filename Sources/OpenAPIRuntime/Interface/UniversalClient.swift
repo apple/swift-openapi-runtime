@@ -87,7 +87,7 @@ import Foundation
         input: OperationInput,
         forOperation operationID: String,
         serializer: @Sendable (OperationInput) throws -> (HTTPRequest, HTTPBody?),
-        deserializer: @Sendable (HTTPResponse, HTTPBody) async throws -> OperationOutput
+        deserializer: @Sendable (HTTPResponse, HTTPBody?) async throws -> OperationOutput
     ) async throws -> OperationOutput where OperationInput: Sendable, OperationOutput: Sendable {
         @Sendable
         func wrappingErrors<R>(
@@ -125,8 +125,8 @@ import Foundation
         } mapError: { error in
             makeError(error: error)
         }
-        let (response, responseBody): (HTTPResponse, HTTPBody) = try await wrappingErrors {
-            var next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody) = {
+        let (response, responseBody): (HTTPResponse, HTTPBody?) = try await wrappingErrors {
+            var next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?) = {
                 (_request, _body, _url) in
                 try await wrappingErrors {
                     try await transport.send(

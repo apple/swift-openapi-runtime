@@ -139,10 +139,13 @@ extension Converter {
     //    | client | get | response body | JSON | required | getResponseBodyAsJSON |
     public func getResponseBodyAsJSON<T: Decodable, C>(
         _ type: T.Type,
-        from data: HTTPBody,
+        from data: HTTPBody?,
         transforming transform: (T) -> C
     ) async throws -> C {
-        try await getBufferingResponseBody(
+        guard let data else {
+            throw RuntimeError.missingRequiredResponseBody
+        }
+        return try await getBufferingResponseBody(
             type,
             from: data,
             transforming: transform,
@@ -153,10 +156,13 @@ extension Converter {
     //    | client | get | response body | binary | required | getResponseBodyAsBinary |
     public func getResponseBodyAsBinary<C>(
         _ type: HTTPBody.Type,
-        from data: HTTPBody,
+        from data: HTTPBody?,
         transforming transform: (HTTPBody) -> C
     ) throws -> C {
-        try getResponseBody(
+        guard let data else {
+            throw RuntimeError.missingRequiredResponseBody
+        }
+        return try getResponseBody(
             type,
             from: data,
             transforming: transform,

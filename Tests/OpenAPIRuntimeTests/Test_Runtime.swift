@@ -158,8 +158,8 @@ struct AuthenticationMiddleware: ClientMiddleware {
         body: HTTPBody?,
         baseURL: URL,
         operationID: String,
-        next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody)
-    ) async throws -> (HTTPResponse, HTTPBody) {
+        next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?) {
         var request = request
         request.headerFields[.authorization] = "Bearer \(token)"
         return try await next(request, body, baseURL)
@@ -173,8 +173,8 @@ struct PrintingMiddleware: ClientMiddleware {
         body: HTTPBody?,
         baseURL: URL,
         operationID: String,
-        next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody)
-    ) async throws -> (HTTPResponse, HTTPBody) {
+        next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?) {
         print("Sending \(request.method) \(request.path ?? "<no path>")")
         do {
             let (response, responseBody) = try await next(request, body, baseURL)

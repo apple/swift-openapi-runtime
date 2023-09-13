@@ -189,8 +189,8 @@ public protocol ServerTransport {
 ///             body: HTTPBody?,
 ///             metadata: ServerRequestMetadata,
 ///             operationID: String,
-///             next: (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody)
-///         ) async throws -> (HTTPResponse, HTTPBody) {
+///             next: (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?)
+///         ) async throws -> (HTTPResponse, HTTPBody?) {
 ///             print(">>>: \(request.method.rawValue) \(request.soar_pathOnly)")
 ///             do {
 ///                 let (response, responseBody) = try await next(request, body, metadata)

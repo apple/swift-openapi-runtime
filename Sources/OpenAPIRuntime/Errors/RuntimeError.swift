@@ -49,6 +49,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 
     // Body
     case missingRequiredRequestBody
+    case missingRequiredResponseBody
 
     // Transport/Handler
     case transportFailed(any Error)
@@ -89,6 +90,8 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
             return "Missing required query parameter named: \(name)"
         case .missingRequiredRequestBody:
             return "Missing required request body"
+        case .missingRequiredResponseBody:
+            return "Missing required response body"
         case .transportFailed(let underlyingError):
             return "Transport failed with error: \(underlyingError.localizedDescription)"
         case .handlerFailed(let underlyingError):
