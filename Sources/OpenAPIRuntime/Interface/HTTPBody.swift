@@ -190,11 +190,11 @@ public final class HTTPBody: @unchecked Sendable {
     ///   - length: The total length of the body.
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
-    @usableFromInline convenience init<S: Sequence>(
-        _ byteChunks: S,
+    @usableFromInline convenience init(
+        _ byteChunks: some Sequence<ByteChunk> & Sendable,
         length: Length,
         iterationBehavior: IterationBehavior
-    ) where S.Element == ByteChunk, S: Sendable {
+    ) {
         self.init(
             .init(WrappedSyncSequence(sequence: byteChunks)),
             length: length,
@@ -256,11 +256,11 @@ extension HTTPBody {
     ///   - length: The total length of the body.
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
-    @inlinable public convenience init<S: Sequence>(
-        _ bytes: S,
+    @inlinable public convenience init(
+        _ bytes: some Sequence<UInt8> & Sendable,
         length: Length,
         iterationBehavior: IterationBehavior
-    ) where S: Sendable, S.Element == UInt8 {
+    ) {
         self.init(
             [ArraySlice(bytes)],
             length: length,
@@ -272,10 +272,10 @@ extension HTTPBody {
     /// - Parameters:
     ///   - bytes: A byte chunk.
     ///   - length: The total length of the body.
-    @inlinable public convenience init<C: Collection>(
-        _ bytes: C,
+    @inlinable public convenience init(
+        _ bytes: some Collection<UInt8> & Sendable,
         length: Length
-    ) where C: Sendable, C.Element == UInt8 {
+    ) {
         self.init(
             ArraySlice(bytes),
             length: length,
@@ -286,9 +286,9 @@ extension HTTPBody {
     /// Creates a new body with the provided byte collection.
     /// - Parameters:
     ///   - bytes: A byte chunk.
-    @inlinable public convenience init<C: Collection>(
-        _ bytes: C
-    ) where C: Sendable, C.Element == UInt8 {
+    @inlinable public convenience init(
+        _ bytes: some Collection<UInt8> & Sendable
+    ) {
         self.init(bytes, length: .known(bytes.count))
     }
 
@@ -328,11 +328,11 @@ extension HTTPBody {
     ///   - length: The total lenght of the body.
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
-    @inlinable public convenience init<S: AsyncSequence>(
-        _ sequence: S,
+    @inlinable public convenience init<Bytes: AsyncSequence>(
+        _ sequence: Bytes,
         length: HTTPBody.Length,
         iterationBehavior: IterationBehavior
-    ) where S.Element == ByteChunk, S: Sendable {
+    ) where Bytes.Element == ByteChunk, Bytes: Sendable {
         self.init(
             .init(sequence),
             length: length,
@@ -346,11 +346,11 @@ extension HTTPBody {
     ///   - length: The total lenght of the body.
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
-    @inlinable public convenience init<S: AsyncSequence, ES: Sequence>(
-        _ sequence: S,
+    @inlinable public convenience init<Bytes: AsyncSequence>(
+        _ sequence: Bytes,
         length: HTTPBody.Length,
         iterationBehavior: IterationBehavior
-    ) where S.Element == ES, S: Sendable, ES.Element == UInt8 {
+    ) where Bytes: Sendable, Bytes.Element: Sequence, Bytes.Element.Element == UInt8 {
         self.init(
             sequence.map { ArraySlice($0) },
             length: length,
@@ -485,10 +485,10 @@ extension HTTPBody {
     /// - Parameters:
     ///   - string: A string to encode as bytes.
     ///   - length: The total length of the body.
-    @inlinable public convenience init<S: StringProtocol>(
-        _ string: S,
+    @inlinable public convenience init(
+        _ string: some StringProtocol & Sendable,
         length: Length
-    ) where S: Sendable {
+    ) {
         self.init(
             ByteChunk.init(string),
             length: length
@@ -498,9 +498,9 @@ extension HTTPBody {
     /// Creates a new body with the provided string encoded as UTF-8 bytes.
     /// - Parameters:
     ///   - string: A string to encode as bytes.
-    @inlinable public convenience init<S: StringProtocol>(
-        _ string: S
-    ) where S: Sendable {
+    @inlinable public convenience init(
+        _ string: some StringProtocol & Sendable
+    ) {
         self.init(
             ByteChunk.init(string),
             length: .known(string.count)
@@ -512,7 +512,7 @@ extension HTTPBody {
     ///   - stream: An async throwing stream that provides the string chunks.
     ///   - length: The total length of the body.
     @inlinable public convenience init(
-        _ stream: AsyncThrowingStream<some StringProtocol, any Error>,
+        _ stream: AsyncThrowingStream<some StringProtocol & Sendable, any Error & Sendable>,
         length: HTTPBody.Length
     ) {
         self.init(
@@ -527,7 +527,7 @@ extension HTTPBody {
     ///   - stream: An async stream that provides the string chunks.
     ///   - length: The total length of the body.
     @inlinable public convenience init(
-        _ stream: AsyncStream<some StringProtocol>,
+        _ stream: AsyncStream<some StringProtocol & Sendable>,
         length: HTTPBody.Length
     ) {
         self.init(
@@ -543,11 +543,11 @@ extension HTTPBody {
     ///   - length: The total lenght of the body.
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
-    @inlinable public convenience init<S: AsyncSequence>(
-        _ sequence: S,
+    @inlinable public convenience init<Strings: AsyncSequence>(
+        _ sequence: Strings,
         length: HTTPBody.Length,
         iterationBehavior: IterationBehavior
-    ) where S.Element: StringProtocol, S: Sendable {
+    ) where Strings.Element: StringProtocol & Sendable, Strings: Sendable {
         self.init(
             .init(sequence.map(ByteChunk.init)),
             length: length,
@@ -560,7 +560,7 @@ extension HTTPBody.ByteChunk {
 
     /// Creates a byte chunk compatible with the `HTTPBody` type from the provided string.
     /// - Parameter string: The string to encode.
-    @inlinable init<S: StringProtocol>(_ string: S) where S: Sendable {
+    @inlinable init(_ string: some StringProtocol & Sendable) {
         self = Array(string.utf8)[...]
     }
 }
