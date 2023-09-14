@@ -417,7 +417,7 @@ extension HTTPBody {
     /// - Parameters:
     ///   - maxBytes: The maximum number of bytes this method is allowed
     ///     to accumulate in memory before it throws an error.
-    /// - Throws: `TooManyBytesError` if the the sequence contains more
+    /// - Throws: `TooManyBytesError` if the body contains more
     ///   than `maxBytes`.
     /// - Returns: A byte chunk containing all the accumulated bytes.
     fileprivate func collect(upTo maxBytes: Int) async throws -> ByteChunk {
@@ -456,7 +456,7 @@ extension HTTPBody.ByteChunk {
     ///   - body: The HTTP body to collect.
     ///   - maxBytes: The maximum number of bytes this method is allowed
     ///     to accumulate in memory before it throws an error.
-    /// - Throws: `TooManyBytesError` if the the sequence contains more
+    /// - Throws: `TooManyBytesError` if the body contains more
     ///   than `maxBytes`.
     public init(collecting body: HTTPBody, upTo maxBytes: Int) async throws {
         self = try await body.collect(upTo: maxBytes)
@@ -470,7 +470,7 @@ extension Array where Element == UInt8 {
     ///   - body: The HTTP body to collect.
     ///   - maxBytes: The maximum number of bytes this method is allowed
     ///     to accumulate in memory before it throws an error.
-    /// - Throws: `TooManyBytesError` if the the sequence contains more
+    /// - Throws: `TooManyBytesError` if the body contains more
     ///   than `maxBytes`.
     public init(collecting body: HTTPBody, upTo maxBytes: Int) async throws {
         self = try await Array(body.collect(upTo: maxBytes))
@@ -572,7 +572,7 @@ extension String {
     ///   - body: The HTTP body to collect.
     ///   - maxBytes: The maximum number of bytes this method is allowed
     ///     to accumulate in memory before it throws an error.
-    /// - Throws: `TooManyBytesError` if the the sequence contains more
+    /// - Throws: `TooManyBytesError` if the body contains more
     ///   than `maxBytes`.
     public init(collecting body: HTTPBody, upTo maxBytes: Int) async throws {
         self = try await String(
@@ -622,7 +622,7 @@ extension Data {
     ///   - body: The HTTP body to collect.
     ///   - maxBytes: The maximum number of bytes this method is allowed
     ///     to accumulate in memory before it throws an error.
-    /// - Throws: `TooManyBytesError` if the the sequence contains more
+    /// - Throws: `TooManyBytesError` if the body contains more
     ///   than `maxBytes`.
     public init(collecting body: HTTPBody, upTo maxBytes: Int) async throws {
         self = try await Data(body.collect(upTo: maxBytes))
@@ -711,11 +711,11 @@ extension HTTPBody {
         }
 
         /// The underlying sync sequence.
-        @usableFromInline let sequence: S
+        @usableFromInline let sequence: Bytes
 
         /// Creates a new async sequence with the provided sync sequence.
         /// - Parameter sequence: The sync sequence to wrap.
-        @inlinable init(sequence: S) {
+        @inlinable init(sequence: Bytes) {
             self.sequence = sequence
         }
 

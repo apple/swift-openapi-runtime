@@ -54,7 +54,7 @@ extension URIUnkeyedDecodingContainer {
         return try work()
     }
 
-    /// Returns the the current item in the underlying array and increments
+    /// Returns the current item in the underlying array and increments
     /// the index.
     /// - Returns: The next value found.
     /// - Throws: An error if the container ran out of items.
