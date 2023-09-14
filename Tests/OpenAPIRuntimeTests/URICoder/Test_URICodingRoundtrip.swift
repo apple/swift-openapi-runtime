@@ -13,6 +13,9 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 @_spi(Generated)@testable import OpenAPIRuntime
+#if os(Linux)
+@preconcurrency import Foundation
+#endif
 
 final class Test_URICodingRoundtrip: Test_Runtime {
 
