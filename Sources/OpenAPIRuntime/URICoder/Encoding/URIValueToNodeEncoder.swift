@@ -40,9 +40,6 @@ final class URIValueToNodeEncoder {
 
         /// The encoder set a value for an index out of range of the container.
         case integerOutOfRange
-
-        /// The encoder tried to treat
-        case nestedValueInSingleValueContainer
     }
 
     /// The stack of nested values within the root node.
