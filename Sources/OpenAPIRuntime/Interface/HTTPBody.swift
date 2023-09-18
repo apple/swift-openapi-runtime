@@ -490,7 +490,7 @@ extension HTTPBody {
         length: Length
     ) {
         self.init(
-            ByteChunk.init(string),
+            ByteChunk(string),
             length: length
         )
     }
