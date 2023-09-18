@@ -17,17 +17,18 @@ import Foundation
 /// A single value container used by `URIValueFromNodeDecoder`.
 struct URISingleValueDecodingContainer {
 
-    /// The coder used to serialize Date values.
-    let dateTranscoder: any DateTranscoder
-
-    /// The coding path of the container.
-    let codingPath: [any CodingKey]
-
-    /// The underlying value.
-    let value: URIParsedValue
+    /// The associated decoder.
+    let decoder: URIValueFromNodeDecoder
 }
 
 extension URISingleValueDecodingContainer {
+
+    /// The underlying value as a single value.
+    var value: URIParsedValue {
+        get throws {
+            try decoder.currentElementAsSingleValue()
+        }
+    }
 
     /// Returns the value found in the underlying node converted to
     /// the provided type.
@@ -36,7 +37,7 @@ extension URISingleValueDecodingContainer {
     private func _decodeBinaryFloatingPoint<T: BinaryFloatingPoint>(
         _: T.Type = T.self
     ) throws -> T {
-        guard let double = Double(value) else {
+        guard let double = try Double(value) else {
             throw DecodingError.typeMismatch(
                 T.self,
                 .init(
@@ -55,7 +56,7 @@ extension URISingleValueDecodingContainer {
     private func _decodeFixedWidthInteger<T: FixedWidthInteger>(
         _: T.Type = T.self
     ) throws -> T {
-        guard let parsedValue = T(value) else {
+        guard let parsedValue = try T(value) else {
             throw DecodingError.typeMismatch(
                 T.self,
                 .init(
@@ -74,7 +75,7 @@ extension URISingleValueDecodingContainer {
     private func _decodeLosslessStringConvertible<T: LosslessStringConvertible>(
         _: T.Type = T.self
     ) throws -> T {
-        guard let parsedValue = T(String(value)) else {
+        guard let parsedValue = try T(String(value)) else {
             throw DecodingError.typeMismatch(
                 T.self,
                 .init(
@@ -89,6 +90,10 @@ extension URISingleValueDecodingContainer {
 
 extension URISingleValueDecodingContainer: SingleValueDecodingContainer {
 
+    var codingPath: [any CodingKey] {
+        decoder.codingPath
+    }
+
     func decodeNil() -> Bool {
         false
     }
@@ -98,7 +103,7 @@ extension URISingleValueDecodingContainer: SingleValueDecodingContainer {
     }
 
     func decode(_ type: String.Type) throws -> String {
-        String(value)
+        try String(value)
     }
 
     func decode(_ type: Double.Type) throws -> Double {
@@ -180,9 +185,9 @@ extension URISingleValueDecodingContainer: SingleValueDecodingContainer {
         case is UInt64.Type:
             return try decode(UInt64.self) as! T
         case is Date.Type:
-            return try dateTranscoder.decode(String(value)) as! T
+            return try decoder.dateTranscoder.decode(String(value)) as! T
         default:
-            throw URIValueFromNodeDecoder.GeneralError.unsupportedType(T.self)
+            return try T.init(from: decoder)
         }
     }
 }
