@@ -111,7 +111,7 @@ public protocol ServerTransport {
     ///   - handler: A handler to be invoked when an HTTP request is received.
     ///   - method: An HTTP request method.
     ///   - path: A URL template for the path, for example `/pets/{petId}`.
-    /// - Important: The `path` can have mixed component, such
+    /// - Important: The `path` can have mixed components, such
     ///   as `/file/{name}.zip`.
     func register(
         _ handler: @Sendable @escaping (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (
