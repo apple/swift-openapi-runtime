@@ -350,7 +350,7 @@ extension HTTPBody {
         _ sequence: Bytes,
         length: HTTPBody.Length,
         iterationBehavior: IterationBehavior
-    ) where Bytes: Sendable, Bytes.Element: Sequence, Bytes.Element.Element == UInt8 {
+    ) where Bytes: Sendable, Bytes.Element: Sequence & Sendable, Bytes.Element.Element == UInt8 {
         self.init(
             sequence.map { ArraySlice($0) },
             length: length,
@@ -516,7 +516,7 @@ extension HTTPBody {
         length: HTTPBody.Length
     ) {
         self.init(
-            .init(stream.map(ByteChunk.init)),
+            .init(stream.map { ByteChunk.init($0) }),
             length: length,
             iterationBehavior: .single
         )
@@ -531,7 +531,7 @@ extension HTTPBody {
         length: HTTPBody.Length
     ) {
         self.init(
-            .init(stream.map(ByteChunk.init)),
+            .init(stream.map { ByteChunk.init($0) }),
             length: length,
             iterationBehavior: .single
         )
@@ -549,7 +549,7 @@ extension HTTPBody {
         iterationBehavior: IterationBehavior
     ) where Strings.Element: StringProtocol & Sendable, Strings: Sendable {
         self.init(
-            .init(sequence.map(ByteChunk.init)),
+            .init(sequence.map { ByteChunk.init($0) }),
             length: length,
             iterationBehavior: iterationBehavior
         )
