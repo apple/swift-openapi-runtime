@@ -438,7 +438,7 @@ extension HTTPBody {
             }()
         }
 
-        var buffer = ByteChunk.init()
+        var buffer = ByteChunk()
         for try await chunk in self {
             guard buffer.count + chunk.count <= maxBytes else {
                 throw TooManyBytesError(maxBytes: maxBytes)
