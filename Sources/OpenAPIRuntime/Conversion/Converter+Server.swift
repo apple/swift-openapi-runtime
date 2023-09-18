@@ -272,7 +272,7 @@ extension Converter {
             convert: convertBinaryToData
         )
     }
-    
+
     //    | server | get | request body | URLEncodedForm | codable | optional | getOptionalRequestBodyAsURLEncodedForm |
     func getOptionalRequestBodyAsURLEncodedForm<T: Decodable, C>(
         _ type: T.Type,
@@ -300,7 +300,6 @@ extension Converter {
             convert: convertURLEncodedFormToCodable
         )
     }
-    
 
     //    | server | set | response body | string | required | setResponseBodyAsString |
     public func setResponseBodyAsString<T: Encodable>(

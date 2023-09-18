@@ -167,30 +167,32 @@ extension Converter {
             convert: convertDataToBinary
         )
     }
-    
+
     //    | client | set | request body | urlEncodedForm | codable | optional | setOptionalRequestBodyAsURLEncodedForm |
     public func setOptionalRequestBodyAsURLEncodedForm<T: Encodable>(
         _ value: T,
         headerFields: inout [HeaderField],
         contentType: String
     ) throws -> Data? {
-        try setOptionalRequestBody(value,
-                                   headerFields: &headerFields,
-                                   contentType: contentType,
-                                   convert: convertBodyCodableToURLFormData
+        try setOptionalRequestBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: convertBodyCodableToURLFormData
         )
     }
-    
+
     //    | client | set | request body | urlEncodedForm | codable | required | setRequiredRequestBodyAsURLEncodedForm |
     public func setRequiredRequestBodyAsURLEncodedForm<T: Encodable>(
         _ value: T,
         headerFields: inout [HeaderField],
         contentType: String
     ) throws -> Data {
-        try setRequiredRequestBody(value,
-                                   headerFields: &headerFields,
-                                   contentType: contentType,
-                                   convert: convertBodyCodableToURLFormData
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: convertBodyCodableToURLFormData
         )
     }
 

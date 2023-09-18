@@ -85,7 +85,7 @@ class Test_Runtime: XCTestCase {
     var testStruct: TestPet {
         .init(name: "Fluffz")
     }
-    
+
     var testStructDetailed: TestPetDetailed {
         .init(name: "Fluffz", type: "Dog", age: "3")
     }
@@ -101,7 +101,7 @@ class Test_Runtime: XCTestCase {
         }
         """#
     }
-    
+
     var testStructURLFormString: String {
         "age=3&name=Fluffz&type=Dog"
     }
@@ -121,7 +121,7 @@ class Test_Runtime: XCTestCase {
     var testStructPrettyData: Data {
         Data(testStructPrettyString.utf8)
     }
-    
+
     var testStructURLFormData: Data {
         Data(testStructURLFormString.utf8)
     }

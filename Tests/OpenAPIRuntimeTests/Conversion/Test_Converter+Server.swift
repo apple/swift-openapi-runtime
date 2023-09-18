@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-@_spi(Generated)@testable import OpenAPIRuntime
+@_spi(Generated) @testable import OpenAPIRuntime
 
 final class Test_ServerConverterExtensions: Test_Runtime {
 
@@ -338,7 +338,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         )
         XCTAssertEqual(body, testStruct)
     }
-    
+
     //    | server | get | request body | URLEncodedForm | optional | getOptionalRequestBodyAsJSON |
     func test_getOptionalRequestBodyAsURLEncodedForm_codable() throws {
         let body: TestPetDetailed? = try converter.getOptionalRequestBodyAsURLEncodedForm(

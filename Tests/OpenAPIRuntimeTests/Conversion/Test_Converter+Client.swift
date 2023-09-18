@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-@_spi(Generated)@testable import OpenAPIRuntime
+@_spi(Generated) @testable import OpenAPIRuntime
 
 final class Test_ClientConverterExtensions: Test_Runtime {
 
@@ -233,7 +233,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             ]
         )
     }
-    
+
     //    | client | set | request body | urlEncodedForm | codable | optional | setRequiredRequestBodyAsURLEncodedForm |
     func test_setOptionalRequestBodyAsURLEncodedForm_codable() throws {
         var headerFields: [HeaderField] = []
@@ -251,7 +251,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             ]
         )
     }
-    
+
     //    | client | set | request body | urlEncodedForm | codable | required | setRequiredRequestBodyAsURLEncodedForm |
     func test_setRequiredRequestBodyAsURLEncodedForm_codable_string() throws {
         var headerFields: [HeaderField] = []
@@ -269,7 +269,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             ]
         )
     }
-    
+
     func test_setRequiredRequestBodyAsURLEncodedForm_codable() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setRequiredRequestBodyAsURLEncodedForm(
