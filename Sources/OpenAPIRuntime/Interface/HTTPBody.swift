@@ -502,7 +502,7 @@ extension HTTPBody {
         _ string: some StringProtocol & Sendable
     ) {
         self.init(
-            ByteChunk.init(string),
+            ByteChunk(string),
             length: .known(string.count)
         )
     }
