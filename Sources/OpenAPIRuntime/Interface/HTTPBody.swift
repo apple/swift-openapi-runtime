@@ -325,7 +325,7 @@ extension HTTPBody {
     /// Creates a new body with the provided async sequence.
     /// - Parameters:
     ///   - sequence: An async sequence that provides the byte chunks.
-    ///   - length: The total lenght of the body.
+    ///   - length: The total length of the body.
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
     @inlinable public convenience init<Bytes: AsyncSequence>(
