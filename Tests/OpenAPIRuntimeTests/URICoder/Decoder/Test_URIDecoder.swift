@@ -80,4 +80,30 @@ final class Test_URIDecoder: Test_Runtime {
             XCTAssertEqual(decodedValue, nil)
         }
     }
+
+    func testDecoding_percentEncodedCommaToString() throws {
+        let decoder = URIDecoder(configuration: .simpleUnexplode)
+
+        do {
+            let decodedValue = try decoder.decode(
+                String.self,
+                forKey: "",
+                from: "foo%2C%20bar"
+            )
+            XCTAssertEqual(decodedValue, "foo, bar")
+        }
+    }
+
+    func testDecoding_nonPercentEncodedCommaToString() throws {
+        let decoder = URIDecoder(configuration: .simpleUnexplode)
+
+        do {
+            let decodedValue = try decoder.decode(
+                String.self,
+                forKey: "",
+                from: "foo, bar"
+            )
+            XCTAssertEqual(decodedValue, "foo, bar")
+        }
+    }
 }
