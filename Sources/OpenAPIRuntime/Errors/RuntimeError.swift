@@ -55,6 +55,10 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     case transportFailed(any Error)
     case handlerFailed(any Error)
 
+    // Unexpected response (thrown by shorthand APIs)
+    case unexpectedResponseStatus(expectedStatus: String, response: Any)
+    case unexpectedResponseBody(expectedContent: String, body: Any)
+
     // MARK: CustomStringConvertible
 
     var description: String {
@@ -96,6 +100,20 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
             return "Transport failed with error: \(underlyingError.localizedDescription)"
         case .handlerFailed(let underlyingError):
             return "User handler failed with error: \(underlyingError.localizedDescription)"
+        case .unexpectedResponseStatus(let expectedStatus, let response):
+            return "Unexpected response, expected status code: \(expectedStatus), response: \(response)"
+        case .unexpectedResponseBody(let expectedContentType, let response):
+            return "Unexpected response body, expected content type: \(expectedContentType), response: \(response)"
         }
     }
+}
+
+@_spi(Generated)
+public func throwUnexpectedResponseStatus(expectedStatus: String, response: Any) throws -> Never {
+    throw RuntimeError.unexpectedResponseStatus(expectedStatus: expectedStatus, response: response)
+}
+
+@_spi(Generated)
+public func throwUnexpectedResponseBody(expectedContent: String, body: Any) throws -> Never {
+    throw RuntimeError.unexpectedResponseBody(expectedContent: expectedContent, body: body)
 }
