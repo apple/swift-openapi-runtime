@@ -185,14 +185,11 @@ extension Converter {
             configuration: .init(
                 style: .form,
                 explode: true,
-                spaceEscapingCharacter: .percentEncoded,
+                spaceEscapingCharacter: .plus,
                 dateTranscoder: configuration.dateTranscoder
             )
         )
-        guard let uriString = String(data: data, encoding: .utf8) else {
-            throw RuntimeError.failedToSerializeCodableData
-        }
-
+        let uriString = String(decoding: data, as: UTF8.self)
         return try decoder.decode(T.self, from: uriString)
     }
 
@@ -210,14 +207,12 @@ extension Converter {
             configuration: .init(
                 style: .form,
                 explode: true,
-                spaceEscapingCharacter: .percentEncoded,
+                spaceEscapingCharacter: .plus,
                 dateTranscoder: configuration.dateTranscoder
             )
         )
-        guard let data = try encoder.encode(value, forKey: "").data(using: .utf8) else {
-            throw RuntimeError.failedToDecodeStringConvertibleValue(type: String(describing: T.self))
-        }
-
+        let encodedString = try encoder.encode(value, forKey: "")
+        let data = Data(encodedString.utf8)
         return data
     }
 
