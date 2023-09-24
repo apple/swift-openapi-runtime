@@ -87,7 +87,7 @@ class Test_Runtime: XCTestCase {
     }
 
     var testStructDetailed: TestPetDetailed {
-        .init(name: "Fluffz", type: "Dog", age: "3")
+        .init(name: "Rover!", type: "Golden Retriever", age: "3")
     }
 
     var testStructString: String {
@@ -103,7 +103,7 @@ class Test_Runtime: XCTestCase {
     }
 
     var testStructURLFormString: String {
-        "age=3&name=Fluffz&type=Dog"
+        "age=3&name=Rover%21&type=Golden+Retriever"
     }
 
     var testEnum: TestHabitat {

@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 @_spi(Generated)@testable import OpenAPIRuntime
+import PetstoreConsumerTestCore
 
 final class Test_ClientConverterExtensions: Test_Runtime {
 
@@ -242,8 +243,13 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             headerFields: &headerFields,
             contentType: "application/x-www-form-urlencoded"
         )
-
-        XCTAssertEqual(body, testStructURLFormData)
+        
+        guard let body else {
+            XCTFail("Expected body should not be nil")
+            return
+        }
+        
+        XCTAssertEqualStringifiedData(body, testStructURLFormString)
         XCTAssertEqual(
             headerFields,
             [
@@ -253,23 +259,6 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     }
 
     //    | client | set | request body | urlEncodedForm | codable | required | setRequiredRequestBodyAsURLEncodedForm |
-    func test_setRequiredRequestBodyAsURLEncodedForm_codable_string() throws {
-        var headerFields: [HeaderField] = []
-        let body = try converter.setRequiredRequestBodyAsURLEncodedForm(
-            testStructDetailed,
-            headerFields: &headerFields,
-            contentType: "application/x-www-form-urlencoded"
-        )
-
-        XCTAssertEqual(String(data: body, encoding: .utf8), testStructURLFormString)
-        XCTAssertEqual(
-            headerFields,
-            [
-                .init(name: "content-type", value: "application/x-www-form-urlencoded")
-            ]
-        )
-    }
-
     func test_setRequiredRequestBodyAsURLEncodedForm_codable() throws {
         var headerFields: [HeaderField] = []
         let body = try converter.setRequiredRequestBodyAsURLEncodedForm(
@@ -277,8 +266,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             headerFields: &headerFields,
             contentType: "application/x-www-form-urlencoded"
         )
-
-        XCTAssertEqual(body, testStructURLFormData)
+        XCTAssertEqualStringifiedData(body, testStructURLFormString)
         XCTAssertEqual(
             headerFields,
             [
@@ -359,5 +347,20 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             transforming: { $0 }
         )
         XCTAssertEqual(value, testStringData)
+    }
+}
+
+public func XCTAssertEqualStringifiedData(
+    _ expression1: @autoclosure () throws -> Data,
+    _ expression2: @autoclosure () throws -> String,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #filePath,
+    line: UInt = #line
+) {
+    do {
+        let actualString = String(decoding: try expression1(), as: UTF8.self)
+        XCTAssertEqual(actualString, try expression2(), file: file, line: line)
+    } catch {
+        XCTFail(error.localizedDescription, file: file, line: line)
     }
 }
