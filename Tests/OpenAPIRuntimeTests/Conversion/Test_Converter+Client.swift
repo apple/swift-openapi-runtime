@@ -243,12 +243,12 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             headerFields: &headerFields,
             contentType: "application/x-www-form-urlencoded"
         )
-        
+
         guard let body else {
             XCTFail("Expected body should not be nil")
             return
         }
-        
+
         XCTAssertEqualStringifiedData(body, testStructURLFormString)
         XCTAssertEqual(
             headerFields,
