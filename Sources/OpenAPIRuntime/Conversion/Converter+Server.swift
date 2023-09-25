@@ -233,6 +233,56 @@ extension Converter {
             from: data,
             transforming: transform,
             convert: { $0 }
+            convert: convertBinaryToData
+        )
+    }
+
+    //    | server | get | request body | URLEncodedForm | codable | optional | getOptionalRequestBodyAsURLEncodedForm |
+    func getOptionalRequestBodyAsURLEncodedForm<T: Decodable, C>(
+        _ type: T.Type,
+        from data: Data?,
+        transforming transform: (T) -> C
+    ) throws -> C? {
+        try getOptionalRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertURLEncodedFormToCodable
+        )
+    }
+
+    //    | server | get | request body | URLEncodedForm | codable | required | getRequiredRequestBodyAsURLEncodedForm |
+    public func getRequiredRequestBodyAsURLEncodedForm<T: Decodable, C>(
+        _ type: T.Type,
+        from data: Data?,
+        transforming transform: (T) -> C
+    ) throws -> C {
+        try getRequiredRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertURLEncodedFormToCodable
+        )
+    }
+
+    //    | server | set | response body | string | required | setResponseBodyAsString |
+    public func setResponseBodyAsString<T: Encodable>(
+        _ value: T,
+        headerFields: inout [HeaderField],
+        contentType: String
+    ) throws -> Data {
+        try setResponseBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: { value in
+                let encoder = StringEncoder(
+                    dateTranscoder: configuration.dateTranscoder
+                )
+                let encodedString = try encoder.encode(value)
+                let encodedData = Data(encodedString.utf8)
+                return encodedData
+            }
         )
     }
 

@@ -294,6 +294,9 @@ extension URIValueFromNodeDecoder {
             array = try rootValue(in: values)
         }
         guard array.count == 1 else {
+            if style == .simple {
+                return Substring(array.joined(separator: ","))
+            }
             let reason = array.isEmpty ? "an empty node" : "a node with multiple values"
             try throwMismatch("Cannot parse a value from \(reason).")
         }

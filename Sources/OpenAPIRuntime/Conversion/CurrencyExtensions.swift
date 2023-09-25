@@ -174,6 +174,37 @@ extension Converter {
         return HTTPBody(data: data)
     }
 
+func convertURLEncodedFormToCodable<T: Decodable>(
+_ data: Data
+) throws -> T {
+let decoder = URIDecoder(
+configuration: .init(
+style: .form,
+explode: true,
+spaceEscapingCharacter: .plus,
+dateTranscoder: configuration.dateTranscoder
+)
+)
+let uriString = String(decoding: data, as: UTF8.self)
+return try decoder.decode(T.self, from: uriString)
+}
+
+func convertBodyCodableToURLFormData<T: Encodable>(
+_ value: T
+) throws -> Data {
+let encoder = URIEncoder(
+configuration: .init(
+style: .form,
+explode: true,
+spaceEscapingCharacter: .plus,
+dateTranscoder: configuration.dateTranscoder
+)
+)
+let encodedString = try encoder.encode(value, forKey: "")
+let data = Data(encodedString.utf8)
+return data
+}
+
     /// Returns a JSON string for the provided encodable value.
     /// - Parameter value: The value to encode.
     /// - Returns: A JSON string.

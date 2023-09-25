@@ -87,6 +87,10 @@ class Test_Runtime: XCTestCase {
         .init(name: "Fluffz")
     }
 
+    var testStructDetailed: TestPetDetailed {
+        .init(name: "Rover!", type: "Golden Retriever", age: "3")
+    }
+
     var testStructString: String {
         #"{"name":"Fluffz"}"#
     }
@@ -97,6 +101,10 @@ class Test_Runtime: XCTestCase {
           "name" : "Fluffz"
         }
         """#
+    }
+
+    var testStructURLFormString: String {
+        "age=3&name=Rover%21&type=Golden+Retriever"
     }
 
     var testEnum: TestHabitat {
@@ -113,6 +121,10 @@ class Test_Runtime: XCTestCase {
 
     var testStructPrettyData: Data {
         Data(testStructPrettyString.utf8)
+    }
+
+    var testStructURLFormData: Data {
+        Data(testStructURLFormString.utf8)
     }
 
     func _testPrettyEncoded<Value: Encodable>(_ value: Value, expectedJSON: String) throws {
@@ -139,6 +151,12 @@ public func XCTAssertEqualURLString(_ lhs: URL?, _ rhs: String, file: StaticStri
 
 struct TestPet: Codable, Equatable {
     var name: String
+}
+
+struct TestPetDetailed: Codable, Equatable {
+    var name: String
+    var type: String
+    var age: String
 }
 
 enum TestHabitat: String, Codable, Equatable {
