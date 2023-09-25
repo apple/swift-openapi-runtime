@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-@_spi(Generated)@testable import OpenAPIRuntime
+@_spi(Generated) import OpenAPIRuntime
 
 final class Test_ClientConverterExtensions: Test_Runtime {
 
