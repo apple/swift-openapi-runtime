@@ -623,7 +623,7 @@ extension HTTPBody {
 }
 
 extension Data {
-    /// Creates a string by accumulating the full body in-memory into a single buffer up to
+    /// Creates a Data by accumulating the full body in-memory into a single buffer up to
     /// the provided maximum number of bytes and converting it to `Data`.
     /// - Parameters:
     ///   - body: The HTTP body to collect.
