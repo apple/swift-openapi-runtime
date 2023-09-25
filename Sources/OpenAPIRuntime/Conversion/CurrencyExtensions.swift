@@ -171,39 +171,45 @@ extension Converter {
         _ value: T
     ) throws -> HTTPBody {
         let data = try encoder.encode(value)
-        return HTTPBody(data: data)
+        return HTTPBody(data)
     }
 
-func convertURLEncodedFormToCodable<T: Decodable>(
-_ data: Data
-) throws -> T {
-let decoder = URIDecoder(
-configuration: .init(
-style: .form,
-explode: true,
-spaceEscapingCharacter: .plus,
-dateTranscoder: configuration.dateTranscoder
-)
-)
-let uriString = String(decoding: data, as: UTF8.self)
-return try decoder.decode(T.self, from: uriString)
-}
+    /// Returns a value decoded from a URL-encoded form body.
+    /// - Parameter body: The body containing the raw URL-encoded form bytes.
+    /// - Returns: A decoded value.
+    func convertURLEncodedFormToCodable<T: Decodable>(
+        _ body: HTTPBody
+    ) async throws -> T {
+        let decoder = URIDecoder(
+            configuration: .init(
+                style: .form,
+                explode: true,
+                spaceEscapingCharacter: .plus,
+                dateTranscoder: configuration.dateTranscoder
+            )
+        )
+        let data = try await Data(collecting: body, upTo: .max)
+        let uriString = Substring(decoding: data, as: UTF8.self)
+        return try decoder.decode(T.self, from: uriString)
+    }
 
-func convertBodyCodableToURLFormData<T: Encodable>(
-_ value: T
-) throws -> Data {
-let encoder = URIEncoder(
-configuration: .init(
-style: .form,
-explode: true,
-spaceEscapingCharacter: .plus,
-dateTranscoder: configuration.dateTranscoder
-)
-)
-let encodedString = try encoder.encode(value, forKey: "")
-let data = Data(encodedString.utf8)
-return data
-}
+    /// Returns a URL-encoded form string for the provided encodable value.
+    /// - Parameter value: The value to encode.
+    /// - Returns: The raw URL-encoded form body.
+    func convertBodyCodableToURLFormData<T: Encodable>(
+        _ value: T
+    ) throws -> HTTPBody {
+        let encoder = URIEncoder(
+            configuration: .init(
+                style: .form,
+                explode: true,
+                spaceEscapingCharacter: .plus,
+                dateTranscoder: configuration.dateTranscoder
+            )
+        )
+        let encodedString = try encoder.encode(value, forKey: "")
+        return HTTPBody(encodedString)
+    }
 
     /// Returns a JSON string for the provided encodable value.
     /// - Parameter value: The value to encode.

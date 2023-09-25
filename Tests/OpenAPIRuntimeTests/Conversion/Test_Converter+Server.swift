@@ -279,7 +279,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     func test_getOptionalRequestBodyAsJSON_codable() async throws {
         let body: TestPet? = try await converter.getOptionalRequestBodyAsJSON(
             TestPet.self,
-            from: .init(data: testStructData),
+            from: .init(testStructData),
             transforming: { $0 }
         )
         XCTAssertEqual(body, testStruct)
@@ -288,7 +288,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     func test_getOptionalRequestBodyAsJSON_codable_string() async throws {
         let body: String? = try await converter.getOptionalRequestBodyAsJSON(
             String.self,
-            from: .init(data: testQuotedStringData),
+            from: .init(testQuotedStringData),
             transforming: { $0 }
         )
         XCTAssertEqual(body, testString)
@@ -298,27 +298,27 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     func test_getRequiredRequestBodyAsJSON_codable() async throws {
         let body: TestPet = try await converter.getRequiredRequestBodyAsJSON(
             TestPet.self,
-            from: .init(data: testStructData),
+            from: .init(testStructData),
             transforming: { $0 }
         )
         XCTAssertEqual(body, testStruct)
     }
 
     //    | server | get | request body | urlEncodedForm | optional | getOptionalRequestBodyAsURLEncodedForm |
-    func test_getOptionalRequestBodyAsURLEncodedForm_codable() throws {
-        let body: TestPetDetailed? = try converter.getOptionalRequestBodyAsURLEncodedForm(
+    func test_getOptionalRequestBodyAsURLEncodedForm_codable() async throws {
+        let body: TestPetDetailed? = try await converter.getOptionalRequestBodyAsURLEncodedForm(
             TestPetDetailed.self,
-            from: testStructURLFormData,
+            from: .init(testStructURLFormData),
             transforming: { $0 }
         )
         XCTAssertEqual(body, testStructDetailed)
     }
 
     //    | server | get | request body | urlEncodedForm | required | getRequiredRequestBodyAsURLEncodedForm |
-    func test_getRequiredRequestBodyAsURLEncodedForm_codable() throws {
-        let body: TestPetDetailed = try converter.getRequiredRequestBodyAsURLEncodedForm(
+    func test_getRequiredRequestBodyAsURLEncodedForm_codable() async throws {
+        let body: TestPetDetailed = try await converter.getRequiredRequestBodyAsURLEncodedForm(
             TestPetDetailed.self,
-            from: testStructURLFormData,
+            from: .init(testStructURLFormData),
             transforming: { $0 }
         )
         XCTAssertEqual(body, testStructDetailed)
@@ -328,7 +328,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     func test_getOptionalRequestBodyAsBinary_data() async throws {
         let body: HTTPBody? = try converter.getOptionalRequestBodyAsBinary(
             HTTPBody.self,
-            from: .init(data: testStringData),
+            from: .init(testStringData),
             transforming: { $0 }
         )
         try await XCTAssertEqualStringifiedData(body, testString)
@@ -338,7 +338,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     func test_getRequiredRequestBodyAsBinary_data() async throws {
         let body: HTTPBody = try converter.getRequiredRequestBodyAsBinary(
             HTTPBody.self,
-            from: .init(data: testStringData),
+            from: .init(testStringData),
             transforming: { $0 }
         )
         try await XCTAssertEqualStringifiedData(body, testString)
@@ -365,7 +365,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     func test_setResponseBodyAsBinary_data() async throws {
         var headers: HTTPFields = [:]
         let data = try converter.setResponseBodyAsBinary(
-            .init(data: testStringData),
+            .init(testStringData),
             headerFields: &headers,
             contentType: "application/octet-stream"
         )

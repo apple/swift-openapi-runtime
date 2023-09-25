@@ -610,7 +610,7 @@ extension HTTPBody {
 
     /// Creates a new body from the provided data chunk.
     /// - Parameter data: A single data chunk.
-    public convenience init(data: Data) {
+    public convenience init(_ data: Data) {
         self.init(ArraySlice(data))
     }
 }

@@ -66,7 +66,7 @@ final class Test_Body: Test_Runtime {
 
         // A single data.
         do {
-            let body: HTTPBody = HTTPBody(data: Data([0]))
+            let body: HTTPBody = HTTPBody(Data([0]))
             try await _testConsume(
                 body,
                 expected: [0]

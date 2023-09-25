@@ -233,17 +233,16 @@ extension Converter {
             from: data,
             transforming: transform,
             convert: { $0 }
-            convert: convertBinaryToData
         )
     }
 
     //    | server | get | request body | URLEncodedForm | codable | optional | getOptionalRequestBodyAsURLEncodedForm |
     func getOptionalRequestBodyAsURLEncodedForm<T: Decodable, C>(
         _ type: T.Type,
-        from data: Data?,
+        from data: HTTPBody?,
         transforming transform: (T) -> C
-    ) throws -> C? {
-        try getOptionalRequestBody(
+    ) async throws -> C? {
+        try await getOptionalBufferingRequestBody(
             type,
             from: data,
             transforming: transform,
@@ -254,35 +253,14 @@ extension Converter {
     //    | server | get | request body | URLEncodedForm | codable | required | getRequiredRequestBodyAsURLEncodedForm |
     public func getRequiredRequestBodyAsURLEncodedForm<T: Decodable, C>(
         _ type: T.Type,
-        from data: Data?,
+        from data: HTTPBody?,
         transforming transform: (T) -> C
-    ) throws -> C {
-        try getRequiredRequestBody(
+    ) async throws -> C {
+        try await getRequiredBufferingRequestBody(
             type,
             from: data,
             transforming: transform,
             convert: convertURLEncodedFormToCodable
-        )
-    }
-
-    //    | server | set | response body | string | required | setResponseBodyAsString |
-    public func setResponseBodyAsString<T: Encodable>(
-        _ value: T,
-        headerFields: inout [HeaderField],
-        contentType: String
-    ) throws -> Data {
-        try setResponseBody(
-            value,
-            headerFields: &headerFields,
-            contentType: contentType,
-            convert: { value in
-                let encoder = StringEncoder(
-                    dateTranscoder: configuration.dateTranscoder
-                )
-                let encodedString = try encoder.encode(value)
-                let encodedData = Data(encodedString.utf8)
-                return encodedData
-            }
         )
     }
 
