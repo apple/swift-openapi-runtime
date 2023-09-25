@@ -574,7 +574,7 @@ extension HTTPBody.ByteChunk {
 
 extension String {
     /// Creates a string by accumulating the full body in-memory into a single buffer up to
-    /// the provided maximum number of bytes, converting it to string using the provided encoding.
+    /// the provided maximum number of bytes, converting it to string using UTF-8 encoding.
     /// - Parameters:
     ///   - body: The HTTP body to collect.
     ///   - maxBytes: The maximum number of bytes this method is allowed
