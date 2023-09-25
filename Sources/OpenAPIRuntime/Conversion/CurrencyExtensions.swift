@@ -49,7 +49,7 @@ extension HTTPField.Name {
     /// - Parameter name: A field name.
     /// - Throws: If the name isn't a valid field name.
     init(validated name: String) throws {
-        guard let fieldName = Self.init(name) else {
+        guard let fieldName = Self(name) else {
             throw RuntimeError.invalidHeaderFieldName(name)
         }
         self = fieldName
