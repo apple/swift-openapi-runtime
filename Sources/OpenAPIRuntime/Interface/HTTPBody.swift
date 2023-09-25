@@ -325,7 +325,7 @@ extension HTTPBody {
     /// Creates a new body with the provided async sequence.
     /// - Parameters:
     ///   - sequence: An async sequence that provides the byte chunks.
-    ///   - length: The total lenght of the body.
+    ///   - length: The total length of the body.
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
     @inlinable public convenience init<Bytes: AsyncSequence>(
@@ -343,7 +343,7 @@ extension HTTPBody {
     /// Creates a new body with the provided async sequence of byte sequences.
     /// - Parameters:
     ///   - sequence: An async sequence that provides the byte chunks.
-    ///   - length: The total lenght of the body.
+    ///   - length: The total length of the body.
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
     @inlinable public convenience init<Bytes: AsyncSequence>(
@@ -438,7 +438,7 @@ extension HTTPBody {
             }()
         }
 
-        var buffer = ByteChunk.init()
+        var buffer = ByteChunk()
         for try await chunk in self {
             guard buffer.count + chunk.count <= maxBytes else {
                 throw TooManyBytesError(maxBytes: maxBytes)
@@ -490,7 +490,7 @@ extension HTTPBody {
         length: Length
     ) {
         self.init(
-            ByteChunk.init(string),
+            ByteChunk(string),
             length: length
         )
     }
@@ -502,7 +502,7 @@ extension HTTPBody {
         _ string: some StringProtocol & Sendable
     ) {
         self.init(
-            ByteChunk.init(string),
+            ByteChunk(string),
             length: .known(string.count)
         )
     }
@@ -540,7 +540,7 @@ extension HTTPBody {
     /// Creates a new body with the provided async sequence of string chunks.
     /// - Parameters:
     ///   - sequence: An async sequence that provides the string chunks.
-    ///   - length: The total lenght of the body.
+    ///   - length: The total length of the body.
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
     @inlinable public convenience init<Strings: AsyncSequence>(
