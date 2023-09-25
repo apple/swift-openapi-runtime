@@ -237,7 +237,7 @@ extension Converter {
     }
 
     //    | server | get | request body | URLEncodedForm | codable | optional | getOptionalRequestBodyAsURLEncodedForm |
-    func getOptionalRequestBodyAsURLEncodedForm<T: Decodable, C>(
+    public func getOptionalRequestBodyAsURLEncodedForm<T: Decodable, C>(
         _ type: T.Type,
         from data: HTTPBody?,
         transforming transform: (T) -> C
