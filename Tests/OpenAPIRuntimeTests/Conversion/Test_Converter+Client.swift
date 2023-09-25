@@ -13,7 +13,6 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 @_spi(Generated)@testable import OpenAPIRuntime
-import PetstoreConsumerTestCore
 
 final class Test_ClientConverterExtensions: Test_Runtime {
 
