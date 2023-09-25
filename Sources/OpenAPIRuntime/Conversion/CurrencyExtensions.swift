@@ -177,10 +177,41 @@ extension Converter {
         try decoder.decode(T.self, from: data)
     }
 
+    func convertURLEncodedFormToCodable<T: Decodable>(
+        _ data: Data
+    ) throws -> T {
+        let decoder = URIDecoder(
+            configuration: .init(
+                style: .form,
+                explode: true,
+                spaceEscapingCharacter: .plus,
+                dateTranscoder: configuration.dateTranscoder
+            )
+        )
+        let uriString = String(decoding: data, as: UTF8.self)
+        return try decoder.decode(T.self, from: uriString)
+    }
+
     func convertBodyCodableToJSON<T: Encodable>(
         _ value: T
     ) throws -> Data {
         try encoder.encode(value)
+    }
+
+    func convertBodyCodableToURLFormData<T: Encodable>(
+        _ value: T
+    ) throws -> Data {
+        let encoder = URIEncoder(
+            configuration: .init(
+                style: .form,
+                explode: true,
+                spaceEscapingCharacter: .plus,
+                dateTranscoder: configuration.dateTranscoder
+            )
+        )
+        let encodedString = try encoder.encode(value, forKey: "")
+        let data = Data(encodedString.utf8)
+        return data
     }
 
     func convertHeaderFieldCodableToJSON<T: Encodable>(

@@ -339,6 +339,26 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         XCTAssertEqual(body, testStruct)
     }
 
+    //    | server | get | request body | urlEncodedForm | optional | getOptionalRequestBodyAsURLEncodedForm |
+    func test_getOptionalRequestBodyAsURLEncodedForm_codable() throws {
+        let body: TestPetDetailed? = try converter.getOptionalRequestBodyAsURLEncodedForm(
+            TestPetDetailed.self,
+            from: testStructURLFormData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testStructDetailed)
+    }
+
+    //    | server | get | request body | urlEncodedForm | required | getRequiredRequestBodyAsURLEncodedForm |
+    func test_getRequiredRequestBodyAsURLEncodedForm_codable() throws {
+        let body: TestPetDetailed = try converter.getRequiredRequestBodyAsURLEncodedForm(
+            TestPetDetailed.self,
+            from: testStructURLFormData,
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testStructDetailed)
+    }
+
     //    | server | get | request body | binary | optional | getOptionalRequestBodyAsBinary |
     func test_getOptionalRequestBodyAsBinary_data() throws {
         let body: Data? = try converter.getOptionalRequestBodyAsBinary(
