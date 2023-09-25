@@ -167,6 +167,19 @@ public final class HTTPBody: @unchecked Sendable {
     /// A flag indicating whether an iterator has already been created.
     private var locked_iteratorCreated: Bool = false
 
+    /// Runs the provided closure in a scope where the `iteratorCreated` value
+    /// is locked and available both for reading and writing.
+    /// - Parameter work: A closure that is provided with a read-write reference
+    ///   to the `iteratorCreated` value.
+    /// - Returns: Whatever value the closure returned.
+    private func withIteratorCreated<R>(_ work: (inout Bool) throws -> R) rethrows -> R {
+        lock.lock()
+        defer {
+            lock.unlock()
+        }
+        return try work(&locked_iteratorCreated)
+    }
+
     /// Creates a new body.
     /// - Parameters:
     ///   - sequence: The input sequence providing the byte chunks.
@@ -366,16 +379,14 @@ extension HTTPBody: AsyncSequence {
     public typealias AsyncIterator = Iterator
     public func makeAsyncIterator() -> AsyncIterator {
         if iterationBehavior == .single {
-            lock.lock()
-            defer {
-                lock.unlock()
+            withIteratorCreated { iteratorCreated in
+                guard !iteratorCreated else {
+                    fatalError(
+                        "OpenAPIRuntime.HTTPBody attempted to create a second iterator, but the underlying sequence is only safe to be iterated once."
+                    )
+                }
+                iteratorCreated = true
             }
-            guard !locked_iteratorCreated else {
-                fatalError(
-                    "OpenAPIRuntime.HTTPBody attempted to create a second iterator, but the underlying sequence is only safe to be iterated once."
-                )
-            }
-            locked_iteratorCreated = true
         }
         return sequence.makeAsyncIterator()
     }
@@ -427,15 +438,11 @@ extension HTTPBody {
         // iterate a sequence for the second time, if it's only safe to be
         // iterated once.
         if iterationBehavior == .single {
-            try {
-                lock.lock()
-                defer {
-                    lock.unlock()
-                }
-                guard !locked_iteratorCreated else {
+            try withIteratorCreated { iteratorCreated in
+                guard !iteratorCreated else {
                     throw TooManyIterationsError()
                 }
-            }()
+            }
         }
 
         var buffer = ByteChunk()
