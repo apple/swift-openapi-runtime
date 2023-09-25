@@ -339,7 +339,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         XCTAssertEqual(body, testStruct)
     }
 
-    //    | server | get | request body | URLEncodedForm | optional | getOptionalRequestBodyAsJSON |
+    //    | server | get | request body | urlEncodedForm | optional | getOptionalRequestBodyAsURLEncodedForm |
     func test_getOptionalRequestBodyAsURLEncodedForm_codable() throws {
         let body: TestPetDetailed? = try converter.getOptionalRequestBodyAsURLEncodedForm(
             TestPetDetailed.self,
