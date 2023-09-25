@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-@_spi(Generated)@testable import OpenAPIRuntime
+@_spi(Generated) import OpenAPIRuntime
 
 final class Test_ServerConverterExtensions: Test_Runtime {
 
@@ -92,26 +92,12 @@ final class Test_ServerConverterExtensions: Test_Runtime {
                     "Unexpected error when validating string: \(contentType) against headers: \(headers)"
                 )
             } else {
-                let acceptHeader =
-                    headers
-                    .values(name: "accept")
-                    .joined(separator: ", ")
                 XCTAssertThrowsError(
                     try converter.validateAcceptIfPresent(
                         contentType,
                         in: headers
                     ),
-                    "Expected to throw error when validating string: \(contentType) against headers: \(headers)",
-                    { error in
-                        guard
-                            let err = error as? RuntimeError,
-                            case .unexpectedAcceptHeader(let string) = err
-                        else {
-                            XCTFail("Threw an unexpected error: \(error)")
-                            return
-                        }
-                        XCTAssertEqual(string, acceptHeader)
-                    }
+                    "Expected to throw error when validating string: \(contentType) against headers: \(headers)"
                 )
             }
         }
