@@ -17,7 +17,7 @@ import HTTPTypes
 
 extension HTTPField.Name {
     static var foo: Self {
-        .init("foo")!
+        Self("foo")!
     }
 }
 
