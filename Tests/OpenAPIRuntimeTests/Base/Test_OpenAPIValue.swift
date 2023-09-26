@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-@_spi(Generated) import OpenAPIRuntime
+@_spi(Generated) @testable import OpenAPIRuntime
 
 final class Test_OpenAPIValue: Test_Runtime {
 
@@ -265,5 +265,14 @@ final class Test_OpenAPIValue: Test_Runtime {
         let nestedDict = try XCTUnwrap(decoded.dict.value["nestedDict"] as? [String: Any?])
         let nestedValue = try XCTUnwrap(nestedDict["nested"] as? Int)
         XCTAssertEqual(nestedValue, 2)
+    }
+
+    func testEncodingDecodingRoundTrip_base64_success() throws {
+        print(String(data: testStructData.base64EncodedData(), encoding: .utf8)!.utf8)
+        let encodedData = Base64EncodedData(data: testStructData)
+        XCTAssertEqual(
+            try JSONDecoder().decode(Base64EncodedData.self, from: JSONEncoder().encode(encodedData)),
+            encodedData
+        )
     }
 }

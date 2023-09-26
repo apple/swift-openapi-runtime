@@ -21,6 +21,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     case invalidServerURL(String)
     case invalidExpectedContentType(String)
     case invalidHeaderFieldName(String)
+    case invalidBase64String(String)
 
     // Data conversion
     case failedToDecodeStringConvertibleValue(type: String)
@@ -73,6 +74,8 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
             return "Invalid expected content type: '\(string)'"
         case .invalidHeaderFieldName(let name):
             return "Invalid header field name: '\(name)'"
+        case .invalidBase64String(let string):
+            return "Invalid base64-encoded string: '\(string)'"
         case .failedToDecodeStringConvertibleValue(let string):
             return "Failed to decode a value of type '\(string)'."
         case .unsupportedParameterStyle(name: let name, location: let location, style: let style, explode: let explode):
