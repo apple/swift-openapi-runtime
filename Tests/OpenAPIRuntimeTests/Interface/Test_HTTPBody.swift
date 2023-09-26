@@ -184,6 +184,64 @@ final class Test_Body: Test_Runtime {
         }
         XCTAssertEqual(chunks, ["hel", "lo"].map { Array($0.utf8)[...] })
     }
+
+    func testIterationBehavior_single() async throws {
+        let sequence = AsyncStream(
+            String.self,
+            { continuation in
+                continuation.yield("hel")
+                continuation.yield("lo")
+                continuation.finish()
+            }
+        )
+        .map { $0 }
+        let body: HTTPBody = HTTPBody(
+            sequence,
+            length: .unknown,
+            iterationBehavior: .single
+        )
+
+        XCTAssertFalse(body.testing_iteratorCreated)
+
+        var chunkCount = 0
+        for try await _ in body {
+            chunkCount += 1
+        }
+        XCTAssertEqual(chunkCount, 2)
+
+        XCTAssertTrue(body.testing_iteratorCreated)
+
+        do {
+            _ = try await String(collecting: body, upTo: .max)
+            XCTFail("Expected an error to be thrown")
+        } catch {}
+    }
+
+    func testIterationBehavior_multiple() async throws {
+        let body: HTTPBody = HTTPBody([104, 105])
+
+        XCTAssertFalse(body.testing_iteratorCreated)
+
+        do {
+            var chunkCount = 0
+            for try await _ in body {
+                chunkCount += 1
+            }
+            XCTAssertEqual(chunkCount, 1)
+        }
+
+        XCTAssertTrue(body.testing_iteratorCreated)
+
+        do {
+            var chunkCount = 0
+            for try await _ in body {
+                chunkCount += 1
+            }
+            XCTAssertEqual(chunkCount, 1)
+        }
+
+        XCTAssertTrue(body.testing_iteratorCreated)
+    }
 }
 
 extension Test_Body {

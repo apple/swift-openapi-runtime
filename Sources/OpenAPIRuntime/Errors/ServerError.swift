@@ -28,7 +28,7 @@ public struct ServerError: Error {
     public var requestBody: HTTPBody?
 
     /// The request metadata extracted by the server.
-    public var metadata: ServerRequestMetadata
+    public var requestMetadata: ServerRequestMetadata
 
     /// An operation-specific Input value.
     ///
@@ -48,7 +48,7 @@ public struct ServerError: Error {
     ///   - operationID: The OpenAPI operation identifier.
     ///   - request: The HTTP request provided to the server.
     ///   - requestBody: The HTTP request body provided to the server.
-    ///   - metadata: The request metadata extracted by the server.
+    ///   - requestMetadata: The request metadata extracted by the server.
     ///   - operationInput: An operation-specific Input value.
     ///   - operationOutput: An operation-specific Output value.
     ///   - underlyingError: The underlying error that caused the operation
@@ -57,7 +57,7 @@ public struct ServerError: Error {
         operationID: String,
         request: HTTPRequest,
         requestBody: HTTPBody?,
-        metadata: ServerRequestMetadata,
+        requestMetadata: ServerRequestMetadata,
         operationInput: (any Sendable)? = nil,
         operationOutput: (any Sendable)? = nil,
         underlyingError: (any Error)
@@ -65,7 +65,7 @@ public struct ServerError: Error {
         self.operationID = operationID
         self.request = request
         self.requestBody = requestBody
-        self.metadata = metadata
+        self.requestMetadata = requestMetadata
         self.operationInput = operationInput
         self.operationOutput = operationOutput
         self.underlyingError = underlyingError
@@ -83,7 +83,7 @@ public struct ServerError: Error {
 
 extension ServerError: CustomStringConvertible {
     public var description: String {
-        "Server error - operationID: \(operationID), request: \(request.prettyDescription), requestBody: \(requestBody?.prettyDescription ?? "<nil>"), metadata: \(metadata.description), operationInput: \(operationInput.map { String(describing: $0) } ?? "<nil>"), operationOutput: \(operationOutput.map { String(describing: $0) } ?? "<nil>"), underlying error: \(underlyingErrorDescription)"
+        "Server error - operationID: \(operationID), request: \(request.prettyDescription), requestBody: \(requestBody?.prettyDescription ?? "<nil>"), metadata: \(requestMetadata.description), operationInput: \(operationInput.map { String(describing: $0) } ?? "<nil>"), operationOutput: \(operationOutput.map { String(describing: $0) } ?? "<nil>"), underlying error: \(underlyingErrorDescription)"
     }
 }
 

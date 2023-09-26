@@ -167,17 +167,47 @@ public final class HTTPBody: @unchecked Sendable {
     /// A flag indicating whether an iterator has already been created.
     private var locked_iteratorCreated: Bool = false
 
-    /// Runs the provided closure in a scope where the `iteratorCreated` value
-    /// is locked and available both for reading and writing.
-    /// - Parameter work: A closure that is provided with a read-write reference
-    ///   to the `iteratorCreated` value.
-    /// - Returns: Whatever value the closure returned.
-    private func withIteratorCreated<R>(_ work: (inout Bool) throws -> R) rethrows -> R {
+    /// A flag indicating whether an iterator has already been created, only
+    /// used for testing.
+    internal var testing_iteratorCreated: Bool {
         lock.lock()
         defer {
             lock.unlock()
         }
-        return try work(&locked_iteratorCreated)
+        return locked_iteratorCreated
+    }
+
+    /// Verifying that creating another iterator is allowed based on
+    /// the values of `iterationBehavior` and `locked_iteratorCreated`.
+    /// - Throws: If another iterator is not allowed to be created.
+    private func checkIfCanCreateIterator() throws {
+        lock.lock()
+        defer {
+            lock.unlock()
+        }
+        guard iterationBehavior == .single else {
+            return
+        }
+        if locked_iteratorCreated {
+            throw TooManyIterationsError()
+        }
+    }
+
+    /// Tries to mark an iterator as created, verifying that it is allowed
+    /// based on the values of `iterationBehavior` and `locked_iteratorCreated`.
+    /// - Throws: If another iterator is not allowed to be created.
+    private func tryToMarkIteratorCreated() throws {
+        lock.lock()
+        defer {
+            locked_iteratorCreated = true
+            lock.unlock()
+        }
+        guard iterationBehavior == .single else {
+            return
+        }
+        if locked_iteratorCreated {
+            throw TooManyIterationsError()
+        }
     }
 
     /// Creates a new body.
@@ -378,16 +408,8 @@ extension HTTPBody: AsyncSequence {
     public typealias Element = ByteChunk
     public typealias AsyncIterator = Iterator
     public func makeAsyncIterator() -> AsyncIterator {
-        if iterationBehavior == .single {
-            withIteratorCreated { iteratorCreated in
-                guard !iteratorCreated else {
-                    fatalError(
-                        "OpenAPIRuntime.HTTPBody attempted to create a second iterator, but the underlying sequence is only safe to be iterated once."
-                    )
-                }
-                iteratorCreated = true
-            }
-        }
+        // The crash on error is intentional here.
+        try! tryToMarkIteratorCreated()
         return sequence.makeAsyncIterator()
     }
 }
@@ -433,18 +455,17 @@ extension HTTPBody {
     /// - Returns: A byte chunk containing all the accumulated bytes.
     fileprivate func collect(upTo maxBytes: Int) async throws -> ByteChunk {
 
-        // As a courtesy, check if another iteration is allowed, and throw
-        // an error instead of fatalError here if the user is trying to
-        // iterate a sequence for the second time, if it's only safe to be
-        // iterated once.
-        if iterationBehavior == .single {
-            try withIteratorCreated { iteratorCreated in
-                guard !iteratorCreated else {
-                    throw TooManyIterationsError()
-                }
+        // Check that we're allowed to iterate again.
+        try checkIfCanCreateIterator()
+
+        // If the length is known, verify it's within the limit.
+        if case .known(let knownBytes) = length {
+            guard knownBytes <= maxBytes else {
+                throw TooManyBytesError(maxBytes: maxBytes)
             }
         }
 
+        // Accumulate the byte chunks.
         var buffer = ByteChunk()
         for try await chunk in self {
             guard buffer.count + chunk.count <= maxBytes else {

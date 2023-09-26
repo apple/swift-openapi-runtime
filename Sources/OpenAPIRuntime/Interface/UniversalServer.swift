@@ -122,7 +122,7 @@ import struct Foundation.URLComponents
                 operationID: operationID,
                 request: request,
                 requestBody: requestBody,
-                metadata: metadata,
+                requestMetadata: metadata,
                 operationInput: input,
                 operationOutput: output,
                 underlyingError: error
