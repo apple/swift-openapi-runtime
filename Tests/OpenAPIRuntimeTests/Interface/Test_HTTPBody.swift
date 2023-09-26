@@ -102,6 +102,25 @@ final class Test_Body: Test_Runtime {
             )
         }
 
+        // An async throwing stream, unknown length.
+        do {
+            let body: HTTPBody = HTTPBody(
+                AsyncThrowingStream(
+                    String.self,
+                    { continuation in
+                        continuation.yield("hel")
+                        continuation.yield("lo")
+                        continuation.finish()
+                    }
+                ),
+                length: .unknown
+            )
+            try await _testConsume(
+                body,
+                expected: "hello"
+            )
+        }
+
         // An async stream.
         do {
             let body: HTTPBody = HTTPBody(
