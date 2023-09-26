@@ -39,11 +39,13 @@ extension HTTPRequest {
     ///   - path: The URL path of the resource.
     ///   - method: The HTTP method.
     ///   - headerFields: The HTTP header fields.
+    @_spi(Generated)
     public init(soar_path path: String, method: Method, headerFields: HTTPFields = .init()) {
         self.init(method: method, scheme: nil, authority: nil, path: path, headerFields: headerFields)
     }
 
     /// The query substring of the request's path.
+    @_spi(Generated)
     public var soar_query: Substring? {
         guard let path else {
             return nil
@@ -57,6 +59,7 @@ extension HTTPRequest {
     }
 
     /// The request path, without any query or fragment portions.
+    @_spi(Generated)
     public var soar_pathOnly: Substring {
         guard let path else {
             return ""[...]
@@ -72,8 +75,9 @@ extension HTTPResponse {
     /// - Parameters:
     ///   - statusCode: The status code of the response.AsString
     ///   - headerFields: The HTTP header fields.
-    public init(soar_statusCode statusCode: Int, headerFields: HTTPFields = .init()) {
-        self.init(status: .init(code: statusCode), headerFields: headerFields)
+    @_spi(Generated)
+    public init(soar_statusCode statusCode: Int) {
+        self.init(status: .init(code: statusCode))
     }
 }
 
