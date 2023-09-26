@@ -39,7 +39,8 @@ final class Test_Body: Test_Runtime {
 
         // A single substring.
         do {
-            let body: HTTPBody = HTTPBody("hello")
+            let substring: Substring = "hello"
+            let body: HTTPBody = HTTPBody(substring)
             try await _testConsume(
                 body,
                 expected: "hello"
