@@ -242,6 +242,31 @@ final class Test_Body: Test_Runtime {
 
         XCTAssertTrue(body.testing_iteratorCreated)
     }
+
+    func testIterationBehavior_multiple_byteLimit() async throws {
+        let body: HTTPBody = HTTPBody([104, 105])
+
+        do {
+            _ = try await String(collecting: body, upTo: 0)
+            XCTFail("Expected an error to be thrown")
+        } catch {}
+
+        do {
+            _ = try await String(collecting: body, upTo: 1)
+            XCTFail("Expected an error to be thrown")
+        } catch {}
+
+        do {
+            let string = try await String(collecting: body, upTo: 2)
+            XCTAssertEqual(string, "hi")
+        }
+
+        do {
+            let string = try await String(collecting: body, upTo: .max)
+            XCTAssertEqual(string, "hi")
+        }
+    }
+
 }
 
 extension Test_Body {
