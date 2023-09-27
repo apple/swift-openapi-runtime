@@ -13,6 +13,13 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 @_spi(Generated) import OpenAPIRuntime
+import HTTPTypes
+
+extension HTTPField.Name {
+    static var foo: Self {
+        Self("foo")!
+    }
+}
 
 final class Test_CommonConverterExtensions: Test_Runtime {
 
@@ -51,7 +58,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
 
     //    | common | set | header field | URI | both | setHeaderFieldAsURI |
     func test_setHeaderFieldAsURI_string() throws {
-        var headerFields: [HeaderField] = []
+        var headerFields: HTTPFields = [:]
         try converter.setHeaderFieldAsURI(
             in: &headerFields,
             name: "foo",
@@ -60,13 +67,13 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "foo", value: "bar")
+                .foo: "bar"
             ]
         )
     }
 
     func test_setHeaderFieldAsURI_arrayOfStrings() throws {
-        var headerFields: [HeaderField] = []
+        var headerFields: HTTPFields = [:]
         try converter.setHeaderFieldAsURI(
             in: &headerFields,
             name: "foo",
@@ -75,13 +82,13 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "foo", value: "bar,baz")
+                .foo: "bar,baz"
             ]
         )
     }
 
     func test_setHeaderFieldAsURI_date() throws {
-        var headerFields: [HeaderField] = []
+        var headerFields: HTTPFields = [:]
         try converter.setHeaderFieldAsURI(
             in: &headerFields,
             name: "foo",
@@ -90,13 +97,13 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "foo", value: testDateEscapedString)
+                .foo: testDateEscapedString
             ]
         )
     }
 
     func test_setHeaderFieldAsURI_arrayOfDates() throws {
-        var headerFields: [HeaderField] = []
+        var headerFields: HTTPFields = [:]
         try converter.setHeaderFieldAsURI(
             in: &headerFields,
             name: "foo",
@@ -105,13 +112,13 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "foo", value: "\(testDateEscapedString),\(testDateEscapedString)")
+                .foo: "\(testDateEscapedString),\(testDateEscapedString)"
             ]
         )
     }
 
     func test_setHeaderFieldAsURI_struct() throws {
-        var headerFields: [HeaderField] = []
+        var headerFields: HTTPFields = [:]
         try converter.setHeaderFieldAsURI(
             in: &headerFields,
             name: "foo",
@@ -120,14 +127,14 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "foo", value: "name,Fluffz")
+                .foo: "name,Fluffz"
             ]
         )
     }
 
     //    | common | set | header field | JSON | both | setHeaderFieldAsJSON |
     func test_setHeaderFieldAsJSON_codable() throws {
-        var headerFields: [HeaderField] = []
+        var headerFields: HTTPFields = [:]
         try converter.setHeaderFieldAsJSON(
             in: &headerFields,
             name: "foo",
@@ -136,13 +143,13 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "foo", value: testStructString)
+                .foo: testStructString
             ]
         )
     }
 
     func test_setHeaderFieldAsJSON_codable_string() throws {
-        var headerFields: [HeaderField] = []
+        var headerFields: HTTPFields = [:]
         try converter.setHeaderFieldAsJSON(
             in: &headerFields,
             name: "foo",
@@ -151,15 +158,15 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "foo", value: "\"hello\"")
+                .foo: "\"hello\""
             ]
         )
     }
 
     //    | common | get | header field | URI | optional | getOptionalHeaderFieldAsURI |
     func test_getOptionalHeaderFieldAsURI_string() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: "bar")
+        let headerFields: HTTPFields = [
+            .foo: "bar"
         ]
         let value: String? = try converter.getOptionalHeaderFieldAsURI(
             in: headerFields,
@@ -171,8 +178,8 @@ final class Test_CommonConverterExtensions: Test_Runtime {
 
     //    | common | get | header field | URI | required | getRequiredHeaderFieldAsURI |
     func test_getRequiredHeaderFieldAsURI_stringConvertible() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: "bar")
+        let headerFields: HTTPFields = [
+            .foo: "bar"
         ]
         let value: String = try converter.getRequiredHeaderFieldAsURI(
             in: headerFields,
@@ -182,22 +189,9 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         XCTAssertEqual(value, "bar")
     }
 
-    func test_getOptionalHeaderFieldAsURI_arrayOfStrings_splitHeaders() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: "bar"),
-            .init(name: "foo", value: "baz"),
-        ]
-        let value: [String]? = try converter.getOptionalHeaderFieldAsURI(
-            in: headerFields,
-            name: "foo",
-            as: [String].self
-        )
-        XCTAssertEqual(value, ["bar", "baz"])
-    }
-
     func test_getOptionalHeaderFieldAsURI_arrayOfStrings_singleHeader() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: "bar,baz")
+        let headerFields: HTTPFields = [
+            .foo: "bar,baz"
         ]
         let value: [String]? = try converter.getOptionalHeaderFieldAsURI(
             in: headerFields,
@@ -208,8 +202,8 @@ final class Test_CommonConverterExtensions: Test_Runtime {
     }
 
     func test_getOptionalHeaderFieldAsURI_date() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: testDateEscapedString)
+        let headerFields: HTTPFields = [
+            .foo: testDateEscapedString
         ]
         let value: Date? = try converter.getOptionalHeaderFieldAsURI(
             in: headerFields,
@@ -220,9 +214,8 @@ final class Test_CommonConverterExtensions: Test_Runtime {
     }
 
     func test_getRequiredHeaderFieldAsURI_arrayOfDates() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: testDateString),  // escaped
-            .init(name: "foo", value: testDateEscapedString),  // unescaped
+        let headerFields: HTTPFields = [
+            .foo: "\(testDateString),\(testDateEscapedString)"  // escaped and unescaped
         ]
         let value: [Date] = try converter.getRequiredHeaderFieldAsURI(
             in: headerFields,
@@ -233,8 +226,8 @@ final class Test_CommonConverterExtensions: Test_Runtime {
     }
 
     func test_getOptionalHeaderFieldAsURI_struct() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: "name,Sprinkles")
+        let headerFields: HTTPFields = [
+            .foo: "name,Sprinkles"
         ]
         let value: TestPet? = try converter.getOptionalHeaderFieldAsURI(
             in: headerFields,
@@ -246,8 +239,8 @@ final class Test_CommonConverterExtensions: Test_Runtime {
 
     //    | common | get | header field | JSON | optional | getOptionalHeaderFieldAsJSON |
     func test_getOptionalHeaderFieldAsJSON_codable() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: testStructString)
+        let headerFields: HTTPFields = [
+            .foo: testStructString
         ]
         let value: TestPet? = try converter.getOptionalHeaderFieldAsJSON(
             in: headerFields,
@@ -259,8 +252,8 @@ final class Test_CommonConverterExtensions: Test_Runtime {
 
     //    | common | get | header field | JSON | required | getRequiredHeaderFieldAsJSON |
     func test_getRequiredHeaderFieldAsJSON_codable() throws {
-        let headerFields: [HeaderField] = [
-            .init(name: "foo", value: testStructString)
+        let headerFields: HTTPFields = [
+            .foo: testStructString
         ]
         let value: TestPet = try converter.getRequiredHeaderFieldAsJSON(
             in: headerFields,

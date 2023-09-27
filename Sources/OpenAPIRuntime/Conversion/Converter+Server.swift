@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import Foundation
+import HTTPTypes
 
 extension Converter {
 
@@ -23,9 +24,9 @@ extension Converter {
     /// - Returns: The parsed content types, or the default content types if
     ///   the header was not provided.
     public func extractAcceptHeaderIfPresent<T: AcceptableProtocol>(
-        in headerFields: [HeaderField]
+        in headerFields: HTTPFields
     ) throws -> [AcceptHeaderContentType<T>] {
-        guard let rawValue = headerFields.firstValue(name: "accept") else {
+        guard let rawValue = headerFields[.accept] else {
             return AcceptHeaderContentType<T>.defaultValues
         }
         let rawComponents =
@@ -50,10 +51,12 @@ extension Converter {
     ///   Also supports wildcars, such as "application/\*" and "\*/\*".
     public func validateAcceptIfPresent(
         _ substring: String,
-        in headerFields: [HeaderField]
+        in headerFields: HTTPFields
     ) throws {
         // for example: text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8
-        let acceptHeader = headerFields.values(name: "accept").joined(separator: ", ")
+        guard let acceptHeader = headerFields[.accept] else {
+            return
+        }
 
         // Split with commas to get the individual values
         let acceptValues =
@@ -84,7 +87,7 @@ extension Converter {
 
     //    | server | get | request path | URI | required | getPathParameterAsURI |
     public func getPathParameterAsURI<T: Decodable>(
-        in pathParameters: [String: String],
+        in pathParameters: [String: Substring],
         name: String,
         as type: T.Type
     ) throws -> T {
@@ -113,7 +116,7 @@ extension Converter {
 
     //    | server | get | request query | URI | optional | getOptionalQueryItemAsURI |
     public func getOptionalQueryItemAsURI<T: Decodable>(
-        in query: String?,
+        in query: Substring?,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
@@ -146,7 +149,7 @@ extension Converter {
 
     //    | server | get | request query | URI | required | getRequiredQueryItemAsURI |
     public func getRequiredQueryItemAsURI<T: Decodable>(
-        in query: String?,
+        in query: Substring?,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
@@ -177,53 +180,13 @@ extension Converter {
         )
     }
 
-    //    | server | get | request body | string | optional | getOptionalRequestBodyAsString |
-    public func getOptionalRequestBodyAsString<T: Decodable, C>(
-        _ type: T.Type,
-        from data: Data?,
-        transforming transform: (T) -> C
-    ) throws -> C? {
-        try getOptionalRequestBody(
-            type,
-            from: data,
-            transforming: transform,
-            convert: { encodedData in
-                let decoder = StringDecoder(
-                    dateTranscoder: configuration.dateTranscoder
-                )
-                let encodedString = String(decoding: encodedData, as: UTF8.self)
-                return try decoder.decode(T.self, from: encodedString)
-            }
-        )
-    }
-
-    //    | server | get | request body | string | required | getRequiredRequestBodyAsString |
-    public func getRequiredRequestBodyAsString<T: Decodable, C>(
-        _ type: T.Type,
-        from data: Data?,
-        transforming transform: (T) -> C
-    ) throws -> C {
-        try getRequiredRequestBody(
-            type,
-            from: data,
-            transforming: transform,
-            convert: { encodedData in
-                let decoder = StringDecoder(
-                    dateTranscoder: configuration.dateTranscoder
-                )
-                let encodedString = String(decoding: encodedData, as: UTF8.self)
-                return try decoder.decode(T.self, from: encodedString)
-            }
-        )
-    }
-
     //    | server | get | request body | JSON | optional | getOptionalRequestBodyAsJSON |
     public func getOptionalRequestBodyAsJSON<T: Decodable, C>(
         _ type: T.Type,
-        from data: Data?,
+        from data: HTTPBody?,
         transforming transform: (T) -> C
-    ) throws -> C? {
-        try getOptionalRequestBody(
+    ) async throws -> C? {
+        try await getOptionalBufferingRequestBody(
             type,
             from: data,
             transforming: transform,
@@ -234,10 +197,10 @@ extension Converter {
     //    | server | get | request body | JSON | required | getRequiredRequestBodyAsJSON |
     public func getRequiredRequestBodyAsJSON<T: Decodable, C>(
         _ type: T.Type,
-        from data: Data?,
+        from data: HTTPBody?,
         transforming transform: (T) -> C
-    ) throws -> C {
-        try getRequiredRequestBody(
+    ) async throws -> C {
+        try await getRequiredBufferingRequestBody(
             type,
             from: data,
             transforming: transform,
@@ -247,39 +210,39 @@ extension Converter {
 
     //    | server | get | request body | binary | optional | getOptionalRequestBodyAsBinary |
     public func getOptionalRequestBodyAsBinary<C>(
-        _ type: Data.Type,
-        from data: Data?,
-        transforming transform: (Data) -> C
+        _ type: HTTPBody.Type,
+        from data: HTTPBody?,
+        transforming transform: (HTTPBody) -> C
     ) throws -> C? {
         try getOptionalRequestBody(
             type,
             from: data,
             transforming: transform,
-            convert: convertBinaryToData
+            convert: { $0 }
         )
     }
 
     //    | server | get | request body | binary | required | getRequiredRequestBodyAsBinary |
     public func getRequiredRequestBodyAsBinary<C>(
-        _ type: Data.Type,
-        from data: Data?,
-        transforming transform: (Data) -> C
+        _ type: HTTPBody.Type,
+        from data: HTTPBody?,
+        transforming transform: (HTTPBody) -> C
     ) throws -> C {
         try getRequiredRequestBody(
             type,
             from: data,
             transforming: transform,
-            convert: convertBinaryToData
+            convert: { $0 }
         )
     }
 
     //    | server | get | request body | URLEncodedForm | codable | optional | getOptionalRequestBodyAsURLEncodedForm |
     public func getOptionalRequestBodyAsURLEncodedForm<T: Decodable, C>(
         _ type: T.Type,
-        from data: Data?,
+        from data: HTTPBody?,
         transforming transform: (T) -> C
-    ) throws -> C? {
-        try getOptionalRequestBody(
+    ) async throws -> C? {
+        try await getOptionalBufferingRequestBody(
             type,
             from: data,
             transforming: transform,
@@ -290,10 +253,10 @@ extension Converter {
     //    | server | get | request body | URLEncodedForm | codable | required | getRequiredRequestBodyAsURLEncodedForm |
     public func getRequiredRequestBodyAsURLEncodedForm<T: Decodable, C>(
         _ type: T.Type,
-        from data: Data?,
+        from data: HTTPBody?,
         transforming transform: (T) -> C
-    ) throws -> C {
-        try getRequiredRequestBody(
+    ) async throws -> C {
+        try await getRequiredBufferingRequestBody(
             type,
             from: data,
             transforming: transform,
@@ -301,33 +264,12 @@ extension Converter {
         )
     }
 
-    //    | server | set | response body | string | required | setResponseBodyAsString |
-    public func setResponseBodyAsString<T: Encodable>(
-        _ value: T,
-        headerFields: inout [HeaderField],
-        contentType: String
-    ) throws -> Data {
-        try setResponseBody(
-            value,
-            headerFields: &headerFields,
-            contentType: contentType,
-            convert: { value in
-                let encoder = StringEncoder(
-                    dateTranscoder: configuration.dateTranscoder
-                )
-                let encodedString = try encoder.encode(value)
-                let encodedData = Data(encodedString.utf8)
-                return encodedData
-            }
-        )
-    }
-
     //    | server | set | response body | JSON | required | setResponseBodyAsJSON |
     public func setResponseBodyAsJSON<T: Encodable>(
         _ value: T,
-        headerFields: inout [HeaderField],
+        headerFields: inout HTTPFields,
         contentType: String
-    ) throws -> Data {
+    ) throws -> HTTPBody {
         try setResponseBody(
             value,
             headerFields: &headerFields,
@@ -338,15 +280,15 @@ extension Converter {
 
     //    | server | set | response body | binary | required | setResponseBodyAsBinary |
     public func setResponseBodyAsBinary(
-        _ value: Data,
-        headerFields: inout [HeaderField],
+        _ value: HTTPBody,
+        headerFields: inout HTTPFields,
         contentType: String
-    ) throws -> Data {
+    ) throws -> HTTPBody {
         try setResponseBody(
             value,
             headerFields: &headerFields,
             contentType: contentType,
-            convert: convertDataToBinary
+            convert: { $0 }
         )
     }
 }

@@ -12,6 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import HTTPTypes
+
 /// A type that registers and handles HTTP operations.
 ///
 /// Decouples the HTTP server framework from the generated server code.
@@ -108,14 +110,15 @@ public protocol ServerTransport {
     /// - Parameters:
     ///   - handler: A handler to be invoked when an HTTP request is received.
     ///   - method: An HTTP request method.
-    ///   - path: The URL path components, for example `["pets", ":petId"]`.
-    ///   - queryItemNames: The names of query items to be extracted
-    ///   from the request URL that matches the provided HTTP operation.
+    ///   - path: A URL template for the path, for example `/pets/{petId}`.
+    /// - Important: The `path` can have mixed components, such
+    ///   as `/file/{name}.zip`.
     func register(
-        _ handler: @Sendable @escaping (Request, ServerRequestMetadata) async throws -> Response,
-        method: HTTPMethod,
-        path: [RouterPathComponent],
-        queryItemNames: Set<String>
+        _ handler: @Sendable @escaping (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (
+            HTTPResponse, HTTPBody?
+        ),
+        method: HTTPRequest.Method,
+        path: String
     ) throws
 }
 
@@ -182,16 +185,17 @@ public protocol ServerTransport {
 ///     /// A middleware that prints request and response metadata.
 ///     struct PrintingMiddleware: ServerMiddleware {
 ///         func intercept(
-///             _ request: Request,
+///             _ request: HTTPRequest,
+///             body: HTTPBody?,
 ///             metadata: ServerRequestMetadata,
 ///             operationID: String,
-///             next: (Request, ServerRequestMetadata) async throws -> Response
-///         ) async throws -> Response {
-///             print(">>>: \(request.method.name) \(request.path)")
+///             next: (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?)
+///         ) async throws -> (HTTPResponse, HTTPBody?) {
+///             print(">>>: \(request.method.rawValue) \(request.soar_pathOnly)")
 ///             do {
-///                 let response = try await next(request, metadata)
-///                 print("<<<: \(response.statusCode)")
-///                 return response
+///                 let (response, responseBody) = try await next(request, body, metadata)
+///                 print("<<<: \(response.status.code)")
+///                 return (response, responseBody)
 ///             } catch {
 ///                 print("!!!: \(error.localizedDescription)")
 ///                 throw error
@@ -208,15 +212,17 @@ public protocol ServerMiddleware: Sendable {
     /// Intercepts an incoming HTTP request and an outgoing HTTP response.
     /// - Parameters:
     ///   - request: An HTTP request.
+    ///   - body: An HTTP request body.
     ///   - metadata: The metadata parsed from the HTTP request, including path
-    ///   and query parameters.
+    ///   parameters.
     ///   - operationID: The identifier of the OpenAPI operation.
     ///   - next: A closure that calls the next middleware, or the transport.
-    /// - Returns: An HTTP response.
+    /// - Returns: An HTTP response and its body.
     func intercept(
-        _ request: Request,
+        _ request: HTTPRequest,
+        body: HTTPBody?,
         metadata: ServerRequestMetadata,
         operationID: String,
-        next: @Sendable (Request, ServerRequestMetadata) async throws -> Response
-    ) async throws -> Response
+        next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?)
 }

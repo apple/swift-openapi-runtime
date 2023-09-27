@@ -29,7 +29,7 @@ struct URIParser: Sendable {
     ///   - configuration: The configuration instructing the parser how
     ///   to interpret the raw string.
     ///   - data: The string to parse.
-    init(configuration: URICoderConfiguration, data: String) {
+    init(configuration: URICoderConfiguration, data: Substring) {
         self.configuration = configuration
         self.data = data[...]
     }

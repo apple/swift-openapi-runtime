@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+import HTTPTypes
 #if canImport(Darwin)
 import Foundation
 #else
@@ -22,20 +23,19 @@ import Foundation
 /// invocation, and response deserialization.
 ///
 /// Do not call this directly, only invoked by generated code.
-@_spi(Generated)
-public struct UniversalClient: Sendable {
+@_spi(Generated) public struct UniversalClient: Sendable {
 
     /// The URL of the server, used as the base URL for requests made by the
     /// client.
     public let serverURL: URL
 
-    /// Converter for encoding/decoding data.
+    /// A converter for encoding/decoding data.
     public let converter: Converter
 
-    /// Type capable of sending HTTP requests and receiving HTTP responses.
+    /// A type capable of sending HTTP requests and receiving HTTP responses.
     public var transport: any ClientTransport
 
-    /// Middlewares to be invoked before `transport`.
+    /// The middlewares to be invoked before the transport.
     public var middlewares: [any ClientMiddleware]
 
     /// Internal initializer that takes an initialized `Converter`.
@@ -86,8 +86,8 @@ public struct UniversalClient: Sendable {
     public func send<OperationInput, OperationOutput>(
         input: OperationInput,
         forOperation operationID: String,
-        serializer: @Sendable (OperationInput) throws -> Request,
-        deserializer: @Sendable (Response) throws -> OperationOutput
+        serializer: @Sendable (OperationInput) throws -> (HTTPRequest, HTTPBody?),
+        deserializer: @Sendable (HTTPResponse, HTTPBody?) async throws -> OperationOutput
     ) async throws -> OperationOutput where OperationInput: Sendable, OperationOutput: Sendable {
         @Sendable
         func wrappingErrors<R>(
@@ -102,30 +102,36 @@ public struct UniversalClient: Sendable {
         }
         let baseURL = serverURL
         func makeError(
-            request: Request? = nil,
+            request: HTTPRequest? = nil,
+            requestBody: HTTPBody? = nil,
             baseURL: URL? = nil,
-            response: Response? = nil,
+            response: HTTPResponse? = nil,
+            responseBody: HTTPBody? = nil,
             error: any Error
         ) -> any Error {
             ClientError(
                 operationID: operationID,
                 operationInput: input,
                 request: request,
+                requestBody: requestBody,
                 baseURL: baseURL,
                 response: response,
+                responseBody: responseBody,
                 underlyingError: error
             )
         }
-        let request: Request = try await wrappingErrors {
+        let (request, requestBody): (HTTPRequest, HTTPBody?) = try await wrappingErrors {
             try serializer(input)
         } mapError: { error in
             makeError(error: error)
         }
-        let response: Response = try await wrappingErrors {
-            var next: @Sendable (Request, URL) async throws -> Response = { (_request, _url) in
+        let (response, responseBody): (HTTPResponse, HTTPBody?) = try await wrappingErrors {
+            var next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?) = {
+                (_request, _body, _url) in
                 try await wrappingErrors {
                     try await transport.send(
                         _request,
+                        body: _body,
                         baseURL: _url,
                         operationID: operationID
                     )
@@ -138,18 +144,19 @@ public struct UniversalClient: Sendable {
                 next = {
                     try await middleware.intercept(
                         $0,
-                        baseURL: $1,
+                        body: $1,
+                        baseURL: $2,
                         operationID: operationID,
                         next: tmp
                     )
                 }
             }
-            return try await next(request, baseURL)
+            return try await next(request, requestBody, baseURL)
         } mapError: { error in
             makeError(request: request, baseURL: baseURL, error: error)
         }
         return try await wrappingErrors {
-            try deserializer(response)
+            try await deserializer(response, responseBody)
         } mapError: { error in
             makeError(request: request, baseURL: baseURL, response: response, error: error)
         }

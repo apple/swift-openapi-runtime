@@ -14,6 +14,7 @@
 
 import XCTest
 @_spi(Generated) import OpenAPIRuntime
+import HTTPTypes
 
 class Test_Runtime: XCTestCase {
 
@@ -42,8 +43,8 @@ class Test_Runtime: XCTestCase {
         return components
     }
 
-    var testRequest: OpenAPIRuntime.Request {
-        .init(path: "/api", query: nil, method: .get)
+    var testRequest: HTTPRequest {
+        .init(soar_path: "/api", method: .get)
     }
 
     var testDate: Date {
@@ -171,38 +172,70 @@ struct AuthenticationMiddleware: ClientMiddleware {
     var token: String
 
     func intercept(
-        _ request: Request,
+        _ request: HTTPRequest,
+        body: HTTPBody?,
         baseURL: URL,
         operationID: String,
-        next: (Request, URL) async throws -> Response
-    ) async throws -> Response {
+        next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?) {
         var request = request
-        request.headerFields.append(
-            .init(
-                name: "Authorization",
-                value: "Bearer \(token)"
-            )
-        )
-        return try await next(request, baseURL)
+        request.headerFields[.authorization] = "Bearer \(token)"
+        return try await next(request, body, baseURL)
     }
 }
 
 /// Prints the request method + path and response status code.
 struct PrintingMiddleware: ClientMiddleware {
     func intercept(
-        _ request: Request,
+        _ request: HTTPRequest,
+        body: HTTPBody?,
         baseURL: URL,
         operationID: String,
-        next: (Request, URL) async throws -> Response
-    ) async throws -> Response {
-        print("Sending \(request.method.name) \(request.path)")
+        next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        print("Sending \(request.method) \(request.path ?? "<no path>")")
         do {
-            let response = try await next(request, baseURL)
-            print("Received: \(response.statusCode)")
-            return response
+            let (response, responseBody) = try await next(request, body, baseURL)
+            print("Received: \(response.status)")
+            return (response, responseBody)
         } catch {
             print("Failed with error: \(error.localizedDescription)")
             throw error
         }
     }
+}
+
+public func XCTAssertEqualStringifiedData<S: Sequence>(
+    _ expression1: @autoclosure () throws -> S?,
+    _ expression2: @autoclosure () throws -> String,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #filePath,
+    line: UInt = #line
+) where S.Element == UInt8 {
+    do {
+        guard let value1 = try expression1() else {
+            XCTFail("First value is nil", file: file, line: line)
+            return
+        }
+        let actualString = String(decoding: Array(value1), as: UTF8.self)
+        XCTAssertEqual(actualString, try expression2(), file: file, line: line)
+    } catch {
+        XCTFail(error.localizedDescription, file: file, line: line)
+    }
+}
+
+public func XCTAssertEqualStringifiedData(
+    _ expression1: @autoclosure () throws -> HTTPBody?,
+    _ expression2: @autoclosure () throws -> String,
+    _ message: @autoclosure () -> String = "",
+    file: StaticString = #filePath,
+    line: UInt = #line
+) async throws {
+    let data: Data
+    if let body = try expression1() {
+        data = try await Data(collecting: body, upTo: .max)
+    } else {
+        data = .init()
+    }
+    XCTAssertEqualStringifiedData(data, try expression2(), message(), file: file, line: line)
 }

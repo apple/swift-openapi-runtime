@@ -12,89 +12,18 @@
 //
 //===----------------------------------------------------------------------===//
 import Foundation
-
-extension HeaderField: CustomStringConvertible {
-    public var description: String {
-        "\(name): \(value)"
-    }
-}
-
-extension Request: CustomStringConvertible {
-    public var description: String {
-        "path: \(path), query: \(query ?? "<nil>"), method: \(method), header fields: \(headerFields.description), body (prefix): \(body?.prettyPrefix ?? "<nil>")"
-    }
-}
-
-extension Response: CustomStringConvertible {
-    public var description: String {
-        "status: \(statusCode), header fields: \(headerFields.description), body: \(body.prettyPrefix)"
-    }
-}
-
-extension ServerRequestMetadata: CustomStringConvertible {
-    public var description: String {
-        "path parameters: \(pathParameters.description), query parameters: \(queryParameters.description)"
-    }
-}
-
-extension Array where Element == HeaderField {
-
-    /// Adds a header for the provided name and value.
-    /// - Parameters:
-    ///   - name: Header name.
-    ///   - value: Header value. If nil, the header is not added.
-    mutating func add(name: String, value: String?) {
-        guard let value = value else {
-            return
-        }
-        append(.init(name: name, value: value))
-    }
-
-    /// Adds headers for the provided name and values.
-    /// - Parameters:
-    ///   - name: Header name.
-    ///   - value: Header values.
-    mutating func add(name: String, values: [String]?) {
-        guard let values = values else {
-            return
-        }
-        for value in values {
-            append(.init(name: name, value: value))
-        }
-    }
-
-    /// Removes all headers matching the provided (case-insensitive) name.
-    /// - Parameters:
-    ///   - name: Header name.
-    mutating func removeAll(named name: String) {
-        removeAll {
-            $0.name.caseInsensitiveCompare(name) == .orderedSame
-        }
-    }
-
-    /// Returns the first header value for the provided (case-insensitive) name.
-    /// - Parameter name: Header name.
-    /// - Returns: First value for the given name. Nil if one does not exist.
-    func firstValue(name: String) -> String? {
-        first { $0.name.caseInsensitiveCompare(name) == .orderedSame }?.value
-    }
-
-    /// Returns all header values for the given (case-insensitive) name.
-    /// - Parameter name: Header name.
-    /// - Returns: All values for the given name, might be empty if none are found.
-    func values(name: String) -> [String] {
-        filter { $0.name.caseInsensitiveCompare(name) == .orderedSame }.map { $0.value }
-    }
-}
+import HTTPTypes
 
 extension ParameterStyle {
 
     /// Returns the parameter style and explode parameter that should be used
     /// based on the provided inputs, taking defaults into considerations.
     /// - Parameters:
+    ///   - name: The name of the query item for which to resolve the inputs.
     ///   - style: The provided parameter style, if any.
     ///   - explode: The provided explode value, if any.
     /// - Throws: For an unsupported input combination.
+    /// - Returns: A tuple of the style and explode values.
     static func resolvedQueryStyleAndExplode(
         name: String,
         style: ParameterStyle?,
@@ -114,10 +43,44 @@ extension ParameterStyle {
     }
 }
 
+extension HTTPField.Name {
+
+    /// Creates a new name for the provided string.
+    /// - Parameter name: A field name.
+    /// - Throws: If the name isn't a valid field name.
+    init(validated name: String) throws {
+        guard let fieldName = Self(name) else {
+            throw RuntimeError.invalidHeaderFieldName(name)
+        }
+        self = fieldName
+    }
+}
+
+extension HTTPRequest {
+
+    /// Returns the path of the request, and throws an error if it's nil.
+    var requiredPath: Substring {
+        get throws {
+            guard let path else {
+                throw RuntimeError.pathUnset
+            }
+            return path[...]
+        }
+    }
+}
+
 extension Converter {
 
     // MARK: Converter helpers
 
+    /// Creates a new configuration for the URI coder.
+    /// - Parameters:
+    ///   - style: A parameter style.
+    ///   - explode: An explode value.
+    ///   - inBody: A Boolean value indicating whether the URI coder is being
+    ///     used for encoding a body URI. Specify `false` if used for a query,
+    ///     header, and so on.
+    /// - Returns: A new URI coder configuration.
     func uriCoderConfiguration(
         style: ParameterStyle,
         explode: Bool,
@@ -131,6 +94,16 @@ extension Converter {
         )
     }
 
+    /// Returns a URI encoded string for the provided inputs.
+    /// - Parameters:
+    ///   - style: A parameter style.
+    ///   - explode: An explode value.
+    ///   - inBody: A Boolean value indicating whether the URI coder is being
+    ///     used for encoding a body URI. Specify `false` if used for a query,
+    ///     header, and so on.
+    ///   - key: The key to be encoded with the value.
+    ///   - value: The value to be encoded.
+    /// - Returns: A URI encoded string.
     func convertToURI<T: Encodable>(
         style: ParameterStyle,
         explode: Bool,
@@ -149,12 +122,22 @@ extension Converter {
         return encodedString
     }
 
+    /// Returns a value decoded from a URI encoded string.
+    /// - Parameters:
+    ///   - style: A parameter style.
+    ///   - explode: An explode value.
+    ///   - inBody: A Boolean value indicating whether the URI coder is being
+    ///     used for encoding a body URI. Specify `false` if used for a query,
+    ///     header, and so on.
+    ///   - key: The key for which the value was decoded.
+    ///   - encodedValue: The encoded value to be decoded.
+    /// - Returns: A decoded value.
     func convertFromURI<T: Decodable>(
         style: ParameterStyle,
         explode: Bool,
         inBody: Bool,
         key: String,
-        encodedValue: String
+        encodedValue: Substring
     ) throws -> T {
         let decoder = URIDecoder(
             configuration: uriCoderConfiguration(
@@ -171,15 +154,32 @@ extension Converter {
         return value
     }
 
+    /// Returns a value decoded from a JSON body.
+    /// - Parameter body: The body containing the raw JSON bytes.
+    /// - Returns: A decoded value.
     func convertJSONToBodyCodable<T: Decodable>(
-        _ data: Data
-    ) throws -> T {
-        try decoder.decode(T.self, from: data)
+        _ body: HTTPBody
+    ) async throws -> T {
+        let data = try await Data(collecting: body, upTo: .max)
+        return try decoder.decode(T.self, from: data)
     }
 
+    /// Returns a JSON body for the provided encodable value.
+    /// - Parameter value: The value to encode as JSON.
+    /// - Returns: The raw JSON body.
+    func convertBodyCodableToJSON<T: Encodable>(
+        _ value: T
+    ) throws -> HTTPBody {
+        let data = try encoder.encode(value)
+        return HTTPBody(data)
+    }
+
+    /// Returns a value decoded from a URL-encoded form body.
+    /// - Parameter body: The body containing the raw URL-encoded form bytes.
+    /// - Returns: A decoded value.
     func convertURLEncodedFormToCodable<T: Decodable>(
-        _ data: Data
-    ) throws -> T {
+        _ body: HTTPBody
+    ) async throws -> T {
         let decoder = URIDecoder(
             configuration: .init(
                 style: .form,
@@ -188,19 +188,17 @@ extension Converter {
                 dateTranscoder: configuration.dateTranscoder
             )
         )
-        let uriString = String(decoding: data, as: UTF8.self)
+        let data = try await Data(collecting: body, upTo: .max)
+        let uriString = Substring(decoding: data, as: UTF8.self)
         return try decoder.decode(T.self, from: uriString)
     }
 
-    func convertBodyCodableToJSON<T: Encodable>(
-        _ value: T
-    ) throws -> Data {
-        try encoder.encode(value)
-    }
-
+    /// Returns a URL-encoded form string for the provided encodable value.
+    /// - Parameter value: The value to encode.
+    /// - Returns: The raw URL-encoded form body.
     func convertBodyCodableToURLFormData<T: Encodable>(
         _ value: T
-    ) throws -> Data {
+    ) throws -> HTTPBody {
         let encoder = URIEncoder(
             configuration: .init(
                 style: .form,
@@ -210,10 +208,12 @@ extension Converter {
             )
         )
         let encodedString = try encoder.encode(value, forKey: "")
-        let data = Data(encodedString.utf8)
-        return data
+        return HTTPBody(encodedString)
     }
 
+    /// Returns a JSON string for the provided encodable value.
+    /// - Parameter value: The value to encode.
+    /// - Returns: A JSON string.
     func convertHeaderFieldCodableToJSON<T: Encodable>(
         _ value: T
     ) throws -> String {
@@ -222,53 +222,26 @@ extension Converter {
         return stringValue
     }
 
+    /// Returns a value decoded from the provided JSON string.
+    /// - Parameter stringValue: A JSON string.
+    /// - Returns: The decoded value.
     func convertJSONToHeaderFieldCodable<T: Decodable>(
-        _ stringValue: String
+        _ stringValue: Substring
     ) throws -> T {
         let data = Data(stringValue.utf8)
         return try decoder.decode(T.self, from: data)
     }
 
-    func convertFromStringData<T: Decodable>(
-        _ data: Data
-    ) throws -> T {
-        let encodedString = String(decoding: data, as: UTF8.self)
-        let decoder = StringDecoder(
-            dateTranscoder: configuration.dateTranscoder
-        )
-        let value = try decoder.decode(
-            T.self,
-            from: encodedString
-        )
-        return value
-    }
-
-    func convertToStringData<T: Encodable>(
-        _ value: T
-    ) throws -> Data {
-        let encoder = StringEncoder(
-            dateTranscoder: configuration.dateTranscoder
-        )
-        let encodedString = try encoder.encode(value)
-        return Data(encodedString.utf8)
-    }
-
-    func convertBinaryToData(
-        _ binary: Data
-    ) throws -> Data {
-        binary
-    }
-
-    func convertDataToBinary(
-        _ data: Data
-    ) throws -> Data {
-        data
-    }
-
     // MARK: - Helpers for specific types of parameters
 
+    /// Sets the provided header field into the header field storage.
+    /// - Parameters:
+    ///   - headerFields: The header field storage.
+    ///   - name: The name of the header to set.
+    ///   - value: The value of the header to set.
+    ///   - convert: The closure used to serialize the header value to string.
     func setHeaderField<T>(
-        in headerFields: inout [HeaderField],
+        in headerFields: inout HTTPFields,
         name: String,
         value: T?,
         convert: (T) throws -> String
@@ -276,59 +249,86 @@ extension Converter {
         guard let value else {
             return
         }
-        headerFields.add(
-            name: name,
-            value: try convert(value)
+        try headerFields.append(
+            .init(
+                name: .init(validated: name),
+                value: convert(value)
+            )
         )
     }
 
+    /// Returns the value of the header with the provided name from the provided
+    /// header field storage.
+    /// - Parameters:
+    ///   - headerFields: The header field storage.
+    ///   - name: The name of the header field.
+    /// - Returns: The value of the header field, if found. Nil otherwise.
     func getHeaderFieldValuesString(
-        in headerFields: [HeaderField],
+        in headerFields: HTTPFields,
         name: String
-    ) -> String? {
-        let values = headerFields.values(name: name)
-        guard !values.isEmpty else {
-            return nil
-        }
-        return values.joined(separator: ",")
+    ) throws -> String? {
+        try headerFields[.init(validated: name)]
     }
 
+    /// Returns a decoded value for the header field with the provided name.
+    /// - Parameters:
+    ///   - headerFields: The header field storage.
+    ///   - name: The name of the header field.
+    ///   - type: The type to decode the value as.
+    ///   - convert: The closure to convert the value from string.
+    /// - Returns: The decoded value, if found. Nil otherwise.
     func getOptionalHeaderField<T>(
-        in headerFields: [HeaderField],
+        in headerFields: HTTPFields,
         name: String,
         as type: T.Type,
-        convert: (String) throws -> T
+        convert: (Substring) throws -> T
     ) throws -> T? {
         guard
-            let stringValue = getHeaderFieldValuesString(
+            let stringValue = try getHeaderFieldValuesString(
                 in: headerFields,
                 name: name
             )
         else {
             return nil
         }
-        return try convert(stringValue)
+        return try convert(stringValue[...])
     }
 
+    /// Returns a decoded value for the header field with the provided name.
+    /// - Parameters:
+    ///   - headerFields: The header field storage.
+    ///   - name: The name of the header field.
+    ///   - type: The type to decode the value as.
+    ///   - convert: The closure to convert the value from string.
+    /// - Returns: The decoded value.
     func getRequiredHeaderField<T>(
-        in headerFields: [HeaderField],
+        in headerFields: HTTPFields,
         name: String,
         as type: T.Type,
-        convert: (String) throws -> T
+        convert: (Substring) throws -> T
     ) throws -> T {
         guard
-            let stringValue = getHeaderFieldValuesString(
+            let stringValue = try getHeaderFieldValuesString(
                 in: headerFields,
                 name: name
             )
         else {
             throw RuntimeError.missingRequiredHeaderField(name)
         }
-        return try convert(stringValue)
+        return try convert(stringValue[...])
     }
 
+    /// Sets a query parameter with the provided inputs.
+    /// - Parameters:
+    ///   - request: The request to set the query parameter on.
+    ///   - style: A parameter style.
+    ///   - explode: An explode value.
+    ///   - name: The name of the query parameter.
+    ///   - value: The value of the query parameter. Must already be
+    ///     percent-escaped.
+    ///   - convert: The closure that converts the provided value to string.
     func setEscapedQueryItem<T>(
-        in request: inout Request,
+        in request: inout HTTPRequest,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
@@ -343,17 +343,50 @@ extension Converter {
             style: style,
             explode: explode
         )
-        let uriSnippet = try convert(value, resolvedStyle, resolvedExplode)
-        request.addEscapedQuerySnippet(uriSnippet)
+        let escapedUriSnippet = try convert(value, resolvedStyle, resolvedExplode)
+
+        let pathAndAll = try request.requiredPath
+
+        // https://datatracker.ietf.org/doc/html/rfc3986#section-3.4
+        // > The query component is indicated by the first question
+        // > mark ("?") character and terminated by a number sign ("#")
+        // > character or by the end of the URI.
+
+        let fragmentStart = pathAndAll.firstIndex(of: "#") ?? pathAndAll.endIndex
+        let fragment = pathAndAll[fragmentStart..<pathAndAll.endIndex]
+
+        let queryStart = pathAndAll.firstIndex(of: "?")
+
+        let pathEnd = queryStart ?? fragmentStart
+        let path = pathAndAll[pathAndAll.startIndex..<pathEnd]
+
+        guard let queryStart else {
+            // No existing query substring, add the question mark.
+            request.path = path.appending("?\(escapedUriSnippet)\(fragment)")
+            return
+        }
+
+        let query = pathAndAll[pathAndAll.index(after: queryStart)..<fragmentStart]
+        request.path = path.appending("?\(query)&\(escapedUriSnippet)\(fragment)")
     }
 
+    /// Returns the decoded value for the provided name of a query parameter.
+    /// - Parameters:
+    ///   - query: The full encoded query string from which to extract the
+    ///     parameter.
+    ///   - style: A parameter style.
+    ///   - explode: An explode value.
+    ///   - name: The name of the query parameter.
+    ///   - type: The type to decode the string value as.
+    ///   - convert: The closure that decodes the value from string.
+    /// - Returns: A decoded value, if found. Nil otherwise.
     func getOptionalQueryItem<T>(
-        in query: String?,
+        in query: Substring?,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
         as type: T.Type,
-        convert: (String, ParameterStyle, Bool) throws -> T?
+        convert: (Substring, ParameterStyle, Bool) throws -> T?
     ) throws -> T? {
         guard let query, !query.isEmpty else {
             return nil
@@ -366,13 +399,23 @@ extension Converter {
         return try convert(query, resolvedStyle, resolvedExplode)
     }
 
+    /// Returns the decoded value for the provided name of a query parameter.
+    /// - Parameters:
+    ///   - query: The full encoded query string from which to extract the
+    ///     parameter.
+    ///   - style: A parameter style.
+    ///   - explode: An explode value.
+    ///   - name: The name of the query parameter.
+    ///   - type: The type to decode the string value as.
+    ///   - convert: The closure that decodes the value from string.
+    /// - Returns: A decoded value.
     func getRequiredQueryItem<T>(
-        in query: String?,
+        in query: Substring?,
         style: ParameterStyle?,
         explode: Bool?,
         name: String,
         as type: T.Type,
-        convert: (String, ParameterStyle, Bool) throws -> T
+        convert: (Substring, ParameterStyle, Bool) throws -> T
     ) throws -> T {
         guard
             let value = try getOptionalQueryItem(
@@ -389,22 +432,38 @@ extension Converter {
         return value
     }
 
+    /// Sets the provided request body and the appropriate content type.
+    /// - Parameters:
+    ///   - value: The value to encode into the body.
+    ///   - headerFields: The header fields storage where to save the content
+    ///     type.
+    ///   - contentType: The content type value.
+    ///   - convert: The closure that encodes the value into a raw body.
+    /// - Returns: The body.
     func setRequiredRequestBody<T>(
         _ value: T,
-        headerFields: inout [HeaderField],
+        headerFields: inout HTTPFields,
         contentType: String,
-        convert: (T) throws -> Data
-    ) throws -> Data {
-        headerFields.add(name: "content-type", value: contentType)
+        convert: (T) throws -> HTTPBody
+    ) throws -> HTTPBody {
+        headerFields[.contentType] = contentType
         return try convert(value)
     }
 
+    /// Sets the provided request body and the appropriate content type.
+    /// - Parameters:
+    ///   - value: The value to encode into the body.
+    ///   - headerFields: The header fields storage where to save the content
+    ///     type.
+    ///   - contentType: The content type value.
+    ///   - convert: The closure that encodes the value into a raw body.
+    /// - Returns: The body, if value was not nil.
     func setOptionalRequestBody<T>(
         _ value: T?,
-        headerFields: inout [HeaderField],
+        headerFields: inout HTTPFields,
         contentType: String,
-        convert: (T) throws -> Data
-    ) throws -> Data? {
+        convert: (T) throws -> HTTPBody
+    ) throws -> HTTPBody? {
         guard let value else {
             return nil
         }
@@ -416,29 +475,43 @@ extension Converter {
         )
     }
 
-    func getOptionalRequestBody<T, C>(
+    /// Returns a value decoded from the provided body.
+    /// - Parameters:
+    ///   - type: The type to decode.
+    ///   - body: The body to decode the value from.
+    ///   - transform: The closure that wraps the body in its generated type.
+    ///   - convert: The closure that decodes the body.
+    /// - Returns: A decoded wrapped type, if body is not nil.
+    func getOptionalBufferingRequestBody<T, C>(
         _ type: T.Type,
-        from data: Data?,
+        from body: HTTPBody?,
         transforming transform: (T) -> C,
-        convert: (Data) throws -> T
-    ) throws -> C? {
-        guard let data else {
+        convert: (HTTPBody) async throws -> T
+    ) async throws -> C? {
+        guard let body else {
             return nil
         }
-        let decoded = try convert(data)
+        let decoded = try await convert(body)
         return transform(decoded)
     }
 
-    func getRequiredRequestBody<T, C>(
+    /// Returns a value decoded from the provided body.
+    /// - Parameters:
+    ///   - type: The type to decode.
+    ///   - body: The body to decode the value from.
+    ///   - transform: The closure that wraps the body in its generated type.
+    ///   - convert: The closure that decodes the body.
+    /// - Returns: A decoded wrapped type.
+    func getRequiredBufferingRequestBody<T, C>(
         _ type: T.Type,
-        from data: Data?,
+        from body: HTTPBody?,
         transforming transform: (T) -> C,
-        convert: (Data) throws -> T
-    ) throws -> C {
+        convert: (HTTPBody) async throws -> T
+    ) async throws -> C {
         guard
-            let body = try getOptionalRequestBody(
+            let body = try await getOptionalBufferingRequestBody(
                 type,
-                from: data,
+                from: body,
                 transforming: transform,
                 convert: convert
             )
@@ -448,32 +521,118 @@ extension Converter {
         return body
     }
 
-    func getResponseBody<T, C>(
+    /// Returns a value decoded from the provided body.
+    /// - Parameters:
+    ///   - type: The type to decode.
+    ///   - body: The body to decode the value from.
+    ///   - transform: The closure that wraps the body in its generated type.
+    ///   - convert: The closure that decodes the body.
+    /// - Returns: A decoded wrapped type, if body is not nil.
+    func getOptionalRequestBody<T, C>(
         _ type: T.Type,
-        from data: Data,
+        from body: HTTPBody?,
         transforming transform: (T) -> C,
-        convert: (Data) throws -> T
+        convert: (HTTPBody) throws -> T
+    ) throws -> C? {
+        guard let body else {
+            return nil
+        }
+        let decoded = try convert(body)
+        return transform(decoded)
+    }
+
+    /// Returns a value decoded from the provided body.
+    /// - Parameters:
+    ///   - type: The type to decode.
+    ///   - body: The body to decode the value from.
+    ///   - transform: The closure that wraps the body in its generated type.
+    ///   - convert: The closure that decodes the body.
+    /// - Returns: A decoded wrapped type.
+    func getRequiredRequestBody<T, C>(
+        _ type: T.Type,
+        from body: HTTPBody?,
+        transforming transform: (T) -> C,
+        convert: (HTTPBody) throws -> T
     ) throws -> C {
-        let parsedValue = try convert(data)
+        guard
+            let body = try getOptionalRequestBody(
+                type,
+                from: body,
+                transforming: transform,
+                convert: convert
+            )
+        else {
+            throw RuntimeError.missingRequiredRequestBody
+        }
+        return body
+    }
+
+    /// Returns a value decoded from the provided body.
+    /// - Parameters:
+    ///   - type: The type to decode.
+    ///   - body: The body to decode the value from.
+    ///   - transform: The closure that wraps the body in its generated type.
+    ///   - convert: The closure that decodes the body.
+    /// - Returns: A decoded wrapped type.
+    func getBufferingResponseBody<T, C>(
+        _ type: T.Type,
+        from body: HTTPBody,
+        transforming transform: (T) -> C,
+        convert: (HTTPBody) async throws -> T
+    ) async throws -> C {
+        let parsedValue = try await convert(body)
         let transformedValue = transform(parsedValue)
         return transformedValue
     }
 
+    /// Returns a value decoded from the provided body.
+    /// - Parameters:
+    ///   - type: The type to decode.
+    ///   - body: The body to decode the value from.
+    ///   - transform: The closure that wraps the body in its generated type.
+    ///   - convert: The closure that decodes the body.
+    /// - Returns: A decoded wrapped type.
+    func getResponseBody<T, C>(
+        _ type: T.Type,
+        from body: HTTPBody,
+        transforming transform: (T) -> C,
+        convert: (HTTPBody) throws -> T
+    ) throws -> C {
+        let parsedValue = try convert(body)
+        let transformedValue = transform(parsedValue)
+        return transformedValue
+    }
+
+    /// Sets the provided request body and the appropriate content type.
+    /// - Parameters:
+    ///   - value: The value to encode into the body.
+    ///   - headerFields: The header fields storage where to save the content
+    ///     type.
+    ///   - contentType: The content type value.
+    ///   - convert: The closure that encodes the value into a raw body.
+    /// - Returns: The body, if value was not nil.
     func setResponseBody<T>(
         _ value: T,
-        headerFields: inout [HeaderField],
+        headerFields: inout HTTPFields,
         contentType: String,
-        convert: (T) throws -> Data
-    ) throws -> Data {
-        headerFields.add(name: "content-type", value: contentType)
+        convert: (T) throws -> HTTPBody
+    ) throws -> HTTPBody {
+        headerFields[.contentType] = contentType
         return try convert(value)
     }
 
+    /// Returns a decoded value for the provided path parameter.
+    /// - Parameters:
+    ///   - pathParameters: The storage of path parameters.
+    ///   - name: The name of the path parameter.
+    ///   - type: The type to decode the value as.
+    ///   - convert: The closure that decodes the value from string.
+    /// - Returns: A decoded value.
     func getRequiredRequestPath<T>(
-        in pathParameters: [String: String],
+        in pathParameters: [String: Substring],
         name: String,
         as type: T.Type,
-        convert: (String) throws -> T
+        convert: (Substring) throws -> T
     ) throws -> T {
         guard let untypedValue = pathParameters[name] else {
             throw RuntimeError.missingRequiredPathParameter(name)

@@ -22,10 +22,7 @@ final class Test_UniversalServer: Test_Runtime {
         let server = UniversalServer(
             handler: MockHandler()
         )
-        let components: [RouterPathComponent] = [
-            .constant("foo"),
-            .parameter("bar"),
-        ]
+        let components = "/foo/{bar}"
         let prefixed = try server.apiPathComponentsWithServerPrefix(components)
         // When no server path prefix, components stay the same
         XCTAssertEqual(prefixed, components)
@@ -36,16 +33,9 @@ final class Test_UniversalServer: Test_Runtime {
             serverURL: try serverURL,
             handler: MockHandler()
         )
-        let components: [RouterPathComponent] = [
-            .constant("foo"),
-            .parameter("bar"),
-        ]
+        let components = "/foo/{bar}"
         let prefixed = try server.apiPathComponentsWithServerPrefix(components)
-        let expected: [RouterPathComponent] = [
-            .constant("api"),
-            .constant("foo"),
-            .parameter("bar"),
-        ]
+        let expected = "/api/foo/{bar}"
         XCTAssertEqual(prefixed, expected)
     }
 }

@@ -13,11 +13,12 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 @_spi(Generated) import OpenAPIRuntime
+import HTTPTypes
 
 final class Test_ClientConverterExtensions: Test_Runtime {
 
     func test_setAcceptHeader() throws {
-        var headerFields: [HeaderField] = []
+        var headerFields: HTTPFields = [:]
         converter.setAcceptHeader(
             in: &headerFields,
             contentTypes: [.init(contentType: TestAcceptable.json, quality: 0.8)]
@@ -25,7 +26,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "accept", value: "application/json; q=0.800")
+                .accept: "application/json; q=0.800"
             ]
         )
     }
@@ -55,7 +56,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             name: "search",
             value: "foo"
         )
-        XCTAssertEqual(request.query, "search=foo")
+        XCTAssertEqual(request.soar_query, "search=foo")
     }
 
     func test_setQueryItemAsURI_stringConvertible_needsEncoding() throws {
@@ -67,7 +68,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             name: "search",
             value: "h%llo"
         )
-        XCTAssertEqual(request.query, "search=h%25llo")
+        XCTAssertEqual(request.soar_query, "search=h%25llo")
     }
 
     func test_setQueryItemAsURI_arrayOfStrings() throws {
@@ -79,7 +80,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             name: "search",
             value: ["foo", "bar"]
         )
-        XCTAssertEqual(request.query, "search=foo&search=bar")
+        XCTAssertEqual(request.soar_query, "search=foo&search=bar")
     }
 
     func test_setQueryItemAsURI_arrayOfStrings_unexploded() throws {
@@ -91,7 +92,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             name: "search",
             value: ["foo", "bar"]
         )
-        XCTAssertEqual(request.query, "search=foo,bar")
+        XCTAssertEqual(request.soar_query, "search=foo,bar")
     }
 
     func test_setQueryItemAsURI_date() throws {
@@ -103,7 +104,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             name: "search",
             value: testDate
         )
-        XCTAssertEqual(request.query, "search=2023-01-18T10%3A04%3A11Z")
+        XCTAssertEqual(request.soar_query, "search=2023-01-18T10%3A04%3A11Z")
     }
 
     func test_setQueryItemAsURI_arrayOfDates() throws {
@@ -115,128 +116,62 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             name: "search",
             value: [testDate, testDate]
         )
-        XCTAssertEqual(request.query, "search=2023-01-18T10%3A04%3A11Z&search=2023-01-18T10%3A04%3A11Z")
-    }
-
-    //    | client | set | request body | string | optional | setOptionalRequestBodyAsString |
-    func test_setOptionalRequestBodyAsString_string() throws {
-        var headerFields: [HeaderField] = []
-        let body = try converter.setOptionalRequestBodyAsString(
-            testString,
-            headerFields: &headerFields,
-            contentType: "text/plain"
-        )
-        XCTAssertEqual(body, testStringData)
-        XCTAssertEqual(
-            headerFields,
-            [
-                .init(name: "content-type", value: "text/plain")
-            ]
-        )
-    }
-
-    //    | client | set | request body | string | required | setRequiredRequestBodyAsString |
-    func test_setRequiredRequestBodyAsString_string() throws {
-        var headerFields: [HeaderField] = []
-        let body = try converter.setRequiredRequestBodyAsString(
-            testString,
-            headerFields: &headerFields,
-            contentType: "text/plain"
-        )
-        XCTAssertEqual(body, testStringData)
-        XCTAssertEqual(
-            headerFields,
-            [
-                .init(name: "content-type", value: "text/plain")
-            ]
-        )
-    }
-
-    func test_setOptionalRequestBodyAsString_date() throws {
-        var headerFields: [HeaderField] = []
-        let body = try converter.setOptionalRequestBodyAsString(
-            testDate,
-            headerFields: &headerFields,
-            contentType: "text/plain"
-        )
-        XCTAssertEqual(body, testDateStringData)
-        XCTAssertEqual(
-            headerFields,
-            [
-                .init(name: "content-type", value: "text/plain")
-            ]
-        )
-    }
-
-    func test_setRequiredRequestBodyAsString_date() throws {
-        var headerFields: [HeaderField] = []
-        let body = try converter.setRequiredRequestBodyAsString(
-            testDate,
-            headerFields: &headerFields,
-            contentType: "text/plain"
-        )
-        XCTAssertEqual(body, testDateStringData)
-        XCTAssertEqual(
-            headerFields,
-            [
-                .init(name: "content-type", value: "text/plain")
-            ]
-        )
+        XCTAssertEqual(request.soar_query, "search=2023-01-18T10%3A04%3A11Z&search=2023-01-18T10%3A04%3A11Z")
     }
 
     //    | client | set | request body | JSON | optional | setOptionalRequestBodyAsJSON |
-    func test_setOptionalRequestBodyAsJSON_codable() throws {
-        var headerFields: [HeaderField] = []
+    func test_setOptionalRequestBodyAsJSON_codable() async throws {
+        var headerFields: HTTPFields = [:]
         let body = try converter.setOptionalRequestBodyAsJSON(
             testStruct,
             headerFields: &headerFields,
             contentType: "application/json"
         )
-        XCTAssertEqual(body, testStructPrettyData)
+        try await XCTAssertEqualStringifiedData(body, testStructPrettyString)
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "content-type", value: "application/json")
+                .contentType: "application/json"
             ]
         )
     }
 
-    func test_setOptionalRequestBodyAsJSON_codable_string() throws {
-        var headerFields: [HeaderField] = []
+    func test_setOptionalRequestBodyAsJSON_codable_string() async throws {
+        var headerFields: HTTPFields = [:]
         let body = try converter.setOptionalRequestBodyAsJSON(
             testString,
             headerFields: &headerFields,
             contentType: "application/json"
         )
-        XCTAssertEqual(body, testQuotedStringData)
+        try await XCTAssertEqualStringifiedData(body, testQuotedString)
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "content-type", value: "application/json")
+                .contentType: "application/json"
             ]
         )
     }
 
     //    | client | set | request body | JSON | required | setRequiredRequestBodyAsJSON |
-    func test_setRequiredRequestBodyAsJSON_codable() throws {
-        var headerFields: [HeaderField] = []
+    func test_setRequiredRequestBodyAsJSON_codable() async throws {
+        var headerFields: HTTPFields = [:]
         let body = try converter.setRequiredRequestBodyAsJSON(
             testStruct,
             headerFields: &headerFields,
             contentType: "application/json"
         )
-        XCTAssertEqual(body, testStructPrettyData)
+        try await XCTAssertEqualStringifiedData(body, testStructPrettyString)
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "content-type", value: "application/json")
+                .contentType: "application/json"
             ]
         )
     }
 
     //    | client | set | request body | urlEncodedForm | codable | optional | setRequiredRequestBodyAsURLEncodedForm |
-    func test_setOptionalRequestBodyAsURLEncodedForm_codable() throws {
-        var headerFields: [HeaderField] = []
+    func test_setOptionalRequestBodyAsURLEncodedForm_codable() async throws {
+        var headerFields: HTTPFields = [:]
         let body = try converter.setOptionalRequestBodyAsURLEncodedForm(
             testStructDetailed,
             headerFields: &headerFields,
@@ -248,104 +183,84 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             return
         }
 
-        XCTAssertEqualStringifiedData(body, testStructURLFormString)
+        try await XCTAssertEqualStringifiedData(body, testStructURLFormString)
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "content-type", value: "application/x-www-form-urlencoded")
+                .contentType: "application/x-www-form-urlencoded"
             ]
         )
     }
 
     //    | client | set | request body | urlEncodedForm | codable | required | setRequiredRequestBodyAsURLEncodedForm |
-    func test_setRequiredRequestBodyAsURLEncodedForm_codable() throws {
-        var headerFields: [HeaderField] = []
+    func test_setRequiredRequestBodyAsURLEncodedForm_codable() async throws {
+        var headerFields: HTTPFields = [:]
         let body = try converter.setRequiredRequestBodyAsURLEncodedForm(
             testStructDetailed,
             headerFields: &headerFields,
             contentType: "application/x-www-form-urlencoded"
         )
-        XCTAssertEqualStringifiedData(body, testStructURLFormString)
+        try await XCTAssertEqualStringifiedData(body, testStructURLFormString)
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "content-type", value: "application/x-www-form-urlencoded")
+                .contentType: "application/x-www-form-urlencoded"
             ]
         )
     }
 
     //    | client | set | request body | binary | optional | setOptionalRequestBodyAsBinary |
-    func test_setOptionalRequestBodyAsBinary_data() throws {
-        var headerFields: [HeaderField] = []
+    func test_setOptionalRequestBodyAsBinary_data() async throws {
+        var headerFields: HTTPFields = [:]
         let body = try converter.setOptionalRequestBodyAsBinary(
-            testStringData,
+            .init(testStringData),
             headerFields: &headerFields,
             contentType: "application/octet-stream"
         )
-        XCTAssertEqual(body, testStringData)
+        try await XCTAssertEqualStringifiedData(body, testString)
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "content-type", value: "application/octet-stream")
+                .contentType: "application/octet-stream"
             ]
         )
     }
 
     //    | client | set | request body | binary | required | setRequiredRequestBodyAsBinary |
-    func test_setRequiredRequestBodyAsBinary_data() throws {
-        var headerFields: [HeaderField] = []
+    func test_setRequiredRequestBodyAsBinary_data() async throws {
+        var headerFields: HTTPFields = [:]
         let body = try converter.setRequiredRequestBodyAsBinary(
-            testStringData,
+            .init(testString),
             headerFields: &headerFields,
             contentType: "application/octet-stream"
         )
-        XCTAssertEqual(body, testStringData)
+        try await XCTAssertEqualStringifiedData(body, testString)
         XCTAssertEqual(
             headerFields,
             [
-                .init(name: "content-type", value: "application/octet-stream")
+                .contentType: "application/octet-stream"
             ]
         )
     }
 
-    //    | client | get | response body | string | required | getResponseBodyAsString |
-    func test_getResponseBodyAsString_stringConvertible() throws {
-        let value: String = try converter.getResponseBodyAsString(
-            String.self,
-            from: testStringData,
-            transforming: { $0 }
-        )
-        XCTAssertEqual(value, testString)
-    }
-
-    //    | client | get | response body | string | required | getResponseBodyAsString |
-    func test_getResponseBodyAsString_date() throws {
-        let value: Date = try converter.getResponseBodyAsString(
-            Date.self,
-            from: testDateStringData,
-            transforming: { $0 }
-        )
-        XCTAssertEqual(value, testDate)
-    }
-
     //    | client | get | response body | JSON | required | getResponseBodyAsJSON |
-    func test_getResponseBodyAsJSON_codable() throws {
-        let value: TestPet = try converter.getResponseBodyAsJSON(
+    func test_getResponseBodyAsJSON_codable() async throws {
+        let value: TestPet = try await converter.getResponseBodyAsJSON(
             TestPet.self,
-            from: testStructData,
+            from: .init(testStructData),
             transforming: { $0 }
         )
         XCTAssertEqual(value, testStruct)
     }
 
     //    | client | get | response body | binary | required | getResponseBodyAsBinary |
-    func test_getResponseBodyAsBinary_data() throws {
-        let value: Data = try converter.getResponseBodyAsBinary(
-            Data.self,
-            from: testStringData,
+    func test_getResponseBodyAsBinary_data() async throws {
+        let value: HTTPBody = try converter.getResponseBodyAsBinary(
+            HTTPBody.self,
+            from: .init(testString),
             transforming: { $0 }
         )
-        XCTAssertEqual(value, testStringData)
+        try await XCTAssertEqualStringifiedData(value, testString)
     }
 }
 

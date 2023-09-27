@@ -11,7 +11,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import Foundation
+
+import HTTPTypes
+#if canImport(Darwin)
+import struct Foundation.URL
+#else
+@preconcurrency import struct Foundation.URL
+#endif
 
 /// A type that performs HTTP operations.
 ///
@@ -71,10 +77,10 @@ import Foundation
 /// The generated operation method takes an `Input` type unique to
 /// the operation, and returns an `Output` type unique to the operation.
 ///
-/// > Note: You use the `Input` type to provide parameters such as HTTP request headers,
-/// query items, path parameters, and request bodies; and inspect the `Output`
-/// type to handle the received HTTP response status code, response header and
-/// body.
+/// > Note: You use the `Input` type to provide parameters such as HTTP request
+/// headers, query items, path parameters, and request bodies; and inspect
+/// the `Output` type to handle the received HTTP response status code, response
+/// header and body.
 ///
 /// ### Implement a custom client transport
 ///
@@ -90,11 +96,15 @@ import Foundation
 ///     struct TestTransport: ClientTransport {
 ///         var isHealthy: Bool = true
 ///         func send(
-///             _ request: Request,
+///             _ request: HTTPRequest,
+///             body: HTTPBody?,
 ///             baseURL: URL,
 ///             operationID: String
-///         ) async throws -> Response {
-///            Response(statusCode: isHealthy ? 200 : 500)
+///         ) async throws -> (HTTPResponse, HTTPBody?) {
+///             (
+///                 HTTPResponse(status: isHealthy ? .ok : .internalServerError),
+///                 nil
+///             )
 ///         }
 ///     }
 ///
@@ -122,14 +132,16 @@ public protocol ClientTransport: Sendable {
     /// HTTP response.
     /// - Parameters:
     ///   - request: An HTTP request.
+    ///   - body: An HTTP request body.
     ///   - baseURL: A server base URL.
     ///   - operationID: The identifier of the OpenAPI operation.
-    /// - Returns: An HTTP response.
+    /// - Returns: An HTTP response and its body.
     func send(
-        _ request: Request,
+        _ request: HTTPRequest,
+        body: HTTPBody?,
         baseURL: URL,
         operationID: String
-    ) async throws -> Response
+    ) async throws -> (HTTPResponse, HTTPBody?)
 }
 
 /// A type that intercepts HTTP requests and responses.
@@ -200,16 +212,15 @@ public protocol ClientTransport: Sendable {
 ///         var bearerToken: String
 ///
 ///         func intercept(
-///             _ request: Request,
+///             _ request: HTTPRequest,
+///             body: HTTPBody?,
 ///             baseURL: URL,
 ///             operationID: String,
-///             next: (Request, URL) async throws -> Response
-///         ) async throws -> Response {
+///             next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
+///         ) async throws -> (HTTPResponse, HTTPBody?) {
 ///             var request = request
-///             request.headerFields.append(.init(
-///                 name: "Authorization", value: "Bearer \(bearerToken)"
-///             ))
-///             return try await next(request, baseURL)
+///             request.headerFields[.authorization] = "Bearer \(bearerToken)"
+///             return try await next(request, body, baseURL)
 ///         }
 ///     }
 ///
@@ -225,14 +236,16 @@ public protocol ClientMiddleware: Sendable {
     /// Intercepts an outgoing HTTP request and an incoming HTTP response.
     /// - Parameters:
     ///   - request: An HTTP request.
-    ///   - baseURL: baseURL: A server base URL.
+    ///   - body: An HTTP request body.
+    ///   - baseURL: A server base URL.
     ///   - operationID: The identifier of the OpenAPI operation.
     ///   - next: A closure that calls the next middleware, or the transport.
-    /// - Returns: An HTTP response.
+    /// - Returns: An HTTP response and its body.
     func intercept(
-        _ request: Request,
+        _ request: HTTPRequest,
+        body: HTTPBody?,
         baseURL: URL,
         operationID: String,
-        next: @Sendable (Request, URL) async throws -> Response
-    ) async throws -> Response
+        next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?)
 }
