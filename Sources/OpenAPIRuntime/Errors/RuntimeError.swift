@@ -102,8 +102,8 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
             return "User handler failed with error: \(underlyingError.localizedDescription)"
         case .unexpectedResponseStatus(let expectedStatus, let response):
             return "Unexpected response, expected status code: \(expectedStatus), response: \(response)"
-        case .unexpectedResponseBody(let expectedContentType, let response):
-            return "Unexpected response body, expected content type: \(expectedContentType), response: \(response)"
+        case .unexpectedResponseBody(let expectedContentType, let body):
+            return "Unexpected response body, expected content type: \(expectedContentType), body: \(body)"
         }
     }
 }
