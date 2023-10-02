@@ -56,8 +56,8 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     case handlerFailed(any Error)
 
     // Unexpected response (thrown by shorthand APIs)
-    case unexpectedResponseStatus(expectedStatus: String, response: Any)
-    case unexpectedResponseBody(expectedContent: String, body: Any)
+    case unexpectedResponseStatus(expectedStatus: String, response: any Sendable)
+    case unexpectedResponseBody(expectedContent: String, body: any Sendable)
 
     // MARK: CustomStringConvertible
 
@@ -109,11 +109,11 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 }
 
 @_spi(Generated)
-public func throwUnexpectedResponseStatus(expectedStatus: String, response: Any) throws -> Never {
+public func throwUnexpectedResponseStatus(expectedStatus: String, response: any Sendable) throws -> Never {
     throw RuntimeError.unexpectedResponseStatus(expectedStatus: expectedStatus, response: response)
 }
 
 @_spi(Generated)
-public func throwUnexpectedResponseBody(expectedContent: String, body: Any) throws -> Never {
+public func throwUnexpectedResponseBody(expectedContent: String, body: any Sendable) throws -> Never {
     throw RuntimeError.unexpectedResponseBody(expectedContent: expectedContent, body: body)
 }
