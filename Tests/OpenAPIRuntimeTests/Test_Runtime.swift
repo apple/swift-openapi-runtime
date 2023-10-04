@@ -107,6 +107,10 @@ class Test_Runtime: XCTestCase {
         "age=3&name=Rover%21&type=Golden+Retriever"
     }
 
+    var testStructBase64EncodedString: String {
+        #""eyJuYW1lIjoiRmx1ZmZ6In0=""# // {"name":"Fluffz"}
+    }
+
     var testEnum: TestHabitat {
         .water
     }

@@ -267,9 +267,27 @@ final class Test_OpenAPIValue: Test_Runtime {
         XCTAssertEqual(nestedValue, 2)
     }
 
-    func testEncodingDecodingRoundTrip_base64_success() throws {
-        print(String(data: testStructData.base64EncodedData(), encoding: .utf8)!.utf8)
-        let encodedData = Base64EncodedData(data: testStructData)
+    func testEncoding_base64_success() throws {
+        let encodedData = Base64EncodedData(data: ArraySlice(testStructData))
+
+        let JSONEncoded = try JSONEncoder().encode(encodedData)
+        XCTAssertEqual(String(data: JSONEncoded, encoding: .utf8)!, testStructBase64EncodedString)
+    }
+
+    func testDecoding_base64_success() throws {
+        let encodedData = Base64EncodedData(data: ArraySlice(testStructData))
+
+        // `testStructBase64EncodedString` quoted and base64-encoded again
+        let JSONEncoded = Data(base64Encoded: "ImV5SnVZVzFsSWpvaVJteDFabVo2SW4wPSI=")!
+
+        XCTAssertEqual(
+            try JSONDecoder().decode(Base64EncodedData.self, from: JSONEncoded),
+            encodedData
+        )
+    }
+
+    func testEncodingDecodingRoundtrip_base64_success() throws {
+        let encodedData = Base64EncodedData(data: ArraySlice(testStructData))
         XCTAssertEqual(
             try JSONDecoder().decode(Base64EncodedData.self, from: JSONEncoder().encode(encodedData)),
             encodedData
