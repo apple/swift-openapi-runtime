@@ -108,7 +108,7 @@ class Test_Runtime: XCTestCase {
     }
 
     var testStructBase64EncodedString: String {
-        #""eyJuYW1lIjoiRmx1ZmZ6In0=""# // {"name":"Fluffz"}
+        #""eyJuYW1lIjoiRmx1ZmZ6In0=""#  // {"name":"Fluffz"}
     }
 
     var testEnum: TestHabitat {
