@@ -81,7 +81,6 @@ extension Base64EncodedData: Codable {
         self.init(data: ArraySlice(data))
     }
 
-
     /// Encodes this value into the given encoder.
     ///
     /// If the value fails to encode anything, `encoder` will encode an empty
