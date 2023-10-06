@@ -32,7 +32,7 @@ import Foundation
 /// let base64EncodedData = Base64EncodedData(from: decoder)
 ///```
 ///
-/// However more commonly the decoding initializer would be called by a decoder e.g.
+/// However more commonly the decoding initializer would be called by a decoder, for example:
 /// ```swift
 /// let encodedData: Data = ...
 /// let decoded = try JSONDecoder().decode(Base64EncodedData.self, from: encodedData)
@@ -45,13 +45,13 @@ import Foundation
 /// base64EncodedData.encode(to: encoder)
 /// ```
 ///
-/// However more commonly it would be called by an encoder e.g.
+/// However more commonly it would be called by an encoder, for example:
 /// ```swift
 /// let bytes: ArraySlice<UInt8> = ...
 /// let encodedData = JSONEncoder().encode(encodedBytes)
 /// ```
 public struct Base64EncodedData: Sendable, Hashable {
-    /// data to be encoded
+    /// A container of the raw bytes.
     public var data: ArraySlice<UInt8>
 
     /// Initializes an instance of ``Base64EncodedData`` wrapping the provided slice of bytes.
@@ -62,12 +62,6 @@ public struct Base64EncodedData: Sendable, Hashable {
 }
 
 extension Base64EncodedData: Codable {
-    /// Creates a new instance by decoding from the given decoder.
-    ///
-    /// This initializer throws an error if reading from the decoder fails, or
-    /// if the data read is corrupted or otherwise invalid.
-    ///
-    /// - Parameter decoder: The decoder to read data from.
     public init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()
         let base64EncodedString = try container.decode(String.self)
@@ -81,15 +75,6 @@ extension Base64EncodedData: Codable {
         self.init(data: ArraySlice(data))
     }
 
-    /// Encodes this value into the given encoder.
-    ///
-    /// If the value fails to encode anything, `encoder` will encode an empty
-    /// keyed container in its place.
-    ///
-    /// This function throws an error if any values are invalid for the given
-    /// encoder's format.
-    ///
-    /// - Parameter encoder: The encoder to write data to.
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
 
