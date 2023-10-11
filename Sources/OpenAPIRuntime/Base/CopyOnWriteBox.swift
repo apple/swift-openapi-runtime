@@ -12,8 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-/// A wrapper reference type for a value that should be copied only when
-/// referenced by multiple owners and is being modified.
+/// A reference type that wraps a value and enforces copy-on-write semantics.
 ///
 /// It also enables recursive types by introducing a "box" into the cycle, which
 /// allows the owning type to have a finite size.
