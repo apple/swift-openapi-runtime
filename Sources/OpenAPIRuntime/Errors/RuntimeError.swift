@@ -111,11 +111,23 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     }
 }
 
+/// Throws an error to indicate an unexpected HTTP response status.
+///
+/// - Parameters:
+///   - expectedStatus: The expected HTTP response status as a string.
+///   - response: The HTTP response data.
+/// - Throws: An error indicating an unexpected response status.
 @_spi(Generated)
 public func throwUnexpectedResponseStatus(expectedStatus: String, response: any Sendable) throws -> Never {
     throw RuntimeError.unexpectedResponseStatus(expectedStatus: expectedStatus, response: response)
 }
 
+/// Throws an error to indicate an unexpected response body content.
+///
+/// - Parameters:
+///   - expectedContent: The expected content as a string.
+///   - body: The response body data.
+/// - Throws: An error indicating an unexpected response body content.
 @_spi(Generated)
 public func throwUnexpectedResponseBody(expectedContent: String, body: any Sendable) throws -> Never {
     throw RuntimeError.unexpectedResponseBody(expectedContent: expectedContent, body: body)

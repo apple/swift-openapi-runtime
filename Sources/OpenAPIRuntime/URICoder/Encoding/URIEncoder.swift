@@ -79,6 +79,7 @@ extension URIEncoder {
     ///   - key: The key for which to encode the value. Can be an empty key,
     ///     in which case you still get a key-value pair, like `=foo`.
     /// - Returns: The URI string.
+    /// - Throws: An error if encoding the object into a URI string fails
     func encode(
         _ value: some Encodable,
         forKey key: String
@@ -102,6 +103,7 @@ extension URIEncoder {
     ///   - key: The key for which to encode the value. Can be an empty key,
     ///     in which case you still get a key-value pair, like `=foo`.
     /// - Returns: The URI string.
+    /// - Throws: An error if encoding the object into a URI string fails.
     func encodeIfPresent(
         _ value: (some Encodable)?,
         forKey key: String

@@ -23,6 +23,7 @@ extension Converter {
     ///   header.
     /// - Returns: The parsed content types, or the default content types if
     ///   the header was not provided.
+    /// - Throws: An error if the "accept" header is present but malformed, or if there are issues parsing its components.
     public func extractAcceptHeaderIfPresent<T: AcceptableProtocol>(
         in headerFields: HTTPFields
     ) throws -> [AcceptHeaderContentType<T>] {
@@ -49,6 +50,8 @@ extension Converter {
     ///   - substring: Expected content type, for example "application/json".
     ///   - headerFields: Header fields in which to look for "Accept".
     ///   Also supports wildcars, such as "application/\*" and "\*/\*".
+    /// - Throws: An error if the "Accept" header is present but incompatible with the provided content type,
+    ///  or if there are issues parsing the header.
     public func validateAcceptIfPresent(
         _ substring: String,
         in headerFields: HTTPFields
@@ -85,7 +88,14 @@ extension Converter {
         throw RuntimeError.unexpectedAcceptHeader(acceptHeader)
     }
 
-    //    | server | get | request path | URI | required | getPathParameterAsURI |
+    /// Retrieves and decodes a path parameter as a URI-encoded value of the specified type.
+    ///
+    /// - Parameters:
+    ///   - pathParameters: A dictionary of path parameters, where the keys are parameter names, and the values are substrings.
+    ///   - name: The name of the path parameter to retrieve.
+    ///   - type: The type to decode the parameter value into.
+    /// - Returns: The decoded value of the specified type.
+    /// - Throws: An error if the specified path parameter is not found or if there are issues decoding the value.
     public func getPathParameterAsURI<T: Decodable>(
         in pathParameters: [String: Substring],
         name: String,
@@ -114,7 +124,16 @@ extension Converter {
         )
     }
 
-    //    | server | get | request query | URI | optional | getOptionalQueryItemAsURI |
+    /// Retrieves and decodes an optional query item as a URI-encoded value of the specified type.
+    ///
+    /// - Parameters:
+    ///   - query: The query item to decode as a substring, or `nil` if the query item is not present.
+    ///   - style: The parameter style.
+    ///   - explode: An explode value.
+    ///   - name: The name of the query parameter to retrieve.
+    ///   - type: The type to decode the parameter value into.
+    /// - Returns: The decoded value of the specified type, or `nil` if the query item is not present.
+    /// - Throws: An error if there are issues decoding the value.
     public func getOptionalQueryItemAsURI<T: Decodable>(
         in query: Substring?,
         style: ParameterStyle?,
@@ -147,7 +166,16 @@ extension Converter {
         )
     }
 
-    //    | server | get | request query | URI | required | getRequiredQueryItemAsURI |
+    /// Retrieves and decodes a required query item as a URI-encoded value of the specified type.
+    ///
+    /// - Parameters:
+    ///   - query: The query item to decode as a substring, or `nil` if the query item is not present.
+    ///   - style: The parameter style.
+    ///   - explode: An explode value
+    ///   - name: The name of the query parameter to retrieve.
+    ///   - type: The type to decode the parameter value into.
+    /// - Returns: The decoded value of the specified type.
+    /// - Throws: An error if the query item is not present or if there are issues decoding the value.
     public func getRequiredQueryItemAsURI<T: Decodable>(
         in query: Substring?,
         style: ParameterStyle?,
@@ -180,7 +208,14 @@ extension Converter {
         )
     }
 
-    //    | server | get | request body | JSON | optional | getOptionalRequestBodyAsJSON |
+    /// Retrieves and decodes an optional JSON-encoded request body and transforms it to a different type.
+    ///
+    /// - Parameters:
+    ///   - type: The type to decode the request body into.
+    ///   - data: The HTTP request body to decode, or `nil` if the body is not present.
+    ///   - transform: A closure that transforms the decoded value to a different type.
+    /// - Returns: The transformed value, or `nil` if the request body is not present or if decoding fails.
+    /// - Throws: An error if there are issues decoding or transforming the request body.
     public func getOptionalRequestBodyAsJSON<T: Decodable, C>(
         _ type: T.Type,
         from data: HTTPBody?,
@@ -194,7 +229,14 @@ extension Converter {
         )
     }
 
-    //    | server | get | request body | JSON | required | getRequiredRequestBodyAsJSON |
+    /// Retrieves and decodes a required JSON-encoded request body and transforms it to a different type.
+    ///
+    /// - Parameters:
+    ///   - type: The type to decode the request body into.
+    ///   - data: The HTTP request body to decode, or `nil` if the body is not present.
+    ///   - transform: A closure that transforms the decoded value to a different type.
+    /// - Returns: The transformed value.
+    /// - Throws: An error if the request body is not present, if decoding fails, or if there are issues transforming the request body.
     public func getRequiredRequestBodyAsJSON<T: Decodable, C>(
         _ type: T.Type,
         from data: HTTPBody?,
@@ -208,7 +250,14 @@ extension Converter {
         )
     }
 
-    //    | server | get | request body | binary | optional | getOptionalRequestBodyAsBinary |
+    /// Retrieves and transforms an optional binary request body.
+    ///
+    /// - Parameters:
+    ///   - type: The type representing an HTTP request body (usually `HTTPBody.Type`).
+    ///   - data: The HTTP request body to transform, or `nil` if the body is not present.
+    ///   - transform: A closure that transforms the binary request body to a different type.
+    /// - Returns: The transformed value, or `nil` if the request body is not present.
+    /// - Throws: An error if there are issues transforming the request body.
     public func getOptionalRequestBodyAsBinary<C>(
         _ type: HTTPBody.Type,
         from data: HTTPBody?,
@@ -222,7 +271,14 @@ extension Converter {
         )
     }
 
-    //    | server | get | request body | binary | required | getRequiredRequestBodyAsBinary |
+    /// Retrieves and transforms a required binary request body.
+    ///
+    /// - Parameters:
+    ///   - type: The type representing an HTTP request body (usually `HTTPBody.Type`).
+    ///   - data: The HTTP request body to transform, or `nil` if the body is not present.
+    ///   - transform: A closure that transforms the binary request body to a different type.
+    /// - Returns: The transformed value.
+    /// - Throws: An error if the request body is not present or if there are issues transforming the request body.
     public func getRequiredRequestBodyAsBinary<C>(
         _ type: HTTPBody.Type,
         from data: HTTPBody?,
@@ -236,7 +292,14 @@ extension Converter {
         )
     }
 
-    //    | server | get | request body | URLEncodedForm | codable | optional | getOptionalRequestBodyAsURLEncodedForm |
+    /// Retrieves and transforms an optional URL-encoded form request body.
+    ///
+    /// - Parameters:
+    ///   - type: The type representing the expected structure of the URL-encoded form data.
+    ///   - data: The HTTP request body to transform, or `nil` if the body is not present.
+    ///   - transform: A closure that transforms the URL-encoded form request body to a different type.
+    /// - Returns: The transformed value, or `nil` if the request body is not present.
+    /// - Throws: An error if there are issues transforming the request body.
     public func getOptionalRequestBodyAsURLEncodedForm<T: Decodable, C>(
         _ type: T.Type,
         from data: HTTPBody?,
@@ -250,7 +313,14 @@ extension Converter {
         )
     }
 
-    //    | server | get | request body | URLEncodedForm | codable | required | getRequiredRequestBodyAsURLEncodedForm |
+    /// Retrieves and decodes the required request body as URL-encoded form data.
+    ///
+    /// - Parameters:
+    ///   - type: The type to decode the request body into.
+    ///   - data: The HTTP body containing the URL-encoded form data.
+    ///   - transform: A closure to further transform the decoded value.
+    /// - Returns: The transformed, decoded value of type `C`.
+    /// - Throws: An error if the decoding or transformation fails.
     public func getRequiredRequestBodyAsURLEncodedForm<T: Decodable, C>(
         _ type: T.Type,
         from data: HTTPBody?,
@@ -264,7 +334,14 @@ extension Converter {
         )
     }
 
-    //    | server | set | response body | JSON | required | setResponseBodyAsJSON |
+    /// Sets the response body as JSON data, serializing the provided value.
+    ///
+    /// - Parameters:
+    ///   - value: The value to be serialized into the response body.
+    ///   - headerFields: The HTTP header fields to update with the new `contentType`.
+    ///   - contentType: The content type to set in the HTTP header fields.
+    /// - Returns: An `HTTPBody` with the response body set as JSON data.
+    /// - Throws: An error if serialization or setting the response body fails.
     public func setResponseBodyAsJSON<T: Encodable>(
         _ value: T,
         headerFields: inout HTTPFields,
@@ -278,7 +355,14 @@ extension Converter {
         )
     }
 
-    //    | server | set | response body | binary | required | setResponseBodyAsBinary |
+    /// Sets the response body as binary data.
+    ///
+    /// - Parameters:
+    ///   - value: The binary data to set as the response body.
+    ///   - headerFields: A reference to the header fields to update with the content type.
+    ///   - contentType: The content type to set in the header fields.
+    /// - Returns: The updated `HTTPBody` containing the binary response data.
+    /// - Throws: An error if there are issues setting the response body or updating the header fields.
     public func setResponseBodyAsBinary(
         _ value: HTTPBody,
         headerFields: inout HTTPFields,

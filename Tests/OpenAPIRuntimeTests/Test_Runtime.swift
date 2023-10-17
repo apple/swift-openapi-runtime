@@ -145,6 +145,13 @@ class Test_Runtime: XCTestCase {
     }
 }
 
+/// Asserts that a given URL's absolute string representation is equal to an expected string.
+///
+/// - Parameters:
+///   - lhs: The URL to test, which can be optional.
+///   - rhs: The expected absolute string representation.
+///   - file: The file name to include in the failure message (default is the source file where this function is called).
+///   - line: The line number to include in the failure message (default is the line where this function is called).
 public func XCTAssertEqualURLString(_ lhs: URL?, _ rhs: String, file: StaticString = #file, line: UInt = #line) {
     guard let lhs else {
         XCTFail("URL is nil")
@@ -209,6 +216,14 @@ struct PrintingMiddleware: ClientMiddleware {
     }
 }
 
+/// Asserts that the string representation of binary data in a given sequence is equal to an expected string.
+///
+/// - Parameters:
+///   - expression1: An autoclosure that evaluates to a sequence of `UInt8`, typically binary data.
+///   - expression2: An autoclosure that evaluates to the expected string.
+///   - message: An optional custom message to display upon test failure.
+///   - file: The file name to include in the failure message (default is the source file where this function is called).
+///   - line: The line number to include in the failure message (default is the line where this function is called).
 public func XCTAssertEqualStringifiedData<S: Sequence>(
     _ expression1: @autoclosure () throws -> S?,
     _ expression2: @autoclosure () throws -> String,
@@ -228,6 +243,14 @@ public func XCTAssertEqualStringifiedData<S: Sequence>(
     }
 }
 
+/// Asserts that the string representation of binary data in an HTTP body is equal to an expected string.
+/// - Parameters:
+///   - expression1: An autoclosure that evaluates to an `HTTPBody?`, which represents the binary data.
+///   - expression2: An autoclosure that evaluates to the expected string.
+///   - message: An optional custom message to display upon test failure.
+///   - file: The file name to include in the failure message (default is the source file where this function is called).
+///   - line: The line number to include in the failure message (default is the line where this function is called).
+/// - Throws: If either of the autoclosures throws an error, the function will rethrow that error.
 public func XCTAssertEqualStringifiedData(
     _ expression1: @autoclosure () throws -> HTTPBody?,
     _ expression2: @autoclosure () throws -> String,

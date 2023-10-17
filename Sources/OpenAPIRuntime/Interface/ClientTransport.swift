@@ -136,6 +136,7 @@ public protocol ClientTransport: Sendable {
     ///   - baseURL: A server base URL.
     ///   - operationID: The identifier of the OpenAPI operation.
     /// - Returns: An HTTP response and its body.
+    /// - Throws: An error if sending the request and receiving the response fails.
     func send(
         _ request: HTTPRequest,
         body: HTTPBody?,
@@ -241,6 +242,7 @@ public protocol ClientMiddleware: Sendable {
     ///   - operationID: The identifier of the OpenAPI operation.
     ///   - next: A closure that calls the next middleware, or the transport.
     /// - Returns: An HTTP response and its body.
+    /// - Throws: An error if interception of the request and response fails.
     func intercept(
         _ request: HTTPRequest,
         body: HTTPBody?,

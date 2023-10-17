@@ -25,18 +25,21 @@ extension URISingleValueEncodingContainer {
 
     /// Sets the provided primitive value to the underlying node.
     /// - Parameter node: The primitive value to set.
+    /// - Throws: An error if setting the primitive value to the underlying node fails.
     private func _setValue(_ node: URIEncodedNode.Primitive) throws {
         try encoder.currentStackEntry.storage.set(node)
     }
 
     /// Sets the provided value to the underlying node.
-    /// - Parameter node: The value to set.
+    /// - Parameter value: The value to set.
+    /// - Throws: An error if setting the value to the underlying node fails
     private func _setBinaryFloatingPoint(_ value: some BinaryFloatingPoint) throws {
         try _setValue(.double(Double(value)))
     }
 
     /// Sets the provided value to the underlying node.
-    /// - Parameter node: The value to set.
+    /// - Parameter value: The value to set.
+    /// - Throws: An error if setting the value to the underlying node fails
     private func _setFixedWidthInteger(_ value: some FixedWidthInteger) throws {
         guard let validatedValue = Int(exactly: value) else {
             throw URIValueToNodeEncoder.GeneralError.integerOutOfRange

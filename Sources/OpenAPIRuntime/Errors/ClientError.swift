@@ -72,10 +72,10 @@ public struct ClientError: Error {
     ///   - operationID: The OpenAPI operation identifier.
     ///   - operationInput: The operation-specific Input value.
     ///   - request: The HTTP request created during the operation.
-    ///   - request: The HTTP request body created during the operation.
+    ///   - requestBody: The HTTP request body created during the operation.
     ///   - baseURL: The base URL for HTTP requests.
     ///   - response: The HTTP response received during the operation.
-    ///   - response: The HTTP response body received during the operation.
+    ///   - responseBody: The HTTP response body received during the operation.
     ///   - underlyingError: The underlying error that caused the operation
     ///     to fail.
     public init(
@@ -109,12 +109,22 @@ public struct ClientError: Error {
 }
 
 extension ClientError: CustomStringConvertible {
+    /// A human-readable description of the client error.
+    ///
+    /// This computed property returns a string that includes information about the client error.
+    ///
+    /// - Returns: A string describing the client error and its associated details.
     public var description: String {
         "Client error - operationID: \(operationID), operationInput: \(String(describing: operationInput)), request: \(request?.prettyDescription ?? "<nil>"), requestBody: \(requestBody?.prettyDescription ?? "<nil>"), baseURL: \(baseURL?.absoluteString ?? "<nil>"), response: \(response?.prettyDescription ?? "<nil>"), responseBody: \(responseBody?.prettyDescription ?? "<nil>") , underlying error: \(underlyingErrorDescription)"
     }
 }
 
 extension ClientError: LocalizedError {
+    /// A localized description of the client error.
+    ///
+    /// This computed property provides a localized human-readable description of the client error, which is suitable for displaying to users.
+    ///
+    /// - Returns: A localized string describing the client error.
     public var errorDescription: String? {
         description
     }
