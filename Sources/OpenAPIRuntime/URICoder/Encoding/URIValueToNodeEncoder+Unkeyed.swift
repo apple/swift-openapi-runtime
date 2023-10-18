@@ -25,24 +25,28 @@ extension URIUnkeyedEncodingContainer {
 
     /// Appends the provided node to the underlying array.
     /// - Parameter node: The node to append.
+    /// - Throws: An error if appending the node to the underlying array fails.
     private func _appendValue(_ node: URIEncodedNode) throws {
         try encoder.currentStackEntry.storage.append(node)
     }
 
     /// Appends the provided primitive value as a node to the underlying array.
     /// - Parameter node: The value to append.
+    /// - Throws: An error if appending the node to the underlying array fails.
     private func _appendValue(_ node: URIEncodedNode.Primitive) throws {
         try _appendValue(.primitive(node))
     }
 
     /// Appends the provided value as a node to the underlying array.
-    /// - Parameter node: The value to append.
+    /// - Parameter value: The value to append.
+    /// - Throws: An error if appending the node to the underlying array fails.
     private func _appendBinaryFloatingPoint(_ value: some BinaryFloatingPoint) throws {
         try _appendValue(.double(Double(value)))
     }
 
     /// Appends the provided value as a node to the underlying array.
-    /// - Parameter node: The value to append.
+    /// - Parameter value: The value to append.
+    /// - Throws: An error if appending the node to the underlying array fails.
     private func _appendFixedWidthInteger(_ value: some FixedWidthInteger) throws {
         guard let validatedValue = Int(exactly: value) else {
             throw URIValueToNodeEncoder.GeneralError.integerOutOfRange

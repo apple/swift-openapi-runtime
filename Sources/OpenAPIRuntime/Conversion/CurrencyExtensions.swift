@@ -104,6 +104,7 @@ extension Converter {
     ///   - key: The key to be encoded with the value.
     ///   - value: The value to be encoded.
     /// - Returns: A URI encoded string.
+    /// - Throws: An error if encoding fails.
     func convertToURI<T: Encodable>(
         style: ParameterStyle,
         explode: Bool,
@@ -132,6 +133,7 @@ extension Converter {
     ///   - key: The key for which the value was decoded.
     ///   - encodedValue: The encoded value to be decoded.
     /// - Returns: A decoded value.
+    /// - Throws: An error if decoding fails.
     func convertFromURI<T: Decodable>(
         style: ParameterStyle,
         explode: Bool,
@@ -157,6 +159,7 @@ extension Converter {
     /// Returns a value decoded from a JSON body.
     /// - Parameter body: The body containing the raw JSON bytes.
     /// - Returns: A decoded value.
+    /// - Throws: An error if decoding from the body fails.
     func convertJSONToBodyCodable<T: Decodable>(
         _ body: HTTPBody
     ) async throws -> T {
@@ -167,6 +170,7 @@ extension Converter {
     /// Returns a JSON body for the provided encodable value.
     /// - Parameter value: The value to encode as JSON.
     /// - Returns: The raw JSON body.
+    /// - Throws: An error if encoding to JSON fails.
     func convertBodyCodableToJSON<T: Encodable>(
         _ value: T
     ) throws -> HTTPBody {
@@ -177,6 +181,7 @@ extension Converter {
     /// Returns a value decoded from a URL-encoded form body.
     /// - Parameter body: The body containing the raw URL-encoded form bytes.
     /// - Returns: A decoded value.
+    /// - Throws: An error if decoding from the URL-encoded form fails.
     func convertURLEncodedFormToCodable<T: Decodable>(
         _ body: HTTPBody
     ) async throws -> T {
@@ -196,6 +201,7 @@ extension Converter {
     /// Returns a URL-encoded form string for the provided encodable value.
     /// - Parameter value: The value to encode.
     /// - Returns: The raw URL-encoded form body.
+    /// - Throws: An error if encoding to URL-encoded form fails.
     func convertBodyCodableToURLFormData<T: Encodable>(
         _ value: T
     ) throws -> HTTPBody {
@@ -214,6 +220,7 @@ extension Converter {
     /// Returns a JSON string for the provided encodable value.
     /// - Parameter value: The value to encode.
     /// - Returns: A JSON string.
+    /// - Throws: An error if encoding the value to JSON fails.
     func convertHeaderFieldCodableToJSON<T: Encodable>(
         _ value: T
     ) throws -> String {
@@ -225,6 +232,7 @@ extension Converter {
     /// Returns a value decoded from the provided JSON string.
     /// - Parameter stringValue: A JSON string.
     /// - Returns: The decoded value.
+    /// - Throws: An error if decoding from the JSON string fails.
     func convertJSONToHeaderFieldCodable<T: Decodable>(
         _ stringValue: Substring
     ) throws -> T {
@@ -240,6 +248,7 @@ extension Converter {
     ///   - name: The name of the header to set.
     ///   - value: The value of the header to set.
     ///   - convert: The closure used to serialize the header value to string.
+    /// - Throws: An error if an issue occurs while serializing the header value.
     func setHeaderField<T>(
         in headerFields: inout HTTPFields,
         name: String,
@@ -263,6 +272,7 @@ extension Converter {
     ///   - headerFields: The header field storage.
     ///   - name: The name of the header field.
     /// - Returns: The value of the header field, if found. Nil otherwise.
+    /// - Throws: An error if an issue occurs while retrieving the header value.
     func getHeaderFieldValuesString(
         in headerFields: HTTPFields,
         name: String
@@ -277,6 +287,7 @@ extension Converter {
     ///   - type: The type to decode the value as.
     ///   - convert: The closure to convert the value from string.
     /// - Returns: The decoded value, if found. Nil otherwise.
+    /// - Throws: An error if an issue occurs while decoding or converting the header value.
     func getOptionalHeaderField<T>(
         in headerFields: HTTPFields,
         name: String,
@@ -301,6 +312,8 @@ extension Converter {
     ///   - type: The type to decode the value as.
     ///   - convert: The closure to convert the value from string.
     /// - Returns: The decoded value.
+    /// - Throws: An error if the required header field is missing or
+    ///  if an issue occurs while decoding or converting the header value.
     func getRequiredHeaderField<T>(
         in headerFields: HTTPFields,
         name: String,
@@ -327,6 +340,7 @@ extension Converter {
     ///   - value: The value of the query parameter. Must already be
     ///     percent-escaped.
     ///   - convert: The closure that converts the provided value to string.
+    /// - Throws: An error if an issue occurs while setting the query parameter, such as invalid input values or encoding errors.
     func setEscapedQueryItem<T>(
         in request: inout HTTPRequest,
         style: ParameterStyle?,
@@ -380,6 +394,7 @@ extension Converter {
     ///   - type: The type to decode the string value as.
     ///   - convert: The closure that decodes the value from string.
     /// - Returns: A decoded value, if found. Nil otherwise.
+    /// - Throws: An error if an issue occurs while decoding the query parameter, such as invalid input values or decoding errors.
     func getOptionalQueryItem<T>(
         in query: Substring?,
         style: ParameterStyle?,
@@ -409,6 +424,7 @@ extension Converter {
     ///   - type: The type to decode the string value as.
     ///   - convert: The closure that decodes the value from string.
     /// - Returns: A decoded value.
+    /// - Throws: An error if an issue occurs while decoding the query parameter, such as invalid input values or decoding errors.
     func getRequiredQueryItem<T>(
         in query: Substring?,
         style: ParameterStyle?,
@@ -440,6 +456,7 @@ extension Converter {
     ///   - contentType: The content type value.
     ///   - convert: The closure that encodes the value into a raw body.
     /// - Returns: The body.
+    /// - Throws: An error if an issue occurs while encoding the request body or setting the content type.
     func setRequiredRequestBody<T>(
         _ value: T,
         headerFields: inout HTTPFields,
@@ -458,6 +475,7 @@ extension Converter {
     ///   - contentType: The content type value.
     ///   - convert: The closure that encodes the value into a raw body.
     /// - Returns: The body, if value was not nil.
+    /// - Throws: An error if an issue occurs while encoding the request body or setting the content type.
     func setOptionalRequestBody<T>(
         _ value: T?,
         headerFields: inout HTTPFields,
@@ -482,6 +500,7 @@ extension Converter {
     ///   - transform: The closure that wraps the body in its generated type.
     ///   - convert: The closure that decodes the body.
     /// - Returns: A decoded wrapped type, if body is not nil.
+    /// - Throws: An error if an issue occurs while decoding the request body.
     func getOptionalBufferingRequestBody<T, C>(
         _ type: T.Type,
         from body: HTTPBody?,
@@ -502,6 +521,7 @@ extension Converter {
     ///   - transform: The closure that wraps the body in its generated type.
     ///   - convert: The closure that decodes the body.
     /// - Returns: A decoded wrapped type.
+    /// - Throws: An error if an issue occurs while decoding the request body or if the required body is missing.
     func getRequiredBufferingRequestBody<T, C>(
         _ type: T.Type,
         from body: HTTPBody?,
@@ -528,6 +548,7 @@ extension Converter {
     ///   - transform: The closure that wraps the body in its generated type.
     ///   - convert: The closure that decodes the body.
     /// - Returns: A decoded wrapped type, if body is not nil.
+    /// - Throws: An error if an issue occurs while decoding the request body.
     func getOptionalRequestBody<T, C>(
         _ type: T.Type,
         from body: HTTPBody?,
@@ -548,6 +569,7 @@ extension Converter {
     ///   - transform: The closure that wraps the body in its generated type.
     ///   - convert: The closure that decodes the body.
     /// - Returns: A decoded wrapped type.
+    /// - Throws: An error if an issue occurs while decoding the request body, or if the body is missing.
     func getRequiredRequestBody<T, C>(
         _ type: T.Type,
         from body: HTTPBody?,
@@ -574,6 +596,7 @@ extension Converter {
     ///   - transform: The closure that wraps the body in its generated type.
     ///   - convert: The closure that decodes the body.
     /// - Returns: A decoded wrapped type.
+    /// - Throws: An error if an issue occurs while decoding the response body.
     func getBufferingResponseBody<T, C>(
         _ type: T.Type,
         from body: HTTPBody,
@@ -592,6 +615,7 @@ extension Converter {
     ///   - transform: The closure that wraps the body in its generated type.
     ///   - convert: The closure that decodes the body.
     /// - Returns: A decoded wrapped type.
+    /// - Throws: An error if an issue occurs while decoding the response body.
     func getResponseBody<T, C>(
         _ type: T.Type,
         from body: HTTPBody,
@@ -611,6 +635,7 @@ extension Converter {
     ///   - contentType: The content type value.
     ///   - convert: The closure that encodes the value into a raw body.
     /// - Returns: The body, if value was not nil.
+    /// - Throws: An error if an issue occurs while encoding the request body.
     func setResponseBody<T>(
         _ value: T,
         headerFields: inout HTTPFields,
@@ -628,6 +653,7 @@ extension Converter {
     ///   - type: The type to decode the value as.
     ///   - convert: The closure that decodes the value from string.
     /// - Returns: A decoded value.
+    /// - Throws: An error if the specified path parameter is missing or if there's an issue decoding the value.
     func getRequiredRequestPath<T>(
         in pathParameters: [String: Substring],
         name: String,

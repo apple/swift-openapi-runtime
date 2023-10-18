@@ -61,6 +61,7 @@ final class URIValueToNodeEncoder {
     /// Encodes the provided value into a node.
     /// - Parameter value: The value to encode.
     /// - Returns: The node with the encoded contents of the value.
+    /// - Throws: An error if encoding the value into a node fails.
     func encodeValue(_ value: some Encodable) throws -> URIEncodedNode {
         defer {
             _codingPath = []

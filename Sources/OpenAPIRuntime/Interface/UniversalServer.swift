@@ -91,6 +91,7 @@ import struct Foundation.URLComponents
     ///   - serializer: A closure that creates an HTTP response from the
     ///     provided Output value.
     /// - Returns: The HTTP response and its body produced by the serializer.
+    /// - Throws: An error if any part of the operation process fails.
     public func handle<OperationInput, OperationOutput>(
         request: HTTPRequest,
         requestBody: HTTPBody?,
@@ -172,6 +173,7 @@ import struct Foundation.URLComponents
     /// Returns the path with the server URL's path prefix prepended.
     /// - Parameter path: The path suffix.
     /// - Returns: The path appended to the server URL's path.
+    /// - Throws: An error if resolving the server URL components fails or if the server URL is invalid.
     public func apiPathComponentsWithServerPrefix(
         _ path: String
     ) throws -> String {

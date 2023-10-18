@@ -82,12 +82,22 @@ public struct ServerError: Error {
 }
 
 extension ServerError: CustomStringConvertible {
+    /// A human-readable description of the server error.
+    ///
+    /// This computed property returns a string that includes information about the server error.
+    ///
+    /// - Returns: A string describing the server error and its associated details.
     public var description: String {
         "Server error - operationID: \(operationID), request: \(request.prettyDescription), requestBody: \(requestBody?.prettyDescription ?? "<nil>"), metadata: \(requestMetadata.description), operationInput: \(operationInput.map { String(describing: $0) } ?? "<nil>"), operationOutput: \(operationOutput.map { String(describing: $0) } ?? "<nil>"), underlying error: \(underlyingErrorDescription)"
     }
 }
 
 extension ServerError: LocalizedError {
+    /// A localized description of the server error.
+    ///
+    /// This computed property provides a localized human-readable description of the server error, which is suitable for displaying to users.
+    ///
+    /// - Returns: A localized string describing the server error.
     public var errorDescription: String? {
         description
     }

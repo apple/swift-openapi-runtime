@@ -83,6 +83,7 @@ import Foundation
     ///   - serializer: Creates an HTTP request from the provided Input value.
     ///   - deserializer: Creates an Output value from the provided HTTP response.
     /// - Returns: The Output value produced by `deserializer`.
+    /// - Throws: An error if any part of the HTTP operation process fails.
     public func send<OperationInput, OperationOutput>(
         input: OperationInput,
         forOperation operationID: String,

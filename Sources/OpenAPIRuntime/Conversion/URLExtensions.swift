@@ -26,7 +26,6 @@ extension URL {
 
     /// Returns a validated server URL, or throws an error.
     /// - Parameter string: A URL string.
-    /// - Returns: A validated URL.
     /// - Throws: If the provided string doesn't convert to URL.
     public init(validatingOpenAPIServerURL string: String) throws {
         guard let url = Self(string: string) else {

@@ -38,6 +38,7 @@ struct URISerializer {
     ///   - key: The key to serialize the node under (details depend on the
     ///     style and explode parameters in the configuration).
     /// - Returns: The URI-encoded data for the provided node.
+    /// - Throws: An error if serialization of the node fails.
     mutating func serializeNode(
         _ value: URIEncodedNode,
         forKey key: String
@@ -96,6 +97,7 @@ extension URISerializer {
     /// Provides a raw string value for the provided key.
     /// - Parameter key: The key to stringify.
     /// - Returns: The escaped version of the provided key.
+    /// - Throws: An error if the key cannot be converted to an escaped string.
     private func stringifiedKey(_ key: String) throws -> String {
         // The root key is handled separately.
         guard !key.isEmpty else {
@@ -110,6 +112,7 @@ extension URISerializer {
     ///   - value: The value to serialize.
     ///   - key: The key to serialize the value under (details depend on the
     ///     style and explode parameters in the configuration).
+    /// - Throws: An error if serialization of the value fails.
     private mutating func serializeTopLevelNode(
         _ value: URIEncodedNode,
         forKey key: String
@@ -152,6 +155,7 @@ extension URISerializer {
 
     /// Serializes the provided value into the underlying string.
     /// - Parameter value: The primitive value to serialize.
+    /// - Throws: An error if serialization of the primitive value fails.
     private mutating func serializePrimitiveValue(
         _ value: URIEncodedNode.Primitive
     ) throws {
@@ -178,6 +182,7 @@ extension URISerializer {
     ///     style and explode parameters in the configuration).
     ///   - separator: The separator to use, if nil, the key is not serialized,
     ///     only the value.
+    /// - Throws: An error if serialization of the key-value pair fails.
     private mutating func serializePrimitiveKeyValuePair(
         _ value: URIEncodedNode.Primitive,
         forKey key: String,
@@ -195,6 +200,7 @@ extension URISerializer {
     ///   - array: The value to serialize.
     ///   - key: The key to serialize the value under (details depend on the
     ///     style and explode parameters in the configuration).
+    /// - Throws: An error if serialization of the array fails.
     private mutating func serializeArray(
         _ array: [URIEncodedNode.Primitive],
         forKey key: String
@@ -244,6 +250,7 @@ extension URISerializer {
     ///   - dictionary: The value to serialize.
     ///   - key: The key to serialize the value under (details depend on the
     ///     style and explode parameters in the configuration).
+    /// - Throws: An error if serialization of the dictionary fails.
     private mutating func serializeDictionary(
         _ dictionary: [String: URIEncodedNode.Primitive],
         forKey key: String

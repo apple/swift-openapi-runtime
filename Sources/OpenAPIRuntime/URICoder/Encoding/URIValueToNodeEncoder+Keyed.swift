@@ -28,6 +28,7 @@ extension URIKeyedEncodingContainer {
     /// - Parameters:
     ///   - node: The child node to insert.
     ///   - key: The key for the child node.
+    /// - Throws: An error if inserting the child node into the underlying dictionary at the provided key fails.
     private func _insertValue(_ node: URIEncodedNode, atKey key: Key) throws {
         try encoder.currentStackEntry.storage.insert(node, atKey: key)
     }
@@ -37,6 +38,7 @@ extension URIKeyedEncodingContainer {
     /// - Parameters:
     ///   - node: The primitive value to insert.
     ///   - key: The key for the value.
+    /// - Throws: An error if inserting the primitive value into the underlying dictionary at the provided key fails.
     private func _insertValue(_ node: URIEncodedNode.Primitive, atKey key: Key) throws {
         try _insertValue(.primitive(node), atKey: key)
     }
@@ -44,8 +46,9 @@ extension URIKeyedEncodingContainer {
     /// Inserts the provided value into the underlying dictionary at
     /// the provided key.
     /// - Parameters:
-    ///   - node: The value to insert.
+    ///   - value: The value to insert.
     ///   - key: The key for the value.
+    /// - Throws: An error if inserting the value into the underlying dictionary at the provided key fails.
     private func _insertBinaryFloatingPoint(
         _ value: some BinaryFloatingPoint,
         atKey key: Key
@@ -56,8 +59,10 @@ extension URIKeyedEncodingContainer {
     /// Inserts the provided value into the underlying dictionary at
     /// the provided key.
     /// - Parameters:
-    ///   - node: The value to insert.
+    ///   - value: The value to insert.
     ///   - key: The key for the value.
+    /// - Throws: An error if the provided value is outside the valid range for an integer,
+    /// or if inserting the value into the underlying dictionary at the provided key fails.
     private func _insertFixedWidthInteger(
         _ value: some FixedWidthInteger,
         atKey key: Key

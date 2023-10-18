@@ -43,7 +43,9 @@ extension URIKeyedDecodingContainer {
 
     /// Returns the value found for the provided key in the underlying
     /// dictionary converted to the provided type.
-    /// - Parameter key: The key for which to return the value.
+    /// - Parameters:
+    ///  - _: The `BinaryFloatingPoint` type to convert the value to.
+    ///  - key: The key for which to return the value.
     /// - Returns: The converted value found for the provided key.
     /// - Throws: An error if no value for the key was found or if the
     ///   conversion failed.
@@ -65,7 +67,9 @@ extension URIKeyedDecodingContainer {
 
     /// Returns the value found for the provided key in the underlying
     /// dictionary converted to the provided type.
-    /// - Parameter key: The key for which to return the value.
+    /// - Parameters:
+    ///  - _: The fixed-width integer type to convert the value to.
+    ///  - key: The key for which to return the value.
     /// - Returns: The converted value found for the provided key.
     /// - Throws: An error if no value for the key was found or if the
     ///   conversion failed.
@@ -87,7 +91,9 @@ extension URIKeyedDecodingContainer {
 
     /// Returns the value found for the provided key in the underlying
     /// dictionary converted to the provided type.
-    /// - Parameter key: The key for which to return the value.
+    /// - Parameters:
+    ///   - _: The type to convert the value to.
+    ///   - key: The key for which to return the value.
     /// - Returns: The converted value found for the provided key.
     /// - Throws: An error if no value for the key was found or if the
     ///   conversion failed.

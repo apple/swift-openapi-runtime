@@ -111,6 +111,7 @@ public protocol ServerTransport {
     ///   - handler: A handler to be invoked when an HTTP request is received.
     ///   - method: An HTTP request method.
     ///   - path: A URL template for the path, for example `/pets/{petId}`.
+    /// - Throws: An error if the registration of the handler fails.
     /// - Important: The `path` can have mixed components, such
     ///   as `/file/{name}.zip`.
     func register(
@@ -218,6 +219,7 @@ public protocol ServerMiddleware: Sendable {
     ///   - operationID: The identifier of the OpenAPI operation.
     ///   - next: A closure that calls the next middleware, or the transport.
     /// - Returns: An HTTP response and its body.
+    /// - Throws: An error if the interception process fails.
     func intercept(
         _ request: HTTPRequest,
         body: HTTPBody?,
