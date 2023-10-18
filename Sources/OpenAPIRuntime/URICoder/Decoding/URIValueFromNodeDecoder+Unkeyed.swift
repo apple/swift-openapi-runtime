@@ -65,6 +65,8 @@ extension URIUnkeyedDecodingContainer {
     }
 
     /// Returns the next value converted to the provided type.
+    ///
+    /// - Parameter _: The `BinaryFloatingPoint` type to convert the value to.
     /// - Returns: The converted value.
     /// - Throws: An error if the container ran out of items or if
     ///   the conversion failed.
@@ -84,6 +86,8 @@ extension URIUnkeyedDecodingContainer {
     }
 
     /// Returns the next value converted to the provided type.
+    ///
+    /// - Parameter _: The `FixedWidthInteger` type to convert the value to.
     /// - Returns: The converted value.
     /// - Throws: An error if the container ran out of items or if
     ///   the conversion failed.
@@ -103,6 +107,8 @@ extension URIUnkeyedDecodingContainer {
     }
 
     /// Returns the next value converted to the provided type.
+    ///
+    /// - Parameter _: The `LosslessStringConvertible` type to convert the value to.
     /// - Returns: The converted value.
     /// - Throws: An error if the container ran out of items or if
     ///   the conversion failed.

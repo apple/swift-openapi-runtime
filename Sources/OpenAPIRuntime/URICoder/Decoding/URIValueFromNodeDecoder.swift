@@ -150,6 +150,7 @@ extension URIValueFromNodeDecoder {
     /// value at the provided key.
     /// - Parameter codingKey: The coding key for the value that is then put
     ///   at the top of the stack.
+    /// - Throws: An error if an issue occurs during the container push operation.
     func push(_ codingKey: URICoderCodingKey) throws {
         let nextElement: URIDecodedNode
         if let intValue = codingKey.intValue {
@@ -171,6 +172,7 @@ extension URIValueFromNodeDecoder {
     /// Throws a type mismatch error with the provided message.
     /// - Parameter message: The message to be embedded as debug description
     ///   inside the thrown `DecodingError`.
+    /// - Throws: A `DecodingError` with a type mismatch error if this function is called.
     private func throwMismatch(_ message: String) throws -> Never {
         throw DecodingError.typeMismatch(
             String.self,
@@ -184,6 +186,7 @@ extension URIValueFromNodeDecoder {
     /// Extracts the root value of the provided node using the root key.
     /// - Parameter node: The node which to expect for the root key.
     /// - Returns: The value found at the root key in the provided node.
+    /// - Throws: A `DecodingError` if the value is not found at the root key
     private func rootValue(in node: URIParsedNode) throws -> URIParsedValueArray {
         guard let value = node[rootKey] else {
             if style == .simple, let valueForFallbackKey = node[""] {
@@ -200,6 +203,7 @@ extension URIValueFromNodeDecoder {
     /// Extracts the node at the top of the coding stack and tries to treat it
     /// as a dictionary.
     /// - Returns: The value if it can be treated as a dictionary.
+    /// - Throws: An error if the current element cannot be treated as a dictionary.
     private func currentElementAsDictionary() throws -> URIParsedNode {
         try nodeAsDictionary(currentElement)
     }
@@ -248,6 +252,7 @@ extension URIValueFromNodeDecoder {
     /// Extracts the node at the top of the coding stack and tries to treat it
     /// as an array.
     /// - Returns: The value if it can be treated as an array.
+    /// - Throws: An error if the node cannot be treated as an array.
     private func currentElementAsArray() throws -> URIParsedValueArray {
         try nodeAsArray(currentElement)
     }
@@ -271,6 +276,7 @@ extension URIValueFromNodeDecoder {
     /// Extracts the node at the top of the coding stack and tries to treat it
     /// as a primitive value.
     /// - Returns: The value if it can be treated as a primitive value.
+    /// - Throws: An error if the node cannot be treated as a primitive value.
     func currentElementAsSingleValue() throws -> URIParsedValue {
         try nodeAsSingleValue(currentElement)
     }

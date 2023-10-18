@@ -247,6 +247,14 @@ public final class HTTPBody: @unchecked Sendable {
 }
 
 extension HTTPBody: Equatable {
+    /// Compares two HTTPBody instances for equality by comparing their object identifiers.
+    ///
+    /// - Parameters:
+    ///   - lhs: The left-hand side HTTPBody.
+    ///   - rhs: The right-hand side HTTPBody.
+    ///
+    /// - Returns: `true` if the object identifiers of the two HTTPBody instances are equal,
+    /// indicating that they are the same object in memory; otherwise, returns `false`.
     public static func == (
         lhs: HTTPBody,
         rhs: HTTPBody
@@ -256,6 +264,9 @@ extension HTTPBody: Equatable {
 }
 
 extension HTTPBody: Hashable {
+    /// Hashes the HTTPBody instance by combining its object identifier into the provided hasher.
+    ///
+    /// - Parameter hasher: The hasher used to combine the hash value.
     public func hash(into hasher: inout Hasher) {
         hasher.combine(ObjectIdentifier(self))
     }
@@ -327,8 +338,7 @@ extension HTTPBody {
     }
 
     /// Creates a new body with the provided byte collection.
-    /// - Parameters:
-    ///   - bytes: A byte chunk.
+    /// - Parameter bytes: A byte chunk.
     @inlinable public convenience init(
         _ bytes: some Collection<UInt8> & Sendable
     ) {
@@ -405,8 +415,13 @@ extension HTTPBody {
 // MARK: - Consuming the body
 
 extension HTTPBody: AsyncSequence {
+    /// Represents a single element within an asynchronous sequence
     public typealias Element = ByteChunk
+    /// Represents an asynchronous iterator over a sequence of elements.
     public typealias AsyncIterator = Iterator
+    /// Creates and returns an asynchronous iterator
+    ///
+    /// - Returns: An asynchronous iterator for byte chunks.
     public func makeAsyncIterator() -> AsyncIterator {
         // The crash on error is intentional here.
         try! tryToMarkIteratorCreated()
@@ -447,8 +462,7 @@ extension HTTPBody {
 
     /// Accumulates the full body in-memory into a single buffer
     /// up to the provided maximum number of bytes and returns it.
-    /// - Parameters:
-    ///   - maxBytes: The maximum number of bytes this method is allowed
+    /// - Parameter maxBytes: The maximum number of bytes this method is allowed
     ///     to accumulate in memory before it throws an error.
     /// - Throws: `TooManyBytesError` if the body contains more
     ///   than `maxBytes`.
@@ -524,8 +538,7 @@ extension HTTPBody {
     }
 
     /// Creates a new body with the provided string encoded as UTF-8 bytes.
-    /// - Parameters:
-    ///   - string: A string to encode as bytes.
+    /// - Parameter string: A string to encode as bytes.
     @inlinable public convenience init(
         _ string: some StringProtocol & Sendable
     ) {
@@ -613,6 +626,9 @@ extension String {
 // MARK: - HTTPBody conversions
 
 extension HTTPBody: ExpressibleByStringLiteral {
+    /// Initializes an `HTTPBody` instance with the provided string value.
+    ///
+    /// - Parameter value: The string literal to use for initializing the `HTTPBody`.
     public convenience init(stringLiteral value: String) {
         self.init(value)
     }
@@ -628,7 +644,11 @@ extension HTTPBody {
 }
 
 extension HTTPBody: ExpressibleByArrayLiteral {
+    /// Element type for array literals.
     public typealias ArrayLiteralElement = UInt8
+    /// Initializes an `HTTPBody` instance with a sequence of `UInt8` elements.
+    ///
+    /// - Parameter elements: A variadic list of `UInt8` elements used to initialize the `HTTPBody`.
     public convenience init(arrayLiteral elements: UInt8...) {
         self.init(elements)
     }
@@ -681,6 +701,10 @@ extension HTTPBody {
             }
         }
 
+        /// Advances the iterator to the next element and returns it asynchronously.
+        ///
+        /// - Returns: The next element in the sequence, or `nil` if there are no more elements.
+        /// - Throws: An error if there is an issue advancing the iterator or retrieving the next element.
         public mutating func next() async throws -> Element? {
             try await produceNext()
         }

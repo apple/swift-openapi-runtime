@@ -264,6 +264,14 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     }
 }
 
+/// Asserts that the string representation of binary data is equal to an expected string.
+///
+/// - Parameters:
+///   - expression1: An autoclosure that evaluates to a `Data`, which represents the binary data.
+///   - expression2: An autoclosure that evaluates to the expected string.
+///   - message: An optional custom message to display upon test failure.
+///   - file: The file name to include in the failure message (default is the source file where this function is called).
+///   - line: The line number to include in the failure message (default is the line where this function is called).
 public func XCTAssertEqualStringifiedData(
     _ expression1: @autoclosure () throws -> Data,
     _ expression2: @autoclosure () throws -> String,

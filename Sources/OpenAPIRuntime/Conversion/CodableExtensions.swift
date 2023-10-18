@@ -20,8 +20,7 @@ extension Decoder {
     /// Validates that no undocumented keys are present.
     ///
     /// - Throws: When at least one undocumented key is found.
-    /// - Parameters:
-    ///   - knownKeys: A set of known and already decoded keys.
+    /// - Parameter knownKeys: A set of known and already decoded keys.
     public func ensureNoAdditionalProperties(knownKeys: Set<String>) throws {
         let (unknownKeys, container) = try unknownKeysAndContainer(
             knownKeys: knownKeys
@@ -41,9 +40,9 @@ extension Decoder {
     ///
     /// The included properties are those still present in the decoder but
     /// not already decoded and passed in as known keys.
-    /// - Parameters:
-    ///   - knownKeys: Known and already decoded keys.
+    /// - Parameter knownKeys: Known and already decoded keys.
     /// - Returns: A container with the decoded undocumented properties.
+    /// - Throws: An error if decoding additional properties fails.
     public func decodeAdditionalProperties(
         knownKeys: Set<String>
     ) throws -> OpenAPIObjectContainer {
@@ -72,9 +71,9 @@ extension Decoder {
     ///
     /// The included properties are those still present in the decoder but
     /// not already decoded and passed in as known keys.
-    /// - Parameters:
-    ///   - knownKeys: Known and already decoded keys.
+    /// - Parameter knownKeys: Known and already decoded keys.
     /// - Returns: A container with the decoded undocumented properties.
+    /// - Throws: An error if there are issues with decoding the additional properties.
     public func decodeAdditionalProperties<T: Decodable>(
         knownKeys: Set<String>
     ) throws -> [String: T] {
@@ -93,6 +92,7 @@ extension Decoder {
     /// Returns the decoded value by using a single value container.
     /// - Parameter type: The type to decode.
     /// - Returns: The decoded value.
+    /// - Throws: An error if there are issues with decoding the value from the single value container.
     public func decodeFromSingleValueContainer<T: Decodable>(
         _ type: T.Type = T.self
     ) throws -> T {
@@ -106,6 +106,11 @@ extension Decoder {
     /// in the `knownKeys` set.
     ///
     /// This is used to implement the `additionalProperties` feature.
+    /// - Parameter knownKeys: A set of known keys that have already been decoded.
+    /// - Returns: A tuple containing two values: a set of unknown keys and a keyed decoding container
+    ///            for further decoding of the unknown properties.
+    /// - Throws: An error if there are issues with creating the decoding container or identifying
+    ///           the unknown keys.
     private func unknownKeysAndContainer(
         knownKeys: Set<String>
     ) throws -> (Set<StringKey>, KeyedDecodingContainer<StringKey>) {
@@ -122,8 +127,8 @@ extension Encoder {
     ///
     /// The properties are encoded directly into the encoder, rather that
     /// into a nested container.
-    /// - Parameters:
-    ///   - additionalProperties: A container of additional properties.
+    /// - Parameter additionalProperties: A container of additional properties.
+    /// - Throws: An error if there are issues with encoding the additional properties.
     public func encodeAdditionalProperties(
         _ additionalProperties: OpenAPIObjectContainer
     ) throws {
@@ -143,8 +148,8 @@ extension Encoder {
     ///
     /// The properties are encoded directly into the encoder, rather that
     /// into a nested container.
-    /// - Parameters:
-    ///   - additionalProperties: A container of additional properties.
+    /// - Parameter additionalProperties: A container of additional properties.
+    /// - Throws: An error if there are issues with encoding the additional properties.
     public func encodeAdditionalProperties<T: Encodable>(
         _ additionalProperties: [String: T]
     ) throws {
@@ -159,6 +164,7 @@ extension Encoder {
 
     /// Encodes the value into the encoder using a single value container.
     /// - Parameter value: The value to encode.
+    /// - Throws: An error if there are issues with encoding the value.
     public func encodeToSingleValueContainer<T: Encodable>(
         _ value: T
     ) throws {
@@ -169,6 +175,7 @@ extension Encoder {
     /// Encodes the first non-nil value from the provided array into
     /// the encoder using a single value container.
     /// - Parameter values: An array of optional values.
+    /// - Throws: An error if there are issues with encoding the value.
     public func encodeFirstNonNilValueToSingleValueContainer(
         _ values: [(any Encodable)?]
     ) throws {

@@ -72,6 +72,7 @@ extension URIDecoder {
     ///     and explode options, ignored otherwise.
     ///   - data: The URI-encoded string.
     /// - Returns: The decoded value.
+    /// - Throws: An error if decoding fails, for example, due to incompatible data or key.
     func decode<T: Decodable>(
         _ type: T.Type = T.self,
         forKey key: String = "",
@@ -94,6 +95,7 @@ extension URIDecoder {
     ///     and explode options, ignored otherwise.
     ///   - data: The URI-encoded string.
     /// - Returns: The decoded value.
+    /// - Throws: An error if decoding fails, for example, due to incompatible data or key.
     func decodeIfPresent<T: Decodable>(
         _ type: T.Type = T.self,
         forKey key: String = "",
@@ -112,6 +114,7 @@ extension URIDecoder {
     ///   - calls: The closure that contains 0 or more calls to
     ///     the `decode` method on `URICachedDecoder`.
     /// - Returns: The result of the closure invocation.
+    /// - Throws: An error if parsing or decoding fails.
     func withCachedParser<R>(
         from data: Substring,
         calls: (URICachedDecoder) throws -> R
@@ -142,6 +145,7 @@ struct URICachedDecoder {
     ///   - key: The key of the decoded value. Only used with certain styles
     ///     and explode options, ignored otherwise.
     /// - Returns: The decoded value.
+    /// - Throws: An error if decoding fails.
     func decode<T: Decodable>(
         _ type: T.Type = T.self,
         forKey key: String = ""
@@ -167,6 +171,7 @@ struct URICachedDecoder {
     ///   - key: The key of the decoded value. Only used with certain styles
     ///     and explode options, ignored otherwise.
     /// - Returns: The decoded value.
+    /// - Throws: An error if decoding fails.
     func decodeIfPresent<T: Decodable>(
         _ type: T.Type = T.self,
         forKey key: String = ""

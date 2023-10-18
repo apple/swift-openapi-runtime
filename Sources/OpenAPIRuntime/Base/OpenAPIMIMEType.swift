@@ -29,6 +29,13 @@ public struct OpenAPIMIMEType: Equatable {
         /// A concrete value, spelled as `type/subtype`.
         case concrete(type: String, subtype: String)
 
+        /// Compares two MIME type kinds for equality.
+        ///
+        /// - Parameters:
+        ///   - lhs: The left-hand side MIME type kind.
+        ///   - rhs: The right-hand side MIME type kind.
+        ///
+        /// - Returns: `true` if the MIME type kinds are equal, otherwise `false`.
         public static func == (lhs: Kind, rhs: Kind) -> Bool {
             switch (lhs, rhs) {
             case (.any, .any):
@@ -59,6 +66,13 @@ public struct OpenAPIMIMEType: Equatable {
         self.parameters = parameters
     }
 
+    /// Compares two MIME types for equality.
+    ///
+    /// - Parameters:
+    ///   - lhs: The left-hand side MIME type.
+    ///   - rhs: The right-hand side MIME type.
+    ///
+    /// - Returns: `true` if the MIME types are equal, otherwise `false`.
     public static func == (lhs: OpenAPIMIMEType, rhs: OpenAPIMIMEType) -> Bool {
         guard lhs.kind == rhs.kind else {
             return false
@@ -85,6 +99,9 @@ public struct OpenAPIMIMEType: Equatable {
 }
 
 extension OpenAPIMIMEType.Kind: LosslessStringConvertible {
+    /// Initializes a MIME type kind from a string description.
+    ///
+    /// - Parameter description: A string description of the MIME type kind.
     public init?(_ description: String) {
         let typeAndSubtype =
             description
@@ -106,6 +123,7 @@ extension OpenAPIMIMEType.Kind: LosslessStringConvertible {
         }
     }
 
+    /// A textual representation of the MIME type kind.
     public var description: String {
         switch self {
         case .any:
@@ -119,6 +137,9 @@ extension OpenAPIMIMEType.Kind: LosslessStringConvertible {
 }
 
 extension OpenAPIMIMEType: LosslessStringConvertible {
+    /// Initializes an `OpenAPIMIMEType` instance based on a string description.
+    ///
+    /// - Parameter description: A string description of the MIME.
     public init?(_ description: String) {
         var components =
             description
@@ -157,6 +178,7 @@ extension OpenAPIMIMEType: LosslessStringConvertible {
         )
     }
 
+    /// A string description of the MIME type.
     public var description: String {
         ([kind.description]
             + parameters

@@ -32,6 +32,8 @@ extension URISingleValueDecodingContainer {
 
     /// Returns the value found in the underlying node converted to
     /// the provided type.
+    ///
+    /// - Parameter _: The `BinaryFloatingPoint` type to convert the value to.
     /// - Returns: The converted value found.
     /// - Throws: An error if the conversion failed.
     private func _decodeBinaryFloatingPoint<T: BinaryFloatingPoint>(
@@ -51,6 +53,8 @@ extension URISingleValueDecodingContainer {
 
     /// Returns the value found in the underlying node converted to
     /// the provided type.
+    ///
+    /// - Parameter _: The `FixedWidthInteger` type to convert the value to.
     /// - Returns: The converted value found.
     /// - Throws: An error if the conversion failed.
     private func _decodeFixedWidthInteger<T: FixedWidthInteger>(
@@ -70,6 +74,8 @@ extension URISingleValueDecodingContainer {
 
     /// Returns the value found in the underlying node converted to
     /// the provided type.
+    ///
+    /// - Parameter _: The `LosslessStringConvertible` type to convert the value to.
     /// - Returns: The converted value found.
     /// - Throws: An error if the conversion failed.
     private func _decodeLosslessStringConvertible<T: LosslessStringConvertible>(

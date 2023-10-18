@@ -62,6 +62,10 @@ public struct Base64EncodedData: Sendable, Hashable {
 }
 
 extension Base64EncodedData: Codable {
+    /// Initializes a `Base64EncodedData` instance by decoding a base64-encoded string.
+    ///
+    /// - Parameter decoder: The decoder from which to decode the base64-encoded string.
+    /// - Throws: `RuntimeError.invalidBase64String`: If the provided string could not be successfully decoded as base64 data.
     public init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()
         let base64EncodedString = try container.decode(String.self)
@@ -75,6 +79,10 @@ extension Base64EncodedData: Codable {
         self.init(data: ArraySlice(data))
     }
 
+    /// Encodes the binary data as a base64-encoded string.
+    ///
+    /// - Parameter encoder: The encoder to which the base64-encoded string is written.
+    /// - Throws: An error if the binary data cannot be successfully encoded as a base64 string.
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
 

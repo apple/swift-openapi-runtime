@@ -52,6 +52,7 @@ extension URIParser {
     /// Parses the root node from the underlying string, selecting the logic
     /// based on the configuration.
     /// - Returns: The parsed root node.
+    /// - Throws: An error if parsing fails.
     mutating func parseRoot() throws -> URIParsedNode {
         // A completely empty string should get parsed as a single
         // empty key with a single element array with an empty string
@@ -79,6 +80,7 @@ extension URIParser {
     /// Parses the root node assuming the raw string uses the form style
     /// and the explode parameter is enabled.
     /// - Returns: The parsed root node.
+    /// - Throws: An error if parsing fails.
     private mutating func parseExplodedFormRoot() throws -> URIParsedNode {
         try parseGenericRoot { data, appendPair in
             let keyValueSeparator: Character = "="
@@ -110,6 +112,7 @@ extension URIParser {
     /// Parses the root node assuming the raw string uses the form style
     /// and the explode parameter is disabled.
     /// - Returns: The parsed root node.
+    /// - Throws: An error if parsing fails.
     private mutating func parseUnexplodedFormRoot() throws -> URIParsedNode {
         try parseGenericRoot { data, appendPair in
             let keyValueSeparator: Character = "="
@@ -162,6 +165,7 @@ extension URIParser {
     /// Parses the root node assuming the raw string uses the simple style
     /// and the explode parameter is enabled.
     /// - Returns: The parsed root node.
+    /// - Throws: An error if parsing fails.
     private mutating func parseExplodedSimpleRoot() throws -> URIParsedNode {
         try parseGenericRoot { data, appendPair in
             let keyValueSeparator: Character = "="
@@ -193,6 +197,7 @@ extension URIParser {
     /// Parses the root node assuming the raw string uses the simple style
     /// and the explode parameter is disabled.
     /// - Returns: The parsed root node.
+    /// - Throws: An error if parsing fails.
     private mutating func parseUnexplodedSimpleRoot() throws -> URIParsedNode {
         // Unexploded simple dictionary cannot be told apart from
         // an array, so we just accumulate all pairs as standalone
@@ -219,6 +224,7 @@ extension URIParser {
     /// - Parameter parser: A closure that accepts another closure, which should
     ///   be called 0 or more times, once for each parsed key-value pair.
     /// - Returns: The accumulated node.
+    /// - Throws: An error if parsing using the provided parser closure fails,
     private mutating func parseGenericRoot(
         _ parser: (inout Raw, (Raw, [Raw]) -> Void) throws -> Void
     ) throws -> URIParsedNode {
@@ -322,8 +328,7 @@ extension String.SubSequence {
 
     /// Accumulates characters until the provided character is found,
     /// or the end is reached. Moves the underlying startIndex.
-    /// - Parameters:
-    ///   - character: A character to stop at.
+    /// - Parameter character: A character to stop at.
     /// - Returns: The accumulated substring.
     fileprivate mutating func parseUpToCharacterOrEnd(
         _ character: Character

@@ -35,7 +35,8 @@ public struct QualityValue: Sendable, Hashable {
 
     /// Creates a new quality value from the provided floating-point number.
     ///
-    /// - Precondition: The value must be between 0.0 and 1.0, inclusive.
+    /// - Parameter doubleValue: The floating-point number representing the quality value.
+    /// - Precondition: The `doubleValue` must be between 0.0 and 1.0, inclusive.
     public init(doubleValue: Double) {
         precondition(
             doubleValue >= 0.0 && doubleValue <= 1.0,
@@ -51,6 +52,9 @@ public struct QualityValue: Sendable, Hashable {
 }
 
 extension QualityValue: RawRepresentable {
+    /// Creates a new `QualityValue` instance from a raw string value.
+    ///
+    /// - Parameter rawValue: A string representing the quality value.
     public init?(rawValue: String) {
         guard let doubleValue = Double(rawValue) else {
             return nil
@@ -58,12 +62,17 @@ extension QualityValue: RawRepresentable {
         self.init(doubleValue: doubleValue)
     }
 
+    /// The raw string representation of the `QualityValue`.
     public var rawValue: String {
         String(format: "%0.3f", doubleValue)
     }
 }
 
 extension QualityValue: ExpressibleByIntegerLiteral {
+    /// Creates a new `QualityValue` instance from an integer literal value.
+    ///
+    /// - Parameter value: An integer literal value representing the quality value.
+    /// - Precondition: The `integerLiteral` must be between 0.0 and 1.0, inclusive.
     public init(integerLiteral value: UInt16) {
         precondition(
             value >= 0 && value <= 1,
@@ -74,6 +83,9 @@ extension QualityValue: ExpressibleByIntegerLiteral {
 }
 
 extension QualityValue: ExpressibleByFloatLiteral {
+    /// Creates a new `QualityValue` instance from a floating-point literal value.
+    ///
+    /// - Parameter value: A floating-point literal value representing the quality value.
     public init(floatLiteral value: Double) {
         self.init(doubleValue: value)
     }
@@ -106,10 +118,10 @@ public struct AcceptHeaderContentType<ContentType: AcceptableProtocol>: Sendable
     public var quality: QualityValue
 
     /// Creates a new content type from the provided parameters.
+    ///
     /// - Parameters:
-    ///   - value: The value representing the content type.
+    ///   - contentType: The value representing the content type.
     ///   - quality: The quality of the content type, between 0.0 and 1.0.
-    /// - Precondition: Quality must be in the range 0.0 and 1.0 inclusive.
     public init(contentType: ContentType, quality: QualityValue = 1.0) {
         self.quality = quality
         self.contentType = contentType
@@ -123,6 +135,9 @@ public struct AcceptHeaderContentType<ContentType: AcceptableProtocol>: Sendable
 }
 
 extension AcceptHeaderContentType: RawRepresentable {
+    /// Initializes an `AcceptHeaderContentType` instance from its raw string value.
+    ///
+    /// - Parameter rawValue: The raw string value representing the content type.
     public init?(rawValue: String) {
         guard let validMimeType = OpenAPIMIMEType(rawValue) else {
             // Invalid MIME type.
@@ -145,6 +160,7 @@ extension AcceptHeaderContentType: RawRepresentable {
         self.init(contentType: typeAndSubtype, quality: quality)
     }
 
+    /// The raw representation of the content negotiation as a MIME type string.
     public var rawValue: String {
         contentType.rawValue + (quality.isDefault ? "" : "; q=\(quality.rawValue)")
     }

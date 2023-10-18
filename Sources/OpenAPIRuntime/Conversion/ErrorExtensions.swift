@@ -70,6 +70,7 @@ extension DecodingError {
     ///   occurred.
     ///   - codingPath: The coding path to the decoder that attempted to decode
     ///   the type.
+    /// - Throws: An error of type `DecodingError.failedToDecodeAnySchema` if none of the child schemas were successfully decoded.
     public static func verifyAtLeastOneSchemaIsNotNil(
         _ values: [Any?],
         type: Any.Type,
