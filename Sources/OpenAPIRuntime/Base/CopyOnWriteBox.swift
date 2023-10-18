@@ -55,12 +55,31 @@ public final class CopyOnWriteBox<Wrapped> {
 }
 
 extension CopyOnWriteBox: Encodable where Wrapped: Encodable {
+
+    /// Encodes this value into the given encoder.
+    ///
+    /// If the value fails to encode anything, `encoder` will encode an empty
+    /// keyed container in its place.
+    ///
+    /// This function throws an error if any values are invalid for the given
+    /// encoder's format.
+    ///
+    /// - Parameter encoder: The encoder to write data to.
+    /// - Throws: On an encoding error.
     public func encode(to encoder: any Encoder) throws {
         try value.encode(to: encoder)
     }
 }
 
 extension CopyOnWriteBox: Decodable where Wrapped: Decodable {
+
+    /// Creates a new instance by decoding from the given decoder.
+    ///
+    /// This initializer throws an error if reading from the decoder fails, or
+    /// if the data read is corrupted or otherwise invalid.
+    ///
+    /// - Parameter decoder: The decoder to read data from.
+    /// - Throws: On a decoding error.
     public convenience init(from decoder: any Decoder) throws {
         let value = try Wrapped(from: decoder)
         self.init(value: value)
@@ -68,6 +87,16 @@ extension CopyOnWriteBox: Decodable where Wrapped: Decodable {
 }
 
 extension CopyOnWriteBox: Equatable where Wrapped: Equatable {
+
+    /// Returns a Boolean value indicating whether two values are equal.
+    ///
+    /// Equality is the inverse of inequality. For any values `a` and `b`,
+    /// `a == b` implies that `a != b` is `false`.
+    ///
+    /// - Parameters:
+    ///   - lhs: A value to compare.
+    ///   - rhs: Another value to compare.
+    /// - Returns: A Boolean value indicating whether the values are equal.
     public static func == (
         lhs: CopyOnWriteBox<Wrapped>,
         rhs: CopyOnWriteBox<Wrapped>
@@ -77,18 +106,82 @@ extension CopyOnWriteBox: Equatable where Wrapped: Equatable {
 }
 
 extension CopyOnWriteBox: Hashable where Wrapped: Hashable {
+
+    /// Hashes the essential components of this value by feeding them into the
+    /// given hasher.
+    ///
+    /// Implement this method to conform to the `Hashable` protocol. The
+    /// components used for hashing must be the same as the components compared
+    /// in your type's `==` operator implementation. Call `hasher.combine(_:)`
+    /// with each of these components.
+    ///
+    /// - Important: In your implementation of `hash(into:)`,
+    ///   don't call `finalize()` on the `hasher` instance provided,
+    ///   or replace it with a different instance.
+    ///   Doing so may become a compile-time error in the future.
+    ///
+    /// - Parameter hasher: The hasher to use when combining the components
+    ///   of this instance.
     public func hash(into hasher: inout Hasher) {
         hasher.combine(value)
     }
 }
 
 extension CopyOnWriteBox: CustomStringConvertible where Wrapped: CustomStringConvertible {
+
+    /// A textual representation of this instance.
+    ///
+    /// Calling this property directly is discouraged. Instead, convert an
+    /// instance of any type to a string by using the `String(describing:)`
+    /// initializer. This initializer works with any type, and uses the custom
+    /// `description` property for types that conform to
+    /// `CustomStringConvertible`:
+    ///
+    ///     struct Point: CustomStringConvertible {
+    ///         let x: Int, y: Int
+    ///
+    ///         var description: String {
+    ///             return "(\(x), \(y))"
+    ///         }
+    ///     }
+    ///
+    ///     let p = Point(x: 21, y: 30)
+    ///     let s = String(describing: p)
+    ///     print(s)
+    ///     // Prints "(21, 30)"
+    ///
+    /// The conversion of `p` to a string in the assignment to `s` uses the
+    /// `Point` type's `description` property.
     public var description: String {
         value.description
     }
 }
 
 extension CopyOnWriteBox: CustomDebugStringConvertible where Wrapped: CustomDebugStringConvertible {
+
+    /// A textual representation of this instance, suitable for debugging.
+    ///
+    /// Calling this property directly is discouraged. Instead, convert an
+    /// instance of any type to a string by using the `String(reflecting:)`
+    /// initializer. This initializer works with any type, and uses the custom
+    /// `debugDescription` property for types that conform to
+    /// `CustomDebugStringConvertible`:
+    ///
+    ///     struct Point: CustomDebugStringConvertible {
+    ///         let x: Int, y: Int
+    ///
+    ///         var debugDescription: String {
+    ///             return "(\(x), \(y))"
+    ///         }
+    ///     }
+    ///
+    ///     let p = Point(x: 21, y: 30)
+    ///     let s = String(reflecting: p)
+    ///     print(s)
+    ///     // Prints "(21, 30)"
+    ///
+    /// The conversion of `p` to a string in the assignment to `s` uses the
+    /// `Point` type's `debugDescription` property.
     public var debugDescription: String {
         value.debugDescription
     }
