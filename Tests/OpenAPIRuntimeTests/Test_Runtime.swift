@@ -131,17 +131,26 @@ class Test_Runtime: XCTestCase {
         Data(testStructURLFormString.utf8)
     }
 
-    func _testPrettyEncoded<Value: Encodable>(_ value: Value, expectedJSON: String) throws {
+    @discardableResult
+    func _testPrettyEncoded<Value: Encodable>(_ value: Value, expectedJSON: String) throws -> String {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let data = try encoder.encode(value)
-        XCTAssertEqual(String(data: data, encoding: .utf8)!, expectedJSON)
+        let encodedString = String(decoding: data, as: UTF8.self)
+        XCTAssertEqual(encodedString, expectedJSON)
+        return encodedString
     }
 
     func _getDecoded<Value: Decodable>(json: String) throws -> Value {
         let inputData = json.data(using: .utf8)!
         let decoder = JSONDecoder()
         return try decoder.decode(Value.self, from: inputData)
+    }
+
+    func testRoundtrip<Value: Codable & Equatable>(_ value: Value, expectedJSON: String) throws {
+        let encodedString = try _testPrettyEncoded(value, expectedJSON: expectedJSON)
+        let decoded: Value = try _getDecoded(json: encodedString)
+        XCTAssertEqual(decoded, value)
     }
 }
 
