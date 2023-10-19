@@ -41,9 +41,7 @@ final class Test_CopyOnWriteBox: Test_Runtime {
                 )
             )
         )
-        CopyOnWriteBox.write(to: &value.parent!) { wrapped in
-            wrapped.parent = .init(value: .init(id: 1))
-        }
+        value.parent!.value.parent = .init(value: .init(id: 1))
         XCTAssertEqual(
             value,
             Node(

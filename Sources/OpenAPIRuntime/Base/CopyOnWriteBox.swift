@@ -12,45 +12,46 @@
 //
 //===----------------------------------------------------------------------===//
 
-/// A reference type that wraps a value and enforces copy-on-write semantics.
+/// A type that wraps a value and enforces copy-on-write semantics.
 ///
 /// It also enables recursive types by introducing a "box" into the cycle, which
 /// allows the owning type to have a finite size.
 @_spi(Generated)
-public final class CopyOnWriteBox<Wrapped> {
+public struct CopyOnWriteBox<Wrapped> {
 
-    /// The stored value.
-    private var value: Wrapped
+    /// The reference type storage for the box.
+    private final class Storage {
+
+        /// The stored value.
+        var value: Wrapped
+
+        /// Creates a new storage with the provided initial value.
+        /// - Parameter value: The initial value to store in the box.
+        init(value: Wrapped) {
+            self.value = value
+        }
+    }
+
+    /// The internal storage of the box.
+    private var storage: Storage
 
     /// Creates a new box.
     /// - Parameter value: The value to store in the box.
     public init(value: Wrapped) {
-        self.value = value
+        self.storage = .init(value: value)
     }
 
-    /// Returns a copy of the stored value.
-    public func read() -> Wrapped {
-        value
-    }
-
-    /// Provides read-write access to the stored value and enforces
-    /// copy-on-write semantics.
-    /// - Parameters:
-    ///   - box: A reference to the existing box, into which a new reference
-    ///     might get written if a copy had to be made.
-    ///   - modify: The closure that modifies the value.
-    public static func write(
-        to box: inout CopyOnWriteBox<Wrapped>,
-        using modify: (inout Wrapped) -> Void
-    ) {
-        let resolvedBox: CopyOnWriteBox<Wrapped>
-        if isKnownUniquelyReferenced(&box) {
-            resolvedBox = box
-        } else {
-            resolvedBox = Self(value: box.value)
-            box = resolvedBox
+    /// The stored value whose accessors enforce copy-on-write semantics.
+    public var value: Wrapped {
+        get {
+            storage.value
         }
-        modify(&resolvedBox.value)
+        _modify {
+            if !isKnownUniquelyReferenced(&storage) {
+                storage = Storage(value: storage.value)
+            }
+            yield &storage.value
+        }
     }
 }
 
@@ -80,7 +81,7 @@ extension CopyOnWriteBox: Decodable where Wrapped: Decodable {
     ///
     /// - Parameter decoder: The decoder to read data from.
     /// - Throws: On a decoding error.
-    public convenience init(from decoder: any Decoder) throws {
+    public init(from decoder: any Decoder) throws {
         let value = try Wrapped(from: decoder)
         self.init(value: value)
     }
