@@ -20,28 +20,34 @@
 public struct CopyOnWriteBox<Wrapped> {
 
     /// The reference type storage for the box.
-    private final class Storage {
+    @usableFromInline
+    internal final class Storage {
 
         /// The stored value.
+        @usableFromInline
         var value: Wrapped
 
         /// Creates a new storage with the provided initial value.
         /// - Parameter value: The initial value to store in the box.
+        @usableFromInline
         init(value: Wrapped) {
             self.value = value
         }
     }
 
     /// The internal storage of the box.
-    private var storage: Storage
+    @usableFromInline
+    internal var storage: Storage
 
     /// Creates a new box.
     /// - Parameter value: The value to store in the box.
+    @inlinable
     public init(value: Wrapped) {
         self.storage = .init(value: value)
     }
 
     /// The stored value whose accessors enforce copy-on-write semantics.
+    @inlinable
     public var value: Wrapped {
         get {
             storage.value
