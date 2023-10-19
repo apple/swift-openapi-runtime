@@ -29,7 +29,7 @@ public struct CopyOnWriteBox<Wrapped> {
 
         /// Creates a new storage with the provided initial value.
         /// - Parameter value: The initial value to store in the box.
-        @usableFromInline
+        @inlinable
         init(value: Wrapped) {
             self.value = value
         }
@@ -73,6 +73,7 @@ extension CopyOnWriteBox: Encodable where Wrapped: Encodable {
     ///
     /// - Parameter encoder: The encoder to write data to.
     /// - Throws: On an encoding error.
+    @inlinable
     public func encode(to encoder: any Encoder) throws {
         try value.encode(to: encoder)
     }
@@ -87,6 +88,7 @@ extension CopyOnWriteBox: Decodable where Wrapped: Decodable {
     ///
     /// - Parameter decoder: The decoder to read data from.
     /// - Throws: On a decoding error.
+    @inlinable
     public init(from decoder: any Decoder) throws {
         let value = try Wrapped(from: decoder)
         self.init(value: value)
@@ -104,6 +106,7 @@ extension CopyOnWriteBox: Equatable where Wrapped: Equatable {
     ///   - lhs: A value to compare.
     ///   - rhs: Another value to compare.
     /// - Returns: A Boolean value indicating whether the values are equal.
+    @inlinable
     public static func == (
         lhs: CopyOnWriteBox<Wrapped>,
         rhs: CopyOnWriteBox<Wrapped>
@@ -129,6 +132,7 @@ extension CopyOnWriteBox: Hashable where Wrapped: Hashable {
     ///
     /// - Parameter hasher: The hasher to use when combining the components
     ///   of this instance.
+    @inlinable
     public func hash(into hasher: inout Hasher) {
         hasher.combine(value)
     }
@@ -159,6 +163,7 @@ extension CopyOnWriteBox: CustomStringConvertible where Wrapped: CustomStringCon
     ///
     /// The conversion of `p` to a string in the assignment to `s` uses the
     /// `Point` type's `description` property.
+    @inlinable
     public var description: String {
         value.description
     }
@@ -189,6 +194,7 @@ extension CopyOnWriteBox: CustomDebugStringConvertible where Wrapped: CustomDebu
     ///
     /// The conversion of `p` to a string in the assignment to `s` uses the
     /// `Point` type's `debugDescription` property.
+    @inlinable
     public var debugDescription: String {
         value.debugDescription
     }
