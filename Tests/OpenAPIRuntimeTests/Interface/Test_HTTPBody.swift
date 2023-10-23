@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-@_spi(Generated)@testable import OpenAPIRuntime
+@_spi(Generated) @testable import OpenAPIRuntime
 import Foundation
 
 final class Test_Body: Test_Runtime {
@@ -184,7 +184,7 @@ final class Test_Body: Test_Runtime {
         }
         XCTAssertEqual(chunks, ["hel", "lo"].map { Array($0.utf8)[...] })
     }
-    
+
     func testUTF8String() async throws {
         XCTAssertEqual(HTTPBody("abc").length, .known(3))
         XCTAssertEqual(HTTPBody("🤘").length, .known(4))

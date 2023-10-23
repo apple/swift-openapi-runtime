@@ -45,6 +45,7 @@ extension ParameterStyle {
 
     /// Returns the default value of the explode field for the given style
     /// - Parameter style: The parameter style.
+    /// - Returns: Bool - True if the style is form, otherwise false
     static func defaultExplodeFor(forStyle style: ParameterStyle) -> Bool {
         style == .form
     }
