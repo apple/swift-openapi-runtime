@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-@_spi(Generated)@testable import OpenAPIRuntime
+@_spi(Generated) @testable import OpenAPIRuntime
 import Foundation
 
 final class Test_Body: Test_Runtime {
