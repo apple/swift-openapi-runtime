@@ -542,10 +542,7 @@ extension HTTPBody {
     @inlinable public convenience init(
         _ string: some StringProtocol & Sendable
     ) {
-        self.init(
-            ByteChunk(string),
-            length: .known(string.utf8.count)
-        )
+        self.init(ByteChunk(string))
     }
 
     /// Creates a new body with the provided async throwing stream of strings.
