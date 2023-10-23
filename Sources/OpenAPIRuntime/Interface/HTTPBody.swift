@@ -544,7 +544,7 @@ extension HTTPBody {
     ) {
         self.init(
             ByteChunk(string),
-            length: .known(string.count)
+            length: .known(string.utf8.count)
         )
     }
 
