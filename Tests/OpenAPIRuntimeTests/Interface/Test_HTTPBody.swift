@@ -184,6 +184,13 @@ final class Test_Body: Test_Runtime {
         }
         XCTAssertEqual(chunks, ["hel", "lo"].map { Array($0.utf8)[...] })
     }
+    
+    func testUTF8String() async throws {
+        XCTAssertTrue(HTTPBody("abc").length == .known(3))
+        XCTAssertTrue(HTTPBody("🤘").length == .known(4))
+        XCTAssertTrue(HTTPBody("\u{1f603}").length == .known(4))
+        XCTAssertTrue(HTTPBody("árvíztűrő tükörfúrógép").length == .known(31))
+    }
 
     func testIterationBehavior_single() async throws {
         let sequence = AsyncStream(

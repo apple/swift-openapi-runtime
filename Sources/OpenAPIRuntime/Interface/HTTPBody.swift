@@ -142,7 +142,7 @@ public final class HTTPBody: @unchecked Sendable {
     public let iterationBehavior: IterationBehavior
 
     /// Describes the total length of the body, if known.
-    public enum Length: Sendable {
+    public enum Length: Sendable, Equatable {
 
         /// Total length not known yet.
         case unknown
