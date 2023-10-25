@@ -91,7 +91,7 @@ final class Test_UniversalClient: Test_Runtime {
             XCTAssertNil(clientError.responseBody)
         }
     }
-    
+
     func testErrorPropagation_middlewareOnRequest() async throws {
         do {
             let client = UniversalClient(
@@ -192,8 +192,8 @@ final class Test_UniversalClient: Test_Runtime {
             XCTAssertEqual(clientError.request, HTTPRequest(soar_path: "/", method: .post))
             XCTAssertEqual(clientError.requestBody, MockClientTransport.requestBody)
             XCTAssertEqual(clientError.baseURL, URL(string: "/"))
-            XCTAssertEqual(clientError.response, HTTPResponse(status: .ok))
-            XCTAssertEqual(clientError.responseBody, MockClientTransport.responseBody)
+            XCTAssertNil(clientError.response)
+            XCTAssertNil(clientError.responseBody)
         }
     }
 

@@ -164,7 +164,7 @@ struct MockMiddleware: ClientMiddleware, ServerMiddleware {
         case onResponse
     }
     var failurePhase: FailurePhase = .never
-    
+
     func intercept(
         _ request: HTTPRequest,
         body: HTTPBody?,
@@ -181,7 +181,7 @@ struct MockMiddleware: ClientMiddleware, ServerMiddleware {
         }
         return (response, responseBody)
     }
-    
+
     func intercept(
         _ request: HTTPRequest,
         body: HTTPBody?,

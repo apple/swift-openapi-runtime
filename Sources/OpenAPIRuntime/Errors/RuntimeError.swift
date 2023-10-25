@@ -64,10 +64,9 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     /// A wrapped root cause error, if one was thrown by other code.
     var underlyingError: (any Error)? {
         switch self {
-        case
-                .transportFailed(let error),
-                .handlerFailed(let error),
-                .middlewareFailed(_, let error):
+        case .transportFailed(let error),
+            .handlerFailed(let error),
+            .middlewareFailed(_, let error):
             return error
         default:
             return nil

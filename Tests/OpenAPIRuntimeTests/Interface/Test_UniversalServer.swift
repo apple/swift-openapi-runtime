@@ -78,7 +78,7 @@ final class Test_UniversalServer: Test_Runtime {
         } catch {
             let serverError = try XCTUnwrap(error as? ServerError)
             XCTAssertEqual(serverError.operationID, "op")
-            XCTAssertEqual(serverError.causeDescription, "Unknown")
+            XCTAssertEqual(serverError.causeDescription, "Middleware of type 'MockMiddleware' threw an error.")
             XCTAssertEqual(serverError.underlyingError as? TestError, TestError())
             XCTAssertEqual(serverError.request, .init(soar_path: "/", method: .post))
             XCTAssertEqual(serverError.requestBody, MockHandler.requestBody)
@@ -117,7 +117,7 @@ final class Test_UniversalServer: Test_Runtime {
         }
     }
 
-    func testErrorPropagation_transport() async throws {
+    func testErrorPropagation_handler() async throws {
         do {
             let server = UniversalServer(handler: MockHandler(shouldFail: true))
             _ = try await server.handle(
@@ -174,6 +174,41 @@ final class Test_UniversalServer: Test_Runtime {
             XCTAssertEqual(serverError.requestMetadata, .init())
             XCTAssertEqual(serverError.operationInput as? String, "hello")
             XCTAssertEqual(serverError.operationOutput as? String, "bye")
+        }
+    }
+
+    func testErrorPropagation_middlewareOnResponse() async throws {
+        do {
+            let server = UniversalServer(
+                handler: MockHandler(),
+                middlewares: [
+                    MockMiddleware(failurePhase: .onResponse)
+                ]
+            )
+            _ = try await server.handle(
+                request: .init(soar_path: "/", method: .post),
+                requestBody: MockHandler.requestBody,
+                metadata: .init(),
+                forOperation: "op",
+                using: { MockHandler.greet($0) },
+                deserializer: { request, body, metadata in
+                    let body = try XCTUnwrap(body)
+                    return try await String(collecting: body, upTo: 10)
+                },
+                serializer: { output, _ in
+                    (HTTPResponse(status: .ok), MockHandler.responseBody)
+                }
+            )
+        } catch {
+            let serverError = try XCTUnwrap(error as? ServerError)
+            XCTAssertEqual(serverError.operationID, "op")
+            XCTAssertEqual(serverError.causeDescription, "Middleware of type 'MockMiddleware' threw an error.")
+            XCTAssertEqual(serverError.underlyingError as? TestError, TestError())
+            XCTAssertEqual(serverError.request, .init(soar_path: "/", method: .post))
+            XCTAssertEqual(serverError.requestBody, MockHandler.requestBody)
+            XCTAssertEqual(serverError.requestMetadata, .init())
+            XCTAssertNil(serverError.operationInput)
+            XCTAssertNil(serverError.operationOutput)
         }
     }
 
