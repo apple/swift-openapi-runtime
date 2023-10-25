@@ -119,14 +119,24 @@ import struct Foundation.URLComponents
             output: OperationOutput? = nil,
             error: any Error
         ) -> any Error {
-            ServerError(
+            let causeDescription: String
+            let underlyingError: any Error
+            if let runtimeError = error as? RuntimeError {
+                causeDescription = runtimeError.prettyDescription
+                underlyingError = runtimeError.underlyingError ?? error
+            } else {
+                causeDescription = "Unknown"
+                underlyingError = error
+            }
+            return ServerError(
                 operationID: operationID,
                 request: request,
                 requestBody: requestBody,
                 requestMetadata: metadata,
                 operationInput: input,
                 operationOutput: output,
-                underlyingError: error
+                causeDescription: causeDescription,
+                underlyingError: underlyingError
             )
         }
         var next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?) =

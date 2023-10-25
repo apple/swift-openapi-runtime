@@ -110,7 +110,16 @@ import Foundation
             responseBody: HTTPBody? = nil,
             error: any Error
         ) -> any Error {
-            ClientError(
+            let causeDescription: String
+            let underlyingError: any Error
+            if let runtimeError = error as? RuntimeError {
+                causeDescription = runtimeError.prettyDescription
+                underlyingError = runtimeError.underlyingError ?? error
+            } else {
+                causeDescription = "Unknown"
+                underlyingError = error
+            }
+            return ClientError(
                 operationID: operationID,
                 operationInput: input,
                 request: request,
@@ -118,7 +127,8 @@ import Foundation
                 baseURL: baseURL,
                 response: response,
                 responseBody: responseBody,
-                underlyingError: error
+                causeDescription: causeDescription,
+                underlyingError: underlyingError
             )
         }
         let (request, requestBody): (HTTPRequest, HTTPBody?) = try await wrappingErrors {
@@ -154,12 +164,19 @@ import Foundation
             }
             return try await next(request, requestBody, baseURL)
         } mapError: { error in
-            makeError(request: request, baseURL: baseURL, error: error)
+            makeError(request: request, requestBody: requestBody, baseURL: baseURL, error: error)
         }
         return try await wrappingErrors {
             try await deserializer(response, responseBody)
         } mapError: { error in
-            makeError(request: request, baseURL: baseURL, response: response, error: error)
+            makeError(
+                request: request,
+                requestBody: requestBody,
+                baseURL: baseURL,
+                response: response,
+                responseBody: responseBody,
+                error: error
+            )
         }
     }
 }

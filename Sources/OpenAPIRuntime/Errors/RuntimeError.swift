@@ -60,6 +60,16 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     case unexpectedResponseStatus(expectedStatus: String, response: any Sendable)
     case unexpectedResponseBody(expectedContent: String, body: any Sendable)
 
+    /// A wrapped root cause error, if one was thrown by other code.
+    var underlyingError: (any Error)? {
+        switch self {
+        case .transportFailed(let error), .handlerFailed(let error):
+            return error
+        default:
+            return nil
+        }
+    }
+
     // MARK: CustomStringConvertible
 
     var description: String {
@@ -99,10 +109,10 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
             return "Missing required request body"
         case .missingRequiredResponseBody:
             return "Missing required response body"
-        case .transportFailed(let underlyingError):
-            return "Transport failed with error: \(underlyingError.localizedDescription)"
-        case .handlerFailed(let underlyingError):
-            return "User handler failed with error: \(underlyingError.localizedDescription)"
+        case .transportFailed:
+            return "Transport threw an error."
+        case .handlerFailed:
+            return "User handler threw an error."
         case .unexpectedResponseStatus(let expectedStatus, let response):
             return "Unexpected response, expected status code: \(expectedStatus), response: \(response)"
         case .unexpectedResponseBody(let expectedContentType, let body):

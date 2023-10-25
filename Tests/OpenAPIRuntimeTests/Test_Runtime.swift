@@ -155,6 +155,8 @@ class Test_Runtime: XCTestCase {
     }
 }
 
+struct TestError: Error, Equatable {}
+
 /// Asserts that a given URL's absolute string representation is equal to an expected string.
 ///
 /// - Parameters:
