@@ -54,6 +54,40 @@ final class Test_UniversalServer: Test_Runtime {
         XCTAssertEqual(responseBody, MockHandler.responseBody)
     }
 
+    func testErrorPropagation_middlewareOnRequest() async throws {
+        do {
+            let server = UniversalServer(
+                handler: MockHandler(),
+                middlewares: [
+                    MockMiddleware(failurePhase: .onRequest)
+                ]
+            )
+            _ = try await server.handle(
+                request: .init(soar_path: "/", method: .post),
+                requestBody: MockHandler.requestBody,
+                metadata: .init(),
+                forOperation: "op",
+                using: { MockHandler.greet($0) },
+                deserializer: { request, body, metadata in
+                    fatalError()
+                },
+                serializer: { output, _ in
+                    fatalError()
+                }
+            )
+        } catch {
+            let serverError = try XCTUnwrap(error as? ServerError)
+            XCTAssertEqual(serverError.operationID, "op")
+            XCTAssertEqual(serverError.causeDescription, "Unknown")
+            XCTAssertEqual(serverError.underlyingError as? TestError, TestError())
+            XCTAssertEqual(serverError.request, .init(soar_path: "/", method: .post))
+            XCTAssertEqual(serverError.requestBody, MockHandler.requestBody)
+            XCTAssertEqual(serverError.requestMetadata, .init())
+            XCTAssertNil(serverError.operationInput)
+            XCTAssertNil(serverError.operationOutput)
+        }
+    }
+
     func testErrorPropagation_deserializer() async throws {
         do {
             let server = UniversalServer(handler: MockHandler())

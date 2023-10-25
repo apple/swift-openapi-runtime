@@ -91,10 +91,50 @@ final class Test_UniversalClient: Test_Runtime {
             XCTAssertNil(clientError.responseBody)
         }
     }
+    
+    func testErrorPropagation_middlewareOnRequest() async throws {
+        do {
+            let client = UniversalClient(
+                transport: MockClientTransport.successful,
+                middlewares: [
+                    MockMiddleware(failurePhase: .onRequest)
+                ]
+            )
+            try await client.send(
+                input: "input",
+                forOperation: "op",
+                serializer: { input in
+                    (
+                        HTTPRequest(soar_path: "/", method: .post),
+                        MockClientTransport.requestBody
+                    )
+                },
+                deserializer: { response, body in
+                    fatalError()
+                }
+            )
+        } catch {
+            let clientError = try XCTUnwrap(error as? ClientError)
+            XCTAssertEqual(clientError.operationID, "op")
+            XCTAssertEqual(clientError.operationInput as? String, "input")
+            XCTAssertEqual(clientError.causeDescription, "Middleware of type 'MockMiddleware' threw an error.")
+            XCTAssertEqual(clientError.underlyingError as? TestError, TestError())
+            XCTAssertEqual(clientError.request, HTTPRequest(soar_path: "/", method: .post))
+            XCTAssertEqual(clientError.requestBody, MockClientTransport.requestBody)
+            XCTAssertEqual(clientError.baseURL, URL(string: "/"))
+            XCTAssertNil(clientError.response)
+            XCTAssertNil(clientError.responseBody)
+        }
+    }
 
     func testErrorPropagation_transport() async throws {
         do {
-            let client = UniversalClient(transport: MockClientTransport.failing)
+            let client = UniversalClient(
+                transport: MockClientTransport.failing,
+                middlewares: [
+                    MockMiddleware()
+                ]
+            )
             try await client.send(
                 input: "input",
                 forOperation: "op",
@@ -119,6 +159,41 @@ final class Test_UniversalClient: Test_Runtime {
             XCTAssertEqual(clientError.baseURL, URL(string: "/"))
             XCTAssertNil(clientError.response)
             XCTAssertNil(clientError.responseBody)
+        }
+    }
+
+    func testErrorPropagation_middlewareOnResponse() async throws {
+        do {
+            let client = UniversalClient(
+                transport: MockClientTransport.successful,
+                middlewares: [
+                    MockMiddleware(failurePhase: .onResponse)
+                ]
+            )
+            try await client.send(
+                input: "input",
+                forOperation: "op",
+                serializer: { input in
+                    (
+                        HTTPRequest(soar_path: "/", method: .post),
+                        MockClientTransport.requestBody
+                    )
+                },
+                deserializer: { response, body in
+                    fatalError()
+                }
+            )
+        } catch {
+            let clientError = try XCTUnwrap(error as? ClientError)
+            XCTAssertEqual(clientError.operationID, "op")
+            XCTAssertEqual(clientError.operationInput as? String, "input")
+            XCTAssertEqual(clientError.causeDescription, "Middleware of type 'MockMiddleware' threw an error.")
+            XCTAssertEqual(clientError.underlyingError as? TestError, TestError())
+            XCTAssertEqual(clientError.request, HTTPRequest(soar_path: "/", method: .post))
+            XCTAssertEqual(clientError.requestBody, MockClientTransport.requestBody)
+            XCTAssertEqual(clientError.baseURL, URL(string: "/"))
+            XCTAssertEqual(clientError.response, HTTPResponse(status: .ok))
+            XCTAssertEqual(clientError.responseBody, MockClientTransport.responseBody)
         }
     }
 

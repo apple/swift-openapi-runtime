@@ -54,6 +54,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 
     // Transport/Handler
     case transportFailed(any Error)
+    case middlewareFailed(middlewareType: Any.Type, any Error)
     case handlerFailed(any Error)
 
     // Unexpected response (thrown by shorthand APIs)
@@ -63,7 +64,10 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     /// A wrapped root cause error, if one was thrown by other code.
     var underlyingError: (any Error)? {
         switch self {
-        case .transportFailed(let error), .handlerFailed(let error):
+        case
+                .transportFailed(let error),
+                .handlerFailed(let error),
+                .middlewareFailed(_, let error):
             return error
         default:
             return nil
@@ -111,6 +115,8 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
             return "Missing required response body"
         case .transportFailed:
             return "Transport threw an error."
+        case .middlewareFailed(middlewareType: let type, _):
+            return "Middleware of type '\(type)' threw an error."
         case .handlerFailed:
             return "User handler threw an error."
         case .unexpectedResponseStatus(let expectedStatus, let response):
