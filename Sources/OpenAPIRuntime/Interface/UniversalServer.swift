@@ -102,31 +102,46 @@ import struct Foundation.URLComponents
             OperationInput,
         serializer: @Sendable @escaping (OperationOutput, HTTPRequest) throws -> (HTTPResponse, HTTPBody?)
     ) async throws -> (HTTPResponse, HTTPBody?) where OperationInput: Sendable, OperationOutput: Sendable {
-        @Sendable
-        func wrappingErrors<R>(
+        @Sendable func wrappingErrors<R>(
             work: () async throws -> R,
             mapError: (any Error) -> any Error
         ) async throws -> R {
             do {
                 return try await work()
+            } catch let error as ServerError {
+                throw error
             } catch {
                 throw mapError(error)
             }
         }
-        @Sendable
-        func makeError(
+        @Sendable func makeError(
             input: OperationInput? = nil,
             output: OperationOutput? = nil,
             error: any Error
         ) -> any Error {
-            ServerError(
+            if var error = error as? ServerError {
+                error.operationInput = error.operationInput ?? input
+                error.operationOutput = error.operationOutput ?? output
+                return error
+            }
+            let causeDescription: String
+            let underlyingError: any Error
+            if let runtimeError = error as? RuntimeError {
+                causeDescription = runtimeError.prettyDescription
+                underlyingError = runtimeError.underlyingError ?? error
+            } else {
+                causeDescription = "Unknown"
+                underlyingError = error
+            }
+            return ServerError(
                 operationID: operationID,
                 request: request,
                 requestBody: requestBody,
                 requestMetadata: metadata,
                 operationInput: input,
                 operationOutput: output,
-                underlyingError: error
+                causeDescription: causeDescription,
+                underlyingError: underlyingError
             )
         }
         var next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?) =
@@ -144,7 +159,10 @@ import struct Foundation.URLComponents
                     return try await wrappingErrors {
                         try await method(input)
                     } mapError: { error in
-                        RuntimeError.handlerFailed(error)
+                        makeError(
+                            input: input,
+                            error: RuntimeError.handlerFailed(error)
+                        )
                     }
                 } mapError: { error in
                     makeError(input: input, error: error)
@@ -158,13 +176,25 @@ import struct Foundation.URLComponents
         for middleware in middlewares.reversed() {
             let tmp = next
             next = {
-                try await middleware.intercept(
-                    $0,
-                    body: $1,
-                    metadata: $2,
-                    operationID: operationID,
-                    next: tmp
-                )
+                _request,
+                _requestBody,
+                _metadata in
+                try await wrappingErrors {
+                    try await middleware.intercept(
+                        _request,
+                        body: _requestBody,
+                        metadata: _metadata,
+                        operationID: operationID,
+                        next: tmp
+                    )
+                } mapError: { error in
+                    makeError(
+                        error: RuntimeError.middlewareFailed(
+                            middlewareType: type(of: middleware),
+                            error
+                        )
+                    )
+                }
             }
         }
         return try await next(request, requestBody, metadata)

@@ -40,6 +40,10 @@ public struct ServerError: Error {
     /// Is nil if error was thrown before/during Output -> response conversion.
     public var operationOutput: (any Sendable)?
 
+    /// A user-facing description of what caused the underlying error
+    /// to be thrown.
+    public var causeDescription: String
+
     /// The underlying error that caused the operation to fail.
     public var underlyingError: any Error
 
@@ -51,6 +55,8 @@ public struct ServerError: Error {
     ///   - requestMetadata: The request metadata extracted by the server.
     ///   - operationInput: An operation-specific Input value.
     ///   - operationOutput: An operation-specific Output value.
+    ///   - causeDescription: A user-facing description of what caused
+    ///     the underlying error to be thrown.
     ///   - underlyingError: The underlying error that caused the operation
     ///     to fail.
     public init(
@@ -60,7 +66,8 @@ public struct ServerError: Error {
         requestMetadata: ServerRequestMetadata,
         operationInput: (any Sendable)? = nil,
         operationOutput: (any Sendable)? = nil,
-        underlyingError: (any Error)
+        causeDescription: String,
+        underlyingError: any Error
     ) {
         self.operationID = operationID
         self.request = request
@@ -68,6 +75,7 @@ public struct ServerError: Error {
         self.requestMetadata = requestMetadata
         self.operationInput = operationInput
         self.operationOutput = operationOutput
+        self.causeDescription = causeDescription
         self.underlyingError = underlyingError
     }
 
@@ -88,7 +96,7 @@ extension ServerError: CustomStringConvertible {
     ///
     /// - Returns: A string describing the server error and its associated details.
     public var description: String {
-        "Server error - operationID: \(operationID), request: \(request.prettyDescription), requestBody: \(requestBody?.prettyDescription ?? "<nil>"), metadata: \(requestMetadata.description), operationInput: \(operationInput.map { String(describing: $0) } ?? "<nil>"), operationOutput: \(operationOutput.map { String(describing: $0) } ?? "<nil>"), underlying error: \(underlyingErrorDescription)"
+        "Server error - cause description: '\(causeDescription)', underlying error: \(underlyingErrorDescription), operationID: \(operationID), request: \(request.prettyDescription), requestBody: \(requestBody?.prettyDescription ?? "<nil>"), metadata: \(requestMetadata.description), operationInput: \(operationInput.map { String(describing: $0) } ?? "<nil>"), operationOutput: \(operationOutput.map { String(describing: $0) } ?? "<nil>")"
     }
 }
 

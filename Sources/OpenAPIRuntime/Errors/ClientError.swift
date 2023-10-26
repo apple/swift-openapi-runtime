@@ -64,6 +64,10 @@ public struct ClientError: Error {
     /// Will be nil if the error resulted before the response was received.
     public var responseBody: HTTPBody?
 
+    /// A user-facing description of what caused the underlying error
+    /// to be thrown.
+    public var causeDescription: String
+
     /// The underlying error that caused the operation to fail.
     public var underlyingError: any Error
 
@@ -76,6 +80,8 @@ public struct ClientError: Error {
     ///   - baseURL: The base URL for HTTP requests.
     ///   - response: The HTTP response received during the operation.
     ///   - responseBody: The HTTP response body received during the operation.
+    ///   - causeDescription: A user-facing description of what caused
+    ///     the underlying error to be thrown.
     ///   - underlyingError: The underlying error that caused the operation
     ///     to fail.
     public init(
@@ -86,6 +92,7 @@ public struct ClientError: Error {
         baseURL: URL? = nil,
         response: HTTPResponse? = nil,
         responseBody: HTTPBody? = nil,
+        causeDescription: String,
         underlyingError: any Error
     ) {
         self.operationID = operationID
@@ -95,6 +102,7 @@ public struct ClientError: Error {
         self.baseURL = baseURL
         self.response = response
         self.responseBody = responseBody
+        self.causeDescription = causeDescription
         self.underlyingError = underlyingError
     }
 
@@ -115,7 +123,7 @@ extension ClientError: CustomStringConvertible {
     ///
     /// - Returns: A string describing the client error and its associated details.
     public var description: String {
-        "Client error - operationID: \(operationID), operationInput: \(String(describing: operationInput)), request: \(request?.prettyDescription ?? "<nil>"), requestBody: \(requestBody?.prettyDescription ?? "<nil>"), baseURL: \(baseURL?.absoluteString ?? "<nil>"), response: \(response?.prettyDescription ?? "<nil>"), responseBody: \(responseBody?.prettyDescription ?? "<nil>") , underlying error: \(underlyingErrorDescription)"
+        "Client error - cause description: '\(causeDescription)', underlying error: \(underlyingErrorDescription), operationID: \(operationID), operationInput: \(String(describing: operationInput)), request: \(request?.prettyDescription ?? "<nil>"), requestBody: \(requestBody?.prettyDescription ?? "<nil>"), baseURL: \(baseURL?.absoluteString ?? "<nil>"), response: \(response?.prettyDescription ?? "<nil>"), responseBody: \(responseBody?.prettyDescription ?? "<nil>")"
     }
 }
 

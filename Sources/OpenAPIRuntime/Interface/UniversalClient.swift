@@ -90,19 +90,20 @@ import Foundation
         serializer: @Sendable (OperationInput) throws -> (HTTPRequest, HTTPBody?),
         deserializer: @Sendable (HTTPResponse, HTTPBody?) async throws -> OperationOutput
     ) async throws -> OperationOutput where OperationInput: Sendable, OperationOutput: Sendable {
-        @Sendable
-        func wrappingErrors<R>(
+        @Sendable func wrappingErrors<R>(
             work: () async throws -> R,
             mapError: (any Error) -> any Error
         ) async throws -> R {
             do {
                 return try await work()
+            } catch let error as ClientError {
+                throw error
             } catch {
                 throw mapError(error)
             }
         }
         let baseURL = serverURL
-        func makeError(
+        @Sendable func makeError(
             request: HTTPRequest? = nil,
             requestBody: HTTPBody? = nil,
             baseURL: URL? = nil,
@@ -110,7 +111,24 @@ import Foundation
             responseBody: HTTPBody? = nil,
             error: any Error
         ) -> any Error {
-            ClientError(
+            if var error = error as? ClientError {
+                error.request = error.request ?? request
+                error.requestBody = error.requestBody ?? requestBody
+                error.baseURL = error.baseURL ?? baseURL
+                error.response = error.response ?? response
+                error.responseBody = error.responseBody ?? responseBody
+                return error
+            }
+            let causeDescription: String
+            let underlyingError: any Error
+            if let runtimeError = error as? RuntimeError {
+                causeDescription = runtimeError.prettyDescription
+                underlyingError = runtimeError.underlyingError ?? error
+            } else {
+                causeDescription = "Unknown"
+                underlyingError = error
+            }
+            return ClientError(
                 operationID: operationID,
                 operationInput: input,
                 request: request,
@@ -118,7 +136,8 @@ import Foundation
                 baseURL: baseURL,
                 response: response,
                 responseBody: responseBody,
-                underlyingError: error
+                causeDescription: causeDescription,
+                underlyingError: underlyingError
             )
         }
         let (request, requestBody): (HTTPRequest, HTTPBody?) = try await wrappingErrors {
@@ -126,40 +145,61 @@ import Foundation
         } mapError: { error in
             makeError(error: error)
         }
-        let (response, responseBody): (HTTPResponse, HTTPBody?) = try await wrappingErrors {
-            var next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?) = {
+        var next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?) = {
+            (_request, _body, _url) in
+            try await wrappingErrors {
+                try await transport.send(
+                    _request,
+                    body: _body,
+                    baseURL: _url,
+                    operationID: operationID
+                )
+            } mapError: { error in
+                makeError(
+                    request: request,
+                    requestBody: requestBody,
+                    baseURL: baseURL,
+                    error: RuntimeError.transportFailed(error)
+                )
+            }
+        }
+        for middleware in middlewares.reversed() {
+            let tmp = next
+            next = {
                 (_request, _body, _url) in
                 try await wrappingErrors {
-                    try await transport.send(
+                    try await middleware.intercept(
                         _request,
                         body: _body,
                         baseURL: _url,
-                        operationID: operationID
-                    )
-                } mapError: { error in
-                    RuntimeError.transportFailed(error)
-                }
-            }
-            for middleware in middlewares.reversed() {
-                let tmp = next
-                next = {
-                    try await middleware.intercept(
-                        $0,
-                        body: $1,
-                        baseURL: $2,
                         operationID: operationID,
                         next: tmp
                     )
+                } mapError: { error in
+                    makeError(
+                        request: request,
+                        requestBody: requestBody,
+                        baseURL: baseURL,
+                        error: RuntimeError.middlewareFailed(
+                            middlewareType: type(of: middleware),
+                            error
+                        )
+                    )
                 }
             }
-            return try await next(request, requestBody, baseURL)
-        } mapError: { error in
-            makeError(request: request, baseURL: baseURL, error: error)
         }
+        let (response, responseBody): (HTTPResponse, HTTPBody?) = try await next(request, requestBody, baseURL)
         return try await wrappingErrors {
             try await deserializer(response, responseBody)
         } mapError: { error in
-            makeError(request: request, baseURL: baseURL, response: response, error: error)
+            makeError(
+                request: request,
+                requestBody: requestBody,
+                baseURL: baseURL,
+                response: response,
+                responseBody: responseBody,
+                error: error
+            )
         }
     }
 }

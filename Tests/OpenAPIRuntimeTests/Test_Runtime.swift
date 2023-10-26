@@ -155,6 +155,51 @@ class Test_Runtime: XCTestCase {
     }
 }
 
+struct TestError: Error, Equatable {}
+
+struct MockMiddleware: ClientMiddleware, ServerMiddleware {
+    enum FailurePhase {
+        case never
+        case onRequest
+        case onResponse
+    }
+    var failurePhase: FailurePhase = .never
+
+    func intercept(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        baseURL: URL,
+        operationID: String,
+        next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        if failurePhase == .onRequest {
+            throw TestError()
+        }
+        let (response, responseBody) = try await next(request, body, baseURL)
+        if failurePhase == .onResponse {
+            throw TestError()
+        }
+        return (response, responseBody)
+    }
+
+    func intercept(
+        _ request: HTTPRequest,
+        body: HTTPBody?,
+        metadata: ServerRequestMetadata,
+        operationID: String,
+        next: (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?)
+    ) async throws -> (HTTPResponse, HTTPBody?) {
+        if failurePhase == .onRequest {
+            throw TestError()
+        }
+        let (response, responseBody) = try await next(request, body, metadata)
+        if failurePhase == .onResponse {
+            throw TestError()
+        }
+        return (response, responseBody)
+    }
+}
+
 /// Asserts that a given URL's absolute string representation is equal to an expected string.
 ///
 /// - Parameters:
