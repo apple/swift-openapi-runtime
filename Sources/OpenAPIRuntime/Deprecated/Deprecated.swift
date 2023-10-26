@@ -68,8 +68,6 @@ extension ServerError {
     ///   - requestMetadata: The request metadata extracted by the server.
     ///   - operationInput: An operation-specific Input value.
     ///   - operationOutput: An operation-specific Output value.
-    ///   - causeDescription: A user-facing description of what caused
-    ///     the underlying error to be thrown.
     ///   - underlyingError: The underlying error that caused the operation
     ///     to fail.
     @available(
