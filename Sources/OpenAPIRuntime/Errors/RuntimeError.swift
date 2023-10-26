@@ -19,6 +19,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 
     // Miscs
     case invalidServerURL(String)
+    case invalidServerVariableValue(name: String, value: String, allowedValues: [String])
     case invalidExpectedContentType(String)
     case invalidHeaderFieldName(String)
     case invalidBase64String(String)
@@ -83,6 +84,9 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
         switch self {
         case .invalidServerURL(let string):
             return "Invalid server URL: \(string)"
+        case .invalidServerVariableValue(name: let name, value: let value, allowedValues: let allowedValues):
+            return
+                "Invalid server variable named: '\(name)', which has the value: '\(value)', but the only allowed values are: \(allowedValues.map { "'\($0)'" }.joined(separator: ", "))"
         case .invalidExpectedContentType(let string):
             return "Invalid expected content type: '\(string)'"
         case .invalidHeaderFieldName(let name):
