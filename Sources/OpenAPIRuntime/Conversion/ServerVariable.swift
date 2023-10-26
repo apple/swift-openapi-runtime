@@ -51,7 +51,7 @@ extension URL {
 
 /// A variable of a server URL template in the OpenAPI document.
 @_spi(Generated)
-public struct ServerVariable {
+public struct ServerVariable: Sendable, Hashable {
 
     /// The name of the variable.
     public var name: String
