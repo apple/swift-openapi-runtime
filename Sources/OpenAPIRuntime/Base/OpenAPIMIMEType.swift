@@ -279,7 +279,7 @@ extension OpenAPIMIMEType {
 
             // According to RFC 2045: https://www.rfc-editor.org/rfc/rfc2045#section-5.1
             // "Type, subtype, and parameter names are case-insensitive."
-            // Inferred: Parameter values are be case-sensitive.
+            // Inferred: Parameter values are case-sensitive.
 
             let receivedNormalizedParameters = Dictionary(
                 uniqueKeysWithValues: receivedParameters.map { ($0.key.lowercased(), $0.value) }
