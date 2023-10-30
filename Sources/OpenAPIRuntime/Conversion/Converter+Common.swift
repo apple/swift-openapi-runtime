@@ -29,45 +29,51 @@ extension Converter {
         return OpenAPIMIMEType(rawValue)
     }
 
-    /// Checks whether a concrete content type matches an expected content type.
-    ///
-    /// The concrete content type can contain parameters, such as `charset`, but
-    /// they are ignored in the equality comparison.
-    ///
-    /// The expected content type can contain wildcards, such as */* and text/*.
+    /// Chooses the most appropriate content type for the provided received
+    /// content type and a list of options.
     /// - Parameters:
-    ///   - received: The concrete content type to validate against the other.
-    ///   - expectedRaw: The expected content type, can contain wildcards.
-    /// - Throws: A `RuntimeError` when `expectedRaw` is not a valid content type.
-    /// - Returns: A Boolean value representing whether the concrete content
-    /// type matches the expected one.
-    public func isMatchingContentType(received: OpenAPIMIMEType?, expectedRaw: String) throws -> Bool {
-        guard let received else {
-            return false
+    ///   - received: The received content type.
+    ///   - options: The options to match against.
+    /// - Returns: The most appropriate option.
+    /// - Throws: If none of the options match the received content type.
+    /// - Precondition: `options` must not be empty.
+    public func bestContentType(
+        received: OpenAPIMIMEType?,
+        options: [String]
+    ) throws -> String {
+        precondition(!options.isEmpty, "bestContentType options must not be empty.")
+        guard
+            let received,
+            case let .concrete(type: receivedType, subtype: receivedSubtype) = received.kind
+        else {
+            // If none received or if we received a wildcard, use the first one.
+            // This behavior isn't well defined by the OpenAPI specification.
+            // Note: We treat a partial wildcard, like `image/*` as a full
+            // wildcard `*/*`, but that's okay because for a concrete received
+            // content type the behavior of a wildcard is not clearly defined
+            // either.
+            return options[0]
         }
-        guard case let .concrete(type: receivedType, subtype: receivedSubtype) = received.kind else {
-            return false
+        let evaluatedOptions = try options.map { stringOption in
+            guard let parsedOption = OpenAPIMIMEType(stringOption) else {
+                throw RuntimeError.invalidExpectedContentType(stringOption)
+            }
+            let match = OpenAPIMIMEType.evaluate(
+                receivedType: receivedType,
+                receivedSubtype: receivedSubtype,
+                receivedParameters: received.parameters,
+                against: parsedOption
+            )
+            return (contentType: stringOption, match: match)
         }
-        guard let expectedContentType = OpenAPIMIMEType(expectedRaw) else {
-            throw RuntimeError.invalidExpectedContentType(expectedRaw)
+        let bestOption = evaluatedOptions.max { a, b in
+            a.match.score < b.match.score
+        }!  // Safe, we only get here if the array is not empty.
+        let bestContentType = bestOption.contentType
+        if case .incompatible = bestOption.match {
+            throw RuntimeError.unexpectedContentTypeHeader(bestContentType)
         }
-        switch expectedContentType.kind {
-        case .any:
-            return true
-        case .anySubtype(let expectedType):
-            return receivedType.lowercased() == expectedType.lowercased()
-        case .concrete(let expectedType, let expectedSubtype):
-            return receivedType.lowercased() == expectedType.lowercased()
-                && receivedSubtype.lowercased() == expectedSubtype.lowercased()
-        }
-    }
-
-    /// Returns an error to be thrown when an unexpected content type is
-    /// received.
-    /// - Parameter contentType: The content type that was received.
-    /// - Returns: An error representing an unexpected content type.
-    public func makeUnexpectedContentTypeError(contentType: OpenAPIMIMEType?) -> any Error {
-        RuntimeError.unexpectedContentTypeHeader(contentType?.description ?? "")
+        return bestContentType
     }
 
     // MARK: - Converter helper methods

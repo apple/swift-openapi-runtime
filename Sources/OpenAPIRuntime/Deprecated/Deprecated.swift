@@ -99,6 +99,51 @@ extension ServerError {
     }
 }
 
+extension Converter {
+    /// Returns an error to be thrown when an unexpected content type is
+    /// received.
+    /// - Parameter contentType: The content type that was received.
+    /// - Returns: An error representing an unexpected content type.
+    @available(*, deprecated)
+    public func makeUnexpectedContentTypeError(contentType: OpenAPIMIMEType?) -> any Error {
+        RuntimeError.unexpectedContentTypeHeader(contentType?.description ?? "")
+    }
+
+    /// Checks whether a concrete content type matches an expected content type.
+    ///
+    /// The concrete content type can contain parameters, such as `charset`, but
+    /// they are ignored in the equality comparison.
+    ///
+    /// The expected content type can contain wildcards, such as */* and text/*.
+    /// - Parameters:
+    ///   - received: The concrete content type to validate against the other.
+    ///   - expectedRaw: The expected content type, can contain wildcards.
+    /// - Throws: A `RuntimeError` when `expectedRaw` is not a valid content type.
+    /// - Returns: A Boolean value representing whether the concrete content
+    /// type matches the expected one.
+    @available(*, deprecated)
+    public func isMatchingContentType(received: OpenAPIMIMEType?, expectedRaw: String) throws -> Bool {
+        guard let received else {
+            return false
+        }
+        guard case let .concrete(type: receivedType, subtype: receivedSubtype) = received.kind else {
+            return false
+        }
+        guard let expectedContentType = OpenAPIMIMEType(expectedRaw) else {
+            throw RuntimeError.invalidExpectedContentType(expectedRaw)
+        }
+        switch expectedContentType.kind {
+        case .any:
+            return true
+        case .anySubtype(let expectedType):
+            return receivedType.lowercased() == expectedType.lowercased()
+        case .concrete(let expectedType, let expectedSubtype):
+            return receivedType.lowercased() == expectedType.lowercased()
+                && receivedSubtype.lowercased() == expectedSubtype.lowercased()
+        }
+    }
+}
+
 extension DecodingError {
     /// Returns a decoding error used by the oneOf decoder when not a single
     /// child schema decodes the received payload.
