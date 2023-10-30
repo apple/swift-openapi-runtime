@@ -67,8 +67,6 @@ extension DecodingError {
     /// Returns a decoding error used by the oneOf decoder when
     /// the discriminator property contains an unknown schema name.
     /// - Parameters:
-    ///   - type: The type representing the oneOf schema in which the decoding
-    ///   occurred.
     ///   - discriminatorKey: The discriminator coding key.
     ///   - discriminatorValue: The unknown value of the discriminator.
     ///   - codingPath: The coding path to the decoder that attempted to decode
