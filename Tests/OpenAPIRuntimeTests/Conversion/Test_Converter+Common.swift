@@ -100,7 +100,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
                 options: [
                     "whoops"
                 ],
-                expected: "application/json"
+                expected: "-"
             )
         )
         XCTAssertThrowsError(
@@ -110,7 +110,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
                     "text/plain",
                     "image/*",
                 ],
-                expected: "application/json"
+                expected: "-"
             )
         )
         try testCase(

@@ -66,10 +66,9 @@ extension Converter {
             )
             return (contentType: stringOption, match: match)
         }
-        let sortedOptions = evaluatedOptions.sorted { a, b in
-            a.match.score > b.match.score
-        }
-        let bestOption = sortedOptions[0]
+        let bestOption = evaluatedOptions.max { a, b in
+            a.match.score < b.match.score
+        }!  // Safe, we only get here if the array is not empty.
         let bestContentType = bestOption.contentType
         if case .incompatible = bestOption.match {
             throw RuntimeError.unexpectedContentTypeHeader(bestContentType)
