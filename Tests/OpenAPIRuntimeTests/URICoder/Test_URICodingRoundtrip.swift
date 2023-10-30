@@ -50,22 +50,30 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 self.value3 = value3
             }
             init(from decoder: any Decoder) throws {
+                var errors: [any Error] = []
                 do {
                     let container = try decoder.singleValueContainer()
-                    value1 = try? container.decode(Foundation.Date.self)
+                    value1 = try container.decode(Foundation.Date.self)
+                } catch {
+                    errors.append(error)
                 }
                 do {
                     let container = try decoder.singleValueContainer()
-                    value2 = try? container.decode(SimpleEnum.self)
+                    value2 = try container.decode(SimpleEnum.self)
+                } catch {
+                    errors.append(error)
                 }
                 do {
                     let container = try decoder.singleValueContainer()
-                    value3 = try? container.decode(TrivialStruct.self)
+                    value3 = try container.decode(TrivialStruct.self)
+                } catch {
+                    errors.append(error)
                 }
                 try DecodingError.verifyAtLeastOneSchemaIsNotNil(
                     [value1, value2, value3],
                     type: Self.self,
-                    codingPath: decoder.codingPath
+                    codingPath: decoder.codingPath,
+                    errors: errors
                 )
             }
             func encode(to encoder: any Encoder) throws {
