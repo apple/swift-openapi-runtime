@@ -187,3 +187,115 @@ extension OpenAPIMIMEType: LosslessStringConvertible {
             .joined(separator: "; ")
     }
 }
+
+// MARK: - Internals
+
+extension OpenAPIMIMEType {
+
+    /// The result of a match evaluation between two MIME types.
+    enum Match: Hashable {
+
+        /// The reason why two types are incompatible.
+        enum IncompatibilityReason: Hashable {
+
+            /// The types don't match.
+            case type
+
+            /// The subtypes don't match.
+            case subtype
+
+            /// The parameter of the provided name is missing or doesn't match.
+            case parameter(name: String)
+        }
+
+        /// The types are incompatible for the provided reason.
+        case incompatible(IncompatibilityReason)
+
+        /// The types match based on a full wildcard `*/*`.
+        case wildcard
+
+        /// The types match based on a subtype wildcard, such as `image/*`.
+        case subtypeWildcard
+
+        /// The types match across the type, subtype, and the provided number
+        /// of parameters.
+        case typeAndSubtype(matchedParameterCount: Int)
+
+        /// A numeric representation of the quality of the match, the higher
+        /// the closer the types are.
+        var score: Int {
+            switch self {
+            case .incompatible:
+                return 0
+            case .wildcard:
+                return 1
+            case .subtypeWildcard:
+                return 2
+            case .typeAndSubtype(let matchedParameterCount):
+                return 3 + matchedParameterCount
+            }
+        }
+    }
+
+    /// Computes whether two MIME types match.
+    /// - Parameters:
+    ///   - receivedType: The type component of the received MIME type.
+    ///   - receivedSubtype: The subtype component of the received MIME type.
+    ///   - receivedParameters: The parameters of the received MIME type.
+    ///   - option: The MIME type to match against.
+    /// - Returns: The match result.
+    static func evaluate(
+        receivedType: String,
+        receivedSubtype: String,
+        receivedParameters: [String: String],
+        against option: OpenAPIMIMEType
+    ) -> Match {
+        switch option.kind {
+        case .any:
+            return .wildcard
+        case .anySubtype(let expectedType):
+            guard receivedType.lowercased() == expectedType.lowercased() else {
+                return .incompatible(.type)
+            }
+            return .subtypeWildcard
+        case .concrete(let expectedType, let expectedSubtype):
+            guard
+                receivedType.lowercased() == expectedType.lowercased()
+                    && receivedSubtype.lowercased() == expectedSubtype.lowercased()
+            else {
+                return .incompatible(.subtype)
+            }
+
+            // A full concrete match, so also check parameters.
+            // The rule is:
+            //   1. If a received parameter is not found in the option,
+            //      that's okay and gets ignored.
+            //   2. If an option parameter is not received, this is an
+            //      incompatible content type match.
+            // This means we can just iterate over option parameters and
+            // check them against the received parameters, but we can
+            // ignore any received parameters that didn't appear in the
+            // option parameters.
+
+            // According to RFC 2045: https://www.rfc-editor.org/rfc/rfc2045#section-5.1
+            // "Type, subtype, and parameter names are case-insensitive."
+            // Inferred: Parameter values are case-sensitive.
+
+            let receivedNormalizedParameters = Dictionary(
+                uniqueKeysWithValues: receivedParameters.map { ($0.key.lowercased(), $0.value) }
+            )
+            var matchedParameterCount = 0
+            for optionParameter in option.parameters {
+                let normalizedParameterName = optionParameter.key.lowercased()
+                guard
+                    let receivedValue = receivedNormalizedParameters[normalizedParameterName],
+                    receivedValue == optionParameter.value
+                else {
+                    return .incompatible(.parameter(name: normalizedParameterName))
+                }
+                matchedParameterCount += 1
+            }
+            return .typeAndSubtype(matchedParameterCount: matchedParameterCount)
+        }
+    }
+}

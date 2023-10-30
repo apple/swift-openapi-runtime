@@ -12,10 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-@_spi(Generated) import OpenAPIRuntime
+@_spi(Generated) @testable import OpenAPIRuntime
 
 final class Test_OpenAPIMIMEType: Test_Runtime {
-    func test() throws {
+    func testParsing() throws {
         let cases: [(String, OpenAPIMIMEType?, String?)] = [
 
             // Common
@@ -86,5 +86,93 @@ final class Test_OpenAPIMIMEType: Test_Runtime {
             XCTAssertEqual(mime, expectedMIME)
             XCTAssertEqual(mime?.description, outputString)
         }
+    }
+
+    func testScore() throws {
+        let cases: [(OpenAPIMIMEType.Match, Int)] = [
+
+            (.incompatible(.type), 0),
+            (.incompatible(.subtype), 0),
+            (.incompatible(.parameter(name: "foo")), 0),
+
+            (.wildcard, 1),
+
+            (.subtypeWildcard, 2),
+
+            (.typeAndSubtype(matchedParameterCount: 0), 3),
+            (.typeAndSubtype(matchedParameterCount: 2), 5),
+        ]
+        for (match, score) in cases {
+            XCTAssertEqual(match.score, score, "Mismatch for match: \(match)")
+        }
+    }
+
+    func testEvaluate() throws {
+        func testCase(
+            receivedType: String,
+            receivedSubtype: String,
+            receivedParameters: [String: String],
+            against option: OpenAPIMIMEType,
+            expected expectedMatch: OpenAPIMIMEType.Match,
+            file: StaticString = #file,
+            line: UInt = #line
+        ) {
+            let result = OpenAPIMIMEType.evaluate(
+                receivedType: receivedType,
+                receivedSubtype: receivedSubtype,
+                receivedParameters: receivedParameters,
+                against: option
+            )
+            XCTAssertEqual(result, expectedMatch, file: file, line: line)
+        }
+
+        let jsonWith2Params = OpenAPIMIMEType("application/json; charset=utf-8; version=1")!
+        let jsonWith1Param = OpenAPIMIMEType("application/json; charset=utf-8")!
+        let json = OpenAPIMIMEType("application/json")!
+        let fullWildcard = OpenAPIMIMEType("*/*")!
+        let subtypeWildcard = OpenAPIMIMEType("application/*")!
+
+        func testJSONWith2Params(
+            against option: OpenAPIMIMEType,
+            expected expectedMatch: OpenAPIMIMEType.Match,
+            file: StaticString = #file,
+            line: UInt = #line
+        ) {
+            testCase(
+                receivedType: "application",
+                receivedSubtype: "json",
+                receivedParameters: [
+                    "charset": "utf-8",
+                    "version": "1",
+                ],
+                against: option,
+                expected: expectedMatch,
+                file: file,
+                line: line
+            )
+        }
+
+        // Actual test cases start here.
+
+        testJSONWith2Params(
+            against: jsonWith2Params,
+            expected: .typeAndSubtype(matchedParameterCount: 2)
+        )
+        testJSONWith2Params(
+            against: jsonWith1Param,
+            expected: .typeAndSubtype(matchedParameterCount: 1)
+        )
+        testJSONWith2Params(
+            against: json,
+            expected: .typeAndSubtype(matchedParameterCount: 0)
+        )
+        testJSONWith2Params(
+            against: subtypeWildcard,
+            expected: .subtypeWildcard
+        )
+        testJSONWith2Params(
+            against: fullWildcard,
+            expected: .wildcard
+        )
     }
 }

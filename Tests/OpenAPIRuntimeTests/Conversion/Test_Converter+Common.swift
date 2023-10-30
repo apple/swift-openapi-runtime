@@ -25,6 +25,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
 
     // MARK: Miscs
 
+    @available(*, deprecated)
     func testContentTypeMatching() throws {
         let cases: [(received: String, expected: String, isMatch: Bool)] = [
             ("application/json", "application/json", true),
@@ -52,6 +53,153 @@ final class Test_CommonConverterExtensions: Test_Runtime {
                 "Wrong result for (\(testCase.received), \(testCase.expected), \(testCase.isMatch))"
             )
         }
+    }
+
+    func testBestContentType() throws {
+        func testCase(
+            received: String?,
+            options: [String],
+            expected expectedChoice: String,
+            file: StaticString = #file,
+            line: UInt = #line
+        ) throws {
+            let choice = try converter.bestContentType(
+                received: received.map { .init($0)! },
+                options: options
+            )
+            XCTAssertEqual(choice, expectedChoice, file: file, line: line)
+        }
+
+        try testCase(
+            received: nil,
+            options: [
+                "application/json",
+                "*/*",
+            ],
+            expected: "application/json"
+        )
+        try testCase(
+            received: "*/*",
+            options: [
+                "application/json",
+                "*/*",
+            ],
+            expected: "application/json"
+        )
+        try testCase(
+            received: "application/*",
+            options: [
+                "application/json",
+                "*/*",
+            ],
+            expected: "application/json"
+        )
+        XCTAssertThrowsError(
+            try testCase(
+                received: "application/json",
+                options: [
+                    "whoops"
+                ],
+                expected: "-"
+            )
+        )
+        XCTAssertThrowsError(
+            try testCase(
+                received: "application/json",
+                options: [
+                    "text/plain",
+                    "image/*",
+                ],
+                expected: "-"
+            )
+        )
+        try testCase(
+            received: "application/json; charset=utf-8; version=1",
+            options: [
+                "*/*",
+                "application/*",
+                "application/json",
+                "application/json; charset=utf-8",
+                "application/json; charset=utf-8; version=1",
+            ],
+            expected: "application/json; charset=utf-8; version=1"
+        )
+        try testCase(
+            received: "application/json; version=1; CHARSET=utf-8",
+            options: [
+                "*/*",
+                "application/*",
+                "application/json",
+                "application/json; charset=utf-8",
+                "application/json; charset=utf-8; version=1",
+            ],
+            expected: "application/json; charset=utf-8; version=1"
+        )
+        try testCase(
+            received: "application/json",
+            options: [
+                "application/json; charset=utf-8",
+                "application/json; charset=utf-8; version=1",
+                "*/*",
+                "application/*",
+                "application/json",
+            ],
+            expected: "application/json"
+        )
+        try testCase(
+            received: "application/json; charset=utf-8",
+            options: [
+                "application/json; charset=utf-8; version=1",
+                "*/*",
+                "application/*",
+                "application/json",
+            ],
+            expected: "application/json"
+        )
+        try testCase(
+            received: "application/json; charset=utf-8; version=1",
+            options: [
+                "*/*",
+                "application/*",
+                "application/json; charset=utf-8",
+                "application/json",
+            ],
+            expected: "application/json; charset=utf-8"
+        )
+        try testCase(
+            received: "application/json; charset=utf-8; version=1",
+            options: [
+                "*/*",
+                "application/*",
+            ],
+            expected: "application/*"
+        )
+        try testCase(
+            received: "application/json; charset=utf-8; version=1",
+            options: [
+                "*/*"
+            ],
+            expected: "*/*"
+        )
+
+        try testCase(
+            received: "image/png",
+            options: [
+                "image/*",
+                "*/*",
+            ],
+            expected: "image/*"
+        )
+        XCTAssertThrowsError(
+            try testCase(
+                received: "text/csv",
+                options: [
+                    "text/html",
+                    "application/json",
+                ],
+                expected: "-"
+            )
+        )
     }
 
     // MARK: Converter helper methods
