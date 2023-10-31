@@ -41,9 +41,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
     /// Creates a new container with the given validated value.
     /// - Parameter value: A value of a JSON-compatible type, such as `String`,
     /// `[Any]`, and `[String: Any]`.
-    init(validatedValue value: (any Sendable)?) {
-        self.value = value
-    }
+    init(validatedValue value: (any Sendable)?) { self.value = value }
 
     /// Creates a new container with the given unvalidated value.
     ///
@@ -63,24 +61,13 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
     /// - Returns: A cast value if supported.
     /// - Throws: When the value is not supported.
     static func tryCast(_ value: (any Sendable)?) throws -> (any Sendable)? {
-        guard let value = value else {
-            return nil
-        }
-        if let array = value as? [(any Sendable)?] {
-            return try array.map(tryCast(_:))
-        }
-        if let dictionary = value as? [String: (any Sendable)?] {
-            return try dictionary.mapValues(tryCast(_:))
-        }
-        if let value = tryCastPrimitiveType(value) {
-            return value
-        }
+        guard let value = value else { return nil }
+        if let array = value as? [(any Sendable)?] { return try array.map(tryCast(_:)) }
+        if let dictionary = value as? [String: (any Sendable)?] { return try dictionary.mapValues(tryCast(_:)) }
+        if let value = tryCastPrimitiveType(value) { return value }
         throw EncodingError.invalidValue(
             value,
-            .init(
-                codingPath: [],
-                debugDescription: "Type '\(type(of: value))' is not a supported OpenAPI value."
-            )
+            .init(codingPath: [], debugDescription: "Type '\(type(of: value))' is not a supported OpenAPI value.")
         )
     }
 
@@ -89,10 +76,8 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
     /// - Returns: A cast value if supported, nil otherwise.
     static func tryCastPrimitiveType(_ value: any Sendable) -> (any Sendable)? {
         switch value {
-        case is String, is Int, is Bool, is Double:
-            return value
-        default:
-            return nil
+        case is String, is Int, is Bool, is Double: return value
+        default: return nil
         }
     }
 
@@ -139,14 +124,10 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             return
         }
         switch value {
-        case let value as Bool:
-            try container.encode(value)
-        case let value as Int:
-            try container.encode(value)
-        case let value as Double:
-            try container.encode(value)
-        case let value as String:
-            try container.encode(value)
+        case let value as Bool: try container.encode(value)
+        case let value as Int: try container.encode(value)
+        case let value as Double: try container.encode(value)
+        case let value as String: try container.encode(value)
         case let value as [(any Sendable)?]:
             try container.encode(value.map(OpenAPIValueContainer.init(validatedValue:)))
         case let value as [String: (any Sendable)?]:
@@ -169,47 +150,30 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
     /// - Returns: `true` if the two instances are equal, `false` otherwise.
     public static func == (lhs: OpenAPIValueContainer, rhs: OpenAPIValueContainer) -> Bool {
         switch (lhs.value, rhs.value) {
-        case (nil, nil), is (Void, Void):
-            return true
-        case let (lhs as Bool, rhs as Bool):
-            return lhs == rhs
-        case let (lhs as Int, rhs as Int):
-            return lhs == rhs
-        case let (lhs as Int64, rhs as Int64):
-            return lhs == rhs
-        case let (lhs as Int32, rhs as Int32):
-            return lhs == rhs
-        case let (lhs as Float, rhs as Float):
-            return lhs == rhs
-        case let (lhs as Double, rhs as Double):
-            return lhs == rhs
-        case let (lhs as String, rhs as String):
-            return lhs == rhs
+        case (nil, nil), is (Void, Void): return true
+        case let (lhs as Bool, rhs as Bool): return lhs == rhs
+        case let (lhs as Int, rhs as Int): return lhs == rhs
+        case let (lhs as Int64, rhs as Int64): return lhs == rhs
+        case let (lhs as Int32, rhs as Int32): return lhs == rhs
+        case let (lhs as Float, rhs as Float): return lhs == rhs
+        case let (lhs as Double, rhs as Double): return lhs == rhs
+        case let (lhs as String, rhs as String): return lhs == rhs
         case let (lhs as [(any Sendable)?], rhs as [(any Sendable)?]):
-            guard lhs.count == rhs.count else {
-                return false
-            }
+            guard lhs.count == rhs.count else { return false }
             return zip(lhs, rhs)
                 .allSatisfy { lhs, rhs in
                     OpenAPIValueContainer(validatedValue: lhs) == OpenAPIValueContainer(validatedValue: rhs)
                 }
         case let (lhs as [String: (any Sendable)?], rhs as [String: (any Sendable)?]):
-            guard lhs.count == rhs.count else {
-                return false
-            }
-            guard Set(lhs.keys) == Set(rhs.keys) else {
-                return false
-            }
+            guard lhs.count == rhs.count else { return false }
+            guard Set(lhs.keys) == Set(rhs.keys) else { return false }
             for key in lhs.keys {
                 guard
                     OpenAPIValueContainer(validatedValue: lhs[key]!) == OpenAPIValueContainer(validatedValue: rhs[key]!)
-                else {
-                    return false
-                }
+                else { return false }
             }
             return true
-        default:
-            return false
+        default: return false
         }
     }
 
@@ -220,25 +184,18 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
     /// - Parameter hasher: The hasher used to compute the hash value.
     public func hash(into hasher: inout Hasher) {
         switch value {
-        case let value as Bool:
-            hasher.combine(value)
-        case let value as Int:
-            hasher.combine(value)
-        case let value as Double:
-            hasher.combine(value)
-        case let value as String:
-            hasher.combine(value)
+        case let value as Bool: hasher.combine(value)
+        case let value as Int: hasher.combine(value)
+        case let value as Double: hasher.combine(value)
+        case let value as String: hasher.combine(value)
         case let value as [(any Sendable)?]:
-            for item in value {
-                hasher.combine(OpenAPIValueContainer(validatedValue: item))
-            }
+            for item in value { hasher.combine(OpenAPIValueContainer(validatedValue: item)) }
         case let value as [String: (any Sendable)?]:
             for (key, itemValue) in value {
                 hasher.combine(key)
                 hasher.combine(OpenAPIValueContainer(validatedValue: itemValue))
             }
-        default:
-            break
+        default: break
         }
     }
 }
@@ -247,45 +204,35 @@ extension OpenAPIValueContainer: ExpressibleByBooleanLiteral {
     /// Creates an `OpenAPIValueContainer` with the provided boolean value.
     ///
     /// - Parameter value: The boolean value to store in the container.
-    public init(booleanLiteral value: BooleanLiteralType) {
-        self.init(validatedValue: value)
-    }
+    public init(booleanLiteral value: BooleanLiteralType) { self.init(validatedValue: value) }
 }
 
 extension OpenAPIValueContainer: ExpressibleByStringLiteral {
     /// Creates an `OpenAPIValueContainer` with the provided string value.
     ///
     /// - Parameter value: The string value to store in the container.
-    public init(stringLiteral value: String) {
-        self.init(validatedValue: value)
-    }
+    public init(stringLiteral value: String) { self.init(validatedValue: value) }
 }
 
 extension OpenAPIValueContainer: ExpressibleByNilLiteral {
     /// Creates an `OpenAPIValueContainer` with a `nil` value.
     ///
     /// - Parameter nilLiteral: The `nil` literal.
-    public init(nilLiteral: ()) {
-        self.init(validatedValue: nil)
-    }
+    public init(nilLiteral: ()) { self.init(validatedValue: nil) }
 }
 
 extension OpenAPIValueContainer: ExpressibleByIntegerLiteral {
     /// Creates an `OpenAPIValueContainer` with the provided integer value.
     ///
     /// - Parameter value: The integer value to store in the container.
-    public init(integerLiteral value: Int) {
-        self.init(validatedValue: value)
-    }
+    public init(integerLiteral value: Int) { self.init(validatedValue: value) }
 }
 
 extension OpenAPIValueContainer: ExpressibleByFloatLiteral {
     /// Creates an `OpenAPIValueContainer` with the provided floating-point value.
     ///
     /// - Parameter value: The floating-point value to store in the container.
-    public init(floatLiteral value: Double) {
-        self.init(validatedValue: value)
-    }
+    public init(floatLiteral value: Double) { self.init(validatedValue: value) }
 }
 
 /// A container for a dictionary with values represented by JSON Schema.
@@ -317,14 +264,10 @@ public struct OpenAPIObjectContainer: Codable, Hashable, Sendable {
 
     /// Creates a new container with the given validated dictionary.
     /// - Parameter value: A dictionary value.
-    init(validatedValue value: [String: (any Sendable)?]) {
-        self.value = value
-    }
+    init(validatedValue value: [String: (any Sendable)?]) { self.value = value }
 
     /// Creates a new empty container.
-    public init() {
-        self.init(validatedValue: [:])
-    }
+    public init() { self.init(validatedValue: [:]) }
 
     /// Creates a new container with the given unvalidated value.
     ///
@@ -344,7 +287,7 @@ public struct OpenAPIObjectContainer: Codable, Hashable, Sendable {
     /// - Returns: A cast dictionary if values are supported.
     /// - Throws: If an unsupported value is found.
     static func tryCast(_ value: [String: (any Sendable)?]) throws -> [String: (any Sendable)?] {
-        return try value.mapValues(OpenAPIValueContainer.tryCast(_:))
+        try value.mapValues(OpenAPIValueContainer.tryCast(_:))
     }
 
     // MARK: Decodable
@@ -382,17 +325,11 @@ public struct OpenAPIObjectContainer: Codable, Hashable, Sendable {
     public static func == (lhs: OpenAPIObjectContainer, rhs: OpenAPIObjectContainer) -> Bool {
         let lv = lhs.value
         let rv = rhs.value
-        guard lv.count == rv.count else {
-            return false
-        }
-        guard Set(lv.keys) == Set(rv.keys) else {
-            return false
-        }
+        guard lv.count == rv.count else { return false }
+        guard Set(lv.keys) == Set(rv.keys) else { return false }
         for key in lv.keys {
             guard OpenAPIValueContainer(validatedValue: lv[key]!) == OpenAPIValueContainer(validatedValue: rv[key]!)
-            else {
-                return false
-            }
+            else { return false }
         }
         return true
     }
@@ -439,14 +376,10 @@ public struct OpenAPIArrayContainer: Codable, Hashable, Sendable {
 
     /// Creates a new container with the given validated array.
     /// - Parameter value: An array value.
-    init(validatedValue value: [(any Sendable)?]) {
-        self.value = value
-    }
+    init(validatedValue value: [(any Sendable)?]) { self.value = value }
 
     /// Creates a new empty container.
-    public init() {
-        self.init(validatedValue: [])
-    }
+    public init() { self.init(validatedValue: []) }
 
     /// Creates a new container with the given unvalidated value.
     ///
@@ -466,7 +399,7 @@ public struct OpenAPIArrayContainer: Codable, Hashable, Sendable {
     /// - Returns: A cast value if values are supported, nil otherwise.
     /// - Throws: An error if casting to supported values fails for any element.
     static func tryCast(_ value: [(any Sendable)?]) throws -> [(any Sendable)?] {
-        return try value.map(OpenAPIValueContainer.tryCast(_:))
+        try value.map(OpenAPIValueContainer.tryCast(_:))
     }
 
     // MARK: Decodable
@@ -503,9 +436,7 @@ public struct OpenAPIArrayContainer: Codable, Hashable, Sendable {
     public static func == (lhs: OpenAPIArrayContainer, rhs: OpenAPIArrayContainer) -> Bool {
         let lv = lhs.value
         let rv = rhs.value
-        guard lv.count == rv.count else {
-            return false
-        }
+        guard lv.count == rv.count else { return false }
         return zip(lv, rv)
             .allSatisfy { lhs, rhs in
                 OpenAPIValueContainer(validatedValue: lhs) == OpenAPIValueContainer(validatedValue: rhs)
@@ -518,8 +449,6 @@ public struct OpenAPIArrayContainer: Codable, Hashable, Sendable {
     ///
     /// - Parameter hasher: The hasher used to compute the hash value.
     public func hash(into hasher: inout Hasher) {
-        for item in value {
-            hasher.combine(OpenAPIValueContainer(validatedValue: item))
-        }
+        for item in value { hasher.combine(OpenAPIValueContainer(validatedValue: item)) }
     }
 }

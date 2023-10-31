@@ -17,12 +17,7 @@ import XCTest
 final class Test_URISerializer: Test_Runtime {
 
     let testedVariants: [URICoderConfiguration] = [
-        .formExplode,
-        .formUnexplode,
-        .simpleExplode,
-        .simpleUnexplode,
-        .formDataExplode,
-        .formDataUnexplode,
+        .formExplode, .formUnexplode, .simpleExplode, .simpleUnexplode, .formDataExplode, .formDataUnexplode,
     ]
 
     func testSerializing() throws {
@@ -100,11 +95,7 @@ final class Test_URISerializer: Test_Runtime {
                 )
             ),
             makeCase(
-                value: .array([
-                    .primitive(.string("red")),
-                    .primitive(.string("green")),
-                    .primitive(.string("blue")),
-                ]),
+                value: .array([.primitive(.string("red")), .primitive(.string("green")), .primitive(.string("blue"))]),
                 key: "list",
                 .init(
                     formExplode: "list=red&list=green&list=blue",
@@ -117,8 +108,7 @@ final class Test_URISerializer: Test_Runtime {
             ),
             makeCase(
                 value: .dictionary([
-                    "semi": .primitive(.string(";")),
-                    "dot": .primitive(.string(".")),
+                    "semi": .primitive(.string(";")), "dot": .primitive(.string(".")),
                     "comma": .primitive(.string(",")),
                 ]),
                 key: "keys",
@@ -135,10 +125,7 @@ final class Test_URISerializer: Test_Runtime {
         for testCase in cases {
             func testVariant(_ variant: Case.Variant, _ expectedString: String) throws {
                 var serializer = URISerializer(configuration: variant.config)
-                let encodedString = try serializer.serializeNode(
-                    testCase.value,
-                    forKey: testCase.key
-                )
+                let encodedString = try serializer.serializeNode(testCase.value, forKey: testCase.key)
                 XCTAssertEqual(
                     encodedString,
                     expectedString,
@@ -163,30 +150,12 @@ extension Test_URISerializer {
             var name: String
             var config: URICoderConfiguration
 
-            static let formExplode: Self = .init(
-                name: "formExplode",
-                config: .formExplode
-            )
-            static let formUnexplode: Self = .init(
-                name: "formUnexplode",
-                config: .formUnexplode
-            )
-            static let simpleExplode: Self = .init(
-                name: "simpleExplode",
-                config: .simpleExplode
-            )
-            static let simpleUnexplode: Self = .init(
-                name: "simpleUnexplode",
-                config: .simpleUnexplode
-            )
-            static let formDataExplode: Self = .init(
-                name: "formDataExplode",
-                config: .formDataExplode
-            )
-            static let formDataUnexplode: Self = .init(
-                name: "formDataUnexplode",
-                config: .formDataUnexplode
-            )
+            static let formExplode: Self = .init(name: "formExplode", config: .formExplode)
+            static let formUnexplode: Self = .init(name: "formUnexplode", config: .formUnexplode)
+            static let simpleExplode: Self = .init(name: "simpleExplode", config: .simpleExplode)
+            static let simpleUnexplode: Self = .init(name: "simpleUnexplode", config: .simpleUnexplode)
+            static let formDataExplode: Self = .init(name: "formDataExplode", config: .formDataExplode)
+            static let formDataUnexplode: Self = .init(name: "formDataUnexplode", config: .formDataUnexplode)
         }
         struct Variants {
             var formExplode: String
@@ -208,13 +177,5 @@ extension Test_URISerializer {
         _ variants: Case.Variants,
         file: StaticString = #file,
         line: UInt = #line
-    ) -> Case {
-        .init(
-            value: value,
-            key: key,
-            variants: variants,
-            file: file,
-            line: line
-        )
-    }
+    ) -> Case { .init(value: value, key: key, variants: variants, file: file, line: line) }
 }

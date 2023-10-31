@@ -18,18 +18,13 @@ import HTTPTypes
 final class Test_ServerConverterExtensions: Test_Runtime {
 
     func testExtractAccept() throws {
-        let headerFields: HTTPFields = [
-            .accept: "application/json, */*; q=0.8"
-        ]
+        let headerFields: HTTPFields = [.accept: "application/json, */*; q=0.8"]
         let accept: [AcceptHeaderContentType<TestAcceptable>] = try converter.extractAcceptHeaderIfPresent(
             in: headerFields
         )
         XCTAssertEqual(
             accept,
-            [
-                .init(contentType: .json, quality: 1.0),
-                .init(contentType: .other("*/*"), quality: 0.8),
-            ]
+            [.init(contentType: .json, quality: 1.0), .init(contentType: .other("*/*"), quality: 0.8)]
         )
     }
 
@@ -37,21 +32,13 @@ final class Test_ServerConverterExtensions: Test_Runtime {
 
     func testValidateAccept() throws {
         let emptyHeaders: HTTPFields = [:]
-        let wildcard: HTTPFields = [
-            .accept: "*/*"
-        ]
-        let partialWildcard: HTTPFields = [
-            .accept: "text/*"
-        ]
-        let short: HTTPFields = [
-            .accept: "text/plain"
-        ]
+        let wildcard: HTTPFields = [.accept: "*/*"]
+        let partialWildcard: HTTPFields = [.accept: "text/*"]
+        let short: HTTPFields = [.accept: "text/plain"]
         let long: HTTPFields = [
             .accept: "text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8"
         ]
-        let multiple: HTTPFields = [
-            .accept: "text/plain, application/json"
-        ]
+        let multiple: HTTPFields = [.accept: "text/plain, application/json"]
         let cases: [(HTTPFields, String, Bool)] = [
             // No Accept header, any string validates successfully
             (emptyHeaders, "foobar", true),
@@ -60,40 +47,27 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             (wildcard, "foobar", true),
 
             // Accept: text/*, so text/plain succeeds, application/json fails
-            (partialWildcard, "text/plain", true),
-            (partialWildcard, "application/json", false),
+            (partialWildcard, "text/plain", true), (partialWildcard, "application/json", false),
 
             // Accept: text/plain, text/plain succeeds, application/json fails
-            (short, "text/plain", true),
-            (short, "application/json", false),
+            (short, "text/plain", true), (short, "application/json", false),
 
             // A bunch of acceptable content types
-            (long, "text/html", true),
-            (long, "application/xhtml+xml", true),
-            (long, "application/xml", true),
-            (long, "image/webp", true),
-            (long, "application/json", true),
+            (long, "text/html", true), (long, "application/xhtml+xml", true), (long, "application/xml", true),
+            (long, "image/webp", true), (long, "application/json", true),
 
             // Multiple values
-            (multiple, "text/plain", true),
-            (multiple, "application/json", true),
-            (multiple, "application/xml", false),
+            (multiple, "text/plain", true), (multiple, "application/json", true), (multiple, "application/xml", false),
         ]
         for (headers, contentType, success) in cases {
             if success {
                 XCTAssertNoThrow(
-                    try converter.validateAcceptIfPresent(
-                        contentType,
-                        in: headers
-                    ),
+                    try converter.validateAcceptIfPresent(contentType, in: headers),
                     "Unexpected error when validating string: \(contentType) against headers: \(headers)"
                 )
             } else {
                 XCTAssertThrowsError(
-                    try converter.validateAcceptIfPresent(
-                        contentType,
-                        in: headers
-                    ),
+                    try converter.validateAcceptIfPresent(contentType, in: headers),
                     "Expected to throw error when validating string: \(contentType) against headers: \(headers)"
                 )
             }
@@ -105,41 +79,22 @@ final class Test_ServerConverterExtensions: Test_Runtime {
     //    | server | get | request path | URI | required | getPathParameterAsURI |
     func test_getPathParameterAsURI_various() throws {
         let path: [String: Substring] = [
-            "foo": "bar",
-            "number": "1",
-            "habitats": "land,air",
-            "withEscaping": "Hello%20world%21",
+            "foo": "bar", "number": "1", "habitats": "land,air", "withEscaping": "Hello%20world%21",
         ]
         do {
-            let value = try converter.getPathParameterAsURI(
-                in: path,
-                name: "foo",
-                as: String.self
-            )
+            let value = try converter.getPathParameterAsURI(in: path, name: "foo", as: String.self)
             XCTAssertEqual(value, "bar")
         }
         do {
-            let value = try converter.getPathParameterAsURI(
-                in: path,
-                name: "number",
-                as: Int.self
-            )
+            let value = try converter.getPathParameterAsURI(in: path, name: "number", as: Int.self)
             XCTAssertEqual(value, 1)
         }
         do {
-            let value = try converter.getPathParameterAsURI(
-                in: path,
-                name: "habitats",
-                as: [TestHabitat].self
-            )
+            let value = try converter.getPathParameterAsURI(in: path, name: "habitats", as: [TestHabitat].self)
             XCTAssertEqual(value, [.land, .air])
         }
         do {
-            let value = try converter.getPathParameterAsURI(
-                in: path,
-                name: "withEscaping",
-                as: String.self
-            )
+            let value = try converter.getPathParameterAsURI(in: path, name: "withEscaping", as: String.self)
             XCTAssertEqual(value, "Hello world!")
         }
     }
@@ -342,12 +297,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             contentType: "application/json"
         )
         try await XCTAssertEqualStringifiedData(data, testStructPrettyString)
-        XCTAssertEqual(
-            headers,
-            [
-                .contentType: "application/json"
-            ]
-        )
+        XCTAssertEqual(headers, [.contentType: "application/json"])
     }
 
     //    | server | set | response body | binary | required | setResponseBodyAsBinary |
@@ -359,11 +309,6 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             contentType: "application/octet-stream"
         )
         try await XCTAssertEqualStringifiedData(data, testString)
-        XCTAssertEqual(
-            headers,
-            [
-                .contentType: "application/octet-stream"
-            ]
-        )
+        XCTAssertEqual(headers, [.contentType: "application/octet-stream"])
     }
 }

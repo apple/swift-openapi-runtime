@@ -23,9 +23,7 @@ extension Converter {
     public func setAcceptHeader<T: AcceptableProtocol>(
         in headerFields: inout HTTPFields,
         contentTypes: [AcceptHeaderContentType<T>]
-    ) {
-        headerFields[.accept] = contentTypes.map(\.rawValue).joined(separator: ", ")
-    }
+    ) { headerFields[.accept] = contentTypes.map(\.rawValue).joined(separator: ", ") }
 
     /// Renders the path template with the specified parameters to construct a URI.
     ///
@@ -36,10 +34,7 @@ extension Converter {
     /// - Returns: A URI path string with placeholders replaced by the provided parameters.
     ///
     /// - Throws: An error if rendering the path fails.
-    public func renderedPath(
-        template: String,
-        parameters: [any Encodable]
-    ) throws -> String {
+    public func renderedPath(template: String, parameters: [any Encodable]) throws -> String {
         var renderedString = template
         let encoder = URIEncoder(
             configuration: .init(
@@ -52,11 +47,7 @@ extension Converter {
         for parameter in parameters {
             let value = try encoder.encode(parameter, forKey: "")
             if let range = renderedString.range(of: "{}") {
-                renderedString = renderedString.replacingOccurrences(
-                    of: "{}",
-                    with: value,
-                    range: range
-                )
+                renderedString = renderedString.replacingOccurrences(of: "{}", with: value, range: range)
             }
         }
         return renderedString
@@ -86,13 +77,7 @@ extension Converter {
             name: name,
             value: value,
             convert: { value, style, explode in
-                try convertToURI(
-                    style: style,
-                    explode: explode,
-                    inBody: false,
-                    key: name,
-                    value: value
-                )
+                try convertToURI(style: style, explode: explode, inBody: false, key: name, value: value)
             }
         )
     }
@@ -153,18 +138,9 @@ extension Converter {
     /// - Returns: An `HTTPBody` representing the binary request body, or `nil` if the `value` is `nil`.
     ///
     /// - Throws: An error if setting the request body as binary fails.
-    public func setOptionalRequestBodyAsBinary(
-        _ value: HTTPBody?,
-        headerFields: inout HTTPFields,
-        contentType: String
-    ) throws -> HTTPBody? {
-        try setOptionalRequestBody(
-            value,
-            headerFields: &headerFields,
-            contentType: contentType,
-            convert: { $0 }
-        )
-    }
+    public func setOptionalRequestBodyAsBinary(_ value: HTTPBody?, headerFields: inout HTTPFields, contentType: String)
+        throws -> HTTPBody?
+    { try setOptionalRequestBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
 
     /// Sets a required request body as binary in the specified header fields and returns an `HTTPBody`.
     ///
@@ -176,18 +152,9 @@ extension Converter {
     /// - Returns: An `HTTPBody` representing the binary request body.
     ///
     /// - Throws: An error if setting the request body as binary fails.
-    public func setRequiredRequestBodyAsBinary(
-        _ value: HTTPBody,
-        headerFields: inout HTTPFields,
-        contentType: String
-    ) throws -> HTTPBody {
-        try setRequiredRequestBody(
-            value,
-            headerFields: &headerFields,
-            contentType: contentType,
-            convert: { $0 }
-        )
-    }
+    public func setRequiredRequestBodyAsBinary(_ value: HTTPBody, headerFields: inout HTTPFields, contentType: String)
+        throws -> HTTPBody
+    { try setRequiredRequestBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
 
     /// Sets an optional request body as URL-encoded form data in the specified header fields and returns an `HTTPBody`.
     ///
@@ -250,9 +217,7 @@ extension Converter {
         from data: HTTPBody?,
         transforming transform: (T) -> C
     ) async throws -> C {
-        guard let data else {
-            throw RuntimeError.missingRequiredResponseBody
-        }
+        guard let data else { throw RuntimeError.missingRequiredResponseBody }
         return try await getBufferingResponseBody(
             type,
             from: data,
@@ -276,14 +241,7 @@ extension Converter {
         from data: HTTPBody?,
         transforming transform: (HTTPBody) -> C
     ) throws -> C {
-        guard let data else {
-            throw RuntimeError.missingRequiredResponseBody
-        }
-        return try getResponseBody(
-            type,
-            from: data,
-            transforming: transform,
-            convert: { $0 }
-        )
+        guard let data else { throw RuntimeError.missingRequiredResponseBody }
+        return try getResponseBody(type, from: data, transforming: transform, convert: { $0 })
     }
 }

@@ -36,18 +36,8 @@ final class Test_OpenAPIValue: Test_Runtime {
 
     func testEncoding_container_success() throws {
         let values: [(any Sendable)?] = [
-            nil,
-            "Hello",
-            [
-                "key": "value",
-                "anotherKey": [
-                    1,
-                    "two",
-                ] as [any Sendable],
-            ] as [String: any Sendable],
-            1 as Int,
-            2.5 as Double,
-            [true],
+            nil, "Hello", ["key": "value", "anotherKey": [1, "two"] as [any Sendable]] as [String: any Sendable],
+            1 as Int, 2.5 as Double, [true],
         ]
         let container = try OpenAPIValueContainer(unvalidatedValue: values)
         let expectedString = #"""
@@ -127,12 +117,7 @@ final class Test_OpenAPIValue: Test_Runtime {
     }
 
     func testEncoding_object_success() throws {
-        let values: [String: (any Sendable)?] = [
-            "key": "value",
-            "keyMore": [
-                true
-            ],
-        ]
+        let values: [String: (any Sendable)?] = ["key": "value", "keyMore": [true]]
         let container = try OpenAPIObjectContainer(unvalidatedValue: values)
         let expectedString = #"""
             {
@@ -162,10 +147,7 @@ final class Test_OpenAPIValue: Test_Runtime {
     }
 
     func testEncoding_array_success() throws {
-        let values: [(any Sendable)?] = [
-            "one",
-            ["two": 2],
-        ]
+        let values: [(any Sendable)?] = ["one", ["two": 2]]
         let container = try OpenAPIArrayContainer(unvalidatedValue: values)
         let expectedString = #"""
             [
@@ -203,17 +185,8 @@ final class Test_OpenAPIValue: Test_Runtime {
             Foo(
                 bar: "hi",
                 dict: try .init(unvalidatedValue: [
-                    "baz": "bar",
-                    "number": 1,
-                    "nestedArray": [
-                        1,
-                        [
-                            "k": "v"
-                        ],
-                    ] as [(any Sendable)?],
-                    "nestedDict": [
-                        "nested": 2
-                    ],
+                    "baz": "bar", "number": 1, "nestedArray": [1, ["k": "v"]] as [(any Sendable)?],
+                    "nestedDict": ["nested": 2],
                 ])
             ),
             expectedJSON: #"""
@@ -280,10 +253,7 @@ final class Test_OpenAPIValue: Test_Runtime {
         // `testStructBase64EncodedString` quoted and base64-encoded again
         let JSONEncoded = Data(base64Encoded: "ImV5SnVZVzFsSWpvaVJteDFabVo2SW4wPSI=")!
 
-        XCTAssertEqual(
-            try JSONDecoder().decode(Base64EncodedData.self, from: JSONEncoded),
-            encodedData
-        )
+        XCTAssertEqual(try JSONDecoder().decode(Base64EncodedData.self, from: JSONEncoded), encodedData)
     }
 
     func testEncodingDecodingRoundtrip_base64_success() throws {

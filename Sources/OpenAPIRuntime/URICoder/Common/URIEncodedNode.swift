@@ -77,12 +77,9 @@ extension URIEncodedNode {
     /// - Throws: If the node is already set.
     mutating func set(_ value: Primitive) throws {
         switch self {
-        case .unset:
-            self = .primitive(value)
-        case .primitive:
-            throw InsertionError.settingPrimitiveValueAgain
-        case .array, .dictionary:
-            throw InsertionError.settingValueOnAContainer
+        case .unset: self = .primitive(value)
+        case .primitive: throw InsertionError.settingPrimitiveValueAgain
+        case .array, .dictionary: throw InsertionError.settingValueOnAContainer
         }
     }
 
@@ -93,10 +90,7 @@ extension URIEncodedNode {
     ///   - key: The key to save the value for into the dictionary.
     /// - Throws: If the node is already set to be anything else but a
     /// dictionary.
-    mutating func insert<Key: CodingKey>(
-        _ childValue: Self,
-        atKey key: Key
-    ) throws {
+    mutating func insert<Key: CodingKey>(_ childValue: Self, atKey key: Key) throws {
         switch self {
         case .dictionary(var dictionary):
             self = .unset
@@ -109,25 +103,18 @@ extension URIEncodedNode {
             guard let intValue = key.intValue else {
                 throw InsertionError.insertingChildValueIntoArrayUsingNonIntValueKey
             }
-            precondition(
-                intValue == array.count,
-                "Unkeyed container inserting at an incorrect index"
-            )
+            precondition(intValue == array.count, "Unkeyed container inserting at an incorrect index")
             self = .unset
             array.append(childValue)
             self = .array(array)
         case .unset:
             if let intValue = key.intValue {
-                precondition(
-                    intValue == 0,
-                    "Unkeyed container inserting at an incorrect index"
-                )
+                precondition(intValue == 0, "Unkeyed container inserting at an incorrect index")
                 self = .array([childValue])
             } else {
                 self = .dictionary([key.stringValue: childValue])
             }
-        default:
-            throw InsertionError.insertingChildValueIntoNonContainer
+        default: throw InsertionError.insertingChildValueIntoNonContainer
         }
     }
 
@@ -140,10 +127,8 @@ extension URIEncodedNode {
             self = .unset
             items.append(childValue)
             self = .array(items)
-        case .unset:
-            self = .array([childValue])
-        default:
-            throw InsertionError.appendingToNonArrayContainer
+        case .unset: self = .array([childValue])
+        default: throw InsertionError.appendingToNonArrayContainer
         }
     }
 }

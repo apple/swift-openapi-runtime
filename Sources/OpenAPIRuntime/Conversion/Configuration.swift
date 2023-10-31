@@ -28,18 +28,13 @@ public protocol DateTranscoder: Sendable {
 public struct ISO8601DateTranscoder: DateTranscoder {
 
     /// Creates and returns an ISO 8601 formatted string representation of the specified date.
-    public func encode(_ date: Date) throws -> String {
-        ISO8601DateFormatter().string(from: date)
-    }
+    public func encode(_ date: Date) throws -> String { ISO8601DateFormatter().string(from: date) }
 
     /// Creates and returns a date object from the specified ISO 8601 formatted string representation.
     public func decode(_ dateString: String) throws -> Date {
         guard let date = ISO8601DateFormatter().date(from: dateString) else {
             throw DecodingError.dataCorrupted(
-                .init(
-                    codingPath: [],
-                    debugDescription: "Expected date string to be ISO8601-formatted."
-                )
+                .init(codingPath: [], debugDescription: "Expected date string to be ISO8601-formatted.")
             )
         }
         return date
@@ -48,15 +43,13 @@ public struct ISO8601DateTranscoder: DateTranscoder {
 
 extension DateTranscoder where Self == ISO8601DateTranscoder {
     /// A transcoder that transcodes dates as ISO-8601–formatted string (in RFC 3339 format).
-    public static var iso8601: Self {
-        ISO8601DateTranscoder()
-    }
+    public static var iso8601: Self { ISO8601DateTranscoder() }
 }
 
 extension JSONEncoder.DateEncodingStrategy {
     /// Encode the `Date` as a custom value encoded using the given ``DateTranscoder``.
     static func from(dateTranscoder: any DateTranscoder) -> Self {
-        return .custom { date, encoder in
+        .custom { date, encoder in
             let dateAsString = try dateTranscoder.encode(date)
             var container = encoder.singleValueContainer()
             try container.encode(dateAsString)
@@ -67,7 +60,7 @@ extension JSONEncoder.DateEncodingStrategy {
 extension JSONDecoder.DateDecodingStrategy {
     /// Decode the `Date` as a custom value decoded by the given ``DateTranscoder``.
     static func from(dateTranscoder: any DateTranscoder) -> Self {
-        return .custom { decoder in
+        .custom { decoder in
             let container = try decoder.singleValueContainer()
             let dateString = try container.decode(String.self)
             return try dateTranscoder.decode(dateString)
@@ -85,9 +78,5 @@ public struct Configuration: Sendable {
     ///
     /// - Parameter dateTranscoder: The transcoder to use when converting between date
     ///   and string values.
-    public init(
-        dateTranscoder: any DateTranscoder = .iso8601
-    ) {
-        self.dateTranscoder = dateTranscoder
-    }
+    public init(dateTranscoder: any DateTranscoder = .iso8601) { self.dateTranscoder = dateTranscoder }
 }

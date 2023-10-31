@@ -59,21 +59,15 @@ extension URIParser {
         // if the style is simple, otherwise it's an empty dictionary.
         if data.isEmpty {
             switch configuration.style {
-            case .form:
-                return [:]
-            case .simple:
-                return ["": [""]]
+            case .form: return [:]
+            case .simple: return ["": [""]]
             }
         }
         switch (configuration.style, configuration.explode) {
-        case (.form, true):
-            return try parseExplodedFormRoot()
-        case (.form, false):
-            return try parseUnexplodedFormRoot()
-        case (.simple, true):
-            return try parseExplodedSimpleRoot()
-        case (.simple, false):
-            return try parseUnexplodedSimpleRoot()
+        case (.form, true): return try parseExplodedFormRoot()
+        case (.form, false): return try parseUnexplodedFormRoot()
+        case (.simple, true): return try parseExplodedSimpleRoot()
+        case (.simple, false): return try parseUnexplodedSimpleRoot()
         }
     }
 
@@ -154,8 +148,7 @@ extension URIParser {
                     }
                     key = firstValue
                     values = accumulatedValues
-                case .foundSecondOrEnd:
-                    throw ParsingError.malformedKeyValuePair(firstValue)
+                case .foundSecondOrEnd: throw ParsingError.malformedKeyValuePair(firstValue)
                 }
                 appendPair(key, values)
             }
@@ -207,9 +200,7 @@ extension URIParser {
         try parseGenericRoot { data, appendPair in
             let pairSeparator: Character = ","
             while !data.isEmpty {
-                let value = data.parseUpToCharacterOrEnd(
-                    pairSeparator
-                )
+                let value = data.parseUpToCharacterOrEnd(pairSeparator)
                 appendPair(.init(), [value])
             }
         }
@@ -225,18 +216,14 @@ extension URIParser {
     ///   be called 0 or more times, once for each parsed key-value pair.
     /// - Returns: The accumulated node.
     /// - Throws: An error if parsing using the provided parser closure fails,
-    private mutating func parseGenericRoot(
-        _ parser: (inout Raw, (Raw, [Raw]) -> Void) throws -> Void
-    ) throws -> URIParsedNode {
+    private mutating func parseGenericRoot(_ parser: (inout Raw, (Raw, [Raw]) -> Void) throws -> Void) throws
+        -> URIParsedNode
+    {
         var root = URIParsedNode()
         let spaceEscapingCharacter = configuration.spaceEscapingCharacter
-        let unescapeValue: (Raw) -> Raw = {
-            Self.unescapeValue($0, spaceEscapingCharacter: spaceEscapingCharacter)
-        }
+        let unescapeValue: (Raw) -> Raw = { Self.unescapeValue($0, spaceEscapingCharacter: spaceEscapingCharacter) }
         try parser(&data) { key, values in
-            let newItem = [
-                unescapeValue(key): values.map(unescapeValue)
-            ]
+            let newItem = [unescapeValue(key): values.map(unescapeValue)]
             root.merge(newItem) { $0 + $1 }
         }
         return root
@@ -246,10 +233,7 @@ extension URIParser {
     /// - Parameter escapedValue: An escaped string.
     /// - Returns: The provided string with escaping removed.
     private func unescapeValue(_ escapedValue: Raw) -> Raw {
-        Self.unescapeValue(
-            escapedValue,
-            spaceEscapingCharacter: configuration.spaceEscapingCharacter
-        )
+        Self.unescapeValue(escapedValue, spaceEscapingCharacter: configuration.spaceEscapingCharacter)
     }
 
     /// Removes escaping from the provided string.
@@ -263,10 +247,7 @@ extension URIParser {
         spaceEscapingCharacter: URICoderConfiguration.SpaceEscapingCharacter
     ) -> Raw {
         // The inverse of URISerializer.computeSafeString.
-        let partiallyDecoded = escapedValue.replacingOccurrences(
-            of: spaceEscapingCharacter.rawValue,
-            with: " "
-        )
+        let partiallyDecoded = escapedValue.replacingOccurrences(of: spaceEscapingCharacter.rawValue, with: " ")
         return (partiallyDecoded.removingPercentEncoding ?? "")[...]
     }
 }
@@ -292,19 +273,14 @@ extension String.SubSequence {
     ///   - second: Another character to stop at.
     /// - Returns: A result indicating which character was detected, if any, and
     ///   the accumulated substring.
-    fileprivate mutating func parseUpToEitherCharacterOrEnd(
-        first: Character,
-        second: Character
-    ) -> (ParseUpToEitherCharacterResult, Self) {
+    fileprivate mutating func parseUpToEitherCharacterOrEnd(first: Character, second: Character) -> (
+        ParseUpToEitherCharacterResult, Self
+    ) {
         let startIndex = startIndex
-        guard startIndex != endIndex else {
-            return (.foundSecondOrEnd, .init())
-        }
+        guard startIndex != endIndex else { return (.foundSecondOrEnd, .init()) }
         var currentIndex = startIndex
 
-        func finalize(
-            _ result: ParseUpToEitherCharacterResult
-        ) -> (ParseUpToEitherCharacterResult, Self) {
+        func finalize(_ result: ParseUpToEitherCharacterResult) -> (ParseUpToEitherCharacterResult, Self) {
             let parsed = self[startIndex..<currentIndex]
             guard currentIndex == endIndex else {
                 self = self[index(after: currentIndex)...]
@@ -330,13 +306,9 @@ extension String.SubSequence {
     /// or the end is reached. Moves the underlying startIndex.
     /// - Parameter character: A character to stop at.
     /// - Returns: The accumulated substring.
-    fileprivate mutating func parseUpToCharacterOrEnd(
-        _ character: Character
-    ) -> Self {
+    fileprivate mutating func parseUpToCharacterOrEnd(_ character: Character) -> Self {
         let startIndex = startIndex
-        guard startIndex != endIndex else {
-            return .init()
-        }
+        guard startIndex != endIndex else { return .init() }
         var currentIndex = startIndex
 
         func finalize() -> Self {
@@ -350,11 +322,7 @@ extension String.SubSequence {
         }
         while currentIndex != endIndex {
             let currentChar = self[currentIndex]
-            if currentChar == character {
-                return finalize()
-            } else {
-                formIndex(after: &currentIndex)
-            }
+            if currentChar == character { return finalize() } else { formIndex(after: &currentIndex) }
         }
         return finalize()
     }

@@ -18,29 +18,14 @@ final class Test_ServerVariable: Test_Runtime {
 
     func testOnlyConstants() throws {
         XCTAssertEqual(
-            try URL(
-                validatingOpenAPIServerURL: "https://example.com",
-                variables: []
-            )
-            .absoluteString,
+            try URL(validatingOpenAPIServerURL: "https://example.com", variables: []).absoluteString,
             "https://example.com"
         )
         XCTAssertEqual(
-            try URL(
-                validatingOpenAPIServerURL: "https://example.com/api",
-                variables: []
-            )
-            .absoluteString,
+            try URL(validatingOpenAPIServerURL: "https://example.com/api", variables: []).absoluteString,
             "https://example.com/api"
         )
-        XCTAssertEqual(
-            try URL(
-                validatingOpenAPIServerURL: "/api",
-                variables: []
-            )
-            .absoluteString,
-            "/api"
-        )
+        XCTAssertEqual(try URL(validatingOpenAPIServerURL: "/api", variables: []).absoluteString, "/api")
     }
 
     func testVariables() throws {

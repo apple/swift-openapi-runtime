@@ -24,11 +24,9 @@ extension ParameterStyle {
     ///   - explode: The provided explode value, if any.
     /// - Throws: For an unsupported input combination.
     /// - Returns: A tuple of the style and explode values.
-    static func resolvedQueryStyleAndExplode(
-        name: String,
-        style: ParameterStyle?,
-        explode: Bool?
-    ) throws -> (ParameterStyle, Bool) {
+    static func resolvedQueryStyleAndExplode(name: String, style: ParameterStyle?, explode: Bool?) throws -> (
+        ParameterStyle, Bool
+    ) {
         let resolvedStyle = style ?? .defaultForQueryItems
         let resolvedExplode = explode ?? ParameterStyle.defaultExplodeFor(forStyle: resolvedStyle)
         guard resolvedStyle == .form else {
@@ -49,9 +47,7 @@ extension HTTPField.Name {
     /// - Parameter name: A field name.
     /// - Throws: If the name isn't a valid field name.
     init(validated name: String) throws {
-        guard let fieldName = Self(name) else {
-            throw RuntimeError.invalidHeaderFieldName(name)
-        }
+        guard let fieldName = Self(name) else { throw RuntimeError.invalidHeaderFieldName(name) }
         self = fieldName
     }
 }
@@ -61,9 +57,7 @@ extension HTTPRequest {
     /// Returns the path of the request, and throws an error if it's nil.
     var requiredPath: Substring {
         get throws {
-            guard let path else {
-                throw RuntimeError.pathUnset
-            }
+            guard let path else { throw RuntimeError.pathUnset }
             return path[...]
         }
     }
@@ -81,11 +75,7 @@ extension Converter {
     ///     used for encoding a body URI. Specify `false` if used for a query,
     ///     header, and so on.
     /// - Returns: A new URI coder configuration.
-    func uriCoderConfiguration(
-        style: ParameterStyle,
-        explode: Bool,
-        inBody: Bool
-    ) -> URICoderConfiguration {
+    func uriCoderConfiguration(style: ParameterStyle, explode: Bool, inBody: Bool) -> URICoderConfiguration {
         .init(
             style: .init(style),
             explode: explode,
@@ -105,20 +95,10 @@ extension Converter {
     ///   - value: The value to be encoded.
     /// - Returns: A URI encoded string.
     /// - Throws: An error if encoding fails.
-    func convertToURI<T: Encodable>(
-        style: ParameterStyle,
-        explode: Bool,
-        inBody: Bool,
-        key: String,
-        value: T
-    ) throws -> String {
-        let encoder = URIEncoder(
-            configuration: uriCoderConfiguration(
-                style: style,
-                explode: explode,
-                inBody: inBody
-            )
-        )
+    func convertToURI<T: Encodable>(style: ParameterStyle, explode: Bool, inBody: Bool, key: String, value: T) throws
+        -> String
+    {
+        let encoder = URIEncoder(configuration: uriCoderConfiguration(style: style, explode: explode, inBody: inBody))
         let encodedString = try encoder.encode(value, forKey: key)
         return encodedString
     }
@@ -141,18 +121,8 @@ extension Converter {
         key: String,
         encodedValue: Substring
     ) throws -> T {
-        let decoder = URIDecoder(
-            configuration: uriCoderConfiguration(
-                style: style,
-                explode: explode,
-                inBody: inBody
-            )
-        )
-        let value = try decoder.decode(
-            T.self,
-            forKey: key,
-            from: encodedValue
-        )
+        let decoder = URIDecoder(configuration: uriCoderConfiguration(style: style, explode: explode, inBody: inBody))
+        let value = try decoder.decode(T.self, forKey: key, from: encodedValue)
         return value
     }
 
@@ -160,9 +130,7 @@ extension Converter {
     /// - Parameter body: The body containing the raw JSON bytes.
     /// - Returns: A decoded value.
     /// - Throws: An error if decoding from the body fails.
-    func convertJSONToBodyCodable<T: Decodable>(
-        _ body: HTTPBody
-    ) async throws -> T {
+    func convertJSONToBodyCodable<T: Decodable>(_ body: HTTPBody) async throws -> T {
         let data = try await Data(collecting: body, upTo: .max)
         return try decoder.decode(T.self, from: data)
     }
@@ -171,9 +139,7 @@ extension Converter {
     /// - Parameter value: The value to encode as JSON.
     /// - Returns: The raw JSON body.
     /// - Throws: An error if encoding to JSON fails.
-    func convertBodyCodableToJSON<T: Encodable>(
-        _ value: T
-    ) throws -> HTTPBody {
+    func convertBodyCodableToJSON<T: Encodable>(_ value: T) throws -> HTTPBody {
         let data = try encoder.encode(value)
         return HTTPBody(data)
     }
@@ -182,9 +148,7 @@ extension Converter {
     /// - Parameter body: The body containing the raw URL-encoded form bytes.
     /// - Returns: A decoded value.
     /// - Throws: An error if decoding from the URL-encoded form fails.
-    func convertURLEncodedFormToCodable<T: Decodable>(
-        _ body: HTTPBody
-    ) async throws -> T {
+    func convertURLEncodedFormToCodable<T: Decodable>(_ body: HTTPBody) async throws -> T {
         let decoder = URIDecoder(
             configuration: .init(
                 style: .form,
@@ -202,9 +166,7 @@ extension Converter {
     /// - Parameter value: The value to encode.
     /// - Returns: The raw URL-encoded form body.
     /// - Throws: An error if encoding to URL-encoded form fails.
-    func convertBodyCodableToURLFormData<T: Encodable>(
-        _ value: T
-    ) throws -> HTTPBody {
+    func convertBodyCodableToURLFormData<T: Encodable>(_ value: T) throws -> HTTPBody {
         let encoder = URIEncoder(
             configuration: .init(
                 style: .form,
@@ -221,9 +183,7 @@ extension Converter {
     /// - Parameter value: The value to encode.
     /// - Returns: A JSON string.
     /// - Throws: An error if encoding the value to JSON fails.
-    func convertHeaderFieldCodableToJSON<T: Encodable>(
-        _ value: T
-    ) throws -> String {
+    func convertHeaderFieldCodableToJSON<T: Encodable>(_ value: T) throws -> String {
         let data = try headerFieldEncoder.encode(value)
         let stringValue = String(decoding: data, as: UTF8.self)
         return stringValue
@@ -233,9 +193,7 @@ extension Converter {
     /// - Parameter stringValue: A JSON string.
     /// - Returns: The decoded value.
     /// - Throws: An error if decoding from the JSON string fails.
-    func convertJSONToHeaderFieldCodable<T: Decodable>(
-        _ stringValue: Substring
-    ) throws -> T {
+    func convertJSONToHeaderFieldCodable<T: Decodable>(_ stringValue: Substring) throws -> T {
         let data = Data(stringValue.utf8)
         return try decoder.decode(T.self, from: data)
     }
@@ -249,21 +207,11 @@ extension Converter {
     ///   - value: The value of the header to set.
     ///   - convert: The closure used to serialize the header value to string.
     /// - Throws: An error if an issue occurs while serializing the header value.
-    func setHeaderField<T>(
-        in headerFields: inout HTTPFields,
-        name: String,
-        value: T?,
-        convert: (T) throws -> String
-    ) throws {
-        guard let value else {
-            return
-        }
-        try headerFields.append(
-            .init(
-                name: .init(validated: name),
-                value: convert(value)
-            )
-        )
+    func setHeaderField<T>(in headerFields: inout HTTPFields, name: String, value: T?, convert: (T) throws -> String)
+        throws
+    {
+        guard let value else { return }
+        try headerFields.append(.init(name: .init(validated: name), value: convert(value)))
     }
 
     /// Returns the value of the header with the provided name from the provided
@@ -273,10 +221,7 @@ extension Converter {
     ///   - name: The name of the header field.
     /// - Returns: The value of the header field, if found. Nil otherwise.
     /// - Throws: An error if an issue occurs while retrieving the header value.
-    func getHeaderFieldValuesString(
-        in headerFields: HTTPFields,
-        name: String
-    ) throws -> String? {
+    func getHeaderFieldValuesString(in headerFields: HTTPFields, name: String) throws -> String? {
         try headerFields[.init(validated: name)]
     }
 
@@ -294,14 +239,7 @@ extension Converter {
         as type: T.Type,
         convert: (Substring) throws -> T
     ) throws -> T? {
-        guard
-            let stringValue = try getHeaderFieldValuesString(
-                in: headerFields,
-                name: name
-            )
-        else {
-            return nil
-        }
+        guard let stringValue = try getHeaderFieldValuesString(in: headerFields, name: name) else { return nil }
         return try convert(stringValue[...])
     }
 
@@ -320,12 +258,7 @@ extension Converter {
         as type: T.Type,
         convert: (Substring) throws -> T
     ) throws -> T {
-        guard
-            let stringValue = try getHeaderFieldValuesString(
-                in: headerFields,
-                name: name
-            )
-        else {
+        guard let stringValue = try getHeaderFieldValuesString(in: headerFields, name: name) else {
             throw RuntimeError.missingRequiredHeaderField(name)
         }
         return try convert(stringValue[...])
@@ -349,9 +282,7 @@ extension Converter {
         value: T?,
         convert: (T, ParameterStyle, Bool) throws -> String
     ) throws {
-        guard let value else {
-            return
-        }
+        guard let value else { return }
         let (resolvedStyle, resolvedExplode) = try ParameterStyle.resolvedQueryStyleAndExplode(
             name: name,
             style: style,
@@ -403,9 +334,7 @@ extension Converter {
         as type: T.Type,
         convert: (Substring, ParameterStyle, Bool) throws -> T?
     ) throws -> T? {
-        guard let query, !query.isEmpty else {
-            return nil
-        }
+        guard let query, !query.isEmpty else { return nil }
         let (resolvedStyle, resolvedExplode) = try ParameterStyle.resolvedQueryStyleAndExplode(
             name: name,
             style: style,
@@ -442,9 +371,7 @@ extension Converter {
                 as: type,
                 convert: convert
             )
-        else {
-            throw RuntimeError.missingRequiredQueryParameter(name)
-        }
+        else { throw RuntimeError.missingRequiredQueryParameter(name) }
         return value
     }
 
@@ -482,9 +409,7 @@ extension Converter {
         contentType: String,
         convert: (T) throws -> HTTPBody
     ) throws -> HTTPBody? {
-        guard let value else {
-            return nil
-        }
+        guard let value else { return nil }
         return try setRequiredRequestBody(
             value,
             headerFields: &headerFields,
@@ -507,9 +432,7 @@ extension Converter {
         transforming transform: (T) -> C,
         convert: (HTTPBody) async throws -> T
     ) async throws -> C? {
-        guard let body else {
-            return nil
-        }
+        guard let body else { return nil }
         let decoded = try await convert(body)
         return transform(decoded)
     }
@@ -535,9 +458,7 @@ extension Converter {
                 transforming: transform,
                 convert: convert
             )
-        else {
-            throw RuntimeError.missingRequiredRequestBody
-        }
+        else { throw RuntimeError.missingRequiredRequestBody }
         return body
     }
 
@@ -555,9 +476,7 @@ extension Converter {
         transforming transform: (T) -> C,
         convert: (HTTPBody) throws -> T
     ) throws -> C? {
-        guard let body else {
-            return nil
-        }
+        guard let body else { return nil }
         let decoded = try convert(body)
         return transform(decoded)
     }
@@ -576,14 +495,7 @@ extension Converter {
         transforming transform: (T) -> C,
         convert: (HTTPBody) throws -> T
     ) throws -> C {
-        guard
-            let body = try getOptionalRequestBody(
-                type,
-                from: body,
-                transforming: transform,
-                convert: convert
-            )
-        else {
+        guard let body = try getOptionalRequestBody(type, from: body, transforming: transform, convert: convert) else {
             throw RuntimeError.missingRequiredRequestBody
         }
         return body
@@ -660,9 +572,7 @@ extension Converter {
         as type: T.Type,
         convert: (Substring) throws -> T
     ) throws -> T {
-        guard let untypedValue = pathParameters[name] else {
-            throw RuntimeError.missingRequiredPathParameter(name)
-        }
+        guard let untypedValue = pathParameters[name] else { throw RuntimeError.missingRequiredPathParameter(name) }
         return try convert(untypedValue)
     }
 }

@@ -137,12 +137,9 @@ public protocol ClientTransport: Sendable {
     ///   - operationID: The identifier of the OpenAPI operation.
     /// - Returns: An HTTP response and its body.
     /// - Throws: An error if sending the request and receiving the response fails.
-    func send(
-        _ request: HTTPRequest,
-        body: HTTPBody?,
-        baseURL: URL,
-        operationID: String
-    ) async throws -> (HTTPResponse, HTTPBody?)
+    func send(_ request: HTTPRequest, body: HTTPBody?, baseURL: URL, operationID: String) async throws -> (
+        HTTPResponse, HTTPBody?
+    )
 }
 
 /// A type that intercepts HTTP requests and responses.

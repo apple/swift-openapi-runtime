@@ -30,97 +30,43 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
         }
 
         // An empty string.
-        try test(
-            ["root": [""]],
-            "",
-            key: "root"
-        )
+        try test(["root": [""]], "", key: "root")
 
         // An empty string with a simple style.
-        try test(
-            ["root": [""]],
-            "",
-            key: "root",
-            style: .simple
-        )
+        try test(["root": [""]], "", key: "root", style: .simple)
 
         // A string with a space.
-        try test(
-            ["root": ["Hello World"]],
-            "Hello World",
-            key: "root"
-        )
+        try test(["root": ["Hello World"]], "Hello World", key: "root")
 
         // An enum.
-        try test(
-            ["root": ["red"]],
-            SimpleEnum.red,
-            key: "root"
-        )
+        try test(["root": ["red"]], SimpleEnum.red, key: "root")
 
         // An integer.
-        try test(
-            ["root": ["1234"]],
-            1234,
-            key: "root"
-        )
+        try test(["root": ["1234"]], 1234, key: "root")
 
         // A float.
-        try test(
-            ["root": ["12.34"]],
-            12.34,
-            key: "root"
-        )
+        try test(["root": ["12.34"]], 12.34, key: "root")
 
         // A bool.
-        try test(
-            ["root": ["true"]],
-            true,
-            key: "root"
-        )
+        try test(["root": ["true"]], true, key: "root")
 
         // A simple array of strings.
-        try test(
-            ["root": ["a", "b", "c"]],
-            ["a", "b", "c"],
-            key: "root"
-        )
+        try test(["root": ["a", "b", "c"]], ["a", "b", "c"], key: "root")
 
         // A simple array of enums.
-        try test(
-            ["root": ["red", "green", "blue"]],
-            [.red, .green, .blue] as [SimpleEnum],
-            key: "root"
-        )
+        try test(["root": ["red", "green", "blue"]], [.red, .green, .blue] as [SimpleEnum], key: "root")
 
         // A struct.
-        try test(
-            ["foo": ["bar"]],
-            SimpleStruct(foo: "bar"),
-            key: "root"
-        )
+        try test(["foo": ["bar"]], SimpleStruct(foo: "bar"), key: "root")
 
         // A struct with a nested enum.
-        try test(
-            ["foo": ["bar"], "color": ["blue"]],
-            SimpleStruct(foo: "bar", color: .blue),
-            key: "root"
-        )
+        try test(["foo": ["bar"], "color": ["blue"]], SimpleStruct(foo: "bar", color: .blue), key: "root")
 
         // A simple dictionary.
-        try test(
-            ["one": ["1"], "two": ["2"]],
-            ["one": 1, "two": 2],
-            key: "root"
-        )
+        try test(["one": ["1"], "two": ["2"]], ["one": 1, "two": 2], key: "root")
 
         // A unexploded simple dictionary.
-        try test(
-            ["root": ["one", "1", "two", "2"]],
-            ["one": 1, "two": 2],
-            key: "root",
-            explode: false
-        )
+        try test(["root": ["one", "1", "two", "2"]], ["one": 1, "two": 2], key: "root", explode: false)
 
         // A dictionary of enums.
         try test(
@@ -146,12 +92,7 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
                 dateTranscoder: .iso8601
             )
             let decodedValue = try decoder.decodeRoot(T.self)
-            XCTAssertEqual(
-                decodedValue,
-                expectedValue,
-                file: file,
-                line: line
-            )
+            XCTAssertEqual(decodedValue, expectedValue, file: file, line: line)
         }
     }
 }

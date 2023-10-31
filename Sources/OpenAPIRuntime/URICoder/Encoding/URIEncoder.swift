@@ -53,16 +53,12 @@ struct URIEncoder: Sendable {
     /// Creates a new encoder.
     /// - Parameter serializer: The serializer used to turn `URIEncodedNode`
     ///   values to a string.
-    init(serializer: URISerializer) {
-        self.serializer = serializer
-    }
+    init(serializer: URISerializer) { self.serializer = serializer }
 
     /// Creates a new encoder.
     /// - Parameter configuration: The configuration instructing the encoder
     ///   how to serialize the value into an URI-encoded string.
-    init(configuration: URICoderConfiguration) {
-        self.init(serializer: .init(configuration: configuration))
-    }
+    init(configuration: URICoderConfiguration) { self.init(serializer: .init(configuration: configuration)) }
 }
 
 extension URIEncoder {
@@ -80,10 +76,7 @@ extension URIEncoder {
     ///     in which case you still get a key-value pair, like `=foo`.
     /// - Returns: The URI string.
     /// - Throws: An error if encoding the object into a URI string fails
-    func encode(
-        _ value: some Encodable,
-        forKey key: String
-    ) throws -> String {
+    func encode(_ value: some Encodable, forKey key: String) throws -> String {
         let encoder = URIValueToNodeEncoder()
         let node = try encoder.encodeValue(value)
         var serializer = serializer
@@ -104,13 +97,8 @@ extension URIEncoder {
     ///     in which case you still get a key-value pair, like `=foo`.
     /// - Returns: The URI string.
     /// - Throws: An error if encoding the object into a URI string fails.
-    func encodeIfPresent(
-        _ value: (some Encodable)?,
-        forKey key: String
-    ) throws -> String {
-        guard let value else {
-            return ""
-        }
+    func encodeIfPresent(_ value: (some Encodable)?, forKey key: String) throws -> String {
+        guard let value else { return "" }
         let encoder = URIValueToNodeEncoder()
         let node = try encoder.encodeValue(value)
         var serializer = serializer

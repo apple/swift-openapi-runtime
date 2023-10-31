@@ -53,9 +53,7 @@ struct URIDecoder: Sendable {
 
     /// Creates a new decoder with the provided configuration.
     /// - Parameter configuration: The configuration used by the decoder.
-    init(configuration: URICoderConfiguration) {
-        self.configuration = configuration
-    }
+    init(configuration: URICoderConfiguration) { self.configuration = configuration }
 }
 
 extension URIDecoder {
@@ -73,14 +71,8 @@ extension URIDecoder {
     ///   - data: The URI-encoded string.
     /// - Returns: The decoded value.
     /// - Throws: An error if decoding fails, for example, due to incompatible data or key.
-    func decode<T: Decodable>(
-        _ type: T.Type = T.self,
-        forKey key: String = "",
-        from data: Substring
-    ) throws -> T {
-        try withCachedParser(from: data) { decoder in
-            try decoder.decode(type, forKey: key)
-        }
+    func decode<T: Decodable>(_ type: T.Type = T.self, forKey key: String = "", from data: Substring) throws -> T {
+        try withCachedParser(from: data) { decoder in try decoder.decode(type, forKey: key) }
     }
 
     /// Attempt to decode an object from an URI string, if present.
@@ -96,15 +88,9 @@ extension URIDecoder {
     ///   - data: The URI-encoded string.
     /// - Returns: The decoded value.
     /// - Throws: An error if decoding fails, for example, due to incompatible data or key.
-    func decodeIfPresent<T: Decodable>(
-        _ type: T.Type = T.self,
-        forKey key: String = "",
-        from data: Substring
-    ) throws -> T? {
-        try withCachedParser(from: data) { decoder in
-            try decoder.decodeIfPresent(type, forKey: key)
-        }
-    }
+    func decodeIfPresent<T: Decodable>(_ type: T.Type = T.self, forKey key: String = "", from data: Substring) throws
+        -> T?
+    { try withCachedParser(from: data) { decoder in try decoder.decodeIfPresent(type, forKey: key) } }
 
     /// Make multiple decode calls on the parsed URI.
     ///
@@ -115,10 +101,7 @@ extension URIDecoder {
     ///     the `decode` method on `URICachedDecoder`.
     /// - Returns: The result of the closure invocation.
     /// - Throws: An error if parsing or decoding fails.
-    func withCachedParser<R>(
-        from data: Substring,
-        calls: (URICachedDecoder) throws -> R
-    ) throws -> R {
+    func withCachedParser<R>(from data: Substring, calls: (URICachedDecoder) throws -> R) throws -> R {
         var parser = URIParser(configuration: configuration, data: data)
         let parsedNode = try parser.parseRoot()
         let decoder = URICachedDecoder(configuration: configuration, node: parsedNode)
@@ -146,10 +129,7 @@ struct URICachedDecoder {
     ///     and explode options, ignored otherwise.
     /// - Returns: The decoded value.
     /// - Throws: An error if decoding fails.
-    func decode<T: Decodable>(
-        _ type: T.Type = T.self,
-        forKey key: String = ""
-    ) throws -> T {
+    func decode<T: Decodable>(_ type: T.Type = T.self, forKey key: String = "") throws -> T {
         let decoder = URIValueFromNodeDecoder(
             node: node,
             rootKey: key[...],
@@ -172,10 +152,7 @@ struct URICachedDecoder {
     ///     and explode options, ignored otherwise.
     /// - Returns: The decoded value.
     /// - Throws: An error if decoding fails.
-    func decodeIfPresent<T: Decodable>(
-        _ type: T.Type = T.self,
-        forKey key: String = ""
-    ) throws -> T? {
+    func decodeIfPresent<T: Decodable>(_ type: T.Type = T.self, forKey key: String = "") throws -> T? {
         let decoder = URIValueFromNodeDecoder(
             node: node,
             rootKey: key[...],

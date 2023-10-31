@@ -17,15 +17,9 @@ import XCTest
 final class Test_URIDecoder: Test_Runtime {
 
     func testDecoding() throws {
-        struct Foo: Decodable, Equatable {
-            var bar: String
-        }
+        struct Foo: Decodable, Equatable { var bar: String }
         let decoder = URIDecoder(configuration: .formDataExplode)
-        let decodedValue = try decoder.decode(
-            Foo.self,
-            forKey: "",
-            from: "bar=hello+world"
-        )
+        let decodedValue = try decoder.decode(Foo.self, forKey: "", from: "bar=hello+world")
         XCTAssertEqual(decodedValue, Foo(bar: "hello world"))
     }
 
@@ -36,19 +30,11 @@ final class Test_URIDecoder: Test_Runtime {
         }
         let decoder = URIDecoder(configuration: .formDataExplode)
         do {
-            let decodedValue = try decoder.decode(
-                Foo.self,
-                forKey: "",
-                from: "baz=1&bar=hello+world"
-            )
+            let decodedValue = try decoder.decode(Foo.self, forKey: "", from: "baz=1&bar=hello+world")
             XCTAssertEqual(decodedValue, Foo(bar: "hello world", baz: 1))
         }
         do {
-            let decodedValue = try decoder.decode(
-                Foo.self,
-                forKey: "",
-                from: "baz=1"
-            )
+            let decodedValue = try decoder.decode(Foo.self, forKey: "", from: "baz=1")
             XCTAssertEqual(decodedValue, Foo(baz: 1))
         }
     }
@@ -56,27 +42,15 @@ final class Test_URIDecoder: Test_Runtime {
     func testDecoding_rootValue() throws {
         let decoder = URIDecoder(configuration: .formDataExplode)
         do {
-            let decodedValue = try decoder.decode(
-                Int.self,
-                forKey: "root",
-                from: "root=1"
-            )
+            let decodedValue = try decoder.decode(Int.self, forKey: "root", from: "root=1")
             XCTAssertEqual(decodedValue, 1)
         }
         do {
-            let decodedValue = try decoder.decodeIfPresent(
-                Int.self,
-                forKey: "root",
-                from: "baz=1"
-            )
+            let decodedValue = try decoder.decodeIfPresent(Int.self, forKey: "root", from: "baz=1")
             XCTAssertEqual(decodedValue, nil)
         }
         do {
-            let decodedValue = try decoder.decodeIfPresent(
-                Int.self,
-                forKey: "root",
-                from: ""
-            )
+            let decodedValue = try decoder.decodeIfPresent(Int.self, forKey: "root", from: "")
             XCTAssertEqual(decodedValue, nil)
         }
     }
@@ -85,11 +59,7 @@ final class Test_URIDecoder: Test_Runtime {
         let decoder = URIDecoder(configuration: .simpleUnexplode)
 
         do {
-            let decodedValue = try decoder.decode(
-                String.self,
-                forKey: "",
-                from: "foo%2C%20bar"
-            )
+            let decodedValue = try decoder.decode(String.self, forKey: "", from: "foo%2C%20bar")
             XCTAssertEqual(decodedValue, "foo, bar")
         }
     }
@@ -98,11 +68,7 @@ final class Test_URIDecoder: Test_Runtime {
         let decoder = URIDecoder(configuration: .simpleUnexplode)
 
         do {
-            let decodedValue = try decoder.decode(
-                String.self,
-                forKey: "",
-                from: "foo, bar"
-            )
+            let decodedValue = try decoder.decode(String.self, forKey: "", from: "foo, bar")
             XCTAssertEqual(decodedValue, "foo, bar")
         }
     }

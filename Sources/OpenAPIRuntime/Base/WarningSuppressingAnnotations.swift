@@ -24,9 +24,7 @@
 /// There should be no runtime impact in release builds, as the function is inlined and
 /// has no executable code.
 /// - Parameter value: The value for which you want to suppress "variable was never mutated, change to let" warnings.
-@_spi(Generated)
-@inline(__always)
-public func suppressMutabilityWarning<T>(_ value: inout T) {}
+@_spi(Generated) @inline(__always) public func suppressMutabilityWarning<T>(_ value: inout T) {}
 
 /// Suppress "variable unused" warnings.
 ///
@@ -40,6 +38,4 @@ public func suppressMutabilityWarning<T>(_ value: inout T) {}
 /// There should be no runtime impact in release builds, as the function is inlined and
 /// has no executable code.
 /// - Parameter value: The value for which you want to suppress "variable unused" warnings.
-@_spi(Generated)
-@inline(__always)
-public func suppressUnusedWarning<T>(_ value: T) {}
+@_spi(Generated) @inline(__always) public func suppressUnusedWarning<T>(_ value: T) {}

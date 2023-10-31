@@ -16,9 +16,7 @@ import XCTest
 
 final class Test_CodableExtensions: Test_Runtime {
 
-    var testDecoder: JSONDecoder {
-        JSONDecoder()
-    }
+    var testDecoder: JSONDecoder { JSONDecoder() }
 
     var testEncoder: JSONEncoder {
         let encoder = JSONEncoder()
@@ -31,16 +29,12 @@ final class Test_CodableExtensions: Test_Runtime {
         struct Foo: Decodable {
             var bar: String
 
-            enum CodingKeys: String, CodingKey {
-                case bar
-            }
+            enum CodingKeys: String, CodingKey { case bar }
 
             init(from decoder: any Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 self.bar = try container.decode(String.self, forKey: .bar)
-                try decoder.ensureNoAdditionalProperties(
-                    knownKeys: ["bar"]
-                )
+                try decoder.ensureNoAdditionalProperties(knownKeys: ["bar"])
             }
         }
 
@@ -87,16 +81,12 @@ final class Test_CodableExtensions: Test_Runtime {
             var bar: String
             var additionalProperties: OpenAPIObjectContainer
 
-            enum CodingKeys: String, CodingKey {
-                case bar
-            }
+            enum CodingKeys: String, CodingKey { case bar }
 
             init(from decoder: any Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 self.bar = try container.decode(String.self, forKey: .bar)
-                self.additionalProperties =
-                    try decoder
-                    .decodeAdditionalProperties(knownKeys: ["bar"])
+                self.additionalProperties = try decoder.decodeAdditionalProperties(knownKeys: ["bar"])
             }
         }
 
@@ -138,16 +128,12 @@ final class Test_CodableExtensions: Test_Runtime {
             var bar: String
             var additionalProperties: [String: Int]
 
-            enum CodingKeys: String, CodingKey {
-                case bar
-            }
+            enum CodingKeys: String, CodingKey { case bar }
 
             init(from decoder: any Decoder) throws {
                 let container = try decoder.container(keyedBy: CodingKeys.self)
                 self.bar = try container.decode(String.self, forKey: .bar)
-                self.additionalProperties =
-                    try decoder
-                    .decodeAdditionalProperties(knownKeys: ["bar"])
+                self.additionalProperties = try decoder.decodeAdditionalProperties(knownKeys: ["bar"])
             }
         }
 
@@ -189,9 +175,7 @@ final class Test_CodableExtensions: Test_Runtime {
             var bar: String
             var additionalProperties = OpenAPIObjectContainer()
 
-            enum CodingKeys: String, CodingKey {
-                case bar
-            }
+            enum CodingKeys: String, CodingKey { case bar }
 
             func encode(to encoder: any Encoder) throws {
                 var container = encoder.container(keyedBy: CodingKeys.self)
@@ -201,9 +185,7 @@ final class Test_CodableExtensions: Test_Runtime {
         }
 
         do {
-            let value = Foo(
-                bar: "hi"
-            )
+            let value = Foo(bar: "hi")
             let data = try testEncoder.encode(value)
             XCTAssertEqual(
                 String(decoding: data, as: UTF8.self),
@@ -216,13 +198,7 @@ final class Test_CodableExtensions: Test_Runtime {
         }
 
         do {
-            let value = Foo(
-                bar: "hi",
-                additionalProperties: try .init(unvalidatedValue: [
-                    "baz": "bar",
-                    "number": 1,
-                ])
-            )
+            let value = Foo(bar: "hi", additionalProperties: try .init(unvalidatedValue: ["baz": "bar", "number": 1]))
             let data = try testEncoder.encode(value)
             XCTAssertEqual(
                 String(decoding: data, as: UTF8.self),
@@ -243,9 +219,7 @@ final class Test_CodableExtensions: Test_Runtime {
             var bar: String
             var additionalProperties: [String: Int] = [:]
 
-            enum CodingKeys: String, CodingKey {
-                case bar
-            }
+            enum CodingKeys: String, CodingKey { case bar }
 
             func encode(to encoder: any Encoder) throws {
                 var container = encoder.container(keyedBy: CodingKeys.self)
@@ -255,9 +229,7 @@ final class Test_CodableExtensions: Test_Runtime {
         }
 
         do {
-            let value = Foo(
-                bar: "hi"
-            )
+            let value = Foo(bar: "hi")
             let data = try testEncoder.encode(value)
             XCTAssertEqual(
                 String(decoding: data, as: UTF8.self),
@@ -270,12 +242,7 @@ final class Test_CodableExtensions: Test_Runtime {
         }
 
         do {
-            let value = Foo(
-                bar: "hi",
-                additionalProperties: [
-                    "number": 1
-                ]
-            )
+            let value = Foo(bar: "hi", additionalProperties: ["number": 1])
             let data = try testEncoder.encode(value)
             XCTAssertEqual(
                 String(decoding: data, as: UTF8.self),

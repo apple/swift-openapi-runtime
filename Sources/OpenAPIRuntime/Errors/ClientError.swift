@@ -133,7 +133,5 @@ extension ClientError: LocalizedError {
     /// This computed property provides a localized human-readable description of the client error, which is suitable for displaying to users.
     ///
     /// - Returns: A localized string describing the client error.
-    public var errorDescription: String? {
-        description
-    }
+    public var errorDescription: String? { description }
 }

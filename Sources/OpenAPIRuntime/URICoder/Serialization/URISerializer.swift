@@ -39,13 +39,8 @@ struct URISerializer {
     ///     style and explode parameters in the configuration).
     /// - Returns: The URI-encoded data for the provided node.
     /// - Throws: An error if serialization of the node fails.
-    mutating func serializeNode(
-        _ value: URIEncodedNode,
-        forKey key: String
-    ) throws -> String {
-        defer {
-            data.removeAll(keepingCapacity: true)
-        }
+    mutating func serializeNode(_ value: URIEncodedNode, forKey key: String) throws -> String {
+        defer { data.removeAll(keepingCapacity: true) }
         try serializeTopLevelNode(value, forKey: key)
         return data
     }
@@ -83,10 +78,7 @@ extension URISerializer {
         // The space character needs to be encoded based on the config,
         // so first allow it to be unescaped, and then we'll do a second
         // pass and only encode the space based on the config.
-        let partiallyEncoded =
-            unsafeString.addingPercentEncoding(
-                withAllowedCharacters: .unreservedAndSpace
-            ) ?? ""
+        let partiallyEncoded = unsafeString.addingPercentEncoding(withAllowedCharacters: .unreservedAndSpace) ?? ""
         let fullyEncoded = partiallyEncoded.replacingOccurrences(
             of: " ",
             with: configuration.spaceEscapingCharacter.rawValue
@@ -100,9 +92,7 @@ extension URISerializer {
     /// - Throws: An error if the key cannot be converted to an escaped string.
     private func stringifiedKey(_ key: String) throws -> String {
         // The root key is handled separately.
-        guard !key.isEmpty else {
-            return ""
-        }
+        guard !key.isEmpty else { return "" }
         let safeTopLevelKey = computeSafeString(key)
         return safeTopLevelKey
     }
@@ -113,14 +103,9 @@ extension URISerializer {
     ///   - key: The key to serialize the value under (details depend on the
     ///     style and explode parameters in the configuration).
     /// - Throws: An error if serialization of the value fails.
-    private mutating func serializeTopLevelNode(
-        _ value: URIEncodedNode,
-        forKey key: String
-    ) throws {
+    private mutating func serializeTopLevelNode(_ value: URIEncodedNode, forKey key: String) throws {
         func unwrapPrimitiveValue(_ node: URIEncodedNode) throws -> URIEncodedNode.Primitive {
-            guard case let .primitive(primitive) = node else {
-                throw SerializationError.nestedContainersNotSupported
-            }
+            guard case let .primitive(primitive) = node else { throw SerializationError.nestedContainersNotSupported }
             return primitive
         }
         switch value {
@@ -130,47 +115,27 @@ extension URISerializer {
         case .primitive(let primitive):
             let keyAndValueSeparator: String?
             switch configuration.style {
-            case .form:
-                keyAndValueSeparator = "="
-            case .simple:
-                keyAndValueSeparator = nil
+            case .form: keyAndValueSeparator = "="
+            case .simple: keyAndValueSeparator = nil
             }
-            try serializePrimitiveKeyValuePair(
-                primitive,
-                forKey: key,
-                separator: keyAndValueSeparator
-            )
-        case .array(let array):
-            try serializeArray(
-                array.map(unwrapPrimitiveValue),
-                forKey: key
-            )
+            try serializePrimitiveKeyValuePair(primitive, forKey: key, separator: keyAndValueSeparator)
+        case .array(let array): try serializeArray(array.map(unwrapPrimitiveValue), forKey: key)
         case .dictionary(let dictionary):
-            try serializeDictionary(
-                dictionary.mapValues(unwrapPrimitiveValue),
-                forKey: key
-            )
+            try serializeDictionary(dictionary.mapValues(unwrapPrimitiveValue), forKey: key)
         }
     }
 
     /// Serializes the provided value into the underlying string.
     /// - Parameter value: The primitive value to serialize.
     /// - Throws: An error if serialization of the primitive value fails.
-    private mutating func serializePrimitiveValue(
-        _ value: URIEncodedNode.Primitive
-    ) throws {
+    private mutating func serializePrimitiveValue(_ value: URIEncodedNode.Primitive) throws {
         let stringValue: String
         switch value {
-        case .bool(let bool):
-            stringValue = bool.description
-        case .string(let string):
-            stringValue = computeSafeString(string)
-        case .integer(let int):
-            stringValue = int.description
-        case .double(let double):
-            stringValue = double.description
-        case .date(let date):
-            stringValue = try computeSafeString(configuration.dateTranscoder.encode(date))
+        case .bool(let bool): stringValue = bool.description
+        case .string(let string): stringValue = computeSafeString(string)
+        case .integer(let int): stringValue = int.description
+        case .double(let double): stringValue = double.description
+        case .date(let date): stringValue = try computeSafeString(configuration.dateTranscoder.encode(date))
         }
         data.append(stringValue)
     }
@@ -201,13 +166,8 @@ extension URISerializer {
     ///   - key: The key to serialize the value under (details depend on the
     ///     style and explode parameters in the configuration).
     /// - Throws: An error if serialization of the array fails.
-    private mutating func serializeArray(
-        _ array: [URIEncodedNode.Primitive],
-        forKey key: String
-    ) throws {
-        guard !array.isEmpty else {
-            return
-        }
+    private mutating func serializeArray(_ array: [URIEncodedNode.Primitive], forKey key: String) throws {
+        guard !array.isEmpty else { return }
         let keyAndValueSeparator: String?
         let pairSeparator: String
         switch (configuration.style, configuration.explode) {
@@ -223,11 +183,7 @@ extension URISerializer {
         }
         func serializeNext(_ element: URIEncodedNode.Primitive) throws {
             if let keyAndValueSeparator {
-                try serializePrimitiveKeyValuePair(
-                    element,
-                    forKey: key,
-                    separator: keyAndValueSeparator
-                )
+                try serializePrimitiveKeyValuePair(element, forKey: key, separator: keyAndValueSeparator)
             } else {
                 try serializePrimitiveValue(element)
             }
@@ -240,9 +196,7 @@ extension URISerializer {
             try serializeNext(element)
             data.append(pairSeparator)
         }
-        if let element = array.last {
-            try serializeNext(element)
-        }
+        if let element = array.last { try serializeNext(element) }
     }
 
     /// Serializes the provided dictionary into the underlying string.
@@ -251,19 +205,13 @@ extension URISerializer {
     ///   - key: The key to serialize the value under (details depend on the
     ///     style and explode parameters in the configuration).
     /// - Throws: An error if serialization of the dictionary fails.
-    private mutating func serializeDictionary(
-        _ dictionary: [String: URIEncodedNode.Primitive],
-        forKey key: String
-    ) throws {
-        guard !dictionary.isEmpty else {
-            return
+    private mutating func serializeDictionary(_ dictionary: [String: URIEncodedNode.Primitive], forKey key: String)
+        throws
+    {
+        guard !dictionary.isEmpty else { return }
+        let sortedDictionary = dictionary.sorted { a, b in
+            a.key.localizedCaseInsensitiveCompare(b.key) == .orderedAscending
         }
-        let sortedDictionary =
-            dictionary
-            .sorted { a, b in
-                a.key.localizedCaseInsensitiveCompare(b.key)
-                    == .orderedAscending
-            }
 
         let keyAndValueSeparator: String
         let pairSeparator: String
@@ -283,11 +231,7 @@ extension URISerializer {
         }
 
         func serializeNext(_ element: URIEncodedNode.Primitive, forKey elementKey: String) throws {
-            try serializePrimitiveKeyValuePair(
-                element,
-                forKey: elementKey,
-                separator: keyAndValueSeparator
-            )
+            try serializePrimitiveKeyValuePair(element, forKey: elementKey, separator: keyAndValueSeparator)
         }
         if let containerKeyAndValue = configuration.containerKeyAndValueSeparator {
             data.append(try stringifiedKey(key))
@@ -297,9 +241,7 @@ extension URISerializer {
             try serializeNext(element, forKey: elementKey)
             data.append(pairSeparator)
         }
-        if let (elementKey, element) = sortedDictionary.last {
-            try serializeNext(element, forKey: elementKey)
-        }
+        if let (elementKey, element) = sortedDictionary.last { try serializeNext(element, forKey: elementKey) }
     }
 }
 
@@ -310,10 +252,8 @@ extension URICoderConfiguration {
     /// serialized, only the value.
     fileprivate var containerKeyAndValueSeparator: String? {
         switch (style, explode) {
-        case (.form, false):
-            return "="
-        default:
-            return nil
+        case (.form, false): return "="
+        default: return nil
         }
     }
 }

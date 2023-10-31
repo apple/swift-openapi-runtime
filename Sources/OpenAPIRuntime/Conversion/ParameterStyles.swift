@@ -15,8 +15,7 @@
 /// The serialization style used by a parameter.
 ///
 /// Details: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#fixed-fields-10
-@_spi(Generated)
-public enum ParameterStyle: Sendable {
+@_spi(Generated) public enum ParameterStyle: Sendable {
 
     /// The form style.
     ///
@@ -46,18 +45,14 @@ extension ParameterStyle {
     /// Returns the default value of the explode field for the given style
     /// - Parameter style: The parameter style.
     /// - Returns: The explode value.
-    static func defaultExplodeFor(forStyle style: ParameterStyle) -> Bool {
-        style == .form
-    }
+    static func defaultExplodeFor(forStyle style: ParameterStyle) -> Bool { style == .form }
 }
 
 extension URICoderConfiguration.Style {
     init(_ style: ParameterStyle) {
         switch style {
-        case .form:
-            self = .form
-        case .simple:
-            self = .simple
+        case .form: self = .form
+        case .simple: self = .simple
         }
     }
 }

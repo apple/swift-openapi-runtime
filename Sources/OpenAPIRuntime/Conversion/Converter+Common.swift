@@ -23,9 +23,7 @@ extension Converter {
     /// type header.
     /// - Returns: The content type value, or nil if not found or invalid.
     public func extractContentTypeIfPresent(in headerFields: HTTPFields) -> OpenAPIMIMEType? {
-        guard let rawValue = headerFields[.contentType] else {
-            return nil
-        }
+        guard let rawValue = headerFields[.contentType] else { return nil }
         return OpenAPIMIMEType(rawValue)
     }
 
@@ -37,15 +35,9 @@ extension Converter {
     /// - Returns: The most appropriate option.
     /// - Throws: If none of the options match the received content type.
     /// - Precondition: `options` must not be empty.
-    public func bestContentType(
-        received: OpenAPIMIMEType?,
-        options: [String]
-    ) throws -> String {
+    public func bestContentType(received: OpenAPIMIMEType?, options: [String]) throws -> String {
         precondition(!options.isEmpty, "bestContentType options must not be empty.")
-        guard
-            let received,
-            case let .concrete(type: receivedType, subtype: receivedSubtype) = received.kind
-        else {
+        guard let received, case let .concrete(type: receivedType, subtype: receivedSubtype) = received.kind else {
             // If none received or if we received a wildcard, use the first one.
             // This behavior isn't well defined by the OpenAPI specification.
             // Note: We treat a partial wildcard, like `image/*` as a full
@@ -66,13 +58,9 @@ extension Converter {
             )
             return (contentType: stringOption, match: match)
         }
-        let bestOption = evaluatedOptions.max { a, b in
-            a.match.score < b.match.score
-        }!  // Safe, we only get here if the array is not empty.
+        let bestOption = evaluatedOptions.max { a, b in a.match.score < b.match.score }!  // Safe, we only get here if the array is not empty.
         let bestContentType = bestOption.contentType
-        if case .incompatible = bestOption.match {
-            throw RuntimeError.unexpectedContentTypeHeader(bestContentType)
-        }
+        if case .incompatible = bestOption.match { throw RuntimeError.unexpectedContentTypeHeader(bestContentType) }
         return bestContentType
     }
 
@@ -85,27 +73,13 @@ extension Converter {
     ///   - name: The name of the header field.
     ///   - value: The optional value to be encoded as a URI component if not nil.
     /// - Throws: An error if there's an issue with encoding the value as a URI component.
-    public func setHeaderFieldAsURI<T: Encodable>(
-        in headerFields: inout HTTPFields,
-        name: String,
-        value: T?
-    ) throws {
-        guard let value else {
-            return
-        }
+    public func setHeaderFieldAsURI<T: Encodable>(in headerFields: inout HTTPFields, name: String, value: T?) throws {
+        guard let value else { return }
         try setHeaderField(
             in: &headerFields,
             name: name,
             value: value,
-            convert: { value in
-                try convertToURI(
-                    style: .simple,
-                    explode: false,
-                    inBody: false,
-                    key: "",
-                    value: value
-                )
-            }
+            convert: { value in try convertToURI(style: .simple, explode: false, inBody: false, key: "", value: value) }
         )
     }
 
@@ -116,17 +90,8 @@ extension Converter {
     ///   - name: The name of the header field.
     ///   - value: The optional value to be encoded as a JSON component if not nil.
     /// - Throws: An error if there's an issue with encoding the value as a JSON component.
-    public func setHeaderFieldAsJSON<T: Encodable>(
-        in headerFields: inout HTTPFields,
-        name: String,
-        value: T?
-    ) throws {
-        try setHeaderField(
-            in: &headerFields,
-            name: name,
-            value: value,
-            convert: convertHeaderFieldCodableToJSON
-        )
+    public func setHeaderFieldAsJSON<T: Encodable>(in headerFields: inout HTTPFields, name: String, value: T?) throws {
+        try setHeaderField(in: &headerFields, name: name, value: value, convert: convertHeaderFieldCodableToJSON)
     }
 
     /// Attempts to retrieve an optional header field value and decodes it as a URI component, returning it as the specified type.
@@ -138,23 +103,15 @@ extension Converter {
     /// - Returns: The decoded header field value as the specified type, or `nil` if the field is not present.
     /// - Throws: An error if there's an issue with decoding the URI component or
     /// if the field is present but cannot be decoded as the specified type.
-    public func getOptionalHeaderFieldAsURI<T: Decodable>(
-        in headerFields: HTTPFields,
-        name: String,
-        as type: T.Type
-    ) throws -> T? {
+    public func getOptionalHeaderFieldAsURI<T: Decodable>(in headerFields: HTTPFields, name: String, as type: T.Type)
+        throws -> T?
+    {
         try getOptionalHeaderField(
             in: headerFields,
             name: name,
             as: type,
             convert: { encodedValue in
-                try convertFromURI(
-                    style: .simple,
-                    explode: false,
-                    inBody: false,
-                    key: "",
-                    encodedValue: encodedValue
-                )
+                try convertFromURI(style: .simple, explode: false, inBody: false, key: "", encodedValue: encodedValue)
             }
         )
     }
@@ -168,23 +125,15 @@ extension Converter {
     /// - Returns: The decoded header field value as the specified type.
     /// - Throws: An error if the field is not present or if there's an issue with decoding the URI component or
     ///  if the field is present but cannot be decoded as the specified type.
-    public func getRequiredHeaderFieldAsURI<T: Decodable>(
-        in headerFields: HTTPFields,
-        name: String,
-        as type: T.Type
-    ) throws -> T {
+    public func getRequiredHeaderFieldAsURI<T: Decodable>(in headerFields: HTTPFields, name: String, as type: T.Type)
+        throws -> T
+    {
         try getRequiredHeaderField(
             in: headerFields,
             name: name,
             as: type,
             convert: { encodedValue in
-                try convertFromURI(
-                    style: .simple,
-                    explode: false,
-                    inBody: false,
-                    key: "",
-                    encodedValue: encodedValue
-                )
+                try convertFromURI(style: .simple, explode: false, inBody: false, key: "", encodedValue: encodedValue)
             }
         )
     }
@@ -198,18 +147,9 @@ extension Converter {
     /// - Returns: The decoded header field value as the specified type, or
     /// `nil` if the field is not present in the headerFields dictionary.
     /// - Throws: An error if there's an issue with decoding the JSON value or if the field is present but cannot be decoded as the specified type.
-    public func getOptionalHeaderFieldAsJSON<T: Decodable>(
-        in headerFields: HTTPFields,
-        name: String,
-        as type: T.Type
-    ) throws -> T? {
-        try getOptionalHeaderField(
-            in: headerFields,
-            name: name,
-            as: type,
-            convert: convertJSONToHeaderFieldCodable
-        )
-    }
+    public func getOptionalHeaderFieldAsJSON<T: Decodable>(in headerFields: HTTPFields, name: String, as type: T.Type)
+        throws -> T?
+    { try getOptionalHeaderField(in: headerFields, name: name, as: type, convert: convertJSONToHeaderFieldCodable) }
 
     /// Retrieves a required header field value and decodes it as JSON, returning it as the specified type.
     ///
@@ -220,16 +160,7 @@ extension Converter {
     /// - Returns: The decoded header field value as the specified type.
     /// - Throws: An error if the field is not present in the headerFields dictionary, if there's an issue with decoding the JSON value,
     ///  or if the field cannot be decoded as the specified type.
-    public func getRequiredHeaderFieldAsJSON<T: Decodable>(
-        in headerFields: HTTPFields,
-        name: String,
-        as type: T.Type
-    ) throws -> T {
-        try getRequiredHeaderField(
-            in: headerFields,
-            name: name,
-            as: type,
-            convert: convertJSONToHeaderFieldCodable
-        )
-    }
+    public func getRequiredHeaderFieldAsJSON<T: Decodable>(in headerFields: HTTPFields, name: String, as type: T.Type)
+        throws -> T
+    { try getRequiredHeaderField(in: headerFields, name: name, as: type, convert: convertJSONToHeaderFieldCodable) }
 }

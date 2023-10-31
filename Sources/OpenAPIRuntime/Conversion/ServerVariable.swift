@@ -22,11 +22,7 @@ extension URL {
     ///   - variables: A map of variable values to substitute into the URL
     ///     template.
     /// - Throws: If the provided string doesn't convert to URL.
-    @_spi(Generated)
-    public init(
-        validatingOpenAPIServerURL string: String,
-        variables: [ServerVariable]
-    ) throws {
+    @_spi(Generated) public init(validatingOpenAPIServerURL string: String, variables: [ServerVariable]) throws {
         var urlString = string
         for variable in variables {
             let name = variable.name
@@ -42,16 +38,13 @@ extension URL {
             }
             urlString = urlString.replacingOccurrences(of: "{\(name)}", with: value)
         }
-        guard let url = Self(string: urlString) else {
-            throw RuntimeError.invalidServerURL(urlString)
-        }
+        guard let url = Self(string: urlString) else { throw RuntimeError.invalidServerURL(urlString) }
         self = url
     }
 }
 
 /// A variable of a server URL template in the OpenAPI document.
-@_spi(Generated)
-public struct ServerVariable: Sendable, Hashable {
+@_spi(Generated) public struct ServerVariable: Sendable, Hashable {
 
     /// The name of the variable.
     public var name: String

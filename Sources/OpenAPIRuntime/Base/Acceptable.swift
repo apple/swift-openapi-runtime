@@ -29,9 +29,7 @@ public struct QualityValue: Sendable, Hashable {
 
     /// Returns a Boolean value indicating whether the quality value is
     /// at its default value 1.0.
-    public var isDefault: Bool {
-        thousands == 1000
-    }
+    public var isDefault: Bool { thousands == 1000 }
 
     /// Creates a new quality value from the provided floating-point number.
     ///
@@ -46,9 +44,7 @@ public struct QualityValue: Sendable, Hashable {
     }
 
     /// The value represented as a floating-point number between 0.0 and 1.0, inclusive.
-    public var doubleValue: Double {
-        Double(thousands) / 1000
-    }
+    public var doubleValue: Double { Double(thousands) / 1000 }
 }
 
 extension QualityValue: RawRepresentable {
@@ -56,16 +52,12 @@ extension QualityValue: RawRepresentable {
     ///
     /// - Parameter rawValue: A string representing the quality value.
     public init?(rawValue: String) {
-        guard let doubleValue = Double(rawValue) else {
-            return nil
-        }
+        guard let doubleValue = Double(rawValue) else { return nil }
         self.init(doubleValue: doubleValue)
     }
 
     /// The raw string representation of the `QualityValue`.
-    public var rawValue: String {
-        String(format: "%0.3f", doubleValue)
-    }
+    public var rawValue: String { String(format: "%0.3f", doubleValue) }
 }
 
 extension QualityValue: ExpressibleByIntegerLiteral {
@@ -86,18 +78,14 @@ extension QualityValue: ExpressibleByFloatLiteral {
     /// Creates a new `QualityValue` instance from a floating-point literal value.
     ///
     /// - Parameter value: A floating-point literal value representing the quality value.
-    public init(floatLiteral value: Double) {
-        self.init(doubleValue: value)
-    }
+    public init(floatLiteral value: Double) { self.init(doubleValue: value) }
 }
 
 extension Array {
 
     /// Returns the default values for the acceptable type.
     public static func defaultValues<T: AcceptableProtocol>() -> [AcceptHeaderContentType<T>]
-    where Element == AcceptHeaderContentType<T> {
-        T.allCases.map { .init(contentType: $0) }
-    }
+    where Element == AcceptHeaderContentType<T> { T.allCases.map { .init(contentType: $0) } }
 }
 
 /// A wrapper of an individual content type in the accept header.
@@ -129,9 +117,7 @@ public struct AcceptHeaderContentType<ContentType: AcceptableProtocol>: Sendable
 
     /// Returns the default set of acceptable content types for this type, in
     /// the order specified in the OpenAPI document.
-    public static var defaultValues: [Self] {
-        ContentType.allCases.map { .init(contentType: $0) }
-    }
+    public static var defaultValues: [Self] { ContentType.allCases.map { .init(contentType: $0) } }
 }
 
 extension AcceptHeaderContentType: RawRepresentable {
@@ -161,18 +147,12 @@ extension AcceptHeaderContentType: RawRepresentable {
     }
 
     /// The raw representation of the content negotiation as a MIME type string.
-    public var rawValue: String {
-        contentType.rawValue + (quality.isDefault ? "" : "; q=\(quality.rawValue)")
-    }
+    public var rawValue: String { contentType.rawValue + (quality.isDefault ? "" : "; q=\(quality.rawValue)") }
 }
 
 extension Array {
 
     /// Returns the array sorted by the quality value, highest quality first.
     public func sortedByQuality<T: AcceptableProtocol>() -> [AcceptHeaderContentType<T>]
-    where Element == AcceptHeaderContentType<T> {
-        sorted { a, b in
-            a.quality.doubleValue > b.quality.doubleValue
-        }
-    }
+    where Element == AcceptHeaderContentType<T> { sorted { a, b in a.quality.doubleValue > b.quality.doubleValue } }
 }

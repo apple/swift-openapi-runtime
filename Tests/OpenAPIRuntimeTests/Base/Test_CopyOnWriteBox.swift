@@ -22,62 +22,19 @@ final class Test_CopyOnWriteBox: Test_Runtime {
     }
 
     func testModification() throws {
-        var value = Node(
-            id: 3,
-            parent: .init(
-                value: .init(
-                    id: 2
-                )
-            )
-        )
-        XCTAssertEqual(
-            value,
-            Node(
-                id: 3,
-                parent: .init(
-                    value: .init(
-                        id: 2
-                    )
-                )
-            )
-        )
+        var value = Node(id: 3, parent: .init(value: .init(id: 2)))
+        XCTAssertEqual(value, Node(id: 3, parent: .init(value: .init(id: 2))))
         value.parent!.value.parent = .init(value: .init(id: 1))
-        XCTAssertEqual(
-            value,
-            Node(
-                id: 3,
-                parent: .init(
-                    value: .init(
-                        id: 2,
-                        parent: .init(
-                            value: .init(id: 1)
-                        )
-                    )
-                )
-            )
-        )
+        XCTAssertEqual(value, Node(id: 3, parent: .init(value: .init(id: 2, parent: .init(value: .init(id: 1))))))
     }
 
     func testSerialization() throws {
         let value = CopyOnWriteBox(value: "Hello")
-        try testRoundtrip(
-            value,
-            expectedJSON: #""Hello""#
-        )
+        try testRoundtrip(value, expectedJSON: #""Hello""#)
     }
 
     func testIntegration() throws {
-        let value = Node(
-            id: 3,
-            parent: .init(
-                value: .init(
-                    id: 2,
-                    parent: .init(
-                        value: .init(id: 1)
-                    )
-                )
-            )
-        )
+        let value = Node(id: 3, parent: .init(value: .init(id: 2, parent: .init(value: .init(id: 1)))))
         try testRoundtrip(
             value,
             expectedJSON: #"""

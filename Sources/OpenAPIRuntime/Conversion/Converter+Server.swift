@@ -24,17 +24,11 @@ extension Converter {
     /// - Returns: The parsed content types, or the default content types if
     ///   the header was not provided.
     /// - Throws: An error if the "accept" header is present but malformed, or if there are issues parsing its components.
-    public func extractAcceptHeaderIfPresent<T: AcceptableProtocol>(
-        in headerFields: HTTPFields
-    ) throws -> [AcceptHeaderContentType<T>] {
-        guard let rawValue = headerFields[.accept] else {
-            return AcceptHeaderContentType<T>.defaultValues
-        }
-        let rawComponents =
-            rawValue
-            .split(separator: ",")
-            .map(String.init)
-            .map(\.trimmingLeadingAndTrailingSpaces)
+    public func extractAcceptHeaderIfPresent<T: AcceptableProtocol>(in headerFields: HTTPFields) throws
+        -> [AcceptHeaderContentType<T>]
+    {
+        guard let rawValue = headerFields[.accept] else { return AcceptHeaderContentType<T>.defaultValues }
+        let rawComponents = rawValue.split(separator: ",").map(String.init).map(\.trimmingLeadingAndTrailingSpaces)
         let parsedComponents = try rawComponents.map { rawComponent in
             guard let value = AcceptHeaderContentType<T>(rawValue: rawComponent) else {
                 throw RuntimeError.malformedAcceptHeader(rawComponent)
@@ -52,39 +46,21 @@ extension Converter {
     ///   Also supports wildcars, such as "application/\*" and "\*/\*".
     /// - Throws: An error if the "Accept" header is present but incompatible with the provided content type,
     ///  or if there are issues parsing the header.
-    public func validateAcceptIfPresent(
-        _ substring: String,
-        in headerFields: HTTPFields
-    ) throws {
+    public func validateAcceptIfPresent(_ substring: String, in headerFields: HTTPFields) throws {
         // for example: text/html, application/xhtml+xml, application/xml;q=0.9, */*;q=0.8
-        guard let acceptHeader = headerFields[.accept] else {
-            return
-        }
+        guard let acceptHeader = headerFields[.accept] else { return }
 
         // Split with commas to get the individual values
-        let acceptValues =
-            acceptHeader
-            .split(separator: ",")
+        let acceptValues = acceptHeader.split(separator: ",")
             .map { value in
                 // Drop everything after the optional semicolon (q, extensions, ...)
-                value
-                    .split(separator: ";")[0]
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                    .lowercased()
+                value.split(separator: ";")[0].trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
             }
 
-        if acceptValues.isEmpty {
-            return
-        }
-        if acceptValues.contains("*/*") {
-            return
-        }
-        if acceptValues.contains("\(substring.split(separator: "/")[0].lowercased())/*") {
-            return
-        }
-        if acceptValues.contains(where: { $0.localizedCaseInsensitiveContains(substring) }) {
-            return
-        }
+        if acceptValues.isEmpty { return }
+        if acceptValues.contains("*/*") { return }
+        if acceptValues.contains("\(substring.split(separator: "/")[0].lowercased())/*") { return }
+        if acceptValues.contains(where: { $0.localizedCaseInsensitiveContains(substring) }) { return }
         throw RuntimeError.unexpectedAcceptHeader(acceptHeader)
     }
 
@@ -114,11 +90,7 @@ extension Converter {
                         dateTranscoder: configuration.dateTranscoder
                     )
                 )
-                let value = try decoder.decode(
-                    T.self,
-                    forKey: name,
-                    from: encodedString
-                )
+                let value = try decoder.decode(T.self, forKey: name, from: encodedString)
                 return value
             }
         )
@@ -156,11 +128,7 @@ extension Converter {
                         dateTranscoder: configuration.dateTranscoder
                     )
                 )
-                let value = try decoder.decodeIfPresent(
-                    T.self,
-                    forKey: name,
-                    from: query
-                )
+                let value = try decoder.decodeIfPresent(T.self, forKey: name, from: query)
                 return value
             }
         )
@@ -198,11 +166,7 @@ extension Converter {
                         dateTranscoder: configuration.dateTranscoder
                     )
                 )
-                let value = try decoder.decode(
-                    T.self,
-                    forKey: name,
-                    from: query
-                )
+                let value = try decoder.decode(T.self, forKey: name, from: query)
                 return value
             }
         )
@@ -262,14 +226,7 @@ extension Converter {
         _ type: HTTPBody.Type,
         from data: HTTPBody?,
         transforming transform: (HTTPBody) -> C
-    ) throws -> C? {
-        try getOptionalRequestBody(
-            type,
-            from: data,
-            transforming: transform,
-            convert: { $0 }
-        )
-    }
+    ) throws -> C? { try getOptionalRequestBody(type, from: data, transforming: transform, convert: { $0 }) }
 
     /// Retrieves and transforms a required binary request body.
     ///
@@ -283,14 +240,7 @@ extension Converter {
         _ type: HTTPBody.Type,
         from data: HTTPBody?,
         transforming transform: (HTTPBody) -> C
-    ) throws -> C {
-        try getRequiredRequestBody(
-            type,
-            from: data,
-            transforming: transform,
-            convert: { $0 }
-        )
-    }
+    ) throws -> C { try getRequiredRequestBody(type, from: data, transforming: transform, convert: { $0 }) }
 
     /// Retrieves and transforms an optional URL-encoded form request body.
     ///
@@ -342,11 +292,9 @@ extension Converter {
     ///   - contentType: The content type to set in the HTTP header fields.
     /// - Returns: An `HTTPBody` with the response body set as JSON data.
     /// - Throws: An error if serialization or setting the response body fails.
-    public func setResponseBodyAsJSON<T: Encodable>(
-        _ value: T,
-        headerFields: inout HTTPFields,
-        contentType: String
-    ) throws -> HTTPBody {
+    public func setResponseBodyAsJSON<T: Encodable>(_ value: T, headerFields: inout HTTPFields, contentType: String)
+        throws -> HTTPBody
+    {
         try setResponseBody(
             value,
             headerFields: &headerFields,
@@ -363,16 +311,7 @@ extension Converter {
     ///   - contentType: The content type to set in the header fields.
     /// - Returns: The updated `HTTPBody` containing the binary response data.
     /// - Throws: An error if there are issues setting the response body or updating the header fields.
-    public func setResponseBodyAsBinary(
-        _ value: HTTPBody,
-        headerFields: inout HTTPFields,
-        contentType: String
-    ) throws -> HTTPBody {
-        try setResponseBody(
-            value,
-            headerFields: &headerFields,
-            contentType: contentType,
-            convert: { $0 }
-        )
-    }
+    public func setResponseBodyAsBinary(_ value: HTTPBody, headerFields: inout HTTPFields, contentType: String) throws
+        -> HTTPBody
+    { try setResponseBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
 }

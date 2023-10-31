@@ -18,29 +18,16 @@ import Foundation
 
 struct MockClientTransport: ClientTransport {
     var sendBlock: @Sendable (HTTPRequest, HTTPBody?, URL, String) async throws -> (HTTPResponse, HTTPBody?)
-    func send(
-        _ request: HTTPRequest,
-        body: HTTPBody?,
-        baseURL: URL,
-        operationID: String
-    ) async throws -> (HTTPResponse, HTTPBody?) {
-        try await sendBlock(request, body, baseURL, operationID)
-    }
+    func send(_ request: HTTPRequest, body: HTTPBody?, baseURL: URL, operationID: String) async throws -> (
+        HTTPResponse, HTTPBody?
+    ) { try await sendBlock(request, body, baseURL, operationID) }
 
     static let requestBody: HTTPBody = HTTPBody("hello")
     static let responseBody: HTTPBody = HTTPBody("bye")
 
-    static var successful: Self {
-        MockClientTransport { _, _, _, _ in
-            (HTTPResponse(status: .ok), responseBody)
-        }
-    }
+    static var successful: Self { MockClientTransport { _, _, _, _ in (HTTPResponse(status: .ok), responseBody) } }
 
-    static var failing: Self {
-        MockClientTransport { _, _, _, _ in
-            throw TestError()
-        }
-    }
+    static var failing: Self { MockClientTransport { _, _, _, _ in throw TestError() } }
 }
 
 final class Test_UniversalClient: Test_Runtime {
@@ -50,12 +37,7 @@ final class Test_UniversalClient: Test_Runtime {
         let output = try await client.send(
             input: "input",
             forOperation: "op",
-            serializer: { input in
-                (
-                    HTTPRequest(soar_path: "/", method: .post),
-                    MockClientTransport.requestBody
-                )
-            },
+            serializer: { input in (HTTPRequest(soar_path: "/", method: .post), MockClientTransport.requestBody) },
             deserializer: { response, body in
                 let body = try XCTUnwrap(body)
                 let string = try await String(collecting: body, upTo: 10)
@@ -71,12 +53,8 @@ final class Test_UniversalClient: Test_Runtime {
             try await client.send(
                 input: "input",
                 forOperation: "op",
-                serializer: { input in
-                    throw TestError()
-                },
-                deserializer: { response, body in
-                    fatalError()
-                }
+                serializer: { input in throw TestError() },
+                deserializer: { response, body in fatalError() }
             )
         } catch {
             let clientError = try XCTUnwrap(error as? ClientError)
@@ -96,22 +74,13 @@ final class Test_UniversalClient: Test_Runtime {
         do {
             let client = UniversalClient(
                 transport: MockClientTransport.successful,
-                middlewares: [
-                    MockMiddleware(failurePhase: .onRequest)
-                ]
+                middlewares: [MockMiddleware(failurePhase: .onRequest)]
             )
             try await client.send(
                 input: "input",
                 forOperation: "op",
-                serializer: { input in
-                    (
-                        HTTPRequest(soar_path: "/", method: .post),
-                        MockClientTransport.requestBody
-                    )
-                },
-                deserializer: { response, body in
-                    fatalError()
-                }
+                serializer: { input in (HTTPRequest(soar_path: "/", method: .post), MockClientTransport.requestBody) },
+                deserializer: { response, body in fatalError() }
             )
         } catch {
             let clientError = try XCTUnwrap(error as? ClientError)
@@ -129,24 +98,12 @@ final class Test_UniversalClient: Test_Runtime {
 
     func testErrorPropagation_transport() async throws {
         do {
-            let client = UniversalClient(
-                transport: MockClientTransport.failing,
-                middlewares: [
-                    MockMiddleware()
-                ]
-            )
+            let client = UniversalClient(transport: MockClientTransport.failing, middlewares: [MockMiddleware()])
             try await client.send(
                 input: "input",
                 forOperation: "op",
-                serializer: { input in
-                    (
-                        HTTPRequest(soar_path: "/", method: .post),
-                        MockClientTransport.requestBody
-                    )
-                },
-                deserializer: { response, body in
-                    fatalError()
-                }
+                serializer: { input in (HTTPRequest(soar_path: "/", method: .post), MockClientTransport.requestBody) },
+                deserializer: { response, body in fatalError() }
             )
         } catch {
             let clientError = try XCTUnwrap(error as? ClientError)
@@ -166,22 +123,13 @@ final class Test_UniversalClient: Test_Runtime {
         do {
             let client = UniversalClient(
                 transport: MockClientTransport.successful,
-                middlewares: [
-                    MockMiddleware(failurePhase: .onResponse)
-                ]
+                middlewares: [MockMiddleware(failurePhase: .onResponse)]
             )
             try await client.send(
                 input: "input",
                 forOperation: "op",
-                serializer: { input in
-                    (
-                        HTTPRequest(soar_path: "/", method: .post),
-                        MockClientTransport.requestBody
-                    )
-                },
-                deserializer: { response, body in
-                    fatalError()
-                }
+                serializer: { input in (HTTPRequest(soar_path: "/", method: .post), MockClientTransport.requestBody) },
+                deserializer: { response, body in fatalError() }
             )
         } catch {
             let clientError = try XCTUnwrap(error as? ClientError)
@@ -203,15 +151,8 @@ final class Test_UniversalClient: Test_Runtime {
             try await client.send(
                 input: "input",
                 forOperation: "op",
-                serializer: { input in
-                    (
-                        HTTPRequest(soar_path: "/", method: .post),
-                        MockClientTransport.requestBody
-                    )
-                },
-                deserializer: { response, body in
-                    throw TestError()
-                }
+                serializer: { input in (HTTPRequest(soar_path: "/", method: .post), MockClientTransport.requestBody) },
+                deserializer: { response, body in throw TestError() }
             )
         } catch {
             let clientError = try XCTUnwrap(error as? ClientError)
