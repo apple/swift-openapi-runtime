@@ -22,65 +22,44 @@ final class Test_Body: Test_Runtime {
         // A single string.
         do {
             let body: HTTPBody = HTTPBody("hello")
-            try await _testConsume(
-                body,
-                expected: "hello"
-            )
+            try await _testConsume(body, expected: "hello")
         }
 
         // A literal string.
         do {
             let body: HTTPBody = "hello"
-            try await _testConsume(
-                body,
-                expected: "hello"
-            )
+            try await _testConsume(body, expected: "hello")
         }
 
         // A single substring.
         do {
             let substring: Substring = "hello"
             let body: HTTPBody = HTTPBody(substring)
-            try await _testConsume(
-                body,
-                expected: "hello"
-            )
+            try await _testConsume(body, expected: "hello")
         }
 
         // A single array of bytes.
         do {
             let body: HTTPBody = HTTPBody([0])
-            try await _testConsume(
-                body,
-                expected: [0]
-            )
+            try await _testConsume(body, expected: [0])
         }
 
         // A literal array of bytes.
         do {
             let body: HTTPBody = [0]
-            try await _testConsume(
-                body,
-                expected: [0]
-            )
+            try await _testConsume(body, expected: [0])
         }
 
         // A single data.
         do {
             let body: HTTPBody = HTTPBody(Data([0]))
-            try await _testConsume(
-                body,
-                expected: [0]
-            )
+            try await _testConsume(body, expected: [0])
         }
 
         // A single slice of an array of bytes.
         do {
             let body: HTTPBody = HTTPBody([0][...])
-            try await _testConsume(
-                body,
-                expected: [0][...]
-            )
+            try await _testConsume(body, expected: [0][...])
         }
 
         // An async throwing stream.
@@ -96,10 +75,7 @@ final class Test_Body: Test_Runtime {
                 ),
                 length: .known(5)
             )
-            try await _testConsume(
-                body,
-                expected: "hello"
-            )
+            try await _testConsume(body, expected: "hello")
         }
 
         // An async throwing stream, unknown length.
@@ -115,10 +91,7 @@ final class Test_Body: Test_Runtime {
                 ),
                 length: .unknown
             )
-            try await _testConsume(
-                body,
-                expected: "hello"
-            )
+            try await _testConsume(body, expected: "hello")
         }
 
         // An async stream.
@@ -134,10 +107,7 @@ final class Test_Body: Test_Runtime {
                 ),
                 length: .known(5)
             )
-            try await _testConsume(
-                body,
-                expected: "hello"
-            )
+            try await _testConsume(body, expected: "hello")
         }
 
         // Another async sequence.
@@ -151,15 +121,8 @@ final class Test_Body: Test_Runtime {
                 }
             )
             .map { $0 }
-            let body: HTTPBody = HTTPBody(
-                sequence,
-                length: .known(5),
-                iterationBehavior: .single
-            )
-            try await _testConsume(
-                body,
-                expected: "hello"
-            )
+            let body: HTTPBody = HTTPBody(sequence, length: .known(5), iterationBehavior: .single)
+            try await _testConsume(body, expected: "hello")
         }
     }
 
@@ -173,15 +136,9 @@ final class Test_Body: Test_Runtime {
             }
         )
         .map { $0 }
-        let body: HTTPBody = HTTPBody(
-            sequence,
-            length: .known(5),
-            iterationBehavior: .single
-        )
+        let body: HTTPBody = HTTPBody(sequence, length: .known(5), iterationBehavior: .single)
         var chunks: [HTTPBody.ByteChunk] = []
-        for try await chunk in body {
-            chunks.append(chunk)
-        }
+        for try await chunk in body { chunks.append(chunk) }
         XCTAssertEqual(chunks, ["hel", "lo"].map { Array($0.utf8)[...] })
     }
 
@@ -202,18 +159,12 @@ final class Test_Body: Test_Runtime {
             }
         )
         .map { $0 }
-        let body: HTTPBody = HTTPBody(
-            sequence,
-            length: .unknown,
-            iterationBehavior: .single
-        )
+        let body: HTTPBody = HTTPBody(sequence, length: .unknown, iterationBehavior: .single)
 
         XCTAssertFalse(body.testing_iteratorCreated)
 
         var chunkCount = 0
-        for try await _ in body {
-            chunkCount += 1
-        }
+        for try await _ in body { chunkCount += 1 }
         XCTAssertEqual(chunkCount, 2)
 
         XCTAssertTrue(body.testing_iteratorCreated)
@@ -231,9 +182,7 @@ final class Test_Body: Test_Runtime {
 
         do {
             var chunkCount = 0
-            for try await _ in body {
-                chunkCount += 1
-            }
+            for try await _ in body { chunkCount += 1 }
             XCTAssertEqual(chunkCount, 1)
         }
 
@@ -241,9 +190,7 @@ final class Test_Body: Test_Runtime {
 
         do {
             var chunkCount = 0
-            for try await _ in body {
-                chunkCount += 1
-            }
+            for try await _ in body { chunkCount += 1 }
             XCTAssertEqual(chunkCount, 1)
         }
 
@@ -277,22 +224,16 @@ final class Test_Body: Test_Runtime {
 }
 
 extension Test_Body {
-    func _testConsume(
-        _ body: HTTPBody,
-        expected: HTTPBody.ByteChunk,
-        file: StaticString = #file,
-        line: UInt = #line
-    ) async throws {
+    func _testConsume(_ body: HTTPBody, expected: HTTPBody.ByteChunk, file: StaticString = #file, line: UInt = #line)
+        async throws
+    {
         let output = try await ArraySlice(collecting: body, upTo: .max)
         XCTAssertEqual(output, expected, file: file, line: line)
     }
 
-    func _testConsume(
-        _ body: HTTPBody,
-        expected: some StringProtocol,
-        file: StaticString = #file,
-        line: UInt = #line
-    ) async throws {
+    func _testConsume(_ body: HTTPBody, expected: some StringProtocol, file: StaticString = #file, line: UInt = #line)
+        async throws
+    {
         let output = try await String(collecting: body, upTo: .max)
         XCTAssertEqual(output, expected.description, file: file, line: line)
     }

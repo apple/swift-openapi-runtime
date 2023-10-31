@@ -34,8 +34,7 @@ extension ClientError {
         renamed:
             "ClientError.init(operationID:operationInput:request:requestBody:baseURL:response:responseBody:causeDescription:underlyingError:)",
         message: "Use the initializer with a causeDescription parameter."
-    )
-    public init(
+    ) public init(
         operationID: String,
         operationInput: any Sendable,
         request: HTTPRequest? = nil,
@@ -76,8 +75,7 @@ extension ServerError {
         renamed:
             "ServerError.init(operationID:request:requestBody:requestMetadata:operationInput:operationOutput:causeDescription:underlyingError:)",
         message: "Use the initializer with a causeDescription parameter."
-    )
-    public init(
+    ) public init(
         operationID: String,
         request: HTTPRequest,
         requestBody: HTTPBody?,
@@ -104,8 +102,7 @@ extension Converter {
     /// received.
     /// - Parameter contentType: The content type that was received.
     /// - Returns: An error representing an unexpected content type.
-    @available(*, deprecated)
-    public func makeUnexpectedContentTypeError(contentType: OpenAPIMIMEType?) -> any Error {
+    @available(*, deprecated) public func makeUnexpectedContentTypeError(contentType: OpenAPIMIMEType?) -> any Error {
         RuntimeError.unexpectedContentTypeHeader(contentType?.description ?? "")
     }
 
@@ -121,22 +118,17 @@ extension Converter {
     /// - Throws: A `RuntimeError` when `expectedRaw` is not a valid content type.
     /// - Returns: A Boolean value representing whether the concrete content
     /// type matches the expected one.
-    @available(*, deprecated)
-    public func isMatchingContentType(received: OpenAPIMIMEType?, expectedRaw: String) throws -> Bool {
-        guard let received else {
-            return false
-        }
-        guard case let .concrete(type: receivedType, subtype: receivedSubtype) = received.kind else {
-            return false
-        }
+    @available(*, deprecated) public func isMatchingContentType(received: OpenAPIMIMEType?, expectedRaw: String) throws
+        -> Bool
+    {
+        guard let received else { return false }
+        guard case let .concrete(type: receivedType, subtype: receivedSubtype) = received.kind else { return false }
         guard let expectedContentType = OpenAPIMIMEType(expectedRaw) else {
             throw RuntimeError.invalidExpectedContentType(expectedRaw)
         }
         switch expectedContentType.kind {
-        case .any:
-            return true
-        case .anySubtype(let expectedType):
-            return receivedType.lowercased() == expectedType.lowercased()
+        case .any: return true
+        case .anySubtype(let expectedType): return receivedType.lowercased() == expectedType.lowercased()
         case .concrete(let expectedType, let expectedSubtype):
             return receivedType.lowercased() == expectedType.lowercased()
                 && receivedSubtype.lowercased() == expectedSubtype.lowercased()
@@ -153,9 +145,7 @@ extension DecodingError {
     ///   - codingPath: The coding path to the decoder that attempted to decode
     ///   the type.
     /// - Returns: A decoding error.
-    @_spi(Generated)
-    @available(*, deprecated)
-    public static func failedToDecodeOneOfSchema(
+    @_spi(Generated) @available(*, deprecated) public static func failedToDecodeOneOfSchema(
         type: Any.Type,
         codingPath: [any CodingKey]
     ) -> Self {
@@ -176,11 +166,7 @@ extension DecodingError {
     ///   - codingPath: The coding path to the decoder that attempted to decode
     ///   the type.
     /// - Returns: A decoding error.
-    @available(*, deprecated)
-    static func failedToDecodeAnySchema(
-        type: Any.Type,
-        codingPath: [any CodingKey]
-    ) -> Self {
+    @available(*, deprecated) static func failedToDecodeAnySchema(type: Any.Type, codingPath: [any CodingKey]) -> Self {
         DecodingError.valueNotFound(
             type,
             DecodingError.Context.init(
@@ -199,18 +185,13 @@ extension DecodingError {
     ///   - codingPath: The coding path to the decoder that attempted to decode
     ///   the type.
     /// - Throws: An error of type `DecodingError.failedToDecodeAnySchema` if none of the child schemas were successfully decoded.
-    @_spi(Generated)
-    @available(*, deprecated)
-    public static func verifyAtLeastOneSchemaIsNotNil(
+    @_spi(Generated) @available(*, deprecated) public static func verifyAtLeastOneSchemaIsNotNil(
         _ values: [Any?],
         type: Any.Type,
         codingPath: [any CodingKey]
     ) throws {
         guard values.contains(where: { $0 != nil }) else {
-            throw DecodingError.failedToDecodeAnySchema(
-                type: type,
-                codingPath: codingPath
-            )
+            throw DecodingError.failedToDecodeAnySchema(type: type, codingPath: codingPath)
         }
     }
 }

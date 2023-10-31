@@ -52,10 +52,7 @@ final class URIValueToNodeEncoder {
     /// Creates a new encoder.
     init() {
         self._codingPath = []
-        self.currentStackEntry = CodingStackEntry(
-            key: .init(stringValue: ""),
-            storage: .unset
-        )
+        self.currentStackEntry = CodingStackEntry(key: .init(stringValue: ""), storage: .unset)
     }
 
     /// Encodes the provided value into a node.
@@ -65,10 +62,7 @@ final class URIValueToNodeEncoder {
     func encodeValue(_ value: some Encodable) throws -> URIEncodedNode {
         defer {
             _codingPath = []
-            currentStackEntry = CodingStackEntry(
-                key: .init(stringValue: ""),
-                storage: .unset
-            )
+            currentStackEntry = CodingStackEntry(key: .init(stringValue: ""), storage: .unset)
         }
 
         // We have to catch the special values early, otherwise we fall
@@ -117,28 +111,16 @@ extension URIValueToNodeEncoder: Encoder {
         // The coding path meaningful to the types conforming to Codable.
         // 1. Omit the root coding path.
         // 2. Add the current stack entry's coding path.
-        (_codingPath
-            .dropFirst()
-            .map(\.key)
-            + [currentStackEntry.key])
-            .map { $0 as any CodingKey }
+        (_codingPath.dropFirst().map(\.key) + [currentStackEntry.key]).map { $0 as any CodingKey }
     }
 
-    var userInfo: [CodingUserInfoKey: Any] {
-        [:]
-    }
+    var userInfo: [CodingUserInfoKey: Any] { [:] }
 
-    func container<Key>(
-        keyedBy type: Key.Type
-    ) -> KeyedEncodingContainer<Key> where Key: CodingKey {
+    func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
         KeyedEncodingContainer(URIKeyedEncodingContainer(encoder: self))
     }
 
-    func unkeyedContainer() -> any UnkeyedEncodingContainer {
-        URIUnkeyedEncodingContainer(encoder: self)
-    }
+    func unkeyedContainer() -> any UnkeyedEncodingContainer { URIUnkeyedEncodingContainer(encoder: self) }
 
-    func singleValueContainer() -> any SingleValueEncodingContainer {
-        URISingleValueEncodingContainer(encoder: self)
-    }
+    func singleValueContainer() -> any SingleValueEncodingContainer { URISingleValueEncodingContainer(encoder: self) }
 }

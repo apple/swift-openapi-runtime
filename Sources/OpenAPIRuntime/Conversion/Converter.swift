@@ -19,8 +19,7 @@ import Foundation
 #endif
 
 /// Converter between generated and HTTP currency types.
-@_spi(Generated)
-public struct Converter: Sendable {
+@_spi(Generated) public struct Converter: Sendable {
 
     /// Configuration used to set up the converter.
     public let configuration: Configuration
@@ -35,9 +34,7 @@ public struct Converter: Sendable {
     internal var headerFieldEncoder: JSONEncoder
 
     /// Creates a new converter with the behavior specified by the configuration.
-    public init(
-        configuration: Configuration
-    ) {
+    public init(configuration: Configuration) {
         self.configuration = configuration
 
         self.encoder = JSONEncoder()

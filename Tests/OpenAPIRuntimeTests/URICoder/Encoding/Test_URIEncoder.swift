@@ -17,15 +17,10 @@ import XCTest
 final class Test_URIEncoder: Test_Runtime {
 
     func testEncoding() throws {
-        struct Foo: Encodable {
-            var bar: String
-        }
+        struct Foo: Encodable { var bar: String }
         let serializer = URISerializer(configuration: .formDataExplode)
         let encoder = URIEncoder(serializer: serializer)
-        let encodedString = try encoder.encode(
-            Foo(bar: "hello world"),
-            forKey: "root"
-        )
+        let encodedString = try encoder.encode(Foo(bar: "hello world"), forKey: "root")
         XCTAssertEqual(encodedString, "bar=hello+world")
     }
 }

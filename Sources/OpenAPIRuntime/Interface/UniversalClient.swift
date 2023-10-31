@@ -90,15 +90,10 @@ import Foundation
         serializer: @Sendable (OperationInput) throws -> (HTTPRequest, HTTPBody?),
         deserializer: @Sendable (HTTPResponse, HTTPBody?) async throws -> OperationOutput
     ) async throws -> OperationOutput where OperationInput: Sendable, OperationOutput: Sendable {
-        @Sendable func wrappingErrors<R>(
-            work: () async throws -> R,
-            mapError: (any Error) -> any Error
-        ) async throws -> R {
-            do {
-                return try await work()
-            } catch let error as ClientError {
-                throw error
-            } catch {
+        @Sendable func wrappingErrors<R>(work: () async throws -> R, mapError: (any Error) -> any Error) async throws
+            -> R
+        {
+            do { return try await work() } catch let error as ClientError { throw error } catch {
                 throw mapError(error)
             }
         }
@@ -148,12 +143,7 @@ import Foundation
         var next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?) = {
             (_request, _body, _url) in
             try await wrappingErrors {
-                try await transport.send(
-                    _request,
-                    body: _body,
-                    baseURL: _url,
-                    operationID: operationID
-                )
+                try await transport.send(_request, body: _body, baseURL: _url, operationID: operationID)
             } mapError: { error in
                 makeError(
                     request: request,
@@ -165,8 +155,7 @@ import Foundation
         }
         for middleware in middlewares.reversed() {
             let tmp = next
-            next = {
-                (_request, _body, _url) in
+            next = { (_request, _body, _url) in
                 try await wrappingErrors {
                     try await middleware.intercept(
                         _request,
@@ -180,10 +169,7 @@ import Foundation
                         request: request,
                         requestBody: requestBody,
                         baseURL: baseURL,
-                        error: RuntimeError.middlewareFailed(
-                            middlewareType: type(of: middleware),
-                            error
-                        )
+                        error: RuntimeError.middlewareFailed(middlewareType: type(of: middleware), error)
                     )
                 }
             }

@@ -17,16 +17,11 @@ extension DecodingError: PrettyStringConvertible {
     var prettyDescription: String {
         let output: String
         switch self {
-        case .dataCorrupted(let context):
-            output = "dataCorrupted - \(context.prettyDescription)"
-        case .keyNotFound(let key, let context):
-            output = "keyNotFound \(key) - \(context.prettyDescription)"
-        case .typeMismatch(let type, let context):
-            output = "typeMismatch \(type) - \(context.prettyDescription)"
-        case .valueNotFound(let type, let context):
-            output = "valueNotFound \(type) - \(context.prettyDescription)"
-        @unknown default:
-            output = "unknown: \(localizedDescription)"
+        case .dataCorrupted(let context): output = "dataCorrupted - \(context.prettyDescription)"
+        case .keyNotFound(let key, let context): output = "keyNotFound \(key) - \(context.prettyDescription)"
+        case .typeMismatch(let type, let context): output = "typeMismatch \(type) - \(context.prettyDescription)"
+        case .valueNotFound(let type, let context): output = "valueNotFound \(type) - \(context.prettyDescription)"
+        @unknown default: output = "unknown: \(localizedDescription)"
         }
         return "DecodingError: \(output)"
     }
@@ -43,10 +38,8 @@ extension EncodingError: PrettyStringConvertible {
     var prettyDescription: String {
         let output: String
         switch self {
-        case .invalidValue(let value, let context):
-            output = "invalidValue \(value) - \(context.prettyDescription)"
-        @unknown default:
-            output = "unknown: \(localizedDescription)"
+        case .invalidValue(let value, let context): output = "invalidValue \(value) - \(context.prettyDescription)"
+        @unknown default: output = "unknown: \(localizedDescription)"
         }
         return "EncodingError: \(output)"
     }

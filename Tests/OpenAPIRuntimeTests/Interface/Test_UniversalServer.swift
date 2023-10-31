@@ -19,12 +19,8 @@ import Foundation
 struct MockHandler: Sendable {
     var shouldFail: Bool = false
     func greet(_ input: String) async throws -> String {
-        if shouldFail {
-            throw TestError()
-        }
-        guard input == "hello" else {
-            throw TestError()
-        }
+        if shouldFail { throw TestError() }
+        guard input == "hello" else { throw TestError() }
         return "bye"
     }
 
@@ -46,9 +42,7 @@ final class Test_UniversalServer: Test_Runtime {
                 let body = try XCTUnwrap(body)
                 return try await String(collecting: body, upTo: 10)
             },
-            serializer: { output, _ in
-                (HTTPResponse(status: .ok), MockHandler.responseBody)
-            }
+            serializer: { output, _ in (HTTPResponse(status: .ok), MockHandler.responseBody) }
         )
         XCTAssertEqual(response, HTTPResponse(status: .ok))
         XCTAssertEqual(responseBody, MockHandler.responseBody)
@@ -58,9 +52,7 @@ final class Test_UniversalServer: Test_Runtime {
         do {
             let server = UniversalServer(
                 handler: MockHandler(),
-                middlewares: [
-                    MockMiddleware(failurePhase: .onRequest)
-                ]
+                middlewares: [MockMiddleware(failurePhase: .onRequest)]
             )
             _ = try await server.handle(
                 request: .init(soar_path: "/", method: .post),
@@ -68,12 +60,8 @@ final class Test_UniversalServer: Test_Runtime {
                 metadata: .init(),
                 forOperation: "op",
                 using: { MockHandler.greet($0) },
-                deserializer: { request, body, metadata in
-                    fatalError()
-                },
-                serializer: { output, _ in
-                    fatalError()
-                }
+                deserializer: { request, body, metadata in fatalError() },
+                serializer: { output, _ in fatalError() }
             )
         } catch {
             let serverError = try XCTUnwrap(error as? ServerError)
@@ -97,12 +85,8 @@ final class Test_UniversalServer: Test_Runtime {
                 metadata: .init(),
                 forOperation: "op",
                 using: { MockHandler.greet($0) },
-                deserializer: { request, body, metadata in
-                    throw TestError()
-                },
-                serializer: { output, _ in
-                    fatalError()
-                }
+                deserializer: { request, body, metadata in throw TestError() },
+                serializer: { output, _ in fatalError() }
             )
         } catch {
             let serverError = try XCTUnwrap(error as? ServerError)
@@ -130,9 +114,7 @@ final class Test_UniversalServer: Test_Runtime {
                     let body = try XCTUnwrap(body)
                     return try await String(collecting: body, upTo: 10)
                 },
-                serializer: { output, _ in
-                    fatalError()
-                }
+                serializer: { output, _ in fatalError() }
             )
         } catch {
             let serverError = try XCTUnwrap(error as? ServerError)
@@ -160,9 +142,7 @@ final class Test_UniversalServer: Test_Runtime {
                     let body = try XCTUnwrap(body)
                     return try await String(collecting: body, upTo: 10)
                 },
-                serializer: { output, _ in
-                    throw TestError()
-                }
+                serializer: { output, _ in throw TestError() }
             )
         } catch {
             let serverError = try XCTUnwrap(error as? ServerError)
@@ -181,9 +161,7 @@ final class Test_UniversalServer: Test_Runtime {
         do {
             let server = UniversalServer(
                 handler: MockHandler(),
-                middlewares: [
-                    MockMiddleware(failurePhase: .onResponse)
-                ]
+                middlewares: [MockMiddleware(failurePhase: .onResponse)]
             )
             _ = try await server.handle(
                 request: .init(soar_path: "/", method: .post),
@@ -195,9 +173,7 @@ final class Test_UniversalServer: Test_Runtime {
                     let body = try XCTUnwrap(body)
                     return try await String(collecting: body, upTo: 10)
                 },
-                serializer: { output, _ in
-                    (HTTPResponse(status: .ok), MockHandler.responseBody)
-                }
+                serializer: { output, _ in (HTTPResponse(status: .ok), MockHandler.responseBody) }
             )
         } catch {
             let serverError = try XCTUnwrap(error as? ServerError)
@@ -213,9 +189,7 @@ final class Test_UniversalServer: Test_Runtime {
     }
 
     func testApiPathComponentsWithServerPrefix_noPrefix() throws {
-        let server = UniversalServer(
-            handler: MockHandler()
-        )
+        let server = UniversalServer(handler: MockHandler())
         let components = "/foo/{bar}"
         let prefixed = try server.apiPathComponentsWithServerPrefix(components)
         // When no server path prefix, components stay the same
@@ -223,10 +197,7 @@ final class Test_UniversalServer: Test_Runtime {
     }
 
     func testApiPathComponentsWithServerPrefix_withPrefix() throws {
-        let server = UniversalServer(
-            serverURL: try serverURL,
-            handler: MockHandler()
-        )
+        let server = UniversalServer(serverURL: try serverURL, handler: MockHandler())
         let components = "/foo/{bar}"
         let prefixed = try server.apiPathComponentsWithServerPrefix(components)
         let expected = "/api/foo/{bar}"

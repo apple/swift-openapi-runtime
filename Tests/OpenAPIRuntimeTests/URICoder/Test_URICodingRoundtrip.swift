@@ -30,9 +30,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             var maybeFoo: String?
         }
 
-        struct TrivialStruct: Codable, Equatable {
-            var foo: String
-        }
+        struct TrivialStruct: Codable, Equatable { var foo: String }
 
         enum SimpleEnum: String, Codable, Equatable {
             case red
@@ -54,21 +52,15 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 do {
                     let container = try decoder.singleValueContainer()
                     value1 = try container.decode(Foundation.Date.self)
-                } catch {
-                    errors.append(error)
-                }
+                } catch { errors.append(error) }
                 do {
                     let container = try decoder.singleValueContainer()
                     value2 = try container.decode(SimpleEnum.self)
-                } catch {
-                    errors.append(error)
-                }
+                } catch { errors.append(error) }
                 do {
                     let container = try decoder.singleValueContainer()
                     value3 = try container.decode(TrivialStruct.self)
-                } catch {
-                    errors.append(error)
-                }
+                } catch { errors.append(error) }
                 try DecodingError.verifyAtLeastOneSchemaIsNotNil(
                     [value1, value2, value3],
                     type: Self.self,
@@ -206,10 +198,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
 
         // A simple array of dates.
         try _test(
-            [
-                Date(timeIntervalSince1970: 1_692_948_899),
-                Date(timeIntervalSince1970: 1_692_948_901),
-            ],
+            [Date(timeIntervalSince1970: 1_692_948_899), Date(timeIntervalSince1970: 1_692_948_901)],
             key: "list",
             .init(
                 formExplode: "list=2023-08-25T07%3A34%3A59Z&list=2023-08-25T07%3A35%3A01Z",
@@ -251,13 +240,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
 
         // A struct.
         try _test(
-            SimpleStruct(
-                foo: "hi!",
-                bar: 24,
-                color: .red,
-                empty: "",
-                date: Date(timeIntervalSince1970: 1_692_948_899)
-            ),
+            SimpleStruct(foo: "hi!", bar: 24, color: .red, empty: "", date: Date(timeIntervalSince1970: 1_692_948_899)),
             key: "keys",
             .init(
                 formExplode: "bar=24&color=red&date=2023-08-25T07%3A34%3A59Z&empty=&foo=hi%21",
@@ -272,9 +255,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
         // A struct with a custom Codable implementation that forwards
         // decoding to nested values.
         try _test(
-            AnyOf(
-                value1: Date(timeIntervalSince1970: 1_674_036_251)
-            ),
+            AnyOf(value1: Date(timeIntervalSince1970: 1_674_036_251)),
             key: "root",
             .init(
                 formExplode: "root=2023-01-18T10%3A04%3A11Z",
@@ -286,9 +267,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             )
         )
         try _test(
-            AnyOf(
-                value2: .green
-            ),
+            AnyOf(value2: .green),
             key: "root",
             .init(
                 formExplode: "root=green",
@@ -300,9 +279,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             )
         )
         try _test(
-            AnyOf(
-                value3: .init(foo: "bar")
-            ),
+            AnyOf(value3: .init(foo: "bar")),
             key: "root",
             .init(
                 formExplode: "foo=bar",
@@ -362,30 +339,12 @@ final class Test_URICodingRoundtrip: Test_Runtime {
         var name: String
         var configuration: URICoderConfiguration
 
-        static let formExplode: Self = .init(
-            name: "formExplode",
-            configuration: .formExplode
-        )
-        static let formUnexplode: Self = .init(
-            name: "formUnexplode",
-            configuration: .formUnexplode
-        )
-        static let simpleExplode: Self = .init(
-            name: "simpleExplode",
-            configuration: .simpleExplode
-        )
-        static let simpleUnexplode: Self = .init(
-            name: "simpleUnexplode",
-            configuration: .simpleUnexplode
-        )
-        static let formDataExplode: Self = .init(
-            name: "formDataExplode",
-            configuration: .formDataExplode
-        )
-        static let formDataUnexplode: Self = .init(
-            name: "formDataUnexplode",
-            configuration: .formDataUnexplode
-        )
+        static let formExplode: Self = .init(name: "formExplode", configuration: .formExplode)
+        static let formUnexplode: Self = .init(name: "formUnexplode", configuration: .formUnexplode)
+        static let simpleExplode: Self = .init(name: "simpleExplode", configuration: .simpleExplode)
+        static let simpleUnexplode: Self = .init(name: "simpleUnexplode", configuration: .simpleUnexplode)
+        static let formDataExplode: Self = .init(name: "formDataExplode", configuration: .formDataExplode)
+        static let formDataUnexplode: Self = .init(name: "formDataUnexplode", configuration: .formDataUnexplode)
     }
     struct Variants<T: Codable & Equatable> {
 
@@ -398,13 +357,9 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 self.customValue = customValue
             }
 
-            init(stringLiteral value: String) {
-                self.init(string: value, customValue: nil)
-            }
+            init(stringLiteral value: String) { self.init(string: value, customValue: nil) }
 
-            static func custom(_ string: String, value: T) -> Self {
-                .init(string: string, customValue: value)
-            }
+            static func custom(_ string: String, value: T) -> Self { .init(string: string, customValue: value) }
         }
 
         var formExplode: Input
@@ -422,59 +377,19 @@ final class Test_URICodingRoundtrip: Test_Runtime {
         file: StaticString = #file,
         line: UInt = #line
     ) throws {
-        func testVariant(
-            name: String,
-            configuration: URICoderConfiguration,
-            variant: Variants<T>.Input
-        ) throws {
+        func testVariant(name: String, configuration: URICoderConfiguration, variant: Variants<T>.Input) throws {
             let encoder = URIEncoder(configuration: configuration)
             let encodedString = try encoder.encode(value, forKey: key)
-            XCTAssertEqual(
-                encodedString,
-                variant.string,
-                "Variant: \(name)",
-                file: file,
-                line: line
-            )
+            XCTAssertEqual(encodedString, variant.string, "Variant: \(name)", file: file, line: line)
             let decoder = URIDecoder(configuration: configuration)
-            let decodedValue = try decoder.decode(
-                T.self,
-                forKey: key,
-                from: encodedString[...]
-            )
-            XCTAssertEqual(
-                decodedValue,
-                variant.customValue ?? value,
-                "Variant: \(name)",
-                file: file,
-                line: line
-            )
+            let decodedValue = try decoder.decode(T.self, forKey: key, from: encodedString[...])
+            XCTAssertEqual(decodedValue, variant.customValue ?? value, "Variant: \(name)", file: file, line: line)
         }
-        try testVariant(
-            name: "formExplode",
-            configuration: .formExplode,
-            variant: variants.formExplode
-        )
-        try testVariant(
-            name: "formUnexplode",
-            configuration: .formUnexplode,
-            variant: variants.formUnexplode
-        )
-        try testVariant(
-            name: "simpleExplode",
-            configuration: .simpleExplode,
-            variant: variants.simpleExplode
-        )
-        try testVariant(
-            name: "simpleUnexplode",
-            configuration: .simpleUnexplode,
-            variant: variants.simpleUnexplode
-        )
-        try testVariant(
-            name: "formDataExplode",
-            configuration: .formDataExplode,
-            variant: variants.formDataExplode
-        )
+        try testVariant(name: "formExplode", configuration: .formExplode, variant: variants.formExplode)
+        try testVariant(name: "formUnexplode", configuration: .formUnexplode, variant: variants.formUnexplode)
+        try testVariant(name: "simpleExplode", configuration: .simpleExplode, variant: variants.simpleExplode)
+        try testVariant(name: "simpleUnexplode", configuration: .simpleUnexplode, variant: variants.simpleUnexplode)
+        try testVariant(name: "formDataExplode", configuration: .formDataExplode, variant: variants.formDataExplode)
         try testVariant(
             name: "formDataUnexplode",
             configuration: .formDataUnexplode,

@@ -30,9 +30,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     enum ParameterLocation: String, CustomStringConvertible {
         case query
 
-        var description: String {
-            rawValue
-        }
+        var description: String { rawValue }
     }
     case unsupportedParameterStyle(name: String, location: ParameterLocation, style: ParameterStyle, explode: Bool)
 
@@ -65,63 +63,41 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     /// A wrapped root cause error, if one was thrown by other code.
     var underlyingError: (any Error)? {
         switch self {
-        case .transportFailed(let error),
-            .handlerFailed(let error),
-            .middlewareFailed(_, let error):
-            return error
-        default:
-            return nil
+        case .transportFailed(let error), .handlerFailed(let error), .middlewareFailed(_, let error): return error
+        default: return nil
         }
     }
 
     // MARK: CustomStringConvertible
 
-    var description: String {
-        prettyDescription
-    }
+    var description: String { prettyDescription }
 
     var prettyDescription: String {
         switch self {
-        case .invalidServerURL(let string):
-            return "Invalid server URL: \(string)"
+        case .invalidServerURL(let string): return "Invalid server URL: \(string)"
         case .invalidServerVariableValue(name: let name, value: let value, allowedValues: let allowedValues):
             return
                 "Invalid server variable named: '\(name)', which has the value: '\(value)', but the only allowed values are: \(allowedValues.map { "'\($0)'" }.joined(separator: ", "))"
-        case .invalidExpectedContentType(let string):
-            return "Invalid expected content type: '\(string)'"
-        case .invalidHeaderFieldName(let name):
-            return "Invalid header field name: '\(name)'"
+        case .invalidExpectedContentType(let string): return "Invalid expected content type: '\(string)'"
+        case .invalidHeaderFieldName(let name): return "Invalid header field name: '\(name)'"
         case .invalidBase64String(let string):
             return "Invalid base64-encoded string (first 128 bytes): '\(string.prefix(128))'"
-        case .failedToDecodeStringConvertibleValue(let string):
-            return "Failed to decode a value of type '\(string)'."
+        case .failedToDecodeStringConvertibleValue(let string): return "Failed to decode a value of type '\(string)'."
         case .unsupportedParameterStyle(name: let name, location: let location, style: let style, explode: let explode):
             return
                 "Unsupported parameter style, parameter name: '\(name)', kind: \(location), style: \(style), explode: \(explode)"
-        case .missingRequiredHeaderField(let name):
-            return "The required header field named '\(name)' is missing."
-        case .unexpectedContentTypeHeader(let contentType):
-            return "Unexpected Content-Type header: \(contentType)"
-        case .unexpectedAcceptHeader(let accept):
-            return "Unexpected Accept header: \(accept)"
-        case .malformedAcceptHeader(let accept):
-            return "Malformed Accept header: \(accept)"
-        case .missingRequiredPathParameter(let name):
-            return "Missing required path parameter named: \(name)"
-        case .pathUnset:
-            return "Path was not set on the request."
-        case .missingRequiredQueryParameter(let name):
-            return "Missing required query parameter named: \(name)"
-        case .missingRequiredRequestBody:
-            return "Missing required request body"
-        case .missingRequiredResponseBody:
-            return "Missing required response body"
-        case .transportFailed:
-            return "Transport threw an error."
-        case .middlewareFailed(middlewareType: let type, _):
-            return "Middleware of type '\(type)' threw an error."
-        case .handlerFailed:
-            return "User handler threw an error."
+        case .missingRequiredHeaderField(let name): return "The required header field named '\(name)' is missing."
+        case .unexpectedContentTypeHeader(let contentType): return "Unexpected Content-Type header: \(contentType)"
+        case .unexpectedAcceptHeader(let accept): return "Unexpected Accept header: \(accept)"
+        case .malformedAcceptHeader(let accept): return "Malformed Accept header: \(accept)"
+        case .missingRequiredPathParameter(let name): return "Missing required path parameter named: \(name)"
+        case .pathUnset: return "Path was not set on the request."
+        case .missingRequiredQueryParameter(let name): return "Missing required query parameter named: \(name)"
+        case .missingRequiredRequestBody: return "Missing required request body"
+        case .missingRequiredResponseBody: return "Missing required response body"
+        case .transportFailed: return "Transport threw an error."
+        case .middlewareFailed(middlewareType: let type, _): return "Middleware of type '\(type)' threw an error."
+        case .handlerFailed: return "User handler threw an error."
         case .unexpectedResponseStatus(let expectedStatus, let response):
             return "Unexpected response, expected status code: \(expectedStatus), response: \(response)"
         case .unexpectedResponseBody(let expectedContentType, let body):
@@ -136,10 +112,9 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 ///   - expectedStatus: The expected HTTP response status as a string.
 ///   - response: The HTTP response data.
 /// - Throws: An error indicating an unexpected response status.
-@_spi(Generated)
-public func throwUnexpectedResponseStatus(expectedStatus: String, response: any Sendable) throws -> Never {
-    throw RuntimeError.unexpectedResponseStatus(expectedStatus: expectedStatus, response: response)
-}
+@_spi(Generated) public func throwUnexpectedResponseStatus(expectedStatus: String, response: any Sendable) throws
+    -> Never
+{ throw RuntimeError.unexpectedResponseStatus(expectedStatus: expectedStatus, response: response) }
 
 /// Throws an error to indicate an unexpected response body content.
 ///
@@ -147,7 +122,6 @@ public func throwUnexpectedResponseStatus(expectedStatus: String, response: any 
 ///   - expectedContent: The expected content as a string.
 ///   - body: The response body data.
 /// - Throws: An error indicating an unexpected response body content.
-@_spi(Generated)
-public func throwUnexpectedResponseBody(expectedContent: String, body: any Sendable) throws -> Never {
+@_spi(Generated) public func throwUnexpectedResponseBody(expectedContent: String, body: any Sendable) throws -> Never {
     throw RuntimeError.unexpectedResponseBody(expectedContent: expectedContent, body: body)
 }

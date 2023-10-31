@@ -17,12 +17,7 @@ import XCTest
 final class Test_URIParser: Test_Runtime {
 
     let testedVariants: [URICoderConfiguration] = [
-        .formExplode,
-        .formUnexplode,
-        .simpleExplode,
-        .simpleUnexplode,
-        .formDataExplode,
-        .formDataUnexplode,
+        .formExplode, .formUnexplode, .simpleExplode, .simpleUnexplode, .formDataExplode, .formDataUnexplode,
     ]
 
     func testParsing() throws {
@@ -36,9 +31,7 @@ final class Test_URIParser: Test_Runtime {
                     formDataExplode: "empty=",
                     formDataUnexplode: "empty="
                 ),
-                value: [
-                    "empty": [""]
-                ]
+                value: ["empty": [""]]
             ),
             makeCase(
                 .init(
@@ -60,9 +53,7 @@ final class Test_URIParser: Test_Runtime {
                     formDataExplode: "who=fred",
                     formDataUnexplode: "who=fred"
                 ),
-                value: [
-                    "who": ["fred"]
-                ]
+                value: ["who": ["fred"]]
             ),
             makeCase(
                 .init(
@@ -73,28 +64,18 @@ final class Test_URIParser: Test_Runtime {
                     formDataExplode: "hello=Hello+World",
                     formDataUnexplode: "hello=Hello+World"
                 ),
-                value: [
-                    "hello": ["Hello World"]
-                ]
+                value: ["hello": ["Hello World"]]
             ),
             makeCase(
                 .init(
                     formExplode: "list=red&list=green&list=blue",
                     formUnexplode: "list=red,green,blue",
-                    simpleExplode: .custom(
-                        "red,green,blue",
-                        value: ["": ["red", "green", "blue"]]
-                    ),
-                    simpleUnexplode: .custom(
-                        "red,green,blue",
-                        value: ["": ["red", "green", "blue"]]
-                    ),
+                    simpleExplode: .custom("red,green,blue", value: ["": ["red", "green", "blue"]]),
+                    simpleUnexplode: .custom("red,green,blue", value: ["": ["red", "green", "blue"]]),
                     formDataExplode: "list=red&list=green&list=blue",
                     formDataUnexplode: "list=red,green,blue"
                 ),
-                value: [
-                    "list": ["red", "green", "blue"]
-                ]
+                value: ["list": ["red", "green", "blue"]]
             ),
             makeCase(
                 .init(
@@ -114,22 +95,12 @@ final class Test_URIParser: Test_Runtime {
                         value: ["keys": ["comma", ",", "dot", ".", "semi", ";"]]
                     )
                 ),
-                value: [
-                    "semi": [";"],
-                    "dot": ["."],
-                    "comma": [","],
-                ]
+                value: ["semi": [";"], "dot": ["."], "comma": [","]]
             ),
         ]
         for testCase in cases {
-            func testVariant(
-                _ variant: Case.Variant,
-                _ input: Case.Variants.Input
-            ) throws {
-                var parser = URIParser(
-                    configuration: variant.config,
-                    data: input.string[...]
-                )
+            func testVariant(_ variant: Case.Variant, _ input: Case.Variants.Input) throws {
+                var parser = URIParser(configuration: variant.config, data: input.string[...])
                 let parsedNode = try parser.parseRoot()
                 XCTAssertEqual(
                     parsedNode,
@@ -156,30 +127,12 @@ extension Test_URIParser {
             var name: String
             var config: URICoderConfiguration
 
-            static let formExplode: Self = .init(
-                name: "formExplode",
-                config: .formExplode
-            )
-            static let formUnexplode: Self = .init(
-                name: "formUnexplode",
-                config: .formUnexplode
-            )
-            static let simpleExplode: Self = .init(
-                name: "simpleExplode",
-                config: .simpleExplode
-            )
-            static let simpleUnexplode: Self = .init(
-                name: "simpleUnexplode",
-                config: .simpleUnexplode
-            )
-            static let formDataExplode: Self = .init(
-                name: "formDataExplode",
-                config: .formDataExplode
-            )
-            static let formDataUnexplode: Self = .init(
-                name: "formDataUnexplode",
-                config: .formDataUnexplode
-            )
+            static let formExplode: Self = .init(name: "formExplode", config: .formExplode)
+            static let formUnexplode: Self = .init(name: "formUnexplode", config: .formUnexplode)
+            static let simpleExplode: Self = .init(name: "simpleExplode", config: .simpleExplode)
+            static let simpleUnexplode: Self = .init(name: "simpleUnexplode", config: .simpleUnexplode)
+            static let formDataExplode: Self = .init(name: "formDataExplode", config: .formDataExplode)
+            static let formDataUnexplode: Self = .init(name: "formDataUnexplode", config: .formDataUnexplode)
         }
         struct Variants {
 
@@ -214,17 +167,7 @@ extension Test_URIParser {
         var file: StaticString = #file
         var line: UInt = #line
     }
-    func makeCase(
-        _ variants: Case.Variants,
-        value: URIParsedNode,
-        file: StaticString = #file,
-        line: UInt = #line
-    ) -> Case {
-        .init(
-            variants: variants,
-            value: value,
-            file: file,
-            line: line
-        )
-    }
+    func makeCase(_ variants: Case.Variants, value: URIParsedNode, file: StaticString = #file, line: UInt = #line)
+        -> Case
+    { .init(variants: variants, value: value, file: file, line: line) }
 }

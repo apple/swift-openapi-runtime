@@ -20,25 +20,19 @@ enum TestAcceptable: AcceptableProtocol {
 
     init?(rawValue: String) {
         switch rawValue {
-        case "application/json":
-            self = .json
-        default:
-            self = .other(rawValue)
+        case "application/json": self = .json
+        default: self = .other(rawValue)
         }
     }
 
     var rawValue: String {
         switch self {
-        case .json:
-            return "application/json"
-        case .other(let string):
-            return string
+        case .json: return "application/json"
+        case .other(let string): return string
         }
     }
 
-    static var allCases: [TestAcceptable] {
-        [.json]
-    }
+    static var allCases: [TestAcceptable] { [.json] }
 }
 
 final class Test_AcceptHeaderContentType: Test_Runtime {
@@ -48,43 +42,23 @@ final class Test_AcceptHeaderContentType: Test_Runtime {
             XCTAssertEqual(contentType.contentType, .json)
             XCTAssertEqual(contentType.quality, 1.0)
             XCTAssertEqual(contentType.rawValue, "application/json")
-            XCTAssertEqual(
-                AcceptHeaderContentType<TestAcceptable>(rawValue: "application/json"),
-                contentType
-            )
+            XCTAssertEqual(AcceptHeaderContentType<TestAcceptable>(rawValue: "application/json"), contentType)
         }
         do {
-            let contentType = AcceptHeaderContentType(
-                contentType: TestAcceptable.json,
-                quality: 0.5
-            )
+            let contentType = AcceptHeaderContentType(contentType: TestAcceptable.json, quality: 0.5)
             XCTAssertEqual(contentType.contentType, .json)
             XCTAssertEqual(contentType.quality, 0.5)
             XCTAssertEqual(contentType.rawValue, "application/json; q=0.500")
-            XCTAssertEqual(
-                AcceptHeaderContentType<TestAcceptable>(rawValue: "application/json; q=0.500"),
-                contentType
-            )
+            XCTAssertEqual(AcceptHeaderContentType<TestAcceptable>(rawValue: "application/json; q=0.500"), contentType)
         }
-        do {
-            XCTAssertEqual(
-                AcceptHeaderContentType<TestAcceptable>.defaultValues,
-                [
-                    .init(contentType: .json)
-                ]
-            )
-        }
+        do { XCTAssertEqual(AcceptHeaderContentType<TestAcceptable>.defaultValues, [.init(contentType: .json)]) }
         do {
             let unsorted: [AcceptHeaderContentType<TestAcceptable>] = [
-                .init(contentType: .other("*/*"), quality: 0.3),
-                .init(contentType: .json, quality: 0.5),
+                .init(contentType: .other("*/*"), quality: 0.3), .init(contentType: .json, quality: 0.5),
             ]
             XCTAssertEqual(
                 unsorted.sortedByQuality(),
-                [
-                    .init(contentType: .json, quality: 0.5),
-                    .init(contentType: .other("*/*"), quality: 0.3),
-                ]
+                [.init(contentType: .json, quality: 0.5), .init(contentType: .other("*/*"), quality: 0.3)]
             )
         }
     }

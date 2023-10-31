@@ -23,12 +23,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             in: &headerFields,
             contentTypes: [.init(contentType: TestAcceptable.json, quality: 0.8)]
         )
-        XCTAssertEqual(
-            headerFields,
-            [
-                .accept: "application/json; q=0.800"
-            ]
-        )
+        XCTAssertEqual(headerFields, [.accept: "application/json; q=0.800"])
     }
 
     // MARK: Converter helper methods
@@ -37,11 +32,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     func test_renderedPath_string() throws {
         let renderedPath = try converter.renderedPath(
             template: "/items/{}/detail/{}/habitats/{}",
-            parameters: [
-                1 as Int,
-                "foo" as String,
-                [.land, .air] as [TestHabitat],
-            ]
+            parameters: [1 as Int, "foo" as String, [.land, .air] as [TestHabitat]]
         )
         XCTAssertEqual(renderedPath, "/items/1/detail/foo/habitats/land,air")
     }
@@ -49,37 +40,19 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     //    | client | set | request query | URI | both | setQueryItemAsURI |
     func test_setQueryItemAsURI_string() throws {
         var request = testRequest
-        try converter.setQueryItemAsURI(
-            in: &request,
-            style: nil,
-            explode: nil,
-            name: "search",
-            value: "foo"
-        )
+        try converter.setQueryItemAsURI(in: &request, style: nil, explode: nil, name: "search", value: "foo")
         XCTAssertEqual(request.soar_query, "search=foo")
     }
 
     func test_setQueryItemAsURI_stringConvertible_needsEncoding() throws {
         var request = testRequest
-        try converter.setQueryItemAsURI(
-            in: &request,
-            style: nil,
-            explode: nil,
-            name: "search",
-            value: "h%llo"
-        )
+        try converter.setQueryItemAsURI(in: &request, style: nil, explode: nil, name: "search", value: "h%llo")
         XCTAssertEqual(request.soar_query, "search=h%25llo")
     }
 
     func test_setQueryItemAsURI_arrayOfStrings() throws {
         var request = testRequest
-        try converter.setQueryItemAsURI(
-            in: &request,
-            style: nil,
-            explode: nil,
-            name: "search",
-            value: ["foo", "bar"]
-        )
+        try converter.setQueryItemAsURI(in: &request, style: nil, explode: nil, name: "search", value: ["foo", "bar"])
         XCTAssertEqual(request.soar_query, "search=foo&search=bar")
     }
 
@@ -97,13 +70,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
 
     func test_setQueryItemAsURI_date() throws {
         var request = testRequest
-        try converter.setQueryItemAsURI(
-            in: &request,
-            style: nil,
-            explode: nil,
-            name: "search",
-            value: testDate
-        )
+        try converter.setQueryItemAsURI(in: &request, style: nil, explode: nil, name: "search", value: testDate)
         XCTAssertEqual(request.soar_query, "search=2023-01-18T10%3A04%3A11Z")
     }
 
@@ -128,12 +95,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             contentType: "application/json"
         )
         try await XCTAssertEqualStringifiedData(body, testStructPrettyString)
-        XCTAssertEqual(
-            headerFields,
-            [
-                .contentType: "application/json"
-            ]
-        )
+        XCTAssertEqual(headerFields, [.contentType: "application/json"])
     }
 
     func test_setOptionalRequestBodyAsJSON_codable_string() async throws {
@@ -144,12 +106,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             contentType: "application/json"
         )
         try await XCTAssertEqualStringifiedData(body, testQuotedString)
-        XCTAssertEqual(
-            headerFields,
-            [
-                .contentType: "application/json"
-            ]
-        )
+        XCTAssertEqual(headerFields, [.contentType: "application/json"])
     }
 
     //    | client | set | request body | JSON | required | setRequiredRequestBodyAsJSON |
@@ -161,12 +118,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             contentType: "application/json"
         )
         try await XCTAssertEqualStringifiedData(body, testStructPrettyString)
-        XCTAssertEqual(
-            headerFields,
-            [
-                .contentType: "application/json"
-            ]
-        )
+        XCTAssertEqual(headerFields, [.contentType: "application/json"])
     }
 
     //    | client | set | request body | urlEncodedForm | codable | optional | setRequiredRequestBodyAsURLEncodedForm |
@@ -184,12 +136,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         }
 
         try await XCTAssertEqualStringifiedData(body, testStructURLFormString)
-        XCTAssertEqual(
-            headerFields,
-            [
-                .contentType: "application/x-www-form-urlencoded"
-            ]
-        )
+        XCTAssertEqual(headerFields, [.contentType: "application/x-www-form-urlencoded"])
     }
 
     //    | client | set | request body | urlEncodedForm | codable | required | setRequiredRequestBodyAsURLEncodedForm |
@@ -201,12 +148,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             contentType: "application/x-www-form-urlencoded"
         )
         try await XCTAssertEqualStringifiedData(body, testStructURLFormString)
-        XCTAssertEqual(
-            headerFields,
-            [
-                .contentType: "application/x-www-form-urlencoded"
-            ]
-        )
+        XCTAssertEqual(headerFields, [.contentType: "application/x-www-form-urlencoded"])
     }
 
     //    | client | set | request body | binary | optional | setOptionalRequestBodyAsBinary |
@@ -218,12 +160,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             contentType: "application/octet-stream"
         )
         try await XCTAssertEqualStringifiedData(body, testString)
-        XCTAssertEqual(
-            headerFields,
-            [
-                .contentType: "application/octet-stream"
-            ]
-        )
+        XCTAssertEqual(headerFields, [.contentType: "application/octet-stream"])
     }
 
     //    | client | set | request body | binary | required | setRequiredRequestBodyAsBinary |
@@ -235,12 +172,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             contentType: "application/octet-stream"
         )
         try await XCTAssertEqualStringifiedData(body, testString)
-        XCTAssertEqual(
-            headerFields,
-            [
-                .contentType: "application/octet-stream"
-            ]
-        )
+        XCTAssertEqual(headerFields, [.contentType: "application/octet-stream"])
     }
 
     //    | client | get | response body | JSON | required | getResponseBodyAsJSON |
@@ -282,7 +214,5 @@ public func XCTAssertEqualStringifiedData(
     do {
         let actualString = String(decoding: try expression1(), as: UTF8.self)
         XCTAssertEqual(actualString, try expression2(), file: file, line: line)
-    } catch {
-        XCTFail(error.localizedDescription, file: file, line: line)
-    }
+    } catch { XCTFail(error.localizedDescription, file: file, line: line) }
 }

@@ -24,19 +24,11 @@ class Test_Runtime: XCTestCase {
         continueAfterFailure = false
     }
 
-    var serverURL: URL {
-        get throws {
-            try URL(validatingOpenAPIServerURL: "/api")
-        }
-    }
+    var serverURL: URL { get throws { try URL(validatingOpenAPIServerURL: "/api") } }
 
-    var configuration: Configuration {
-        .init()
-    }
+    var configuration: Configuration { .init() }
 
-    var converter: Converter {
-        .init(configuration: configuration)
-    }
+    var converter: Converter { .init(configuration: configuration) }
 
     var testComponents: URLComponents {
         var components = URLComponents()
@@ -44,57 +36,31 @@ class Test_Runtime: XCTestCase {
         return components
     }
 
-    var testRequest: HTTPRequest {
-        .init(soar_path: "/api", method: .get)
-    }
+    var testRequest: HTTPRequest { .init(soar_path: "/api", method: .get) }
 
-    var testDate: Date {
-        Date(timeIntervalSince1970: 1_674_036_251)
-    }
+    var testDate: Date { Date(timeIntervalSince1970: 1_674_036_251) }
 
-    var testDateString: String {
-        "2023-01-18T10:04:11Z"
-    }
+    var testDateString: String { "2023-01-18T10:04:11Z" }
 
-    var testDateEscapedString: String {
-        "2023-01-18T10%3A04%3A11Z"
-    }
+    var testDateEscapedString: String { "2023-01-18T10%3A04%3A11Z" }
 
-    var testDateStringData: Data {
-        Data(testDateString.utf8)
-    }
+    var testDateStringData: Data { Data(testDateString.utf8) }
 
-    var testDateEscapedStringData: Data {
-        Data(testDateEscapedString.utf8)
-    }
+    var testDateEscapedStringData: Data { Data(testDateEscapedString.utf8) }
 
-    var testString: String {
-        "hello"
-    }
+    var testString: String { "hello" }
 
-    var testStringData: Data {
-        Data(testString.utf8)
-    }
+    var testStringData: Data { Data(testString.utf8) }
 
-    var testQuotedString: String {
-        "\"hello\""
-    }
+    var testQuotedString: String { "\"hello\"" }
 
-    var testQuotedStringData: Data {
-        Data(testQuotedString.utf8)
-    }
+    var testQuotedStringData: Data { Data(testQuotedString.utf8) }
 
-    var testStruct: TestPet {
-        .init(name: "Fluffz")
-    }
+    var testStruct: TestPet { .init(name: "Fluffz") }
 
-    var testStructDetailed: TestPetDetailed {
-        .init(name: "Rover!", type: "Golden Retriever", age: "3")
-    }
+    var testStructDetailed: TestPetDetailed { .init(name: "Rover!", type: "Golden Retriever", age: "3") }
 
-    var testStructString: String {
-        #"{"name":"Fluffz"}"#
-    }
+    var testStructString: String { #"{"name":"Fluffz"}"# }
 
     var testStructPrettyString: String {
         #"""
@@ -104,36 +70,24 @@ class Test_Runtime: XCTestCase {
         """#
     }
 
-    var testStructURLFormString: String {
-        "age=3&name=Rover%21&type=Golden+Retriever"
-    }
+    var testStructURLFormString: String { "age=3&name=Rover%21&type=Golden+Retriever" }
 
     var testStructBase64EncodedString: String {
         #""eyJuYW1lIjoiRmx1ZmZ6In0=""#  // {"name":"Fluffz"}
     }
 
-    var testEnum: TestHabitat {
-        .water
-    }
+    var testEnum: TestHabitat { .water }
 
-    var testEnumString: String {
-        "water"
-    }
+    var testEnumString: String { "water" }
 
-    var testStructData: Data {
-        Data(testStructString.utf8)
-    }
+    var testStructData: Data { Data(testStructString.utf8) }
 
-    var testStructPrettyData: Data {
-        Data(testStructPrettyString.utf8)
-    }
+    var testStructPrettyData: Data { Data(testStructPrettyString.utf8) }
 
-    var testStructURLFormData: Data {
-        Data(testStructURLFormString.utf8)
-    }
+    var testStructURLFormData: Data { Data(testStructURLFormString.utf8) }
 
-    @discardableResult
-    func _testPrettyEncoded<Value: Encodable>(_ value: Value, expectedJSON: String) throws -> String {
+    @discardableResult func _testPrettyEncoded<Value: Encodable>(_ value: Value, expectedJSON: String) throws -> String
+    {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let data = try encoder.encode(value)
@@ -172,13 +126,9 @@ struct MockMiddleware: ClientMiddleware, ServerMiddleware {
         operationID: String,
         next: (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?)
     ) async throws -> (HTTPResponse, HTTPBody?) {
-        if failurePhase == .onRequest {
-            throw TestError()
-        }
+        if failurePhase == .onRequest { throw TestError() }
         let (response, responseBody) = try await next(request, body, baseURL)
-        if failurePhase == .onResponse {
-            throw TestError()
-        }
+        if failurePhase == .onResponse { throw TestError() }
         return (response, responseBody)
     }
 
@@ -189,13 +139,9 @@ struct MockMiddleware: ClientMiddleware, ServerMiddleware {
         operationID: String,
         next: (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?)
     ) async throws -> (HTTPResponse, HTTPBody?) {
-        if failurePhase == .onRequest {
-            throw TestError()
-        }
+        if failurePhase == .onRequest { throw TestError() }
         let (response, responseBody) = try await next(request, body, metadata)
-        if failurePhase == .onResponse {
-            throw TestError()
-        }
+        if failurePhase == .onResponse { throw TestError() }
         return (response, responseBody)
     }
 }
@@ -215,9 +161,7 @@ public func XCTAssertEqualURLString(_ lhs: URL?, _ rhs: String, file: StaticStri
     XCTAssertEqual(lhs.absoluteString, rhs, file: file, line: line)
 }
 
-struct TestPet: Codable, Equatable {
-    var name: String
-}
+struct TestPet: Codable, Equatable { var name: String }
 
 struct TestPetDetailed: Codable, Equatable {
     var name: String
@@ -293,9 +237,7 @@ public func XCTAssertEqualStringifiedData<S: Sequence>(
         }
         let actualString = String(decoding: Array(value1), as: UTF8.self)
         XCTAssertEqual(actualString, try expression2(), file: file, line: line)
-    } catch {
-        XCTFail(error.localizedDescription, file: file, line: line)
-    }
+    } catch { XCTFail(error.localizedDescription, file: file, line: line) }
 }
 
 /// Asserts that the string representation of binary data in an HTTP body is equal to an expected string.
@@ -314,10 +256,6 @@ public func XCTAssertEqualStringifiedData(
     line: UInt = #line
 ) async throws {
     let data: Data
-    if let body = try expression1() {
-        data = try await Data(collecting: body, upTo: .max)
-    } else {
-        data = .init()
-    }
+    if let body = try expression1() { data = try await Data(collecting: body, upTo: .max) } else { data = .init() }
     XCTAssertEqualStringifiedData(data, try expression2(), message(), file: file, line: line)
 }

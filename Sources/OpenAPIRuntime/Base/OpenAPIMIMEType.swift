@@ -14,8 +14,7 @@
 import Foundation
 
 /// A container for a parsed, valid MIME type.
-@_spi(Generated)
-public struct OpenAPIMIMEType: Equatable {
+@_spi(Generated) public struct OpenAPIMIMEType: Equatable {
 
     /// The kind of the MIME type.
     public enum Kind: Equatable {
@@ -38,15 +37,12 @@ public struct OpenAPIMIMEType: Equatable {
         /// - Returns: `true` if the MIME type kinds are equal, otherwise `false`.
         public static func == (lhs: Kind, rhs: Kind) -> Bool {
             switch (lhs, rhs) {
-            case (.any, .any):
-                return true
-            case let (.anySubtype(lhsType), .anySubtype(rhsType)):
-                return lhsType.lowercased() == rhsType.lowercased()
+            case (.any, .any): return true
+            case let (.anySubtype(lhsType), .anySubtype(rhsType)): return lhsType.lowercased() == rhsType.lowercased()
             case let (.concrete(lhsType, lhsSubtype), .concrete(rhsType, rhsSubtype)):
                 return lhsType.lowercased() == rhsType.lowercased()
                     && lhsSubtype.lowercased() == rhsSubtype.lowercased()
-            default:
-                return false
+            default: return false
             }
         }
     }
@@ -74,26 +70,14 @@ public struct OpenAPIMIMEType: Equatable {
     ///
     /// - Returns: `true` if the MIME types are equal, otherwise `false`.
     public static func == (lhs: OpenAPIMIMEType, rhs: OpenAPIMIMEType) -> Bool {
-        guard lhs.kind == rhs.kind else {
-            return false
-        }
+        guard lhs.kind == rhs.kind else { return false }
         // Parameter names are case-insensitive, parameter values are
         // case-sensitive.
-        guard lhs.parameters.count == rhs.parameters.count else {
-            return false
-        }
-        if lhs.parameters.isEmpty {
-            return true
-        }
-        func normalizeKeyValue(key: String, value: String) -> (String, String) {
-            (key.lowercased(), value)
-        }
-        let normalizedLeftParams = Dictionary(
-            uniqueKeysWithValues: lhs.parameters.map(normalizeKeyValue)
-        )
-        let normalizedRightParams = Dictionary(
-            uniqueKeysWithValues: rhs.parameters.map(normalizeKeyValue)
-        )
+        guard lhs.parameters.count == rhs.parameters.count else { return false }
+        if lhs.parameters.isEmpty { return true }
+        func normalizeKeyValue(key: String, value: String) -> (String, String) { (key.lowercased(), value) }
+        let normalizedLeftParams = Dictionary(uniqueKeysWithValues: lhs.parameters.map(normalizeKeyValue))
+        let normalizedRightParams = Dictionary(uniqueKeysWithValues: rhs.parameters.map(normalizeKeyValue))
         return normalizedLeftParams == normalizedRightParams
     }
 }
@@ -103,35 +87,23 @@ extension OpenAPIMIMEType.Kind: LosslessStringConvertible {
     ///
     /// - Parameter description: A string description of the MIME type kind.
     public init?(_ description: String) {
-        let typeAndSubtype =
-            description
-            .split(separator: "/")
-            .map(String.init)
-        guard typeAndSubtype.count == 2 else {
-            return nil
-        }
+        let typeAndSubtype = description.split(separator: "/").map(String.init)
+        guard typeAndSubtype.count == 2 else { return nil }
         switch (typeAndSubtype[0], typeAndSubtype[1]) {
         case ("*", let subtype):
-            guard subtype == "*" else {
-                return nil
-            }
+            guard subtype == "*" else { return nil }
             self = .any
-        case (let type, "*"):
-            self = .anySubtype(type: type)
-        case (let type, let subtype):
-            self = .concrete(type: type, subtype: subtype)
+        case (let type, "*"): self = .anySubtype(type: type)
+        case (let type, let subtype): self = .concrete(type: type, subtype: subtype)
         }
     }
 
     /// A textual representation of the MIME type kind.
     public var description: String {
         switch self {
-        case .any:
-            return "*/*"
-        case .anySubtype(let type):
-            return "\(type)/*"
-        case .concrete(let type, let subtype):
-            return "\(type)/\(subtype)"
+        case .any: return "*/*"
+        case .anySubtype(let type): return "\(type)/*"
+        case .concrete(let type, let subtype): return "\(type)/\(subtype)"
         }
     }
 }
@@ -142,32 +114,18 @@ extension OpenAPIMIMEType: LosslessStringConvertible {
     /// - Parameter description: A string description of the MIME.
     public init?(_ description: String) {
         var components =
-            description
-            // Split by semicolon
-            .split(separator: ";")
-            .map(String.init)
-            // Trim leading/trailing spaces
+            description  // Split by semicolon
+            .split(separator: ";").map(String.init)  // Trim leading/trailing spaces
             .map { $0.trimmingLeadingAndTrailingSpaces }
-        guard !components.isEmpty else {
-            return nil
-        }
+        guard !components.isEmpty else { return nil }
         let firstComponent = components.removeFirst()
-        guard let kind = OpenAPIMIMEType.Kind(firstComponent) else {
-            return nil
-        }
+        guard let kind = OpenAPIMIMEType.Kind(firstComponent) else { return nil }
         func parseParameter(_ string: String) -> (String, String)? {
-            let components =
-                string
-                .split(separator: "=")
-                .map(String.init)
-            guard components.count == 2 else {
-                return nil
-            }
+            let components = string.split(separator: "=").map(String.init)
+            guard components.count == 2 else { return nil }
             return (components[0], components[1])
         }
-        let parameters =
-            components
-            .compactMap(parseParameter)
+        let parameters = components.compactMap(parseParameter)
         self.init(
             kind: kind,
             parameters: Dictionary(
@@ -180,10 +138,7 @@ extension OpenAPIMIMEType: LosslessStringConvertible {
 
     /// A string description of the MIME type.
     public var description: String {
-        ([kind.description]
-            + parameters
-            .sorted(by: { a, b in a.key < b.key })
-            .map { "\($0)=\($1)" })
+        ([kind.description] + parameters.sorted(by: { a, b in a.key < b.key }).map { "\($0)=\($1)" })
             .joined(separator: "; ")
     }
 }
@@ -225,14 +180,10 @@ extension OpenAPIMIMEType {
         /// the closer the types are.
         var score: Int {
             switch self {
-            case .incompatible:
-                return 0
-            case .wildcard:
-                return 1
-            case .subtypeWildcard:
-                return 2
-            case .typeAndSubtype(let matchedParameterCount):
-                return 3 + matchedParameterCount
+            case .incompatible: return 0
+            case .wildcard: return 1
+            case .subtypeWildcard: return 2
+            case .typeAndSubtype(let matchedParameterCount): return 3 + matchedParameterCount
             }
         }
     }
@@ -251,20 +202,15 @@ extension OpenAPIMIMEType {
         against option: OpenAPIMIMEType
     ) -> Match {
         switch option.kind {
-        case .any:
-            return .wildcard
+        case .any: return .wildcard
         case .anySubtype(let expectedType):
-            guard receivedType.lowercased() == expectedType.lowercased() else {
-                return .incompatible(.type)
-            }
+            guard receivedType.lowercased() == expectedType.lowercased() else { return .incompatible(.type) }
             return .subtypeWildcard
         case .concrete(let expectedType, let expectedSubtype):
             guard
                 receivedType.lowercased() == expectedType.lowercased()
                     && receivedSubtype.lowercased() == expectedSubtype.lowercased()
-            else {
-                return .incompatible(.subtype)
-            }
+            else { return .incompatible(.subtype) }
 
             // A full concrete match, so also check parameters.
             // The rule is:
@@ -287,12 +233,9 @@ extension OpenAPIMIMEType {
             var matchedParameterCount = 0
             for optionParameter in option.parameters {
                 let normalizedParameterName = optionParameter.key.lowercased()
-                guard
-                    let receivedValue = receivedNormalizedParameters[normalizedParameterName],
+                guard let receivedValue = receivedNormalizedParameters[normalizedParameterName],
                     receivedValue == optionParameter.value
-                else {
-                    return .incompatible(.parameter(name: normalizedParameterName))
-                }
+                else { return .incompatible(.parameter(name: normalizedParameterName)) }
                 matchedParameterCount += 1
             }
             return .typeAndSubtype(matchedParameterCount: matchedParameterCount)

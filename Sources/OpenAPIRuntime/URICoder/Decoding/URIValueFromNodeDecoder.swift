@@ -63,19 +63,15 @@ final class URIValueFromNodeDecoder {
     /// - Throws: When a decoding error occurs.
     func decodeRoot<T: Decodable>(_ type: T.Type = T.self) throws -> T {
         precondition(codingStack.isEmpty)
-        defer {
-            precondition(codingStack.isEmpty)
-        }
+        defer { precondition(codingStack.isEmpty) }
 
         // We have to catch the special values early, otherwise we fall
         // back to their Codable implementations, which don't give us
         // a chance to customize the coding in the containers.
         let value: T
         switch type {
-        case is Date.Type:
-            value = try singleValueContainer().decode(Date.self) as! T
-        default:
-            value = try T.init(from: self)
+        case is Date.Type: value = try singleValueContainer().decode(Date.self) as! T
+        default: value = try T.init(from: self)
         }
         return value
     }
@@ -86,9 +82,7 @@ final class URIValueFromNodeDecoder {
     /// - Throws: When a decoding error occurs.
     func decodeRootIfPresent<T: Decodable>(_ type: T.Type = T.self) throws -> T? {
         // The root is only nil if the node is empty.
-        if try currentElementAsArray().isEmpty {
-            return nil
-        }
+        if try currentElementAsArray().isEmpty { return nil }
         return try decodeRoot(type)
     }
 }
@@ -142,9 +136,7 @@ extension URIValueFromNodeDecoder {
     }
 
     /// The element at the current head of the coding stack.
-    private var currentElement: URIDecodedNode {
-        codingStack.last?.element ?? .dictionary(node)
-    }
+    private var currentElement: URIDecodedNode { codingStack.last?.element ?? .dictionary(node) }
 
     /// Pushes a new container on top of the current stack, nesting into the
     /// value at the provided key.
@@ -165,22 +157,14 @@ extension URIValueFromNodeDecoder {
 
     /// Pops the top container from the stack and restores the previously top
     /// container to be the current top container.
-    func pop() {
-        codingStack.removeLast()
-    }
+    func pop() { codingStack.removeLast() }
 
     /// Throws a type mismatch error with the provided message.
     /// - Parameter message: The message to be embedded as debug description
     ///   inside the thrown `DecodingError`.
     /// - Throws: A `DecodingError` with a type mismatch error if this function is called.
     private func throwMismatch(_ message: String) throws -> Never {
-        throw DecodingError.typeMismatch(
-            String.self,
-            .init(
-                codingPath: codingPath,
-                debugDescription: message
-            )
-        )
+        throw DecodingError.typeMismatch(String.self, .init(codingPath: codingPath, debugDescription: message))
     }
 
     /// Extracts the root value of the provided node using the root key.
@@ -204,9 +188,7 @@ extension URIValueFromNodeDecoder {
     /// as a dictionary.
     /// - Returns: The value if it can be treated as a dictionary.
     /// - Throws: An error if the current element cannot be treated as a dictionary.
-    private func currentElementAsDictionary() throws -> URIParsedNode {
-        try nodeAsDictionary(currentElement)
-    }
+    private func currentElementAsDictionary() throws -> URIParsedNode { try nodeAsDictionary(currentElement) }
 
     /// Checks if the provided node can be treated as a dictionary, and returns
     /// it if so.
@@ -237,14 +219,8 @@ extension URIValueFromNodeDecoder {
         guard values.count % 2 == 0 else {
             try throwMismatch("Cannot parse an unexploded dictionary an odd number of elements.")
         }
-        let pairs = stride(
-            from: values.startIndex,
-            to: values.endIndex,
-            by: 2
-        )
-        .map { firstIndex in
-            (values[firstIndex], [values[firstIndex + 1]])
-        }
+        let pairs = stride(from: values.startIndex, to: values.endIndex, by: 2)
+            .map { firstIndex in (values[firstIndex], [values[firstIndex + 1]]) }
         let convertedNode = Dictionary(pairs, uniquingKeysWith: { $0 + $1 })
         return convertedNode
     }
@@ -253,9 +229,7 @@ extension URIValueFromNodeDecoder {
     /// as an array.
     /// - Returns: The value if it can be treated as an array.
     /// - Throws: An error if the node cannot be treated as an array.
-    private func currentElementAsArray() throws -> URIParsedValueArray {
-        try nodeAsArray(currentElement)
-    }
+    private func currentElementAsArray() throws -> URIParsedValueArray { try nodeAsArray(currentElement) }
 
     /// Checks if the provided node can be treated as an array, and returns
     /// it if so.
@@ -264,12 +238,9 @@ extension URIValueFromNodeDecoder {
     /// - Throws: An error if the node cannot be treated as a valid array.
     private func nodeAsArray(_ node: URIDecodedNode) throws -> URIParsedValueArray {
         switch node {
-        case .single(let value):
-            return [value]
-        case .array(let values):
-            return values
-        case .dictionary(let values):
-            return try rootValue(in: values)
+        case .single(let value): return [value]
+        case .array(let values): return values
+        case .dictionary(let values): return try rootValue(in: values)
         }
     }
 
@@ -277,9 +248,7 @@ extension URIValueFromNodeDecoder {
     /// as a primitive value.
     /// - Returns: The value if it can be treated as a primitive value.
     /// - Throws: An error if the node cannot be treated as a primitive value.
-    func currentElementAsSingleValue() throws -> URIParsedValue {
-        try nodeAsSingleValue(currentElement)
-    }
+    func currentElementAsSingleValue() throws -> URIParsedValue { try nodeAsSingleValue(currentElement) }
 
     /// Checks if the provided node can be treated as a primitive value, and
     /// returns it if so.
@@ -292,17 +261,12 @@ extension URIValueFromNodeDecoder {
         // 2. The value array has a single element.
         let array: URIParsedValueArray
         switch node {
-        case .single(let value):
-            return value
-        case .array(let values):
-            array = values
-        case .dictionary(let values):
-            array = try rootValue(in: values)
+        case .single(let value): return value
+        case .array(let values): array = values
+        case .dictionary(let values): array = try rootValue(in: values)
         }
         guard array.count == 1 else {
-            if style == .simple {
-                return Substring(array.joined(separator: ","))
-            }
+            if style == .simple { return Substring(array.joined(separator: ",")) }
             let reason = array.isEmpty ? "an empty node" : "a node with multiple values"
             try throwMismatch("Cannot parse a value from \(reason).")
         }
@@ -316,13 +280,9 @@ extension URIValueFromNodeDecoder {
     /// - Returns: The nested value.
     /// - Throws: An error if the current node is not a valid array, or if the
     ///   index is out of bounds.
-    private func nestedValueInCurrentElementAsArray(
-        at index: Int
-    ) throws -> URIParsedValue {
+    private func nestedValueInCurrentElementAsArray(at index: Int) throws -> URIParsedValue {
         let values = try currentElementAsArray()
-        guard index < values.count else {
-            throw GeneralError.codingKeyOutOfBounds
-        }
+        guard index < values.count else { throw GeneralError.codingKeyOutOfBounds }
         return values[index]
     }
 
@@ -332,48 +292,30 @@ extension URIValueFromNodeDecoder {
     /// - Returns: The nested value.
     /// - Throws: An error if the current node is not a valid dictionary, or
     /// if no value exists for the key.
-    private func nestedValuesInCurrentElementAsDictionary(
-        forKey key: String
-    ) throws -> URIParsedValueArray {
+    private func nestedValuesInCurrentElementAsDictionary(forKey key: String) throws -> URIParsedValueArray {
         let values = try currentElementAsDictionary()
-        guard let value = values[key[...]] else {
-            throw GeneralError.codingKeyNotFound
-        }
+        guard let value = values[key[...]] else { throw GeneralError.codingKeyNotFound }
         return value
     }
 }
 
 extension URIValueFromNodeDecoder: Decoder {
 
-    var codingPath: [any CodingKey] {
-        codingStack.map(\.key)
-    }
+    var codingPath: [any CodingKey] { codingStack.map(\.key) }
 
-    var userInfo: [CodingUserInfoKey: Any] {
-        [:]
-    }
+    var userInfo: [CodingUserInfoKey: Any] { [:] }
 
-    func container<Key>(
-        keyedBy type: Key.Type
-    ) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
+    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
         let values = try currentElementAsDictionary()
-        return .init(
-            URIKeyedDecodingContainer(
-                decoder: self,
-                values: values
-            )
-        )
+        return .init(URIKeyedDecodingContainer(decoder: self, values: values))
     }
 
     func unkeyedContainer() throws -> any UnkeyedDecodingContainer {
         let values = try currentElementAsArray()
-        return URIUnkeyedDecodingContainer(
-            decoder: self,
-            values: values
-        )
+        return URIUnkeyedDecodingContainer(decoder: self, values: values)
     }
 
     func singleValueContainer() throws -> any SingleValueDecodingContainer {
-        return URISingleValueDecodingContainer(decoder: self)
+        URISingleValueDecodingContainer(decoder: self)
     }
 }

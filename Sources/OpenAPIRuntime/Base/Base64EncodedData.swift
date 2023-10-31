@@ -56,9 +56,7 @@ public struct Base64EncodedData: Sendable, Hashable {
 
     /// Initializes an instance of ``Base64EncodedData`` wrapping the provided slice of bytes.
     /// - Parameter data: The underlying bytes to wrap.
-    public init(data: ArraySlice<UInt8>) {
-        self.data = data
-    }
+    public init(data: ArraySlice<UInt8>) { self.data = data }
 }
 
 extension Base64EncodedData: Codable {

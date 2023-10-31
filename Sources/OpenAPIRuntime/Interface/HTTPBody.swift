@@ -171,9 +171,7 @@ public final class HTTPBody: @unchecked Sendable {
     /// used for testing.
     internal var testing_iteratorCreated: Bool {
         lock.lock()
-        defer {
-            lock.unlock()
-        }
+        defer { lock.unlock() }
         return locked_iteratorCreated
     }
 
@@ -182,15 +180,9 @@ public final class HTTPBody: @unchecked Sendable {
     /// - Throws: If another iterator is not allowed to be created.
     private func checkIfCanCreateIterator() throws {
         lock.lock()
-        defer {
-            lock.unlock()
-        }
-        guard iterationBehavior == .single else {
-            return
-        }
-        if locked_iteratorCreated {
-            throw TooManyIterationsError()
-        }
+        defer { lock.unlock() }
+        guard iterationBehavior == .single else { return }
+        if locked_iteratorCreated { throw TooManyIterationsError() }
     }
 
     /// Tries to mark an iterator as created, verifying that it is allowed
@@ -202,12 +194,8 @@ public final class HTTPBody: @unchecked Sendable {
             locked_iteratorCreated = true
             lock.unlock()
         }
-        guard iterationBehavior == .single else {
-            return
-        }
-        if locked_iteratorCreated {
-            throw TooManyIterationsError()
-        }
+        guard iterationBehavior == .single else { return }
+        if locked_iteratorCreated { throw TooManyIterationsError() }
     }
 
     /// Creates a new body.
@@ -217,11 +205,7 @@ public final class HTTPBody: @unchecked Sendable {
     ///     length of all the byte chunks.
     ///   - iterationBehavior: The sequence's iteration behavior, which
     ///     indicates whether the sequence can be iterated multiple times.
-    @usableFromInline init(
-        _ sequence: BodySequence,
-        length: Length,
-        iterationBehavior: IterationBehavior
-    ) {
+    @usableFromInline init(_ sequence: BodySequence, length: Length, iterationBehavior: IterationBehavior) {
         self.sequence = sequence
         self.length = length
         self.iterationBehavior = iterationBehavior
@@ -255,21 +239,14 @@ extension HTTPBody: Equatable {
     ///
     /// - Returns: `true` if the object identifiers of the two HTTPBody instances are equal,
     /// indicating that they are the same object in memory; otherwise, returns `false`.
-    public static func == (
-        lhs: HTTPBody,
-        rhs: HTTPBody
-    ) -> Bool {
-        ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
-    }
+    public static func == (lhs: HTTPBody, rhs: HTTPBody) -> Bool { ObjectIdentifier(lhs) == ObjectIdentifier(rhs) }
 }
 
 extension HTTPBody: Hashable {
     /// Hashes the HTTPBody instance by combining its object identifier into the provided hasher.
     ///
     /// - Parameter hasher: The hasher used to combine the hash value.
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(ObjectIdentifier(self))
-    }
+    public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 }
 
 // MARK: - Creating the HTTPBody
@@ -278,29 +255,20 @@ extension HTTPBody {
 
     /// Creates a new empty body.
     @inlinable public convenience init() {
-        self.init(
-            .init(EmptySequence()),
-            length: .known(0),
-            iterationBehavior: .multiple
-        )
+        self.init(.init(EmptySequence()), length: .known(0), iterationBehavior: .multiple)
     }
 
     /// Creates a new body with the provided byte chunk.
     /// - Parameters:
     ///   - bytes: A byte chunk.
     ///   - length: The total length of the body.
-    @inlinable public convenience init(
-        _ bytes: ByteChunk,
-        length: Length
-    ) {
+    @inlinable public convenience init(_ bytes: ByteChunk, length: Length) {
         self.init([bytes], length: length, iterationBehavior: .multiple)
     }
 
     /// Creates a new body with the provided byte chunk.
     /// - Parameter bytes: A byte chunk.
-    @inlinable public convenience init(
-        _ bytes: ByteChunk
-    ) {
+    @inlinable public convenience init(_ bytes: ByteChunk) {
         self.init([bytes], length: .known(bytes.count), iterationBehavior: .multiple)
     }
 
@@ -314,34 +282,19 @@ extension HTTPBody {
         _ bytes: some Sequence<UInt8> & Sendable,
         length: Length,
         iterationBehavior: IterationBehavior
-    ) {
-        self.init(
-            [ArraySlice(bytes)],
-            length: length,
-            iterationBehavior: iterationBehavior
-        )
-    }
+    ) { self.init([ArraySlice(bytes)], length: length, iterationBehavior: iterationBehavior) }
 
     /// Creates a new body with the provided byte collection.
     /// - Parameters:
     ///   - bytes: A byte chunk.
     ///   - length: The total length of the body.
-    @inlinable public convenience init(
-        _ bytes: some Collection<UInt8> & Sendable,
-        length: Length
-    ) {
-        self.init(
-            ArraySlice(bytes),
-            length: length,
-            iterationBehavior: .multiple
-        )
+    @inlinable public convenience init(_ bytes: some Collection<UInt8> & Sendable, length: Length) {
+        self.init(ArraySlice(bytes), length: length, iterationBehavior: .multiple)
     }
 
     /// Creates a new body with the provided byte collection.
     /// - Parameter bytes: A byte chunk.
-    @inlinable public convenience init(
-        _ bytes: some Collection<UInt8> & Sendable
-    ) {
+    @inlinable public convenience init(_ bytes: some Collection<UInt8> & Sendable) {
         self.init(bytes, length: .known(bytes.count))
     }
 
@@ -349,30 +302,16 @@ extension HTTPBody {
     /// - Parameters:
     ///   - stream: An async throwing stream that provides the byte chunks.
     ///   - length: The total length of the body.
-    @inlinable public convenience init(
-        _ stream: AsyncThrowingStream<ByteChunk, any Error>,
-        length: HTTPBody.Length
-    ) {
-        self.init(
-            .init(stream),
-            length: length,
-            iterationBehavior: .single
-        )
+    @inlinable public convenience init(_ stream: AsyncThrowingStream<ByteChunk, any Error>, length: HTTPBody.Length) {
+        self.init(.init(stream), length: length, iterationBehavior: .single)
     }
 
     /// Creates a new body with the provided async stream.
     /// - Parameters:
     ///   - stream: An async stream that provides the byte chunks.
     ///   - length: The total length of the body.
-    @inlinable public convenience init(
-        _ stream: AsyncStream<ByteChunk>,
-        length: HTTPBody.Length
-    ) {
-        self.init(
-            .init(stream),
-            length: length,
-            iterationBehavior: .single
-        )
+    @inlinable public convenience init(_ stream: AsyncStream<ByteChunk>, length: HTTPBody.Length) {
+        self.init(.init(stream), length: length, iterationBehavior: .single)
     }
 
     /// Creates a new body with the provided async sequence.
@@ -386,11 +325,7 @@ extension HTTPBody {
         length: HTTPBody.Length,
         iterationBehavior: IterationBehavior
     ) where Bytes.Element == ByteChunk, Bytes: Sendable {
-        self.init(
-            .init(sequence),
-            length: length,
-            iterationBehavior: iterationBehavior
-        )
+        self.init(.init(sequence), length: length, iterationBehavior: iterationBehavior)
     }
 
     /// Creates a new body with the provided async sequence of byte sequences.
@@ -404,11 +339,7 @@ extension HTTPBody {
         length: HTTPBody.Length,
         iterationBehavior: IterationBehavior
     ) where Bytes: Sendable, Bytes.Element: Sequence & Sendable, Bytes.Element.Element == UInt8 {
-        self.init(
-            sequence.map { ArraySlice($0) },
-            length: length,
-            iterationBehavior: iterationBehavior
-        )
+        self.init(sequence.map { ArraySlice($0) }, length: length, iterationBehavior: iterationBehavior)
     }
 }
 
@@ -438,13 +369,9 @@ extension HTTPBody {
         /// The maximum number of bytes acceptable by the user.
         let maxBytes: Int
 
-        var description: String {
-            "OpenAPIRuntime.HTTPBody contains more than the maximum allowed \(maxBytes) bytes."
-        }
+        var description: String { "OpenAPIRuntime.HTTPBody contains more than the maximum allowed \(maxBytes) bytes." }
 
-        var errorDescription: String? {
-            description
-        }
+        var errorDescription: String? { description }
     }
 
     /// An error thrown by the collecting initializer when another iteration of
@@ -455,9 +382,7 @@ extension HTTPBody {
             "OpenAPIRuntime.HTTPBody attempted to create a second iterator, but the underlying sequence is only safe to be iterated once."
         }
 
-        var errorDescription: String? {
-            description
-        }
+        var errorDescription: String? { description }
     }
 
     /// Accumulates the full body in-memory into a single buffer
@@ -474,17 +399,13 @@ extension HTTPBody {
 
         // If the length is known, verify it's within the limit.
         if case .known(let knownBytes) = length {
-            guard knownBytes <= maxBytes else {
-                throw TooManyBytesError(maxBytes: maxBytes)
-            }
+            guard knownBytes <= maxBytes else { throw TooManyBytesError(maxBytes: maxBytes) }
         }
 
         // Accumulate the byte chunks.
         var buffer = ByteChunk()
         for try await chunk in self {
-            guard buffer.count + chunk.count <= maxBytes else {
-                throw TooManyBytesError(maxBytes: maxBytes)
-            }
+            guard buffer.count + chunk.count <= maxBytes else { throw TooManyBytesError(maxBytes: maxBytes) }
             buffer.append(contentsOf: chunk)
         }
         return buffer
@@ -527,23 +448,13 @@ extension HTTPBody {
     /// - Parameters:
     ///   - string: A string to encode as bytes.
     ///   - length: The total length of the body.
-    @inlinable public convenience init(
-        _ string: some StringProtocol & Sendable,
-        length: Length
-    ) {
-        self.init(
-            ByteChunk(string),
-            length: length
-        )
+    @inlinable public convenience init(_ string: some StringProtocol & Sendable, length: Length) {
+        self.init(ByteChunk(string), length: length)
     }
 
     /// Creates a new body with the provided string encoded as UTF-8 bytes.
     /// - Parameter string: A string to encode as bytes.
-    @inlinable public convenience init(
-        _ string: some StringProtocol & Sendable
-    ) {
-        self.init(ByteChunk(string))
-    }
+    @inlinable public convenience init(_ string: some StringProtocol & Sendable) { self.init(ByteChunk(string)) }
 
     /// Creates a new body with the provided async throwing stream of strings.
     /// - Parameters:
@@ -552,27 +463,14 @@ extension HTTPBody {
     @inlinable public convenience init(
         _ stream: AsyncThrowingStream<some StringProtocol & Sendable, any Error & Sendable>,
         length: HTTPBody.Length
-    ) {
-        self.init(
-            .init(stream.map { ByteChunk.init($0) }),
-            length: length,
-            iterationBehavior: .single
-        )
-    }
+    ) { self.init(.init(stream.map { ByteChunk.init($0) }), length: length, iterationBehavior: .single) }
 
     /// Creates a new body with the provided async stream of strings.
     /// - Parameters:
     ///   - stream: An async stream that provides the string chunks.
     ///   - length: The total length of the body.
-    @inlinable public convenience init(
-        _ stream: AsyncStream<some StringProtocol & Sendable>,
-        length: HTTPBody.Length
-    ) {
-        self.init(
-            .init(stream.map { ByteChunk.init($0) }),
-            length: length,
-            iterationBehavior: .single
-        )
+    @inlinable public convenience init(_ stream: AsyncStream<some StringProtocol & Sendable>, length: HTTPBody.Length) {
+        self.init(.init(stream.map { ByteChunk.init($0) }), length: length, iterationBehavior: .single)
     }
 
     /// Creates a new body with the provided async sequence of string chunks.
@@ -586,11 +484,7 @@ extension HTTPBody {
         length: HTTPBody.Length,
         iterationBehavior: IterationBehavior
     ) where Strings.Element: StringProtocol & Sendable, Strings: Sendable {
-        self.init(
-            .init(sequence.map { ByteChunk.init($0) }),
-            length: length,
-            iterationBehavior: iterationBehavior
-        )
+        self.init(.init(sequence.map { ByteChunk.init($0) }), length: length, iterationBehavior: iterationBehavior)
     }
 }
 
@@ -598,9 +492,7 @@ extension HTTPBody.ByteChunk {
 
     /// Creates a byte chunk compatible with the `HTTPBody` type from the provided string.
     /// - Parameter string: The string to encode.
-    @inlinable init(_ string: some StringProtocol & Sendable) {
-        self = Array(string.utf8)[...]
-    }
+    @inlinable init(_ string: some StringProtocol & Sendable) { self = Array(string.utf8)[...] }
 }
 
 extension String {
@@ -613,10 +505,7 @@ extension String {
     /// - Throws: `TooManyBytesError` if the body contains more
     ///   than `maxBytes`.
     public init(collecting body: HTTPBody, upTo maxBytes: Int) async throws {
-        self = try await String(
-            decoding: body.collect(upTo: maxBytes),
-            as: UTF8.self
-        )
+        self = try await String(decoding: body.collect(upTo: maxBytes), as: UTF8.self)
     }
 }
 
@@ -626,18 +515,14 @@ extension HTTPBody: ExpressibleByStringLiteral {
     /// Initializes an `HTTPBody` instance with the provided string value.
     ///
     /// - Parameter value: The string literal to use for initializing the `HTTPBody`.
-    public convenience init(stringLiteral value: String) {
-        self.init(value)
-    }
+    public convenience init(stringLiteral value: String) { self.init(value) }
 }
 
 extension HTTPBody {
 
     /// Creates a new body from the provided array of bytes.
     /// - Parameter bytes: An array of bytes.
-    @inlinable public convenience init(_ bytes: [UInt8]) {
-        self.init(bytes[...])
-    }
+    @inlinable public convenience init(_ bytes: [UInt8]) { self.init(bytes[...]) }
 }
 
 extension HTTPBody: ExpressibleByArrayLiteral {
@@ -646,18 +531,14 @@ extension HTTPBody: ExpressibleByArrayLiteral {
     /// Initializes an `HTTPBody` instance with a sequence of `UInt8` elements.
     ///
     /// - Parameter elements: A variadic list of `UInt8` elements used to initialize the `HTTPBody`.
-    public convenience init(arrayLiteral elements: UInt8...) {
-        self.init(elements)
-    }
+    public convenience init(arrayLiteral elements: UInt8...) { self.init(elements) }
 }
 
 extension HTTPBody {
 
     /// Creates a new body from the provided data chunk.
     /// - Parameter data: A single data chunk.
-    public convenience init(_ data: Data) {
-        self.init(ArraySlice(data))
-    }
+    public convenience init(_ data: Data) { self.init(ArraySlice(data)) }
 }
 
 extension Data {
@@ -689,22 +570,17 @@ extension HTTPBody {
 
         /// Creates a new type-erased iterator from the provided iterator.
         /// - Parameter iterator: The iterator to type-erase.
-        @usableFromInline init<Iterator: AsyncIteratorProtocol>(
-            _ iterator: Iterator
-        ) where Iterator.Element == Element {
+        @usableFromInline init<Iterator: AsyncIteratorProtocol>(_ iterator: Iterator)
+        where Iterator.Element == Element {
             var iterator = iterator
-            self.produceNext = {
-                try await iterator.next()
-            }
+            self.produceNext = { try await iterator.next() }
         }
 
         /// Advances the iterator to the next element and returns it asynchronously.
         ///
         /// - Returns: The next element in the sequence, or `nil` if there are no more elements.
         /// - Throws: An error if there is an issue advancing the iterator or retrieving the next element.
-        public mutating func next() async throws -> Element? {
-            try await produceNext()
-        }
+        public mutating func next() async throws -> Element? { try await produceNext() }
     }
 }
 
@@ -725,14 +601,10 @@ extension HTTPBody {
         /// Creates a new sequence.
         /// - Parameter sequence: The input sequence to type-erase.
         @inlinable init<Bytes: AsyncSequence>(_ sequence: Bytes) where Bytes.Element == Element, Bytes: Sendable {
-            self.produceIterator = {
-                .init(sequence.makeAsyncIterator())
-            }
+            self.produceIterator = { .init(sequence.makeAsyncIterator()) }
         }
 
-        @usableFromInline func makeAsyncIterator() -> AsyncIterator {
-            produceIterator()
-        }
+        @usableFromInline func makeAsyncIterator() -> AsyncIterator { produceIterator() }
     }
 
     /// An async sequence wrapper for a sync sequence.
@@ -754,9 +626,7 @@ extension HTTPBody {
             /// The underlying sync sequence iterator.
             var iterator: any IteratorProtocol<Element>
 
-            @usableFromInline mutating func next() async throws -> HTTPBody.ByteChunk? {
-                iterator.next()
-            }
+            @usableFromInline mutating func next() async throws -> HTTPBody.ByteChunk? { iterator.next() }
         }
 
         /// The underlying sync sequence.
@@ -764,13 +634,9 @@ extension HTTPBody {
 
         /// Creates a new async sequence with the provided sync sequence.
         /// - Parameter sequence: The sync sequence to wrap.
-        @inlinable init(sequence: Bytes) {
-            self.sequence = sequence
-        }
+        @inlinable init(sequence: Bytes) { self.sequence = sequence }
 
-        @usableFromInline func makeAsyncIterator() -> Iterator {
-            Iterator(iterator: sequence.makeIterator())
-        }
+        @usableFromInline func makeAsyncIterator() -> Iterator { Iterator(iterator: sequence.makeIterator()) }
     }
 
     /// An empty async sequence.
@@ -788,16 +654,12 @@ extension HTTPBody {
             /// The byte chunk element type.
             @usableFromInline typealias Element = ByteChunk
 
-            @usableFromInline mutating func next() async throws -> HTTPBody.ByteChunk? {
-                nil
-            }
+            @usableFromInline mutating func next() async throws -> HTTPBody.ByteChunk? { nil }
         }
 
         /// Creates a new empty async sequence.
         @inlinable init() {}
 
-        @usableFromInline func makeAsyncIterator() -> EmptyIterator {
-            EmptyIterator()
-        }
+        @usableFromInline func makeAsyncIterator() -> EmptyIterator { EmptyIterator() }
     }
 }

@@ -16,46 +16,31 @@
 ///
 /// It also enables recursive types by introducing a "box" into the cycle, which
 /// allows the owning type to have a finite size.
-@_spi(Generated)
-public struct CopyOnWriteBox<Wrapped> {
+@_spi(Generated) public struct CopyOnWriteBox<Wrapped> {
 
     /// The reference type storage for the box.
-    @usableFromInline
-    internal final class Storage {
+    @usableFromInline internal final class Storage {
 
         /// The stored value.
-        @usableFromInline
-        var value: Wrapped
+        @usableFromInline var value: Wrapped
 
         /// Creates a new storage with the provided initial value.
         /// - Parameter value: The initial value to store in the box.
-        @inlinable
-        init(value: Wrapped) {
-            self.value = value
-        }
+        @inlinable init(value: Wrapped) { self.value = value }
     }
 
     /// The internal storage of the box.
-    @usableFromInline
-    internal var storage: Storage
+    @usableFromInline internal var storage: Storage
 
     /// Creates a new box.
     /// - Parameter value: The value to store in the box.
-    @inlinable
-    public init(value: Wrapped) {
-        self.storage = .init(value: value)
-    }
+    @inlinable public init(value: Wrapped) { self.storage = .init(value: value) }
 
     /// The stored value whose accessors enforce copy-on-write semantics.
-    @inlinable
-    public var value: Wrapped {
-        get {
-            storage.value
-        }
+    @inlinable public var value: Wrapped {
+        get { storage.value }
         _modify {
-            if !isKnownUniquelyReferenced(&storage) {
-                storage = Storage(value: storage.value)
-            }
+            if !isKnownUniquelyReferenced(&storage) { storage = Storage(value: storage.value) }
             yield &storage.value
         }
     }
@@ -73,10 +58,7 @@ extension CopyOnWriteBox: Encodable where Wrapped: Encodable {
     ///
     /// - Parameter encoder: The encoder to write data to.
     /// - Throws: On an encoding error.
-    @inlinable
-    public func encode(to encoder: any Encoder) throws {
-        try value.encode(to: encoder)
-    }
+    @inlinable public func encode(to encoder: any Encoder) throws { try value.encode(to: encoder) }
 }
 
 extension CopyOnWriteBox: Decodable where Wrapped: Decodable {
@@ -88,8 +70,7 @@ extension CopyOnWriteBox: Decodable where Wrapped: Decodable {
     ///
     /// - Parameter decoder: The decoder to read data from.
     /// - Throws: On a decoding error.
-    @inlinable
-    public init(from decoder: any Decoder) throws {
+    @inlinable public init(from decoder: any Decoder) throws {
         let value = try Wrapped(from: decoder)
         self.init(value: value)
     }
@@ -106,11 +87,7 @@ extension CopyOnWriteBox: Equatable where Wrapped: Equatable {
     ///   - lhs: A value to compare.
     ///   - rhs: Another value to compare.
     /// - Returns: A Boolean value indicating whether the values are equal.
-    @inlinable
-    public static func == (
-        lhs: CopyOnWriteBox<Wrapped>,
-        rhs: CopyOnWriteBox<Wrapped>
-    ) -> Bool {
+    @inlinable public static func == (lhs: CopyOnWriteBox<Wrapped>, rhs: CopyOnWriteBox<Wrapped>) -> Bool {
         lhs.value == rhs.value
     }
 }
@@ -132,10 +109,7 @@ extension CopyOnWriteBox: Hashable where Wrapped: Hashable {
     ///
     /// - Parameter hasher: The hasher to use when combining the components
     ///   of this instance.
-    @inlinable
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(value)
-    }
+    @inlinable public func hash(into hasher: inout Hasher) { hasher.combine(value) }
 }
 
 extension CopyOnWriteBox: CustomStringConvertible where Wrapped: CustomStringConvertible {
@@ -163,10 +137,7 @@ extension CopyOnWriteBox: CustomStringConvertible where Wrapped: CustomStringCon
     ///
     /// The conversion of `p` to a string in the assignment to `s` uses the
     /// `Point` type's `description` property.
-    @inlinable
-    public var description: String {
-        value.description
-    }
+    @inlinable public var description: String { value.description }
 }
 
 extension CopyOnWriteBox: CustomDebugStringConvertible where Wrapped: CustomDebugStringConvertible {
@@ -194,10 +165,7 @@ extension CopyOnWriteBox: CustomDebugStringConvertible where Wrapped: CustomDebu
     ///
     /// The conversion of `p` to a string in the assignment to `s` uses the
     /// `Point` type's `debugDescription` property.
-    @inlinable
-    public var debugDescription: String {
-        value.debugDescription
-    }
+    @inlinable public var debugDescription: String { value.debugDescription }
 }
 
 extension CopyOnWriteBox: @unchecked Sendable where Wrapped: Sendable {}

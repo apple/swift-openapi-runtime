@@ -43,12 +43,7 @@ import struct Foundation.URLComponents
     public var middlewares: [any ServerMiddleware]
 
     /// Internal initializer that takes an initialized converter.
-    internal init(
-        serverURL: URL,
-        converter: Converter,
-        handler: APIHandler,
-        middlewares: [any ServerMiddleware]
-    ) {
+    internal init(serverURL: URL, converter: Converter, handler: APIHandler, middlewares: [any ServerMiddleware]) {
         self.serverURL = serverURL
         self.converter = converter
         self.handler = handler
@@ -102,23 +97,16 @@ import struct Foundation.URLComponents
             OperationInput,
         serializer: @Sendable @escaping (OperationOutput, HTTPRequest) throws -> (HTTPResponse, HTTPBody?)
     ) async throws -> (HTTPResponse, HTTPBody?) where OperationInput: Sendable, OperationOutput: Sendable {
-        @Sendable func wrappingErrors<R>(
-            work: () async throws -> R,
-            mapError: (any Error) -> any Error
-        ) async throws -> R {
-            do {
-                return try await work()
-            } catch let error as ServerError {
-                throw error
-            } catch {
+        @Sendable func wrappingErrors<R>(work: () async throws -> R, mapError: (any Error) -> any Error) async throws
+            -> R
+        {
+            do { return try await work() } catch let error as ServerError { throw error } catch {
                 throw mapError(error)
             }
         }
-        @Sendable func makeError(
-            input: OperationInput? = nil,
-            output: OperationOutput? = nil,
-            error: any Error
-        ) -> any Error {
+        @Sendable func makeError(input: OperationInput? = nil, output: OperationOutput? = nil, error: any Error)
+            -> any Error
+        {
             if var error = error as? ServerError {
                 error.operationInput = error.operationInput ?? input
                 error.operationOutput = error.operationOutput ?? output
@@ -145,10 +133,7 @@ import struct Foundation.URLComponents
             )
         }
         var next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?) =
-            {
-                _request,
-                _requestBody,
-                _metadata in
+            { _request, _requestBody, _metadata in
                 let input: OperationInput = try await wrappingErrors {
                     try await deserializer(_request, _requestBody, _metadata)
                 } mapError: { error in
@@ -159,10 +144,7 @@ import struct Foundation.URLComponents
                     return try await wrappingErrors {
                         try await method(input)
                     } mapError: { error in
-                        makeError(
-                            input: input,
-                            error: RuntimeError.handlerFailed(error)
-                        )
+                        makeError(input: input, error: RuntimeError.handlerFailed(error))
                     }
                 } mapError: { error in
                     makeError(input: input, error: error)
@@ -175,10 +157,7 @@ import struct Foundation.URLComponents
             }
         for middleware in middlewares.reversed() {
             let tmp = next
-            next = {
-                _request,
-                _requestBody,
-                _metadata in
+            next = { _request, _requestBody, _metadata in
                 try await wrappingErrors {
                     try await middleware.intercept(
                         _request,
@@ -188,12 +167,7 @@ import struct Foundation.URLComponents
                         next: tmp
                     )
                 } mapError: { error in
-                    makeError(
-                        error: RuntimeError.middlewareFailed(
-                            middlewareType: type(of: middleware),
-                            error
-                        )
-                    )
+                    makeError(error: RuntimeError.middlewareFailed(middlewareType: type(of: middleware), error))
                 }
             }
         }
@@ -204,9 +178,7 @@ import struct Foundation.URLComponents
     /// - Parameter path: The path suffix.
     /// - Returns: The path appended to the server URL's path.
     /// - Throws: An error if resolving the server URL components fails or if the server URL is invalid.
-    public func apiPathComponentsWithServerPrefix(
-        _ path: String
-    ) throws -> String {
+    public func apiPathComponentsWithServerPrefix(_ path: String) throws -> String {
         // Operation path is for example "/pets/42"
         // Server may be configured with a prefix, for example http://localhost/foo/bar/v1
         // Goal is to return something like "/foo/bar/v1/pets/42".
@@ -214,9 +186,7 @@ import struct Foundation.URLComponents
             throw RuntimeError.invalidServerURL(serverURL.absoluteString)
         }
         let prefixPath = components.path
-        guard prefixPath == "/" else {
-            return prefixPath + path
-        }
+        guard prefixPath == "/" else { return prefixPath + path }
         return path
     }
 }
