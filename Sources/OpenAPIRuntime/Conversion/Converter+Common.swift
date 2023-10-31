@@ -58,7 +58,8 @@ extension Converter {
             )
             return (contentType: stringOption, match: match)
         }
-        let bestOption = evaluatedOptions.max { a, b in a.match.score < b.match.score }!  // Safe, we only get here if the array is not empty.
+        // The force unwrap is safe, we only get here if the array is not empty.
+        let bestOption = evaluatedOptions.max { a, b in a.match.score < b.match.score }!
         let bestContentType = bestOption.contentType
         if case .incompatible = bestOption.match { throw RuntimeError.unexpectedContentTypeHeader(bestContentType) }
         return bestContentType

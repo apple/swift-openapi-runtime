@@ -60,7 +60,7 @@
         let (unknownKeys, container) = try unknownKeysAndContainer(knownKeys: knownKeys)
         guard !unknownKeys.isEmpty else { return .init() }
         let keyValuePairs: [(String, T)] = try unknownKeys.compactMap { key in
-            return (key.stringValue, try container.decode(T.self, forKey: key))
+            (key.stringValue, try container.decode(T.self, forKey: key))
         }
         return .init(uniqueKeysWithValues: keyValuePairs)
     }
