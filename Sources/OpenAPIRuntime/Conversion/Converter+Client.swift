@@ -156,6 +156,20 @@ extension Converter {
         throws -> HTTPBody
     { try setRequiredRequestBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
 
+    // TODO: document
+    public func setRequiredRequestBodyAsMultipart(
+        _ value: MultipartBody,
+        headerFields: inout HTTPFields,
+        contentType: String
+    ) throws -> HTTPBody {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: convertMultipartToBinary
+        )
+    }
+
     /// Sets an optional request body as URL-encoded form data in the specified header fields and returns an `HTTPBody`.
     ///
     /// - Parameters:
@@ -243,5 +257,13 @@ extension Converter {
     ) throws -> C {
         guard let data else { throw RuntimeError.missingRequiredResponseBody }
         return try getResponseBody(type, from: data, transforming: transform, convert: { $0 })
+    }
+    public func getResponseBodyAsMultipart<C>(
+        _ type: MultipartBody.Type,
+        from data: HTTPBody?,
+        transforming transform: (MultipartBody) -> C
+    ) throws -> C {
+        guard let data else { throw RuntimeError.missingRequiredResponseBody }
+        return try getResponseBody(type, from: data, transforming: transform, convert: convertBinaryToMultipart)
     }
 }
