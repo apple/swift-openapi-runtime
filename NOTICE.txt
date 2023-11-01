@@ -41,3 +41,13 @@ This product contains coder implementations inspired by swift-http-structured-he
     * https://www.apache.org/licenses/LICENSE-2.0
   * HOMEPAGE:
     * https://github.com/apple/swift-http-structured-headers
+
+---
+
+This product contains parsing code inspired by swift-http-types.
+
+  * LICENSE (Apache License 2.0):
+    * https://www.apache.org/licenses/LICENSE-2.0
+  * HOMEPAGE:
+    * https://github.com/apple/swift-http-types
+
