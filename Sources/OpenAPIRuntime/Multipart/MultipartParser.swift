@@ -51,7 +51,7 @@ extension MultipartBody {
         )
     }
     private final class MultipartParsingSequence: AsyncSequence {
-        typealias Element = MultipartPartChunk
+        typealias Element = MultipartBodyChunk
         typealias AsyncIterator = Iterator
         let upstream: HTTPBody
         let boundary: String
@@ -61,7 +61,7 @@ extension MultipartBody {
         }
         func makeAsyncIterator() -> Iterator { Iterator(upstream: upstream.makeAsyncIterator(), boundary: boundary) }
         struct Iterator: AsyncIteratorProtocol {
-            typealias Element = MultipartPartChunk
+            typealias Element = MultipartBodyChunk
             private var upstream: HTTPBody.Iterator
             private var buffer: [UInt8]
             private var parser: MultipartParser
@@ -285,7 +285,7 @@ struct MultipartParser {
     private var stateMachine: StateMachine
     init(boundary: String) { self.stateMachine = .init(boundary: boundary) }
     enum ParserResult {
-        case chunk(MultipartPartChunk)
+        case chunk(MultipartBodyChunk)
         case returnNil
         case emitError(MultipartParser.StateMachine.Action.ActionError)
         case needsMore
