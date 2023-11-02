@@ -169,6 +169,22 @@ extension Converter {
             convert: convertMultipartToBinary
         )
     }
+    
+    // TODO: document
+    public func setRequiredRequestBodyAsTypedMultipart<Part: MultipartTypedPart>(
+        _ value: MultipartTypedBody<Part>,
+        headerFields: inout HTTPFields,
+        contentType: String
+    ) throws -> HTTPBody {
+        try setRequiredRequestBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: { value in
+                try convertMultipartToBinary(convertTypedToRawMultipart(value))
+            }
+        )
+    }
 
     /// Sets an optional request body as URL-encoded form data in the specified header fields and returns an `HTTPBody`.
     ///

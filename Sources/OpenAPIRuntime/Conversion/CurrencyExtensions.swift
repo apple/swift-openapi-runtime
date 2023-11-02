@@ -186,7 +186,17 @@ extension Converter {
         // TODO: We'll need to propagate headers here to allow us to extract the boundary from the header.
         MultipartBody(parsing: body, boundary: "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__")
     }
-
+    func convertTypedToRawMultipart<Part: MultipartTypedPart>(_ value: MultipartTypedBody<Part>) -> MultipartBody {
+        // TODO: How do we serialize/deserialize? Will need to generate a method somewhere? Client/server/types?
+        // Since it's symmetric, should this be a Codable-ish thing in Types?
+        // Could be like "MultipartConvertible" or something, and in it we generate the code that serializes
+        // each part the way we know to for regular bodies.
+        fatalError()
+    }
+    func convertRawToTypedMultipart<Part: MultipartTypedPart>(_ value: MultipartBody) -> MultipartTypedBody<Part> {
+        fatalError()
+    }
+    
     /// Returns a JSON string for the provided encodable value.
     /// - Parameter value: The value to encode.
     /// - Returns: A JSON string.
