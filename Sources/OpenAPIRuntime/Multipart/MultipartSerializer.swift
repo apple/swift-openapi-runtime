@@ -59,49 +59,106 @@ extension HTTPBody {
             var upstream: MultipartBody.AsyncIterator
             let boundary: ArraySlice<UInt8>
             var isFinished: Bool = false
-            var bodyIterator: HTTPBody.AsyncIterator?
             init(upstream: MultipartBody.AsyncIterator, boundary: ArraySlice<UInt8>) {
                 self.upstream = upstream
                 self.boundary = boundary
             }
             mutating func next() async throws -> HTTPBody.ByteChunk? {
                 guard !isFinished else { return nil }
-                let didFinishPreviousPart = bodyIterator != nil
-                if var iterator = bodyIterator {
-                    if let chunk = try await iterator.next() {
-                        bodyIterator = iterator
-                        return chunk
+                
+                // TODO: Actually make this streaming.
+                // We buffer here for now for simplicity during prototyping.
+                
+                var parts: [MultipartPartChunk] = []
+                while let value = try await upstream.next() {
+                    parts.append(value)
+                }
+                
+                enum State {
+                    case initial
+                    case collectingPart(HTTPFields, [ArraySlice<UInt8>])
+                    case modifying
+                }
+                
+                enum SerializationError: Swift.Error, CustomStringConvertible, LocalizedError {
+                    case noHeaderFieldsAtStart
+                    
+                    var description: String {
+                        switch self {
+                        case .noHeaderFieldsAtStart:
+                            return "No header fields found at the start of the multipart body."
+                        }
+                    }
+                    
+                    var errorDescription: String? {
+                        description
                     }
                 }
-                bodyIterator = nil
-                let newPart = try await upstream.next()
+                
                 var buffer: [UInt8] = []
-                buffer.reserveCapacity(
-                    (didFinishPreviousPart ? 2 : 0) + (newPart != nil ? (3 * 2 + boundary.count) : 0)
-                )
-                if didFinishPreviousPart { buffer.append(contentsOf: ASCII.crlf) }
-                if let newPart {
-                    // Get a body iterator.
-                    bodyIterator = newPart.body.makeAsyncIterator()
-                    // Write out the headers.
-                    buffer.append(contentsOf: ASCII.dashes)
-                    buffer.append(contentsOf: boundary)
+                
+                func emitPart(headerFields: HTTPFields, bodyChunks: [ArraySlice<UInt8>]) {
                     buffer.append(contentsOf: ASCII.crlf)
-                    for headerField in newPart.headerFields {
+                    for headerField in headerFields {
                         buffer.append(contentsOf: headerField.name.canonicalName.utf8)
                         buffer.append(contentsOf: ASCII.colonSpace)
                         buffer.append(contentsOf: headerField.value.utf8)
                         buffer.append(contentsOf: ASCII.crlf)
                     }
                     buffer.append(contentsOf: ASCII.crlf)
-                    return ArraySlice(buffer)
+                    for bodyChunk in bodyChunks {
+                        buffer.append(contentsOf: bodyChunk)
+                    }
+                    buffer.append(contentsOf: ASCII.crlf)
+                    buffer.append(contentsOf: ASCII.dashes)
+                    buffer.append(contentsOf: boundary)
                 }
+                
+                func emitStart() {
+                    buffer.append(contentsOf: ASCII.dashes)
+                    buffer.append(contentsOf: boundary)
+                }
+                
+                func emitEnd() {
+                    buffer.append(contentsOf: ASCII.dashes)
+                    buffer.append(contentsOf: ASCII.crlf)
+                    buffer.append(contentsOf: ASCII.crlf)
+                }
+                
+                emitStart()
+                var state: State = .initial
+                for part in parts {
+                    switch state {
+                    case .initial:
+                        guard case .headerFields(let headerFields) = part else {
+                            throw SerializationError.noHeaderFieldsAtStart
+                        }
+                        state = .collectingPart(headerFields, [])
+                    case .collectingPart(let headerFields, var bodyChunks):
+                        state = .modifying
+                        switch part {
+                        case .headerFields(let newHeaderFields):
+                            emitPart(headerFields: headerFields, bodyChunks: bodyChunks)
+                            state = .collectingPart(newHeaderFields, [])
+                        case .bodyChunk(let chunk):
+                            bodyChunks.append(chunk)
+                            state = .collectingPart(headerFields, bodyChunks)
+                        }
+                    case .modifying:
+                        preconditionFailure("Invalid state: \(state)")
+                    }
+                }
+                switch state {
+                case .initial:
+                    break
+                case .collectingPart(let headerFields, let bodyChunks):
+                    emitPart(headerFields: headerFields, bodyChunks: bodyChunks)
+                case .modifying:
+                    preconditionFailure("Invalid state: \(state)")
+                }
+                emitEnd()
+                
                 isFinished = true
-                buffer.append(contentsOf: ASCII.dashes)
-                buffer.append(contentsOf: boundary)
-                buffer.append(contentsOf: ASCII.dashes)
-                buffer.append(contentsOf: ASCII.crlf)
-                buffer.append(contentsOf: ASCII.crlf)
                 return ArraySlice(buffer)
             }
         }

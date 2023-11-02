@@ -53,7 +53,7 @@ extension MultipartBody {
         )
     }
     private final class MultipartParsingSequence: AsyncSequence {
-        typealias Element = MultipartPart
+        typealias Element = MultipartPartChunk
         typealias AsyncIterator = Iterator
         let upstream: HTTPBody
         let boundary: String
@@ -71,7 +71,7 @@ extension MultipartBody {
             )
         }
         struct Iterator: AsyncIteratorProtocol {
-            typealias Element = MultipartPart
+            typealias Element = MultipartPartChunk
             private var upstream: HTTPBody.Iterator
             private var buffer: [UInt8]
             private let boundary: String
@@ -80,7 +80,7 @@ extension MultipartBody {
                 self.buffer = []
                 self.boundary = boundary
             }
-            mutating func next() async throws -> MultipartPart? {
+            mutating func next() async throws -> Element? {
                 // TODO: Make this actually stream parts, where each part streams its body contents.
                 
                 // For now, just buffer everything.
@@ -88,219 +88,220 @@ extension MultipartBody {
                     buffer.append(contentsOf: chunk)
                 }
                 
+                fatalError()
                 // Parse the contents.
-                return try MultipartParser.parseNextPart(&buffer, boundary: boundary)
+//                return try MultipartParser.parseNextPart(&buffer, boundary: boundary)
             }
         }
     }
 }
-
-struct MultipartParser {
-    
-    private struct StateMachine {
-        
-        enum State {
-            case parsingInitialBoundary
-            case readyForPart
-            
-            enum PartState {
-                case parsingHeaderFields(HTTPFields)
-                case parsingBody(AsyncStream<HTTPBody.ByteChunk>.Continuation)
-            }
-            
-            case parsingPart(PartState)
-            case finished
-            case mutating
-        }
-        
-        enum Action {
-            case none
-            
-            enum ActionError {
-                case invalidInitialBoundary
-                case invalidCRLFAtStartOfHeader
-            }
-            
-            case emitError(ActionError)
-            case returnNil
-            case emitPart(MultipartPart)
-            case needsMore
-        }
-        
-        private var state: State
-        private let boundary: ArraySlice<UInt8>
-        private var prefixedBoundary: ArraySlice<UInt8> {
-            ASCII.dashes + boundary
-        }
-        
-        init(boundary: String) {
-            self.state = .parsingInitialBoundary
-            self.boundary = ArraySlice(boundary.utf8)
-        }
-        
-        mutating func readNextPart(_ buffer: inout [UInt8]) -> Action {
-            switch state {
-            case .mutating:
-                preconditionFailure("Invalid state: \(state)")
-            case .finished:
-                return .returnNil
-            case .parsingInitialBoundary:
-                // These first bytes must be the boundary already, otherwise this is a malformed multipart body.
-                switch buffer.firstIndexAfterElements(prefixedBoundary) {
-                case .index(let index):
-                    buffer.removeSubrange(buffer.startIndex..<index)
-                    state = .readyForPart
-                    return .none
-                case .reachedEndOfSelf:
-                    return .needsMore
-                case .mismatchedCharacter:
-                    state = .finished
-                    return .emitError(.invalidInitialBoundary)
-                }
-            case .readyForPart:
-                // If two dashes, then this is the end, no more parts.
-                switch buffer.firstIndexAfterElements(ASCII.dashes) {
-                case .index(let index):
-                    buffer.removeSubrange(buffer.startIndex..<index)
-                    state = .finished
-                    return .returnNil
-                case .reachedEndOfSelf:
-                    return .needsMore
-                case .mismatchedCharacter:
-                    // Otherwise, a part is starting.
-                    state = .parsingPart(.parsingHeaderFields(.init()))
-                    return .none
-                }
-            case .parsingPart(var partState):
-                state = .mutating
-                
-                switch partState {
-                case .parsingHeaderFields(var headerFields):
-                    // Consume CRLF
-                    switch buffer.firstIndexAfterElements(ASCII.crlf) {
-                    case .index(let index):
-                        buffer.removeSubrange(buffer.startIndex..<index)
-                    case .reachedEndOfSelf:
-                        state = .parsingPart(.parsingHeaderFields(headerFields))
-                        return .needsMore
-                    case .mismatchedCharacter:
-                        state = .finished
-                        return .emitError(.invalidCRLFAtStartOfHeader)
-                    }
-                    
-                    // If CRLF is here, this is the end of header fields section.
-                    switch buffer.firstIndexAfterElements(ASCII.crlf) {
-                    case .index(let index):
-                        buffer.removeSubrange(buffer.startIndex..<index)
-                        
-                        let length: HTTPBody.Length
-                        if
-                            let contentLengthString = headerFields[.contentLength],
-                            let contentLength = Int64(contentLengthString)
-                        {
-                            length = .known(/* TODO: remove this cast */ Int(contentLength))
-                        } else {
-                            length = .unknown
-                        }
-                        
-                        let (stream, continuation) = AsyncStream.makeStream(of: HTTPBody.ByteChunk.self)
-                        state = .parsingPart(.parsingBody(continuation))
-                        
-                        let body = HTTPBody(
-                            stream,
-                            length: length,
-                            iterationBehavior: .single
-                        )
-                        return .emitPart(.init(
-                            headerFields: headerFields,
-                            body: body
-                        ))
-                    case .reachedEndOfSelf:
-                        preconditionFailure("TODO: This needs more work, we already ate the CRLF but didn't change our state.")
-                        //                            state = .parsingPart(.parsingHeaderFields(headerFields))
-                        //                            return .needsMore
-                    case .mismatchedCharacter:
-                        break
-                    }
-                    
-                    guard let index = buffer.firstIndex(where: { !ASCII.isValidHeaderFieldNameByte($0) }) else {
-                        // No index matched yet, we need more data.
-                        state = .parsingPart(.parsingHeaderFields(headerFields))
-                        return .needsMore
-                    }
-                    print()
-                    
-                    
-                case .parsingBody(let continuation):
-                    preconditionFailure()
-                }
-                
-                
-                // First consume the initial CRLF, then start reading header key/value pairs
-                // until we reach an empty line, which will mean the end of headers.
-                
-                return .none
-            }
-        }
-    }
-    
-    static func parseNextPart(_ buffer: inout [UInt8], boundary: String) throws -> MultipartPart? {
-        struct MultipartParserError: Swift.Error, CustomStringConvertible, LocalizedError {
-            let error: MultipartParser.StateMachine.Action.ActionError
-            var description: String {
-                switch error {
-                case .invalidInitialBoundary:
-                    return "Invalid initial boundary."
-                case .invalidCRLFAtStartOfHeader:
-                    return "Invalid CRLF at the start of a header field."
-                }
-            }
-            var errorDescription: String? {
-                description
-            }
-        }
-        var stateMachine = StateMachine(boundary: boundary)
-        while true {
-            switch stateMachine.readNextPart(&buffer) {
-            case .returnNil:
-                return nil
-            case .emitPart(let part):
-                return part
-            case .none:
-                continue
-            case .emitError(let error):
-                throw MultipartParserError(error: error)
-            case .needsMore:
-                preconditionFailure("Must not happen while we're still using buffering.")
-            }
-        }
-    }
-}
-
-enum FirstIndexAfterElementsResult<C: RandomAccessCollection> {
-    case index(C.Index)
-    case reachedEndOfSelf
-    case mismatchedCharacter(C.Index)
-}
-
-fileprivate extension RandomAccessCollection where Element: Equatable {
-    
-    /// Verifies that the elements match the provided sequence and returns the first index past the match.
-    /// - Parameter expectedElements: The elements to match against.
-    /// - Returns: First index past the match; nil if elements don't match or if ran out of elements on self.
-    func firstIndexAfterElements(
-        _ expectedElements: some Sequence<Element>
-    ) -> FirstIndexAfterElementsResult<Self> {
-        var index = startIndex
-        for expectedElement in expectedElements {
-            guard index < endIndex else {
-                return .reachedEndOfSelf
-            }
-            guard self[index] == expectedElement else {
-                return .mismatchedCharacter(index)
-            }
-            formIndex(after: &index)
-        }
-        return .index(index)
-    }
-}
+//
+//struct MultipartParser {
+//    
+//    private struct StateMachine {
+//        
+//        enum State {
+//            case parsingInitialBoundary
+//            case readyForPart
+//            
+//            enum PartState {
+//                case parsingHeaderFields(HTTPFields)
+//                case parsingBody(AsyncStream<HTTPBody.ByteChunk>.Continuation)
+//            }
+//            
+//            case parsingPart(PartState)
+//            case finished
+//            case mutating
+//        }
+//        
+//        enum Action {
+//            case none
+//            
+//            enum ActionError {
+//                case invalidInitialBoundary
+//                case invalidCRLFAtStartOfHeader
+//            }
+//            
+//            case emitError(ActionError)
+//            case returnNil
+//            case emitPart(MultipartPart)
+//            case needsMore
+//        }
+//        
+//        private var state: State
+//        private let boundary: ArraySlice<UInt8>
+//        private var prefixedBoundary: ArraySlice<UInt8> {
+//            ASCII.dashes + boundary
+//        }
+//        
+//        init(boundary: String) {
+//            self.state = .parsingInitialBoundary
+//            self.boundary = ArraySlice(boundary.utf8)
+//        }
+//        
+//        mutating func readNextPart(_ buffer: inout [UInt8]) -> Action {
+//            switch state {
+//            case .mutating:
+//                preconditionFailure("Invalid state: \(state)")
+//            case .finished:
+//                return .returnNil
+//            case .parsingInitialBoundary:
+//                // These first bytes must be the boundary already, otherwise this is a malformed multipart body.
+//                switch buffer.firstIndexAfterElements(prefixedBoundary) {
+//                case .index(let index):
+//                    buffer.removeSubrange(buffer.startIndex..<index)
+//                    state = .readyForPart
+//                    return .none
+//                case .reachedEndOfSelf:
+//                    return .needsMore
+//                case .mismatchedCharacter:
+//                    state = .finished
+//                    return .emitError(.invalidInitialBoundary)
+//                }
+//            case .readyForPart:
+//                // If two dashes, then this is the end, no more parts.
+//                switch buffer.firstIndexAfterElements(ASCII.dashes) {
+//                case .index(let index):
+//                    buffer.removeSubrange(buffer.startIndex..<index)
+//                    state = .finished
+//                    return .returnNil
+//                case .reachedEndOfSelf:
+//                    return .needsMore
+//                case .mismatchedCharacter:
+//                    // Otherwise, a part is starting.
+//                    state = .parsingPart(.parsingHeaderFields(.init()))
+//                    return .none
+//                }
+//            case .parsingPart(var partState):
+//                state = .mutating
+//                
+//                switch partState {
+//                case .parsingHeaderFields(var headerFields):
+//                    // Consume CRLF
+//                    switch buffer.firstIndexAfterElements(ASCII.crlf) {
+//                    case .index(let index):
+//                        buffer.removeSubrange(buffer.startIndex..<index)
+//                    case .reachedEndOfSelf:
+//                        state = .parsingPart(.parsingHeaderFields(headerFields))
+//                        return .needsMore
+//                    case .mismatchedCharacter:
+//                        state = .finished
+//                        return .emitError(.invalidCRLFAtStartOfHeader)
+//                    }
+//                    
+//                    // If CRLF is here, this is the end of header fields section.
+//                    switch buffer.firstIndexAfterElements(ASCII.crlf) {
+//                    case .index(let index):
+//                        buffer.removeSubrange(buffer.startIndex..<index)
+//                        
+//                        let length: HTTPBody.Length
+//                        if
+//                            let contentLengthString = headerFields[.contentLength],
+//                            let contentLength = Int64(contentLengthString)
+//                        {
+//                            length = .known(/* TODO: remove this cast */ Int(contentLength))
+//                        } else {
+//                            length = .unknown
+//                        }
+//                        
+//                        let (stream, continuation) = AsyncStream.makeStream(of: HTTPBody.ByteChunk.self)
+//                        state = .parsingPart(.parsingBody(continuation))
+//                        
+//                        let body = HTTPBody(
+//                            stream,
+//                            length: length,
+//                            iterationBehavior: .single
+//                        )
+//                        return .emitPart(.init(
+//                            headerFields: headerFields,
+//                            body: body
+//                        ))
+//                    case .reachedEndOfSelf:
+//                        preconditionFailure("TODO: This needs more work, we already ate the CRLF but didn't change our state.")
+//                        //                            state = .parsingPart(.parsingHeaderFields(headerFields))
+//                        //                            return .needsMore
+//                    case .mismatchedCharacter:
+//                        break
+//                    }
+//                    
+//                    guard let index = buffer.firstIndex(where: { !ASCII.isValidHeaderFieldNameByte($0) }) else {
+//                        // No index matched yet, we need more data.
+//                        state = .parsingPart(.parsingHeaderFields(headerFields))
+//                        return .needsMore
+//                    }
+//                    print()
+//                    
+//                    
+//                case .parsingBody(let continuation):
+//                    preconditionFailure()
+//                }
+//                
+//                
+//                // First consume the initial CRLF, then start reading header key/value pairs
+//                // until we reach an empty line, which will mean the end of headers.
+//                
+//                return .none
+//            }
+//        }
+//    }
+//    
+//    static func parseNextPart(_ buffer: inout [UInt8], boundary: String) throws -> MultipartPart? {
+//        struct MultipartParserError: Swift.Error, CustomStringConvertible, LocalizedError {
+//            let error: MultipartParser.StateMachine.Action.ActionError
+//            var description: String {
+//                switch error {
+//                case .invalidInitialBoundary:
+//                    return "Invalid initial boundary."
+//                case .invalidCRLFAtStartOfHeader:
+//                    return "Invalid CRLF at the start of a header field."
+//                }
+//            }
+//            var errorDescription: String? {
+//                description
+//            }
+//        }
+//        var stateMachine = StateMachine(boundary: boundary)
+//        while true {
+//            switch stateMachine.readNextPart(&buffer) {
+//            case .returnNil:
+//                return nil
+//            case .emitPart(let part):
+//                return part
+//            case .none:
+//                continue
+//            case .emitError(let error):
+//                throw MultipartParserError(error: error)
+//            case .needsMore:
+//                preconditionFailure("Must not happen while we're still using buffering.")
+//            }
+//        }
+//    }
+//}
+//
+//enum FirstIndexAfterElementsResult<C: RandomAccessCollection> {
+//    case index(C.Index)
+//    case reachedEndOfSelf
+//    case mismatchedCharacter(C.Index)
+//}
+//
+//fileprivate extension RandomAccessCollection where Element: Equatable {
+//    
+//    /// Verifies that the elements match the provided sequence and returns the first index past the match.
+//    /// - Parameter expectedElements: The elements to match against.
+//    /// - Returns: First index past the match; nil if elements don't match or if ran out of elements on self.
+//    func firstIndexAfterElements(
+//        _ expectedElements: some Sequence<Element>
+//    ) -> FirstIndexAfterElementsResult<Self> {
+//        var index = startIndex
+//        for expectedElement in expectedElements {
+//            guard index < endIndex else {
+//                return .reachedEndOfSelf
+//            }
+//            guard self[index] == expectedElement else {
+//                return .mismatchedCharacter(index)
+//            }
+//            formIndex(after: &index)
+//        }
+//        return .index(index)
+//    }
+//}

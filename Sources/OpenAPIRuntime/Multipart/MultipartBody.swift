@@ -15,22 +15,10 @@
 import Foundation
 import HTTPTypes
 
-public struct MultipartPart: Sendable {
-    public var headerFields: HTTPFields
-    public var body: HTTPBody
-    public init(headerFields: HTTPFields, body: HTTPBody) {
-        self.headerFields = headerFields
-        self.body = body
-    }
-}
-
-public struct BufferedMultipartPart: Sendable {
-    public var headerFields: HTTPFields
-    public var body: ArraySlice<UInt8>
-    public init(headerFields: HTTPFields, body: ArraySlice<UInt8>) {
-        self.headerFields = headerFields
-        self.body = body
-    }
+// TODO: A better name.
+@frozen public enum MultipartPartChunk: Sendable, Hashable {
+    case headerFields(HTTPFields)
+    case bodyChunk(ArraySlice<UInt8>)
 }
 
 public final class MultipartBody: @unchecked Sendable {
@@ -128,7 +116,7 @@ public final class MultipartBody: @unchecked Sendable {
         _ sequence: Parts,
         length: MultipartBody.Length,
         iterationBehavior: IterationBehavior
-    ) where Parts: Sendable, Parts.Element == MultipartPart {
+    ) where Parts: Sendable, Parts.Element == MultipartPartChunk {
         self.init(.init(sequence), length: length, iterationBehavior: iterationBehavior)
     }
 }
@@ -163,12 +151,30 @@ extension MultipartBody {
     }
 
     @inlinable public convenience init(
-        _ parts: some Sequence<MultipartPart> & Sendable,
+        _ parts: some Sequence<MultipartPartChunk> & Sendable,
         length: Length,
         iterationBehavior: IterationBehavior
-    ) { self.init(.init(WrappedSyncSequence(sequence: parts)), length: length, iterationBehavior: iterationBehavior) }
-    @inlinable public convenience init(_ parts: some Collection<MultipartPart> & Sendable, length: Length) {
-        self.init(.init(WrappedSyncSequence(sequence: parts)), length: length, iterationBehavior: .multiple)
+    ) {
+        self.init(
+            .init(WrappedSyncSequence(sequence: parts)),
+            length: length,
+            iterationBehavior: iterationBehavior
+        )
+    }
+    
+    @inlinable public convenience init(
+        _ parts: some Collection<MultipartPartChunk> & Sendable,
+        length: Length
+    ) {
+        self.init(
+            .init(
+                WrappedSyncSequence(
+                    sequence: parts
+                )
+            ),
+            length: length,
+            iterationBehavior: .multiple
+        )
     }
 
     //    @inlinable public convenience init(
@@ -228,7 +234,7 @@ extension MultipartBody {
 
 extension MultipartBody: AsyncSequence {
     /// Represents a single element within an asynchronous sequence
-    public typealias Element = MultipartPart
+    public typealias Element = MultipartPartChunk
     /// Represents an asynchronous iterator over a sequence of elements.
     public typealias AsyncIterator = Iterator
     /// Creates and returns an asynchronous iterator
@@ -268,7 +274,7 @@ extension MultipartBody {
 
     // TODO: Document
     // TODO: Discuss if it's okay or should again be an initializer on Array<BufferedMultipartPart>? (Hard to discover)
-    public func collect(upTo maxBytes: Int) async throws -> [BufferedMultipartPart] {
+    public func collect(upTo maxBytes: Int) async throws -> [MultipartPartChunk] {
 
         // Check that we're allowed to iterate again.
         try checkIfCanCreateIterator()
@@ -279,10 +285,10 @@ extension MultipartBody {
         }
 
         // Accumulate the parts.
-        var buffer: [BufferedMultipartPart] = []
+        // TODO: The maxBytes limit here is difficult to enforce due to headers.
+        var buffer: [MultipartPartChunk] = []
         for try await part in self {
-            let partBufferedChunk = try await HTTPBody.ByteChunk(collecting: part.body, upTo: maxBytes - buffer.count)
-            buffer.append(.init(headerFields: part.headerFields, body: partBufferedChunk))
+            buffer.append(part)
         }
         return buffer
     }
@@ -439,7 +445,7 @@ extension MultipartBody {
     public struct Iterator: AsyncIteratorProtocol {
 
         /// The element byte chunk type.
-        public typealias Element = MultipartPart
+        public typealias Element = MultipartPartChunk
 
         /// The closure that produces the next element.
         private let produceNext: () async throws -> Element?
@@ -469,7 +475,7 @@ extension MultipartBody {
         @usableFromInline typealias AsyncIterator = MultipartBody.Iterator
 
         /// The byte chunk element type.
-        @usableFromInline typealias Element = MultipartPart
+        @usableFromInline typealias Element = MultipartPartChunk
 
         /// A closure that produces a new iterator.
         @usableFromInline let produceIterator: @Sendable () -> AsyncIterator
@@ -485,24 +491,24 @@ extension MultipartBody {
 
     /// An async sequence wrapper for a sync sequence.
     @usableFromInline struct WrappedSyncSequence<Bytes: Sequence>: AsyncSequence, Sendable
-    where Bytes.Element == MultipartPart, Bytes.Iterator.Element == MultipartPart, Bytes: Sendable {
+    where Bytes.Element == MultipartPartChunk, Bytes.Iterator.Element == MultipartPartChunk, Bytes: Sendable {
 
         /// The type of the iterator.
         @usableFromInline typealias AsyncIterator = Iterator
 
         /// The byte chunk element type.
-        @usableFromInline typealias Element = MultipartPart
+        @usableFromInline typealias Element = MultipartPartChunk
 
         /// An iterator type that wraps a sync sequence iterator.
         @usableFromInline struct Iterator: AsyncIteratorProtocol {
 
             /// The byte chunk element type.
-            @usableFromInline typealias Element = MultipartPart
+            @usableFromInline typealias Element = MultipartPartChunk
 
             /// The underlying sync sequence iterator.
             var iterator: any IteratorProtocol<Element>
 
-            @usableFromInline mutating func next() async throws -> MultipartPart? { iterator.next() }
+            @usableFromInline mutating func next() async throws -> Element? { iterator.next() }
         }
 
         /// The underlying sync sequence.
@@ -522,15 +528,15 @@ extension MultipartBody {
         @usableFromInline typealias AsyncIterator = EmptyIterator
 
         /// The byte chunk element type.
-        @usableFromInline typealias Element = MultipartPart
+        @usableFromInline typealias Element = MultipartPartChunk
 
         /// An async iterator of an empty sequence.
         @usableFromInline struct EmptyIterator: AsyncIteratorProtocol {
 
             /// The byte chunk element type.
-            @usableFromInline typealias Element = MultipartPart
+            @usableFromInline typealias Element = MultipartPartChunk
 
-            @usableFromInline mutating func next() async throws -> MultipartPart? { nil }
+            @usableFromInline mutating func next() async throws -> Element? { nil }
         }
 
         /// Creates a new empty async sequence.
