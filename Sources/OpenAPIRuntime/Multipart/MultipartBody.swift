@@ -154,27 +154,9 @@ extension MultipartBody {
         _ parts: some Sequence<MultipartPartChunk> & Sendable,
         length: Length,
         iterationBehavior: IterationBehavior
-    ) {
-        self.init(
-            .init(WrappedSyncSequence(sequence: parts)),
-            length: length,
-            iterationBehavior: iterationBehavior
-        )
-    }
-    
-    @inlinable public convenience init(
-        _ parts: some Collection<MultipartPartChunk> & Sendable,
-        length: Length
-    ) {
-        self.init(
-            .init(
-                WrappedSyncSequence(
-                    sequence: parts
-                )
-            ),
-            length: length,
-            iterationBehavior: .multiple
-        )
+    ) { self.init(.init(WrappedSyncSequence(sequence: parts)), length: length, iterationBehavior: iterationBehavior) }
+    @inlinable public convenience init(_ parts: some Collection<MultipartPartChunk> & Sendable, length: Length) {
+        self.init(.init(WrappedSyncSequence(sequence: parts)), length: length, iterationBehavior: .multiple)
     }
 
     //    @inlinable public convenience init(
@@ -287,9 +269,7 @@ extension MultipartBody {
         // Accumulate the parts.
         // TODO: The maxBytes limit here is difficult to enforce due to headers.
         var buffer: [MultipartPartChunk] = []
-        for try await part in self {
-            buffer.append(part)
-        }
+        for try await part in self { buffer.append(part) }
         return buffer
     }
 }

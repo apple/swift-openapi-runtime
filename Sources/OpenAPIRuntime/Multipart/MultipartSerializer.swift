@@ -65,38 +65,26 @@ extension HTTPBody {
             }
             mutating func next() async throws -> HTTPBody.ByteChunk? {
                 guard !isFinished else { return nil }
-                
                 // TODO: Actually make this streaming.
                 // We buffer here for now for simplicity during prototyping.
-                
+
                 var parts: [MultipartPartChunk] = []
-                while let value = try await upstream.next() {
-                    parts.append(value)
-                }
-                
+                while let value = try await upstream.next() { parts.append(value) }
                 enum State {
                     case initial
                     case collectingPart(HTTPFields, [ArraySlice<UInt8>])
                     case modifying
                 }
-                
                 enum SerializationError: Swift.Error, CustomStringConvertible, LocalizedError {
                     case noHeaderFieldsAtStart
-                    
                     var description: String {
                         switch self {
-                        case .noHeaderFieldsAtStart:
-                            return "No header fields found at the start of the multipart body."
+                        case .noHeaderFieldsAtStart: return "No header fields found at the start of the multipart body."
                         }
                     }
-                    
-                    var errorDescription: String? {
-                        description
-                    }
+                    var errorDescription: String? { description }
                 }
-                
                 var buffer: [UInt8] = []
-                
                 func emitPart(headerFields: HTTPFields, bodyChunks: [ArraySlice<UInt8>]) {
                     buffer.append(contentsOf: ASCII.crlf)
                     for headerField in headerFields {
@@ -106,25 +94,20 @@ extension HTTPBody {
                         buffer.append(contentsOf: ASCII.crlf)
                     }
                     buffer.append(contentsOf: ASCII.crlf)
-                    for bodyChunk in bodyChunks {
-                        buffer.append(contentsOf: bodyChunk)
-                    }
+                    for bodyChunk in bodyChunks { buffer.append(contentsOf: bodyChunk) }
                     buffer.append(contentsOf: ASCII.crlf)
                     buffer.append(contentsOf: ASCII.dashes)
                     buffer.append(contentsOf: boundary)
                 }
-                
                 func emitStart() {
                     buffer.append(contentsOf: ASCII.dashes)
                     buffer.append(contentsOf: boundary)
                 }
-                
                 func emitEnd() {
                     buffer.append(contentsOf: ASCII.dashes)
                     buffer.append(contentsOf: ASCII.crlf)
                     buffer.append(contentsOf: ASCII.crlf)
                 }
-                
                 emitStart()
                 var state: State = .initial
                 for part in parts {
@@ -144,20 +127,16 @@ extension HTTPBody {
                             bodyChunks.append(chunk)
                             state = .collectingPart(headerFields, bodyChunks)
                         }
-                    case .modifying:
-                        preconditionFailure("Invalid state: \(state)")
+                    case .modifying: preconditionFailure("Invalid state: \(state)")
                     }
                 }
                 switch state {
-                case .initial:
-                    break
+                case .initial: break
                 case .collectingPart(let headerFields, let bodyChunks):
                     emitPart(headerFields: headerFields, bodyChunks: bodyChunks)
-                case .modifying:
-                    preconditionFailure("Invalid state: \(state)")
+                case .modifying: preconditionFailure("Invalid state: \(state)")
                 }
                 emitEnd()
-                
                 isFinished = true
                 return ArraySlice(buffer)
             }

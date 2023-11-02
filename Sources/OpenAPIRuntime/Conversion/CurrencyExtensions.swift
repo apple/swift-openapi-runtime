@@ -178,12 +178,10 @@ extension Converter {
         let encodedString = try encoder.encode(value, forKey: "")
         return HTTPBody(encodedString)
     }
-    
     func convertMultipartToBinary(_ value: MultipartBody) throws -> HTTPBody {
         // TODO: Use a closure that produces the boundary, allowing for randomization and make it configurable.
         try HTTPBody(value, boundary: "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__")
     }
-    
     func convertBinaryToMultipart(_ body: HTTPBody) throws -> MultipartBody {
         // TODO: We'll need to propagate headers here to allow us to extract the boundary from the header.
         MultipartBody(parsing: body, boundary: "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__")
