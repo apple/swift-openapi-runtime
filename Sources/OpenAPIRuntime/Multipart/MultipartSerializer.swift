@@ -58,34 +58,34 @@ extension HTTPBody {
             typealias Element = HTTPBody.ByteChunk
             var upstream: MultipartBody.AsyncIterator
             let boundary: ArraySlice<UInt8>
-            var isFinished: Bool = false
+            var state: State
             init(upstream: MultipartBody.AsyncIterator, boundary: ArraySlice<UInt8>) {
                 self.upstream = upstream
                 self.boundary = boundary
+                self.state = .notYetStarted
+            }
+            enum SerializationError: Swift.Error, CustomStringConvertible, LocalizedError {
+                case noHeaderFieldsAtStart
+                var description: String {
+                    switch self {
+                    case .noHeaderFieldsAtStart: return "No header fields found at the start of the multipart body."
+                    }
+                }
+                var errorDescription: String? { description }
+            }
+            enum State {
+                case notYetStarted
+                case startedNothingEmittedYet
+                case finished
+                case emittedHeaders
+                case emittedBodyChunk
             }
             mutating func next() async throws -> HTTPBody.ByteChunk? {
-                guard !isFinished else { return nil }
-                // TODO: Actually make this streaming.
-                // We buffer here for now for simplicity during prototyping.
-
-                var parts: [MultipartPartChunk] = []
-                while let value = try await upstream.next() { parts.append(value) }
-                enum State {
-                    case initial
-                    case collectingPart(HTTPFields, [ArraySlice<UInt8>])
-                    case modifying
-                }
-                enum SerializationError: Swift.Error, CustomStringConvertible, LocalizedError {
-                    case noHeaderFieldsAtStart
-                    var description: String {
-                        switch self {
-                        case .noHeaderFieldsAtStart: return "No header fields found at the start of the multipart body."
-                        }
-                    }
-                    var errorDescription: String? { description }
-                }
+                print("MultipartSerializationSequence - start next (state: \(state))")
+                defer { print("MultipartSerializationSequence - end next (state: \(state))") }
+                // Events
                 var buffer: [UInt8] = []
-                func emitPart(headerFields: HTTPFields, bodyChunks: [ArraySlice<UInt8>]) {
+                func emitHeaders(_ headerFields: HTTPFields) {
                     buffer.append(contentsOf: ASCII.crlf)
                     for headerField in headerFields {
                         buffer.append(contentsOf: headerField.name.canonicalName.utf8)
@@ -94,7 +94,9 @@ extension HTTPBody {
                         buffer.append(contentsOf: ASCII.crlf)
                     }
                     buffer.append(contentsOf: ASCII.crlf)
-                    for bodyChunk in bodyChunks { buffer.append(contentsOf: bodyChunk) }
+                }
+                func emitBodyChunk(_ bodyChunk: ArraySlice<UInt8>) { buffer.append(contentsOf: bodyChunk) }
+                func emitEndOfPart() {
                     buffer.append(contentsOf: ASCII.crlf)
                     buffer.append(contentsOf: ASCII.dashes)
                     buffer.append(contentsOf: boundary)
@@ -108,37 +110,42 @@ extension HTTPBody {
                     buffer.append(contentsOf: ASCII.crlf)
                     buffer.append(contentsOf: ASCII.crlf)
                 }
-                emitStart()
-                var state: State = .initial
-                for part in parts {
-                    switch state {
-                    case .initial:
-                        guard case .headerFields(let headerFields) = part else {
-                            throw SerializationError.noHeaderFieldsAtStart
-                        }
-                        state = .collectingPart(headerFields, [])
-                    case .collectingPart(let headerFields, var bodyChunks):
-                        state = .modifying
-                        switch part {
-                        case .headerFields(let newHeaderFields):
-                            emitPart(headerFields: headerFields, bodyChunks: bodyChunks)
-                            state = .collectingPart(newHeaderFields, [])
-                        case .bodyChunk(let chunk):
-                            bodyChunks.append(chunk)
-                            state = .collectingPart(headerFields, bodyChunks)
-                        }
-                    case .modifying: preconditionFailure("Invalid state: \(state)")
-                    }
-                }
+                // Serializer
                 switch state {
-                case .initial: break
-                case .collectingPart(let headerFields, let bodyChunks):
-                    emitPart(headerFields: headerFields, bodyChunks: bodyChunks)
-                case .modifying: preconditionFailure("Invalid state: \(state)")
+                case .notYetStarted:
+                    emitStart()
+                    state = .startedNothingEmittedYet
+                    return buffer[...]
+                case .finished: return nil
+                case .startedNothingEmittedYet, .emittedBodyChunk, .emittedHeaders:
+                    // Handled below.
+                    break
                 }
-                emitEnd()
-                isFinished = true
-                return ArraySlice(buffer)
+                guard let partChunk = try await upstream.next() else {
+                    emitEndOfPart()
+                    emitEnd()
+                    state = .finished
+                    return buffer[...]
+                }
+
+                switch (state, partChunk) {
+                case (.notYetStarted, _), (.finished, _): preconditionFailure("Already handled above.")
+                case (.startedNothingEmittedYet, .headerFields(let headerFields)):
+                    emitHeaders(headerFields)
+                    state = .emittedHeaders
+                case (.startedNothingEmittedYet, .bodyChunk):
+                    state = .finished
+                    throw SerializationError.noHeaderFieldsAtStart
+                case (.emittedHeaders, .headerFields(let headerFields)),
+                    (.emittedBodyChunk, .headerFields(let headerFields)):
+                    emitEndOfPart()
+                    emitHeaders(headerFields)
+                    state = .emittedHeaders
+                case (.emittedHeaders, .bodyChunk(let bodyChunk)), (.emittedBodyChunk, .bodyChunk(let bodyChunk)):
+                    emitBodyChunk(bodyChunk)
+                    state = .emittedBodyChunk
+                }
+                return buffer[...]
             }
         }
     }
