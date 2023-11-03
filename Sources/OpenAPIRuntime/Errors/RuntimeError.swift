@@ -39,6 +39,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     case unexpectedContentTypeHeader(String)
     case unexpectedAcceptHeader(String)
     case malformedAcceptHeader(String)
+    case missingOrMalformedContentDispositionName
 
     // Path
     case missingRequiredPathParameter(String)
@@ -89,6 +90,8 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
         case .missingRequiredHeaderField(let name): return "The required header field named '\(name)' is missing."
         case .unexpectedContentTypeHeader(let contentType): return "Unexpected Content-Type header: \(contentType)"
         case .unexpectedAcceptHeader(let accept): return "Unexpected Accept header: \(accept)"
+        case .missingOrMalformedContentDispositionName:
+            return "Missing or malformed Content-Disposition header or it's missing a name."
         case .malformedAcceptHeader(let accept): return "Malformed Accept header: \(accept)"
         case .missingRequiredPathParameter(let name): return "Missing required path parameter named: \(name)"
         case .pathUnset: return "Path was not set on the request."

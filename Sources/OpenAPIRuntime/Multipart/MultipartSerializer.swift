@@ -22,7 +22,7 @@ private enum ASCII {
 }
 
 extension HTTPBody {
-    convenience init(_ multipart: MultipartChunks, boundary: String) throws {
+    convenience init(_ multipart: MultipartChunks, boundary: String) {
 
         /*
          On creation: create HTTPBody with a sequence, copy over the length and iteration behavior.

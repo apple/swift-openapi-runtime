@@ -26,6 +26,24 @@ extension Converter {
         guard let rawValue = headerFields[.contentType] else { return nil }
         return OpenAPIMIMEType(rawValue)
     }
+    /// Returns the MIME type from the content-type header, if present.
+    /// - Parameter headerFields: The header fields to inspect for the content
+    /// type header.
+    /// - Returns: The content type value, or nil if not found or invalid.
+    public func verifyContentTypeIfPresent(in headerFields: HTTPFields, matches match: String) throws {
+        guard let rawValue = headerFields[.contentType] else { return }
+        _ = try bestContentType(received: .init(rawValue), options: [match])
+    }
+    /// Returns the name specified in the content-disposition header.
+    /// - Parameter headerFields: The header fields to inspect for the content disposition header.
+    /// - Returns: The part name.
+    /// - Throws: If the content-disposition is not found, or is malformed.
+    public func extractContentDispositionName(in headerFields: HTTPFields) throws -> String {
+        guard let rawValue = headerFields[.contentDisposition],
+            let contentDisposition = ContentDisposition(rawValue: rawValue), let name = contentDisposition.name
+        else { throw RuntimeError.missingOrMalformedContentDispositionName }
+        return name
+    }
 
     /// Chooses the most appropriate content type for the provided received
     /// content type and a list of options.

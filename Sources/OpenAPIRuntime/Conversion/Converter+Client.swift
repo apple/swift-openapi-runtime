@@ -180,7 +180,7 @@ extension Converter {
             value,
             headerFields: &headerFields,
             contentType: contentType,
-            convert: { value in try convertMultipartToBinary(convertTypedToRawMultipart(value, transform: transform)) }
+            convert: { value in convertMultipartToBinary(convertTypedToRawMultipart(value, transform: transform)) }
         )
     }
 
@@ -279,5 +279,17 @@ extension Converter {
     ) throws -> C {
         guard let data else { throw RuntimeError.missingRequiredResponseBody }
         return try getResponseBody(type, from: data, transforming: transform, convert: convertBinaryToMultipart)
+    }
+    public func getResponseBodyAsTypedMultipart<C, Part: MultipartTypedPart>(
+        _ type: MultipartTypedBody<Part>.Type,
+        from data: HTTPBody?,
+        transforming transform: @escaping @Sendable (MultipartTypedBody<Part>) throws -> C,
+        decoding decoder: @escaping @Sendable (MultipartUntypedPart) async throws -> Part
+    ) throws -> C {
+        guard let data else { throw RuntimeError.missingRequiredResponseBody }
+        let chunks = convertBinaryToMultipart(data)
+        let untypedParts = chunks.asUntypedParts()
+        let typedParts = untypedParts.map(decoder)
+        return try transform(.init(typedParts, length: data.length, iterationBehavior: data.iterationBehavior))
     }
 }
