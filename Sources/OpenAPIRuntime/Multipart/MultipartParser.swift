@@ -33,21 +33,10 @@ private enum ASCII {
 
 extension MultipartBody {
     convenience init(parsing body: HTTPBody, boundary: String) {
-        // TODO: Make HTTPBody.Length and MultipartBody.Length the same? Or not?
-        let length: MultipartBody.Length
-        switch body.length {
-        case .known(let count): length = .known(count)
-        case .unknown: length = .unknown
-        }
-        let iterationBehavior: MultipartBody.IterationBehavior
-        switch body.iterationBehavior {
-        case .single: iterationBehavior = .single
-        case .multiple: iterationBehavior = .multiple
-        }
         self.init(
             MultipartParsingSequence(upstream: body, boundary: boundary),
-            length: length,
-            iterationBehavior: iterationBehavior
+            length: body.length,
+            iterationBehavior: body.iterationBehavior
         )
     }
     private final class MultipartParsingSequence: AsyncSequence {
@@ -60,6 +49,19 @@ extension MultipartBody {
             self.boundary = boundary
         }
         func makeAsyncIterator() -> Iterator { Iterator(upstream: upstream.makeAsyncIterator(), boundary: boundary) }
+        struct MultipartParserError: Swift.Error, CustomStringConvertible, LocalizedError {
+            let error: MultipartParser.StateMachine.Action.ActionError
+            var description: String {
+                switch error {
+                case .invalidInitialBoundary: return "Invalid initial boundary."
+                case .invalidCRLFAtStartOfHeaderField: return "Invalid CRLF at the start of a header field."
+                case .missingColonAfterHeaderName: return "Missing colon after header field name."
+                case .invalidCharactersInHeaderFieldName: return "Invalid characters in a header field name."
+                case .incompleteMultipartMessage: return "Incomplete multipart message."
+                }
+            }
+            var errorDescription: String? { description }
+        }
         struct Iterator: AsyncIteratorProtocol {
             typealias Element = MultipartBodyChunk
             private var upstream: HTTPBody.Iterator
@@ -71,19 +73,6 @@ extension MultipartBody {
                 self.parser = .init(boundary: boundary)
             }
             mutating func next() async throws -> Element? {
-                struct MultipartParserError: Swift.Error, CustomStringConvertible, LocalizedError {
-                    let error: MultipartParser.StateMachine.Action.ActionError
-                    var description: String {
-                        switch error {
-                        case .invalidInitialBoundary: return "Invalid initial boundary."
-                        case .invalidCRLFAtStartOfHeaderField: return "Invalid CRLF at the start of a header field."
-                        case .missingColonAfterHeaderName: return "Missing colon after header field name."
-                        case .invalidCharactersInHeaderFieldName: return "Invalid characters in a header field name."
-                        case .incompleteMultipartMessage: return "Incomplete multipart message."
-                        }
-                    }
-                    var errorDescription: String? { description }
-                }
                 print("MultipartParsingSequence - next")
                 var lastChunkWasNil: Bool = false
                 while true {

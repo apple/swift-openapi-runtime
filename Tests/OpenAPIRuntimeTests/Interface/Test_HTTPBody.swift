@@ -137,7 +137,7 @@ final class Test_Body: Test_Runtime {
         )
         .map { $0 }
         let body: HTTPBody = HTTPBody(sequence, length: .known(5), iterationBehavior: .single)
-        var chunks: [HTTPBody.ByteChunk] = []
+        var chunks: [ArraySlice<UInt8>] = []
         for try await chunk in body { chunks.append(chunk) }
         XCTAssertEqual(chunks, ["hel", "lo"].map { Array($0.utf8)[...] })
     }
@@ -224,7 +224,7 @@ final class Test_Body: Test_Runtime {
 }
 
 extension Test_Body {
-    func _testConsume(_ body: HTTPBody, expected: HTTPBody.ByteChunk, file: StaticString = #file, line: UInt = #line)
+    func _testConsume(_ body: HTTPBody, expected: ArraySlice<UInt8>, file: StaticString = #file, line: UInt = #line)
         async throws
     {
         let output = try await ArraySlice(collecting: body, upTo: .max)

@@ -44,19 +44,12 @@ public enum ByteLength: Sendable, Equatable {
 // TODO: Document
 public final class OpenAPISequence<Element: Sendable>: @unchecked Sendable {
 
-    // For backwards compatibility.
-    // TODO: When can we remove it?
-    public typealias IterationBehavior = OpenAPIRuntime.IterationBehavior
-
     /// The iteration behavior, which controls how many times
     /// the input sequence can be iterated.
     public let iterationBehavior: IterationBehavior
 
-    // For backwards compatibility.
-    // TODO: When can we remove it?
-    public typealias Length = OpenAPIRuntime.ByteLength
     /// The total length of the sequence's contents in bytes, if known.
-    public let length: Length
+    public let length: ByteLength
 
     /// The underlying type-erased async sequence.
     private let sequence: InnerSequence
@@ -79,10 +72,21 @@ public final class OpenAPISequence<Element: Sendable>: @unchecked Sendable {
         return locked_iteratorCreated
     }
 
+    /// An error thrown by the collecting initializer when another iteration of
+    /// the body is not allowed.
+    private struct TooManyIterationsError: Error, CustomStringConvertible, LocalizedError {
+
+        var description: String {
+            "OpenAPIRuntime.HTTPBody attempted to create a second iterator, but the underlying sequence is only safe to be iterated once."
+        }
+
+        var errorDescription: String? { description }
+    }
+
     /// Verifying that creating another iterator is allowed based on
     /// the values of `iterationBehavior` and `locked_iteratorCreated`.
     /// - Throws: If another iterator is not allowed to be created.
-    private func checkIfCanCreateIterator() throws {
+    internal func checkIfCanCreateIterator() throws {
         lock.lock()
         defer { lock.unlock() }
         guard iterationBehavior == .single else { return }
@@ -108,7 +112,7 @@ public final class OpenAPISequence<Element: Sendable>: @unchecked Sendable {
     ///   - length: The total length of the sequence's contents in bytes.
     ///   - iterationBehavior: The sequence's iteration behavior, which
     ///     indicates whether the sequence can be iterated multiple times.
-    @usableFromInline init(_ sequence: InnerSequence, length: Length, iterationBehavior: IterationBehavior) {
+    @usableFromInline init(_ sequence: InnerSequence, length: ByteLength, iterationBehavior: IterationBehavior) {
         self.sequence = sequence
         self.length = length
         self.iterationBehavior = iterationBehavior
@@ -152,7 +156,7 @@ extension OpenAPISequence {
     ///     indicates whether it can be iterated multiple times.
     @inlinable public convenience init<Input: AsyncSequence>(
         _ sequence: Input,
-        length: Length,
+        length: ByteLength,
         iterationBehavior: IterationBehavior
     ) where Input.Element == Element {
         self.init(.init(sequence), length: length, iterationBehavior: iterationBehavior)
@@ -166,25 +170,17 @@ extension OpenAPISequence {
     ///     indicates whether it can be iterated multiple times.
     @usableFromInline convenience init(
         _ elements: some Sequence<Element> & Sendable,
-        length: Length,
+        length: ByteLength,
         iterationBehavior: IterationBehavior
     ) {
         self.init(.init(WrappedSyncSequence(sequence: elements)), length: length, iterationBehavior: iterationBehavior)
-    }
-
-    /// Creates a new sequence with the provided element.
-    /// - Parameters:
-    ///   - element: An element.
-    ///   - length: The total length of the sequence's contents in bytes.
-    @inlinable public convenience init(_ element: Element, length: Length) {
-        self.init([element], length: length, iterationBehavior: .multiple)
     }
 
     /// Creates a new sequence with the provided byte collection.
     /// - Parameters:
     ///   - elements: A collection of elements.
     ///   - length: The total length of the sequence's contents in bytes.
-    @inlinable public convenience init(_ elements: some Collection<Element> & Sendable, length: Length) {
+    @inlinable public convenience init(_ elements: some Collection<Element> & Sendable, length: ByteLength) {
         self.init(elements, length: length, iterationBehavior: .multiple)
     }
 
@@ -192,7 +188,7 @@ extension OpenAPISequence {
     /// - Parameters:
     ///   - stream: An async throwing stream that provides the elements.
     ///   - length: The total length of the sequence's contents in bytes.
-    @inlinable public convenience init(_ stream: AsyncThrowingStream<Element, any Error>, length: Length) {
+    @inlinable public convenience init(_ stream: AsyncThrowingStream<Element, any Error>, length: ByteLength) {
         self.init(.init(stream), length: length, iterationBehavior: .single)
     }
 
@@ -200,7 +196,7 @@ extension OpenAPISequence {
     /// - Parameters:
     ///   - stream: An async stream that provides the elements.
     ///   - length: The total length of the sequence's contents in bytes.
-    @inlinable public convenience init(_ stream: AsyncStream<Element>, length: Length) {
+    @inlinable public convenience init(_ stream: AsyncStream<Element>, length: ByteLength) {
         self.init(.init(stream), length: length, iterationBehavior: .single)
     }
 }
@@ -218,45 +214,6 @@ extension OpenAPISequence: AsyncSequence {
         try! tryToMarkIteratorCreated()
         return sequence.makeAsyncIterator()
     }
-}
-
-extension OpenAPISequence {
-
-    /// An error thrown by the collecting initializer when the sequence contains more
-    /// than the maximum allowed number of bytes.
-    private struct TooManyBytesError: Error, CustomStringConvertible, LocalizedError {
-
-        /// The maximum number of bytes acceptable by the user.
-        let maxBytes: Int
-
-        var description: String {
-            "OpenAPIRuntime.OpenAPISequence contains more than the maximum allowed \(maxBytes) bytes."
-        }
-
-        var errorDescription: String? { description }
-    }
-
-    /// An error thrown by the collecting initializer when another iteration of
-    /// the sequence is not allowed.
-    private struct TooManyIterationsError: Error, CustomStringConvertible, LocalizedError {
-
-        var description: String {
-            "OpenAPIRuntime.OpenAPISequence attempted to create a second iterator, but the underlying sequence is only safe to be iterated once."
-        }
-
-        var errorDescription: String? { description }
-    }
-}
-
-// MARK: - OpenAPISequence conversions
-
-extension OpenAPISequence: ExpressibleByArrayLiteral {
-    /// Element type for array literals.
-    public typealias ArrayLiteralElement = Element
-    /// Initializes an `OpenAPISequence` instance with a sequence of `Element` elements.
-    ///
-    /// - Parameter elements: A variadic list of `Element` elements used to initialize the `OpenAPISequence`.
-    public convenience init(arrayLiteral elements: ArrayLiteralElement...) { self.init(elements, length: .unknown) }
 }
 
 // MARK: - Underlying async sequences
