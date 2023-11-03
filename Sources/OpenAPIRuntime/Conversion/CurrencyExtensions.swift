@@ -178,22 +178,32 @@ extension Converter {
         let encodedString = try encoder.encode(value, forKey: "")
         return HTTPBody(encodedString)
     }
-    func convertMultipartToBinary(_ value: MultipartBody) throws -> HTTPBody {
+    func convertMultipartToBinary(_ value: MultipartChunks) throws -> HTTPBody {
         // TODO: Use a closure that produces the boundary, allowing for randomization and make it configurable.
         try HTTPBody(value, boundary: "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__")
     }
-    func convertBinaryToMultipart(_ body: HTTPBody) throws -> MultipartBody {
+    func convertBinaryToMultipart(_ body: HTTPBody) throws -> MultipartChunks {
         // TODO: We'll need to propagate headers here to allow us to extract the boundary from the header.
-        MultipartBody(parsing: body, boundary: "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__")
+        MultipartChunks(parsing: body, boundary: "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__")
     }
-    func convertTypedToRawMultipart<Part: MultipartTypedPart>(_ value: MultipartTypedBody<Part>) -> MultipartBody {
-        // TODO: How do we serialize/deserialize? Will need to generate a method somewhere? Client/server/types?
-        // Since it's symmetric, should this be a Codable-ish thing in Types?
-        // Could be like "MultipartConvertible" or something, and in it we generate the code that serializes
-        // each part the way we know to for regular bodies.
-        fatalError()
+    func convertTypedToRawMultipart<Part: MultipartTypedPart>(
+        _ value: MultipartTypedBody<Part>,
+        transform: @escaping @Sendable (Part) throws -> MultipartUntypedPart
+    ) -> MultipartChunks {
+        let chunks =
+            value.map { part in
+                var untypedPart = try transform(part)
+                let contentDispositionHeaderValue = "form-data; name=\"\(part.name)\""
+                untypedPart.headerFields[.contentDisposition] = contentDispositionHeaderValue
+                if case .known(let byteCount) = untypedPart.body.length {
+                    untypedPart.headerFields[.contentLength] = String(byteCount)
+                }
+                return untypedPart
+            }
+            .asMultipartChunks()
+        return .init(chunks, length: value.length, iterationBehavior: value.iterationBehavior)
     }
-    func convertRawToTypedMultipart<Part: MultipartTypedPart>(_ value: MultipartBody) -> MultipartTypedBody<Part> {
+    func convertRawToTypedMultipart<Part: MultipartTypedPart>(_ value: MultipartChunks) -> MultipartTypedBody<Part> {
         fatalError()
     }
     /// Returns a JSON string for the provided encodable value.

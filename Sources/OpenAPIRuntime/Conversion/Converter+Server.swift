@@ -243,17 +243,17 @@ extension Converter {
     ) throws -> C { try getRequiredRequestBody(type, from: data, transforming: transform, convert: { $0 }) }
 
     public func getOptionalRequestBodyAsMultipart<C>(
-        _ type: MultipartBody.Type,
+        _ type: MultipartChunks.Type,
         from data: HTTPBody?,
-        transforming transform: (MultipartBody) -> C
+        transforming transform: (MultipartChunks) -> C
     ) throws -> C? {
         try getOptionalRequestBody(type, from: data, transforming: transform, convert: convertBinaryToMultipart)
     }
 
     public func getRequiredRequestBodyAsMultipart<C>(
-        _ type: MultipartBody.Type,
+        _ type: MultipartChunks.Type,
         from data: HTTPBody?,
-        transforming transform: (MultipartBody) -> C
+        transforming transform: (MultipartChunks) -> C
     ) throws -> C {
         try getRequiredRequestBody(type, from: data, transforming: transform, convert: convertBinaryToMultipart)
     }
@@ -330,9 +330,11 @@ extension Converter {
     public func setResponseBodyAsBinary(_ value: HTTPBody, headerFields: inout HTTPFields, contentType: String) throws
         -> HTTPBody
     { try setResponseBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
-    public func setResponseBodyAsMultipart(_ value: MultipartBody, headerFields: inout HTTPFields, contentType: String)
-        throws -> HTTPBody
-    {
+    public func setResponseBodyAsMultipart(
+        _ value: MultipartChunks,
+        headerFields: inout HTTPFields,
+        contentType: String
+    ) throws -> HTTPBody {
         try setResponseBody(
             value,
             headerFields: &headerFields,

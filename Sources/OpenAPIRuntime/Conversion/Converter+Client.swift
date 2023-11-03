@@ -158,7 +158,7 @@ extension Converter {
 
     // TODO: document
     public func setRequiredRequestBodyAsMultipart(
-        _ value: MultipartBody,
+        _ value: MultipartChunks,
         headerFields: inout HTTPFields,
         contentType: String
     ) throws -> HTTPBody {
@@ -173,13 +173,14 @@ extension Converter {
     public func setRequiredRequestBodyAsTypedMultipart<Part: MultipartTypedPart>(
         _ value: MultipartTypedBody<Part>,
         headerFields: inout HTTPFields,
-        contentType: String
+        contentType: String,
+        transform: @escaping @Sendable (Part) throws -> MultipartUntypedPart
     ) throws -> HTTPBody {
         try setRequiredRequestBody(
             value,
             headerFields: &headerFields,
             contentType: contentType,
-            convert: { value in try convertMultipartToBinary(convertTypedToRawMultipart(value)) }
+            convert: { value in try convertMultipartToBinary(convertTypedToRawMultipart(value, transform: transform)) }
         )
     }
 
@@ -272,9 +273,9 @@ extension Converter {
         return try getResponseBody(type, from: data, transforming: transform, convert: { $0 })
     }
     public func getResponseBodyAsMultipart<C>(
-        _ type: MultipartBody.Type,
+        _ type: MultipartChunks.Type,
         from data: HTTPBody?,
-        transforming transform: (MultipartBody) -> C
+        transforming transform: (MultipartChunks) -> C
     ) throws -> C {
         guard let data else { throw RuntimeError.missingRequiredResponseBody }
         return try getResponseBody(type, from: data, transforming: transform, convert: convertBinaryToMultipart)

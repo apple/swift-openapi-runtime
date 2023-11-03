@@ -31,7 +31,7 @@ private enum ASCII {
     }
 }
 
-extension MultipartBody {
+extension MultipartChunks {
     convenience init(parsing body: HTTPBody, boundary: String) {
         self.init(
             MultipartParsingSequence(upstream: body, boundary: boundary),
@@ -40,7 +40,7 @@ extension MultipartBody {
         )
     }
     private final class MultipartParsingSequence: AsyncSequence {
-        typealias Element = MultipartBodyChunk
+        typealias Element = MultipartChunk
         typealias AsyncIterator = Iterator
         let upstream: HTTPBody
         let boundary: String
@@ -63,7 +63,7 @@ extension MultipartBody {
             var errorDescription: String? { description }
         }
         struct Iterator: AsyncIteratorProtocol {
-            typealias Element = MultipartBodyChunk
+            typealias Element = MultipartChunk
             private var upstream: HTTPBody.Iterator
             private var buffer: [UInt8]
             private var parser: MultipartParser
@@ -274,7 +274,7 @@ struct MultipartParser {
     private var stateMachine: StateMachine
     init(boundary: String) { self.stateMachine = .init(boundary: boundary) }
     enum ParserResult {
-        case chunk(MultipartBodyChunk)
+        case chunk(MultipartChunk)
         case returnNil
         case emitError(MultipartParser.StateMachine.Action.ActionError)
         case needsMore
