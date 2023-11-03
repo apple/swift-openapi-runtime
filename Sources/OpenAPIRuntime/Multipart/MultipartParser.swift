@@ -255,7 +255,7 @@ struct MultipartParser {
                         let bodyChunk = buffer[...]
                         buffer.removeAll(keepingCapacity: true)
                         state = .parsingPart(.parsingBody)
-                        return .emitBodyChunk(bodyChunk)
+                        if bodyChunk.isEmpty { return .needsMore } else { return .emitBodyChunk(bodyChunk) }
                     case .prefixMatch(fromIndex: let fromIndex):
                         let bodyChunk = buffer[..<fromIndex]
                         buffer.removeSubrange(..<fromIndex)
@@ -265,7 +265,11 @@ struct MultipartParser {
                         let bodyChunkBeforeBoundary = buffer[..<range.lowerBound]
                         buffer.removeSubrange(..<range.upperBound)
                         state = .parsingPart(.parsingHeaderFields(.init()))
-                        return .emitBodyChunk(bodyChunkBeforeBoundary)
+                        if bodyChunkBeforeBoundary.isEmpty {
+                            return .needsMore
+                        } else {
+                            return .emitBodyChunk(bodyChunkBeforeBoundary)
+                        }
                     }
                 }
             }
