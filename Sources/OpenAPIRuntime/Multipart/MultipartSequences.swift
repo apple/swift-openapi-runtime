@@ -31,6 +31,15 @@ public struct MultipartUntypedPart: Sendable, Hashable {
     }
 }
 
+public struct MultipartUntypedNamedPart: Sendable, Hashable {
+    public var name: String
+    public var part: MultipartUntypedPart
+    public init(name: String, part: MultipartUntypedPart) {
+        self.name = name
+        self.part = part
+    }
+}
+
 public typealias MultipartChunks = OpenAPISequence<MultipartChunk>
 
 // MARK: - Untyped parts
