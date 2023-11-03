@@ -178,13 +178,11 @@ extension Converter {
         let encodedString = try encoder.encode(value, forKey: "")
         return HTTPBody(encodedString)
     }
-    func convertMultipartToBinary(_ value: MultipartChunks) -> HTTPBody {
-        // TODO: Use a closure that produces the boundary, allowing for randomization and make it configurable.
-        HTTPBody(value, boundary: "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__")
+    func convertMultipartToBinary(_ value: MultipartChunks, boundary: String) -> HTTPBody {
+        HTTPBody(value, boundary: boundary)
     }
-    func convertBinaryToMultipart(_ body: HTTPBody) -> MultipartChunks {
-        // TODO: We'll need to propagate headers here to allow us to extract the boundary from the header.
-        MultipartChunks(parsing: body, boundary: "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__")
+    func convertBinaryToMultipart(_ body: HTTPBody, boundary: String) -> MultipartChunks {
+        MultipartChunks(parsing: body, boundary: boundary)
     }
     func convertTypedToRawMultipart<Part: MultipartTypedPart>(
         _ value: MultipartTypedBody<Part>,

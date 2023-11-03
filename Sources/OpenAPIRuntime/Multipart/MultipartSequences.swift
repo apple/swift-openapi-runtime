@@ -40,7 +40,7 @@ public struct MultipartUntypedNamedPart: Sendable, Hashable {
     }
 }
 
-public typealias MultipartChunks = OpenAPISequence<MultipartChunk>
+typealias MultipartChunks = OpenAPISequence<MultipartChunk>
 
 // MARK: - Untyped parts
 

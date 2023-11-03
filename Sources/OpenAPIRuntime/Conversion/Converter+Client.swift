@@ -157,30 +157,21 @@ extension Converter {
     { try setRequiredRequestBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
 
     // TODO: document
-    public func setRequiredRequestBodyAsMultipart(
-        _ value: MultipartChunks,
-        headerFields: inout HTTPFields,
-        contentType: String
-    ) throws -> HTTPBody {
-        try setRequiredRequestBody(
-            value,
-            headerFields: &headerFields,
-            contentType: contentType,
-            convert: convertMultipartToBinary
-        )
-    }
-    // TODO: document
     public func setRequiredRequestBodyAsTypedMultipart<Part: MultipartTypedPart>(
         _ value: MultipartTypedBody<Part>,
         headerFields: inout HTTPFields,
         contentType: String,
         transform: @escaping @Sendable (Part) throws -> MultipartUntypedPart
     ) throws -> HTTPBody {
-        try setRequiredRequestBody(
+        let boundary = configuration.multipartBoundaryGenerator.makeBoundary()
+        let contentTypeWithBoundary = contentType + "; boundary=\(boundary)"
+        return try setRequiredRequestBody(
             value,
             headerFields: &headerFields,
-            contentType: contentType,
-            convert: { value in convertMultipartToBinary(convertTypedToRawMultipart(value, transform: transform)) }
+            contentType: contentTypeWithBoundary,
+            convert: { value in
+                convertMultipartToBinary(convertTypedToRawMultipart(value, transform: transform), boundary: boundary)
+            }
         )
     }
 
@@ -272,22 +263,15 @@ extension Converter {
         guard let data else { throw RuntimeError.missingRequiredResponseBody }
         return try getResponseBody(type, from: data, transforming: transform, convert: { $0 })
     }
-    public func getResponseBodyAsMultipart<C>(
-        _ type: MultipartChunks.Type,
-        from data: HTTPBody?,
-        transforming transform: (MultipartChunks) -> C
-    ) throws -> C {
-        guard let data else { throw RuntimeError.missingRequiredResponseBody }
-        return try getResponseBody(type, from: data, transforming: transform, convert: convertBinaryToMultipart)
-    }
     public func getResponseBodyAsTypedMultipart<C, Part: MultipartTypedPart>(
         _ type: MultipartTypedBody<Part>.Type,
         from data: HTTPBody?,
+        boundary: String,
         transforming transform: @escaping @Sendable (MultipartTypedBody<Part>) throws -> C,
         decoding decoder: @escaping @Sendable (MultipartUntypedPart) async throws -> Part
     ) throws -> C {
         guard let data else { throw RuntimeError.missingRequiredResponseBody }
-        let chunks = convertBinaryToMultipart(data)
+        let chunks = convertBinaryToMultipart(data, boundary: boundary)
         let untypedParts = chunks.asUntypedParts()
         let typedParts = untypedParts.map(decoder)
         return try transform(.init(typedParts, length: data.length, iterationBehavior: data.iterationBehavior))

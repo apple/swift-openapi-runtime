@@ -242,20 +242,18 @@ extension Converter {
         transforming transform: (HTTPBody) -> C
     ) throws -> C { try getRequiredRequestBody(type, from: data, transforming: transform, convert: { $0 }) }
 
-    public func getOptionalRequestBodyAsMultipart<C>(
-        _ type: MultipartChunks.Type,
+    public func getRequiredRequestBodyAsTypedMultipart<C, Part: MultipartTypedPart>(
+        _ type: MultipartTypedBody<Part>.Type,
         from data: HTTPBody?,
-        transforming transform: (MultipartChunks) -> C
-    ) throws -> C? {
-        try getOptionalRequestBody(type, from: data, transforming: transform, convert: convertBinaryToMultipart)
-    }
-
-    public func getRequiredRequestBodyAsMultipart<C>(
-        _ type: MultipartChunks.Type,
-        from data: HTTPBody?,
-        transforming transform: (MultipartChunks) -> C
+        boundary: String,
+        transforming transform: @escaping @Sendable (MultipartTypedBody<Part>) throws -> C,
+        decoding decoder: @escaping @Sendable (MultipartUntypedPart) async throws -> Part
     ) throws -> C {
-        try getRequiredRequestBody(type, from: data, transforming: transform, convert: convertBinaryToMultipart)
+        guard let data else { throw RuntimeError.missingRequiredRequestBody }
+        let chunks = convertBinaryToMultipart(data, boundary: boundary)
+        let untypedParts = chunks.asUntypedParts()
+        let typedParts = untypedParts.map(decoder)
+        return try transform(.init(typedParts, length: data.length, iterationBehavior: data.iterationBehavior))
     }
 
     /// Retrieves and transforms an optional URL-encoded form request body.
@@ -330,16 +328,4 @@ extension Converter {
     public func setResponseBodyAsBinary(_ value: HTTPBody, headerFields: inout HTTPFields, contentType: String) throws
         -> HTTPBody
     { try setResponseBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
-    public func setResponseBodyAsMultipart(
-        _ value: MultipartChunks,
-        headerFields: inout HTTPFields,
-        contentType: String
-    ) throws -> HTTPBody {
-        try setResponseBody(
-            value,
-            headerFields: &headerFields,
-            contentType: contentType,
-            convert: convertMultipartToBinary
-        )
-    }
 }

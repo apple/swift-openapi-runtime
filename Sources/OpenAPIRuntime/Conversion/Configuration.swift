@@ -46,6 +46,23 @@ extension DateTranscoder where Self == ISO8601DateTranscoder {
     public static var iso8601: Self { ISO8601DateTranscoder() }
 }
 
+public protocol MultipartBoundaryGenerator: Sendable { func makeBoundary() -> String }
+
+public struct ConstantMultipartBoundaryGenerator: MultipartBoundaryGenerator {
+    public var boundary: String
+    public init(boundary: String) { self.boundary = boundary }
+    public func makeBoundary() -> String { boundary }
+}
+
+extension MultipartBoundaryGenerator where Self == ConstantMultipartBoundaryGenerator {
+    public static var constant: Self {
+        ConstantMultipartBoundaryGenerator(boundary: "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__")
+    }
+    #warning(
+        "Add a random suffix to each boundary variant and make it the default. Constant is better for debugging/testing."
+    )
+}
+
 extension JSONEncoder.DateEncodingStrategy {
     /// Encode the `Date` as a custom value encoded using the given ``DateTranscoder``.
     static func from(dateTranscoder: any DateTranscoder) -> Self {
@@ -73,10 +90,17 @@ public struct Configuration: Sendable {
 
     /// The transcoder used when converting between date and string values.
     public var dateTranscoder: any DateTranscoder
+    public var multipartBoundaryGenerator: any MultipartBoundaryGenerator
 
     /// Creates a new configuration with the specified values.
     ///
     /// - Parameter dateTranscoder: The transcoder to use when converting between date
     ///   and string values.
-    public init(dateTranscoder: any DateTranscoder = .iso8601) { self.dateTranscoder = dateTranscoder }
+    public init(
+        dateTranscoder: any DateTranscoder = .iso8601,
+        multipartBoundaryGenerator: any MultipartBoundaryGenerator = .constant
+    ) {
+        self.dateTranscoder = dateTranscoder
+        self.multipartBoundaryGenerator = multipartBoundaryGenerator
+    }
 }
