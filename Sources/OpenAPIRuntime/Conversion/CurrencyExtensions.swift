@@ -196,7 +196,6 @@ extension Converter {
     func convertRawToTypedMultipart<Part: MultipartTypedPart>(_ value: MultipartBody) -> MultipartTypedBody<Part> {
         fatalError()
     }
-    
     /// Returns a JSON string for the provided encodable value.
     /// - Parameter value: The value to encode.
     /// - Returns: A JSON string.

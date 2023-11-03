@@ -169,7 +169,6 @@ extension Converter {
             convert: convertMultipartToBinary
         )
     }
-    
     // TODO: document
     public func setRequiredRequestBodyAsTypedMultipart<Part: MultipartTypedPart>(
         _ value: MultipartTypedBody<Part>,
@@ -180,9 +179,7 @@ extension Converter {
             value,
             headerFields: &headerFields,
             contentType: contentType,
-            convert: { value in
-                try convertMultipartToBinary(convertTypedToRawMultipart(value))
-            }
+            convert: { value in try convertMultipartToBinary(convertTypedToRawMultipart(value)) }
         )
     }
 

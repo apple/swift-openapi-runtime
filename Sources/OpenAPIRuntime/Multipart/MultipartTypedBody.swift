@@ -15,9 +15,7 @@
 import Foundation
 import HTTPTypes
 
-public protocol MultipartTypedPart: Sendable {
-    var name: String { get }
-}
+public protocol MultipartTypedPart: Sendable { var name: String { get } }
 
 public final class MultipartTypedBody<Part: MultipartTypedPart>: @unchecked Sendable {
 
