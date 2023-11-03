@@ -15,9 +15,17 @@
 import Foundation
 import HTTPTypes
 
+// MARK: - Raw parts
+
 @frozen public enum MultipartBodyChunk: Sendable, Hashable {
     case headerFields(HTTPFields)
     case bodyChunk(ArraySlice<UInt8>)
 }
 
 public typealias MultipartBody = OpenAPISequence<MultipartBodyChunk>
+
+// MARK: - Typed parts
+
+public protocol MultipartTypedPart: Sendable { var name: String { get } }
+
+public typealias MultipartTypedBody<Part: MultipartTypedPart> = OpenAPISequence<Part>
