@@ -186,25 +186,33 @@ extension Converter {
     }
     func convertTypedToRawMultipart<Part: MultipartTypedPart>(
         _ value: MultipartTypedBody<Part>,
+        validation: MultipartValidation,
         transform: @escaping @Sendable (Part) throws -> MultipartUntypedPart
     ) -> MultipartChunks {
-        let chunks =
-            value.map { part in
-                var untypedPart = try transform(part)
-                var contentDisposition = ContentDisposition(dispositionType: .formData, parameters: [:])
-                if let name = part.name { contentDisposition.parameters[.name] = name }
-                if let filename = part.filename { contentDisposition.parameters[.filename] = filename }
-                untypedPart.headerFields[.contentDisposition] = contentDisposition.rawValue
-                if case .known(let byteCount) = untypedPart.body.length {
-                    untypedPart.headerFields[.contentLength] = String(byteCount)
-                }
-                return untypedPart
+        let untyped = value.map { part in
+            var untypedPart = try transform(part)
+            var contentDisposition = ContentDisposition(dispositionType: .formData, parameters: [:])
+            if let name = part.name { contentDisposition.parameters[.name] = name }
+            if let filename = part.filename { contentDisposition.parameters[.filename] = filename }
+            untypedPart.headerFields[.contentDisposition] = contentDisposition.rawValue
+            if case .known(let byteCount) = untypedPart.body.length {
+                untypedPart.headerFields[.contentLength] = String(byteCount)
             }
-            .asMultipartChunks()
+            return untypedPart
+        }
+        let validated = MultipartValidationSequence(configuration: validation, upstream: untyped)
+        let chunks = validated.asMultipartChunks()
         return .init(chunks, length: value.length, iterationBehavior: value.iterationBehavior)
     }
-    func convertRawToTypedMultipart<Part: MultipartTypedPart>(_ value: MultipartChunks) -> MultipartTypedBody<Part> {
-        fatalError()
+    func convertRawToTypedMultipart<Part: MultipartTypedPart>(
+        _ value: MultipartChunks,
+        validation: MultipartValidation,
+        transform: @escaping @Sendable (MultipartUntypedPart) throws -> Part
+    ) -> MultipartTypedBody<Part> {
+        let untyped = value.asUntypedParts()
+        let validated = MultipartValidationSequence(configuration: validation, upstream: untyped)
+        let typed = validated.map(transform)
+        return .init(typed, length: value.length, iterationBehavior: value.iterationBehavior)
     }
     /// Returns a JSON string for the provided encodable value.
     /// - Parameter value: The value to encode.

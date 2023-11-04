@@ -161,6 +161,11 @@ extension Converter {
         _ value: MultipartTypedBody<Part>,
         headerFields: inout HTTPFields,
         contentType: String,
+        allowsUnknownParts: Bool,
+        requiredExactlyOncePartNames: Set<String>,
+        requiredAtLeastOncePartNames: Set<String>,
+        atMostOncePartNames: Set<String>,
+        zeroOrMoreTimesPartNames: Set<String>,
         transform: @escaping @Sendable (Part) throws -> MultipartUntypedPart
     ) throws -> HTTPBody {
         let boundary = configuration.multipartBoundaryGenerator.makeBoundary()
@@ -170,7 +175,20 @@ extension Converter {
             headerFields: &headerFields,
             contentType: contentTypeWithBoundary,
             convert: { value in
-                convertMultipartToBinary(convertTypedToRawMultipart(value, transform: transform), boundary: boundary)
+                convertMultipartToBinary(
+                    convertTypedToRawMultipart(
+                        value,
+                        validation: .init(
+                            allowsUnknownParts: allowsUnknownParts,
+                            requiredExactlyOncePartNames: requiredExactlyOncePartNames,
+                            requiredAtLeastOncePartNames: requiredAtLeastOncePartNames,
+                            atMostOncePartNames: atMostOncePartNames,
+                            zeroOrMoreTimesPartNames: zeroOrMoreTimesPartNames
+                        ),
+                        transform: transform
+                    ),
+                    boundary: boundary
+                )
             }
         )
     }
