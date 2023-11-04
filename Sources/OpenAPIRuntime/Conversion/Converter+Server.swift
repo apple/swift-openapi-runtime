@@ -242,7 +242,7 @@ extension Converter {
         transforming transform: (HTTPBody) -> C
     ) throws -> C { try getRequiredRequestBody(type, from: data, transforming: transform, convert: { $0 }) }
 
-    public func getRequiredRequestBodyAsTypedMultipart<C, Part: MultipartTypedPart>(
+    public func getRequiredRequestBodyAsMultipart<C, Part: MultipartTypedPart>(
         _ type: MultipartTypedBody<Part>.Type,
         from data: HTTPBody?,
         boundary: String,
@@ -328,4 +328,39 @@ extension Converter {
     public func setResponseBodyAsBinary(_ value: HTTPBody, headerFields: inout HTTPFields, contentType: String) throws
         -> HTTPBody
     { try setResponseBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
+    public func setResponseBodyAsMultipart<Part: MultipartTypedPart>(
+        _ value: MultipartTypedBody<Part>,
+        headerFields: inout HTTPFields,
+        contentType: String,
+        allowsUnknownParts: Bool,
+        requiredExactlyOncePartNames: Set<String>,
+        requiredAtLeastOncePartNames: Set<String>,
+        atMostOncePartNames: Set<String>,
+        zeroOrMoreTimesPartNames: Set<String>,
+        transform: @escaping @Sendable (Part) throws -> MultipartUntypedPart
+    ) throws -> HTTPBody {
+        let boundary = configuration.multipartBoundaryGenerator.makeBoundary()
+        let contentTypeWithBoundary = contentType + "; boundary=\(boundary)"
+        return try setResponseBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentTypeWithBoundary,
+            convert: { value in
+                convertMultipartToBinary(
+                    convertTypedToRawMultipart(
+                        value,
+                        validation: .init(
+                            allowsUnknownParts: allowsUnknownParts,
+                            requiredExactlyOncePartNames: requiredExactlyOncePartNames,
+                            requiredAtLeastOncePartNames: requiredAtLeastOncePartNames,
+                            atMostOncePartNames: atMostOncePartNames,
+                            zeroOrMoreTimesPartNames: zeroOrMoreTimesPartNames
+                        ),
+                        transform: transform
+                    ),
+                    boundary: boundary
+                )
+            }
+        )
+    }
 }
