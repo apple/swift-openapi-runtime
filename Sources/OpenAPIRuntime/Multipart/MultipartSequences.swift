@@ -31,12 +31,58 @@ public struct MultipartUntypedPart: Sendable, Hashable {
     }
 }
 
-public struct MultipartUntypedNamedPart: Sendable, Hashable {
-    public var name: String
-    public var part: MultipartUntypedPart
-    public init(name: String, part: MultipartUntypedPart) {
-        self.name = name
-        self.part = part
+extension MultipartUntypedPart {
+    public init(name: String?, filename: String? = nil, headerFields: HTTPFields, body: HTTPBody) {
+        var contentDisposition = ContentDisposition(dispositionType: .formData, parameters: [:])
+        if let name { contentDisposition.parameters[.name] = name }
+        if let filename { contentDisposition.parameters[.filename] = filename }
+        var headerFields = headerFields
+        headerFields[.contentDisposition] = contentDisposition.rawValue
+        self.init(headerFields: headerFields, body: body)
+    }
+    public var name: String? {
+        get {
+            guard let contentDispositionString = headerFields[.contentDisposition],
+                let contentDisposition = ContentDisposition(rawValue: contentDispositionString),
+                let name = contentDisposition.name
+            else { return nil }
+            return name
+        }
+        set {
+            guard let contentDispositionString = headerFields[.contentDisposition],
+                var contentDisposition = ContentDisposition(rawValue: contentDispositionString)
+            else {
+                if let newValue {
+                    headerFields[.contentDisposition] =
+                        ContentDisposition(dispositionType: .formData, parameters: [.name: newValue]).rawValue
+                }
+                return
+            }
+            contentDisposition.name = newValue
+            headerFields[.contentDisposition] = contentDisposition.rawValue
+        }
+    }
+    public var filename: String? {
+        get {
+            guard let contentDispositionString = headerFields[.contentDisposition],
+                let contentDisposition = ContentDisposition(rawValue: contentDispositionString),
+                let filename = contentDisposition.filename
+            else { return nil }
+            return filename
+        }
+        set {
+            guard let contentDispositionString = headerFields[.contentDisposition],
+                var contentDisposition = ContentDisposition(rawValue: contentDispositionString)
+            else {
+                if let newValue {
+                    headerFields[.contentDisposition] =
+                        ContentDisposition(dispositionType: .formData, parameters: [.filename: newValue]).rawValue
+                }
+                return
+            }
+            contentDisposition.filename = newValue
+            headerFields[.contentDisposition] = contentDisposition.rawValue
+        }
     }
 }
 
@@ -48,7 +94,7 @@ typealias MultipartChunks = OpenAPISequence<MultipartChunk>
 
 // MARK: - Typed parts
 
-public protocol MultipartTypedPart: Sendable { var name: String { get } }
+public protocol MultipartTypedPart: Sendable { var name: String? { get } }
 
 public typealias MultipartTypedBody<Part: MultipartTypedPart> = OpenAPISequence<Part>
 

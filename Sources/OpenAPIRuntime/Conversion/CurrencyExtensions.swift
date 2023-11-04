@@ -191,7 +191,10 @@ extension Converter {
         let chunks =
             value.map { part in
                 var untypedPart = try transform(part)
-                let contentDispositionHeaderValue = "form-data; name=\"\(part.name)\""
+                #warning("Get the name/filename here to be able to contruct the CD header.")
+                let parametersSection: String
+                if let name = part.name { parametersSection = "; name=\"\(name)\"" } else { parametersSection = "" }
+                let contentDispositionHeaderValue = "form-data\(parametersSection)"
                 untypedPart.headerFields[.contentDisposition] = contentDispositionHeaderValue
                 if case .known(let byteCount) = untypedPart.body.length {
                     untypedPart.headerFields[.contentLength] = String(byteCount)

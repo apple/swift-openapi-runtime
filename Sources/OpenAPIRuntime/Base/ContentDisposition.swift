@@ -53,8 +53,12 @@ struct ContentDisposition {
     }
     var parameters: [ParameterName: String]
     var name: String? {
-        guard let name = parameters[.name] else { return nil }
-        return name
+        get { parameters[.name] }
+        set { parameters[.name] = newValue }
+    }
+    var filename: String? {
+        get { parameters[.filename] }
+        set { parameters[.filename] = newValue }
     }
 }
 
