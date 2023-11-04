@@ -34,15 +34,26 @@ extension Converter {
         guard let rawValue = headerFields[.contentType] else { return }
         _ = try bestContentType(received: .init(rawValue), options: [match])
     }
-    /// Returns the name specified in the content-disposition header.
-    /// - Parameter headerFields: The header fields to inspect for the content disposition header.
-    /// - Returns: The part name.
-    /// - Throws: If the content-disposition is not found, or is malformed.
-    public func extractContentDispositionName(in headerFields: HTTPFields) throws -> String {
+
+    public func extractContentDispositionNameAndFilename(in headerFields: HTTPFields) -> (
+        name: String?, filename: String?
+    ) {
         guard let rawValue = headerFields[.contentDisposition],
-            let contentDisposition = ContentDisposition(rawValue: rawValue), let name = contentDisposition.name
-        else { throw RuntimeError.missingOrMalformedContentDispositionName }
-        return name
+            let contentDisposition = ContentDisposition(rawValue: rawValue)
+        else { return (nil, nil) }
+        return (contentDisposition.name, contentDisposition.filename)
+    }
+    public func setContentDispositionFilename(_ filename: String?, in headerFields: inout HTTPFields) {
+        var contentDisposition: ContentDisposition
+        if let rawValue = headerFields[.contentDisposition],
+            let _contentDisposition = ContentDisposition(rawValue: rawValue)
+        {
+            contentDisposition = _contentDisposition
+        } else {
+            contentDisposition = .init(dispositionType: .formData, parameters: [:])
+        }
+        contentDisposition.filename = filename
+        headerFields[.contentDisposition] = contentDisposition.rawValue
     }
 
     /// Chooses the most appropriate content type for the provided received

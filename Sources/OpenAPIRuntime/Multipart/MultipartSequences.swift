@@ -15,6 +15,8 @@
 import Foundation
 import HTTPTypes
 
+// TODO: These names are bad, once we have all we need rename to better ones.
+
 // MARK: - Raw parts
 
 @frozen public enum MultipartChunk: Sendable, Hashable {
@@ -88,15 +90,23 @@ extension MultipartUntypedPart {
 
 typealias MultipartChunks = OpenAPISequence<MultipartChunk>
 
-// MARK: - Untyped parts
-
-//public typealias MultipartUntypedBody = OpenAPISequence<MultipartUntypedPart>
-
 // MARK: - Typed parts
 
-public protocol MultipartTypedPart: Sendable { var name: String? { get } }
+public protocol MultipartTypedPart: Sendable {
+    var name: String? { get }
+    var filename: String? { get }
+}
 
 public typealias MultipartTypedBody<Part: MultipartTypedPart> = OpenAPISequence<Part>
+
+public struct MultipartPartWithInfo<PartPayload: Sendable & Hashable>: Sendable, Hashable {
+    public var payload: PartPayload
+    public var filename: String?
+    public init(payload: PartPayload, filename: String? = nil) {
+        self.payload = payload
+        self.filename = filename
+    }
+}
 
 // MARK: - Sequence converting untyped parts -> raw
 

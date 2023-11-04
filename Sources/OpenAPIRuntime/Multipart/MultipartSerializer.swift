@@ -75,7 +75,8 @@ extension HTTPBody {
                 var buffer: [UInt8] = []
                 func emitHeaders(_ headerFields: HTTPFields) {
                     buffer.append(contentsOf: ASCII.crlf)
-                    for headerField in headerFields {
+                    let sortedHeaders = headerFields.sorted { a, b in a.name.canonicalName < b.name.canonicalName }
+                    for headerField in sortedHeaders {
                         buffer.append(contentsOf: headerField.name.canonicalName.utf8)
                         buffer.append(contentsOf: ASCII.colonSpace)
                         buffer.append(contentsOf: headerField.value.utf8)
