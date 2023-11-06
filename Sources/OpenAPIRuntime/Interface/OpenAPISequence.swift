@@ -253,10 +253,13 @@ extension OpenAPISequence {
         /// A closure that produces a new iterator.
         @usableFromInline let produceIterator: @Sendable () -> AsyncIterator
 
+        @usableFromInline init(produceIterator: @Sendable @escaping () -> AsyncIterator) {
+            self.produceIterator = produceIterator
+        }
         /// Creates a new sequence.
         /// - Parameter sequence: The input sequence to type-erase.
         @inlinable init<Input: AsyncSequence>(_ sequence: Input) where Input.Element == Element, Input: Sendable {
-            self.produceIterator = { .init(sequence.makeAsyncIterator()) }
+            self.init(produceIterator: { .init(sequence.makeAsyncIterator()) })
         }
 
         @usableFromInline func makeAsyncIterator() -> AsyncIterator { produceIterator() }
@@ -285,7 +288,7 @@ extension OpenAPISequence {
 
         /// Creates a new async sequence with the provided sync sequence.
         /// - Parameter sequence: The sync sequence to wrap.
-        @inlinable init(sequence: Input) { self.sequence = sequence }
+        @usableFromInline init(sequence: Input) { self.sequence = sequence }
 
         @usableFromInline func makeAsyncIterator() -> Iterator { Iterator(iterator: sequence.makeIterator()) }
     }
@@ -303,7 +306,7 @@ extension OpenAPISequence {
         }
 
         /// Creates a new empty async sequence.
-        @inlinable init() {}
+        @usableFromInline init() {}
 
         @usableFromInline func makeAsyncIterator() -> EmptyIterator { EmptyIterator() }
     }

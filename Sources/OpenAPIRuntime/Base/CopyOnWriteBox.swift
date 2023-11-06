@@ -26,7 +26,7 @@
 
         /// Creates a new storage with the provided initial value.
         /// - Parameter value: The initial value to store in the box.
-        @inlinable init(value: Wrapped) { self.value = value }
+        @usableFromInline init(value: Wrapped) { self.value = value }
     }
 
     /// The internal storage of the box.
@@ -34,8 +34,9 @@
 
     /// Creates a new box.
     /// - Parameter value: The value to store in the box.
-    @inlinable public init(value: Wrapped) { self.storage = .init(value: value) }
+    @inlinable public init(value: Wrapped) { self.init(storage: .init(value: value)) }
 
+    @usableFromInline init(storage: Storage) { self.storage = storage }
     /// The stored value whose accessors enforce copy-on-write semantics.
     @inlinable public var value: Wrapped {
         get { storage.value }
