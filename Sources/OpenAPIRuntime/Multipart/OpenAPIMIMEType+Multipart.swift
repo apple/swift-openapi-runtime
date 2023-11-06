@@ -15,12 +15,10 @@
 extension OpenAPIMIMEType {
     func _requiredBoundary() throws -> String {
         guard case .concrete(type: "multipart", subtype: "form-data") = kind else {
-            #warning("Throw a proper error")
-            fatalError()
+            throw RuntimeError.missingRequiredMultipartFormDataContentType
         }
         guard let boundary = parameters["boundary"] else {
-            #warning("Throw a proper error")
-            fatalError()
+            throw RuntimeError.missingMultipartBoundaryContentTypeParameter
         }
         return boundary
     }
@@ -28,10 +26,7 @@ extension OpenAPIMIMEType {
 
 @_spi(Generated) extension Optional where Wrapped == OpenAPIMIMEType {
     public func requiredBoundary() throws -> String {
-        guard let self else {
-            #warning("Throw a proper error")
-            fatalError()
-        }
+        guard let self else { throw RuntimeError.missingRequiredMultipartFormDataContentType }
         return try self._requiredBoundary()
     }
 }

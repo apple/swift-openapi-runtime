@@ -17,18 +17,11 @@ import Foundation
 protocol MultipartValidatablePart { var name: String? { get } }
 
 struct MultipartValidation: Sendable, Hashable {
-    public var allowsUnknownParts: Bool
-    public var requiredExactlyOncePartNames: Set<String>
-    public var requiredAtLeastOncePartNames: Set<String>
-    public var atMostOncePartNames: Set<String>
-    public var zeroOrMoreTimesPartNames: Set<String>
-    public init(allowsUnknownParts: Bool, requiredExactlyOncePartNames: Set<String>, requiredAtLeastOncePartNames: Set<String>, atMostOncePartNames: Set<String>, zeroOrMoreTimesPartNames: Set<String>) {
-        self.allowsUnknownParts = allowsUnknownParts
-        self.requiredExactlyOncePartNames = requiredExactlyOncePartNames
-        self.requiredAtLeastOncePartNames = requiredAtLeastOncePartNames
-        self.atMostOncePartNames = atMostOncePartNames
-        self.zeroOrMoreTimesPartNames = zeroOrMoreTimesPartNames
-    }
+    var allowsUnknownParts: Bool
+    var requiredExactlyOncePartNames: Set<String>
+    var requiredAtLeastOncePartNames: Set<String>
+    var atMostOncePartNames: Set<String>
+    var zeroOrMoreTimesPartNames: Set<String>
 }
 
 struct MultipartValidationSequence<Part: MultipartValidatablePart, Upstream: AsyncSequence & Sendable>: Sendable

@@ -119,8 +119,7 @@ import struct Foundation.Data  // only for convenience initializers
 public final class HTTPBody: @unchecked Sendable {
 
     // When removing this, also change Int -> Int64 in ByteLength.
-    @available(*, deprecated)
-    public typealias Length = ByteLength
+    @available(*, deprecated) public typealias Length = ByteLength
 
     /// The underlying byte chunk type.
     public typealias ByteChunk = ArraySlice<UInt8>
@@ -183,7 +182,8 @@ public final class HTTPBody: @unchecked Sendable {
     ///     length of all the byte chunks.
     ///   - iterationBehavior: The sequence's iteration behavior, which
     ///     indicates whether the sequence can be iterated multiple times.
-    @usableFromInline init(_ sequence: AnySequence<ByteChunk>, length: ByteLength, iterationBehavior: IterationBehavior) {
+    @usableFromInline init(_ sequence: AnySequence<ByteChunk>, length: ByteLength, iterationBehavior: IterationBehavior)
+    {
         self.sequence = sequence
         self.length = length
         self.iterationBehavior = iterationBehavior
@@ -535,7 +535,6 @@ extension Data {
 
 extension HTTPBody {
     public struct Iterator: AsyncIteratorProtocol {
-        
         /// The closure that produces the next element.
         private let produceNext: () async throws -> Element?
 

@@ -52,6 +52,9 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     case missingRequiredRequestBody
     case missingRequiredResponseBody
 
+    // Multipart
+    case missingRequiredMultipartFormDataContentType
+    case missingMultipartBoundaryContentTypeParameter
     // Transport/Handler
     case transportFailed(any Error)
     case middlewareFailed(middlewareType: Any.Type, any Error)
@@ -98,6 +101,9 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
         case .missingRequiredQueryParameter(let name): return "Missing required query parameter named: \(name)"
         case .missingRequiredRequestBody: return "Missing required request body"
         case .missingRequiredResponseBody: return "Missing required response body"
+        case .missingRequiredMultipartFormDataContentType: return "Expected a 'multipart/form-data' content type."
+        case .missingMultipartBoundaryContentTypeParameter:
+            return "Missing 'boundary' parameter in the 'multipart/form-data' content type."
         case .transportFailed: return "Transport threw an error."
         case .middlewareFailed(middlewareType: let type, _): return "Middleware of type '\(type)' threw an error."
         case .handlerFailed: return "User handler threw an error."

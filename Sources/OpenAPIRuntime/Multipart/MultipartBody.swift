@@ -17,7 +17,6 @@ import protocol Foundation.LocalizedError
 
 // TODO: Document
 public final class MultipartBody<Part: MultipartTypedPart>: @unchecked Sendable {
-    
     /// The iteration behavior, which controls how many times
     /// the input sequence can be iterated.
     public let iterationBehavior: IterationBehavior
@@ -178,13 +177,10 @@ extension MultipartBody {
 // MARK: - Consuming the sequence
 
 extension MultipartBody: AsyncSequence {
-    
     /// The type of the element.
     public typealias Element = Part
-    
     /// Represents an asynchronous iterator over a sequence of elements.
     public typealias AsyncIterator = Iterator
-    
     /// Creates and returns an asynchronous iterator
     ///
     /// - Returns: An asynchronous iterator for byte chunks.
@@ -201,7 +197,6 @@ extension MultipartBody {
 
     /// An async iterator of both input async sequences and of the sequence itself.
     public struct Iterator: AsyncIteratorProtocol {
-        
         /// The closure that produces the next element.
         private let produceNext: () async throws -> Element?
 

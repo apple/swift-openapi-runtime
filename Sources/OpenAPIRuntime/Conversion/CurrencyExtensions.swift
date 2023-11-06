@@ -195,13 +195,8 @@ extension Converter {
             }
             return untypedPart
         }
-        let validated = MultipartValidationSequence(
-            validation: validation,
-            upstream: untyped
-        )
-        let chunks = MultipartUntypedToChunksSequence(
-            upstream: validated
-        )
+        let validated = MultipartValidationSequence(validation: validation, upstream: untyped)
+        let chunks = MultipartUntypedToChunksSequence(upstream: validated)
         return HTTPBody(
             chunks,
             length: multipart.length,
@@ -215,23 +210,11 @@ extension Converter {
         validation: MultipartValidation,
         transform: @escaping @Sendable (MultipartUntypedPart) async throws -> Part
     ) -> MultipartBody<Part> {
-        let chunks = MultipartParsingSequence(
-            upstream: bytes,
-            boundary: boundary
-        )
-        let untyped = MultipartChunksToUntypedSequence(
-            upstream: chunks
-        )
-        let validated = MultipartValidationSequence(
-            validation: validation,
-            upstream: untyped
-        )
+        let chunks = MultipartParsingSequence(upstream: bytes, boundary: boundary)
+        let untyped = MultipartChunksToUntypedSequence(upstream: chunks)
+        let validated = MultipartValidationSequence(validation: validation, upstream: untyped)
         let typed = validated.map(transform)
-        return .init(
-            typed,
-            length: bytes.length,
-            iterationBehavior: bytes.iterationBehavior
-        )
+        return .init(typed, length: bytes.length, iterationBehavior: bytes.iterationBehavior)
     }
     /// Returns a JSON string for the provided encodable value.
     /// - Parameter value: The value to encode.

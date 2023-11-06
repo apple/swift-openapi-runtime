@@ -50,8 +50,7 @@ public enum ByteLength: Sendable, Equatable {
 
     /// Creates a new type-erased iterator from the provided iterator.
     /// - Parameter iterator: The iterator to type-erase.
-    @usableFromInline init<Iterator: AsyncIteratorProtocol>(_ iterator: Iterator)
-    where Iterator.Element == Element {
+    @usableFromInline init<Iterator: AsyncIteratorProtocol>(_ iterator: Iterator) where Iterator.Element == Element {
         var iterator = iterator
         self.produceNext = { try await iterator.next() }
     }
@@ -74,7 +73,8 @@ public enum ByteLength: Sendable, Equatable {
 
     /// Creates a new sequence.
     /// - Parameter sequence: The input sequence to type-erase.
-    @usableFromInline init<Upstream: AsyncSequence>(_ sequence: Upstream) where Upstream.Element == Element, Upstream: Sendable {
+    @usableFromInline init<Upstream: AsyncSequence>(_ sequence: Upstream)
+    where Upstream.Element == Element, Upstream: Sendable {
         self.produceIterator = { .init(sequence.makeAsyncIterator()) }
     }
 
@@ -86,9 +86,9 @@ public enum ByteLength: Sendable, Equatable {
 where Upstream.Element: Sendable {
 
     /// The type of the iterator.
-    @usableFromInline typealias AsyncIterator = Iterator
+    @usableFromInline typealias AsyncIterator = Iterator<Element>
 
-    /// The byte chunk element type.
+    /// The element type.
     @usableFromInline typealias Element = Upstream.Element
 
     /// An iterator type that wraps a sync sequence iterator.
@@ -110,14 +110,14 @@ where Upstream.Element: Sendable {
     /// - Parameter sequence: The sync sequence to wrap.
     @usableFromInline init(sequence: Upstream) { self.sequence = sequence }
 
-    @usableFromInline func makeAsyncIterator() -> Iterator<Element> { Iterator(iterator: sequence.makeIterator()) }
+    @usableFromInline func makeAsyncIterator() -> AsyncIterator { Iterator(iterator: sequence.makeIterator()) }
 }
 
 /// An empty async sequence.
 @usableFromInline struct EmptySequence<Element: Sendable>: AsyncSequence, Sendable {
 
     /// The type of the empty iterator.
-    @usableFromInline typealias AsyncIterator = EmptyIterator
+    @usableFromInline typealias AsyncIterator = EmptyIterator<Element>
 
     /// An async iterator of an empty sequence.
     @usableFromInline struct EmptyIterator<IteratorElement: Sendable>: AsyncIteratorProtocol {
@@ -128,5 +128,5 @@ where Upstream.Element: Sendable {
     /// Creates a new empty async sequence.
     @usableFromInline init() {}
 
-    @usableFromInline func makeAsyncIterator() -> EmptyIterator<Element> { EmptyIterator() }
+    @usableFromInline func makeAsyncIterator() -> AsyncIterator { EmptyIterator() }
 }

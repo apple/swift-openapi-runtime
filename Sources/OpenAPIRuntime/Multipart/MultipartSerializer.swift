@@ -31,7 +31,8 @@ extension HTTPBody {
         let sequence = MultipartSerializationSequence(upstream: upstream, boundary: ArraySlice(boundary.utf8))
         self.init(sequence, length: length, iterationBehavior: iterationBehavior)
     }
-    private final class MultipartSerializationSequence<Upstream: AsyncSequence>: AsyncSequence where Upstream.Element == MultipartChunk {
+    private final class MultipartSerializationSequence<Upstream: AsyncSequence>: AsyncSequence
+    where Upstream.Element == MultipartChunk {
         typealias AsyncIterator = Iterator
         typealias Element = ArraySlice<UInt8>
         let upstream: Upstream
@@ -42,12 +43,10 @@ extension HTTPBody {
             self.boundary = boundary
         }
         func makeAsyncIterator() -> Iterator<Upstream.AsyncIterator> {
-            Iterator(
-                upstream: upstream.makeAsyncIterator(),
-                boundary: boundary
-            )
+            Iterator(upstream: upstream.makeAsyncIterator(), boundary: boundary)
         }
-        struct Iterator<UpstreamIterator: AsyncIteratorProtocol>: AsyncIteratorProtocol where Upstream.Element == MultipartChunk, UpstreamIterator.Element == MultipartChunk {
+        struct Iterator<UpstreamIterator: AsyncIteratorProtocol>: AsyncIteratorProtocol
+        where Upstream.Element == MultipartChunk, UpstreamIterator.Element == MultipartChunk {
             var upstream: UpstreamIterator
             let boundary: ArraySlice<UInt8>
             var state: State
