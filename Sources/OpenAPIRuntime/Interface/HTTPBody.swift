@@ -578,7 +578,7 @@ extension HTTPBody {
 
         /// Creates a new sequence.
         /// - Parameter sequence: The input sequence to type-erase.
-        @inlinable init<Bytes: AsyncSequence>(_ sequence: Bytes) where Bytes.Element == Element, Bytes: Sendable {
+        @usableFromInline init<Bytes: AsyncSequence>(_ sequence: Bytes) where Bytes.Element == Element, Bytes: Sendable {
             self.produceIterator = { .init(sequence.makeAsyncIterator()) }
         }
 
@@ -612,7 +612,7 @@ extension HTTPBody {
 
         /// Creates a new async sequence with the provided sync sequence.
         /// - Parameter sequence: The sync sequence to wrap.
-        @inlinable init(sequence: Bytes) { self.sequence = sequence }
+        @usableFromInline init(sequence: Bytes) { self.sequence = sequence }
 
         @usableFromInline func makeAsyncIterator() -> Iterator { Iterator(iterator: sequence.makeIterator()) }
     }
@@ -636,7 +636,7 @@ extension HTTPBody {
         }
 
         /// Creates a new empty async sequence.
-        @inlinable init() {}
+        @usableFromInline init() {}
 
         @usableFromInline func makeAsyncIterator() -> EmptyIterator { EmptyIterator() }
     }
