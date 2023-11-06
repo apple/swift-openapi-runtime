@@ -27,12 +27,12 @@ extension HTTPBody {
         length: ByteLength,
         iterationBehavior: IterationBehavior,
         boundary: String
-    ) where Upstream.Element == MultipartChunk {
-        let sequence = MultipartSerializationSequence(upstream: upstream, boundary: ArraySlice(boundary.utf8))
+    ) where Upstream.Element == MultipartFrame {
+        let sequence = MultipartFramesToBytesSequence(upstream: upstream, boundary: ArraySlice(boundary.utf8))
         self.init(sequence, length: length, iterationBehavior: iterationBehavior)
     }
-    private final class MultipartSerializationSequence<Upstream: AsyncSequence>: AsyncSequence
-    where Upstream.Element == MultipartChunk {
+    private final class MultipartFramesToBytesSequence<Upstream: AsyncSequence>: AsyncSequence
+    where Upstream.Element == MultipartFrame {
         typealias AsyncIterator = Iterator
         typealias Element = ArraySlice<UInt8>
         let upstream: Upstream
@@ -46,7 +46,7 @@ extension HTTPBody {
             Iterator(upstream: upstream.makeAsyncIterator(), boundary: boundary)
         }
         struct Iterator<UpstreamIterator: AsyncIteratorProtocol>: AsyncIteratorProtocol
-        where Upstream.Element == MultipartChunk, UpstreamIterator.Element == MultipartChunk {
+        where Upstream.Element == MultipartFrame, UpstreamIterator.Element == MultipartFrame {
             var upstream: UpstreamIterator
             let boundary: ArraySlice<UInt8>
             var state: State
@@ -111,14 +111,14 @@ extension HTTPBody {
                     // Handled below.
                     break
                 }
-                guard let partChunk = try await upstream.next() else {
+                guard let frame = try await upstream.next() else {
                     emitEndOfPart()
                     emitEnd()
                     state = .finished
                     return buffer[...]
                 }
 
-                switch (state, partChunk) {
+                switch (state, frame) {
                 case (.notYetStarted, _), (.finished, _): preconditionFailure("Already handled above.")
                 case (.startedNothingEmittedYet, .headerFields(let headerFields)):
                     emitHeaders(headerFields)

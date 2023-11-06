@@ -31,8 +31,8 @@ private enum ASCII {
     }
 }
 
-struct MultipartParsingSequence: AsyncSequence {
-    typealias Element = MultipartChunk
+struct MultipartBytesToFramesSequence: AsyncSequence {
+    typealias Element = MultipartFrame
     typealias AsyncIterator = Iterator
     let upstream: HTTPBody
     let boundary: String
@@ -55,7 +55,7 @@ struct MultipartParsingSequence: AsyncSequence {
         var errorDescription: String? { description }
     }
     struct Iterator: AsyncIteratorProtocol {
-        typealias Element = MultipartChunk
+        typealias Element = MultipartFrame
         private var upstream: HTTPBody.Iterator
         private var buffer: [UInt8]
         private var parser: MultipartParser
@@ -68,7 +68,7 @@ struct MultipartParsingSequence: AsyncSequence {
             var lastChunkWasNil: Bool = false
             while true {
                 switch try parser.parseNextPartChunk(&buffer, lastChunkWasNil: lastChunkWasNil) {
-                case .chunk(let chunk): return chunk
+                case .returnFrame(let frame): return frame
                 case .returnNil: return nil
                 case .needsMore:
                     precondition(!lastChunkWasNil, "Preventing an infinite loop. This is a parser bug.")
@@ -261,7 +261,7 @@ struct MultipartParser {
     private var stateMachine: StateMachine
     init(boundary: String) { self.stateMachine = .init(boundary: boundary) }
     enum ParserResult {
-        case chunk(MultipartChunk)
+        case returnFrame(MultipartFrame)
         case returnNil
         case emitError(MultipartParser.StateMachine.Action.ActionError)
         case needsMore
@@ -270,8 +270,8 @@ struct MultipartParser {
         while true {
             switch stateMachine.readNextPart(&buffer) {
             case .returnNil: return .returnNil
-            case .emitHeaderFields(let headerFields): return .chunk(.headerFields(headerFields))
-            case .emitBodyChunk(let bodyChunk): return .chunk(.bodyChunk(bodyChunk))
+            case .emitHeaderFields(let headerFields): return .returnFrame(.headerFields(headerFields))
+            case .emitBodyChunk(let bodyChunk): return .returnFrame(.bodyChunk(bodyChunk))
             case .none: continue
             case .emitError(let error): return .emitError(error)
             case .needsMore:

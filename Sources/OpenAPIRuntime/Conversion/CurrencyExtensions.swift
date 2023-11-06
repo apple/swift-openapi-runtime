@@ -196,9 +196,9 @@ extension Converter {
             return untypedPart
         }
         let validated = MultipartValidationSequence(validation: validation, upstream: untyped)
-        let chunks = MultipartUntypedToChunksSequence(upstream: validated)
+        let frames = MultipartRawToFrameSequence(upstream: validated)
         return HTTPBody(
-            chunks,
+            frames,
             length: multipart.length,
             iterationBehavior: multipart.iterationBehavior,
             boundary: boundary
@@ -210,9 +210,9 @@ extension Converter {
         validation: MultipartValidation,
         transform: @escaping @Sendable (MultipartRawPart) async throws -> Part
     ) -> MultipartBody<Part> {
-        let chunks = MultipartParsingSequence(upstream: bytes, boundary: boundary)
-        let untyped = MultipartChunksToUntypedSequence(upstream: chunks)
-        let validated = MultipartValidationSequence(validation: validation, upstream: untyped)
+        let frames = MultipartBytesToFramesSequence(upstream: bytes, boundary: boundary)
+        let raw = MultipartFrameToRawSequence(upstream: frames)
+        let validated = MultipartValidationSequence(validation: validation, upstream: raw)
         let typed = validated.map(transform)
         return .init(typed, length: bytes.length, iterationBehavior: bytes.iterationBehavior)
     }

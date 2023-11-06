@@ -14,7 +14,7 @@
 
 import HTTPTypes
 
-enum MultipartChunk: Sendable, Hashable {
+enum MultipartFrame: Sendable, Hashable {
     case headerFields(HTTPFields)
     case bodyChunk(ArraySlice<UInt8>)
 }

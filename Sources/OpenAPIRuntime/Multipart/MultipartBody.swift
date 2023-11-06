@@ -81,7 +81,7 @@ public final class MultipartBody<Part: MultipartPartProtocol>: @unchecked Sendab
 
     /// Creates a new sequence.
     /// - Parameters:
-    ///   - sequence: The input sequence providing the byte chunks.
+    ///   - sequence: The input sequence providing the parts.
     ///   - length: The total length of the sequence's contents in bytes.
     ///   - iterationBehavior: The sequence's iteration behavior, which
     ///     indicates whether the sequence can be iterated multiple times.
@@ -183,7 +183,7 @@ extension MultipartBody: AsyncSequence {
     public typealias AsyncIterator = Iterator
     /// Creates and returns an asynchronous iterator
     ///
-    /// - Returns: An asynchronous iterator for byte chunks.
+    /// - Returns: An asynchronous iterator for parts.
     public func makeAsyncIterator() -> AsyncIterator {
         // The crash on error is intentional here.
         try! tryToMarkIteratorCreated()

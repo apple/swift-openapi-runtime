@@ -14,14 +14,12 @@
 
 import HTTPTypes
 
-// MARK: - Sequence converting untyped parts -> raw
-
-struct MultipartUntypedToChunksSequence<Upstream: AsyncSequence> where Upstream.Element == MultipartRawPart {
+struct MultipartRawToFrameSequence<Upstream: AsyncSequence> where Upstream.Element == MultipartRawPart {
     var upstream: Upstream
 }
 
-extension MultipartUntypedToChunksSequence: AsyncSequence {
-    typealias Element = MultipartChunk
+extension MultipartRawToFrameSequence: AsyncSequence {
+    typealias Element = MultipartFrame
 
     func makeAsyncIterator() -> Iterator { Iterator(upstream: upstream.makeAsyncIterator()) }
     struct Iterator: AsyncIteratorProtocol {
@@ -41,13 +39,11 @@ extension MultipartUntypedToChunksSequence: AsyncSequence {
     }
 }
 
-// MARK: - Sequence converting raw -> untyped parts
-
-struct MultipartChunksToUntypedSequence<Upstream: AsyncSequence> where Upstream.Element == MultipartChunk {
+struct MultipartFrameToRawSequence<Upstream: AsyncSequence> where Upstream.Element == MultipartFrame {
     var upstream: Upstream
 }
 
-extension MultipartChunksToUntypedSequence: AsyncSequence {
+extension MultipartFrameToRawSequence: AsyncSequence {
     typealias Element = MultipartRawPart
 
     func makeAsyncIterator() -> Iterator { Iterator(upstream: upstream.makeAsyncIterator()) }
@@ -76,15 +72,13 @@ extension MultipartChunksToUntypedSequence: AsyncSequence {
         func nextFromPartSequence(bodyClosure: @escaping @Sendable () async throws -> ArraySlice<UInt8>?) async throws
             -> Element?
         {
-            print("MultipartChunksToUntypedSequence - nextFromPartSequence start - \(state)")
-            defer { print("MultipartChunksToUntypedSequence - nextFromPartSequence end - \(state)") }
             switch state.nextFromPartSequence(bodyClosure: bodyClosure) {
             case .returnNil: return nil
-            case .fetchChunk:
+            case .fetchFrame:
                 var upstream = upstream
-                let chunk = try await upstream.next()
+                let frame = try await upstream.next()
                 self.upstream = upstream
-                switch state.partReceivedChunk(chunk, bodyClosure: bodyClosure) {
+                switch state.partReceivedFrame(frame, bodyClosure: bodyClosure) {
                 case .returnNil: return nil
                 case .emitError(let error): throw IteratorError(error: error)
                 case .emitPart(let headers, let body): return .init(headerFields: headers, body: body)
@@ -94,15 +88,13 @@ extension MultipartChunksToUntypedSequence: AsyncSequence {
             }
         }
         func nextFromBodySubsequence() async throws -> ArraySlice<UInt8>? {
-            print("MultipartChunksToUntypedSequence - nextFromBodySubsequence start - \(state)")
-            defer { print("MultipartChunksToUntypedSequence - nextFromBodySubsequence end - \(state)") }
             switch state.nextFromBodySubsequence() {
             case .returnNil: return nil
-            case .fetchChunk:
+            case .fetchFrame:
                 var upstream = upstream
-                let chunk = try await upstream.next()
+                let frame = try await upstream.next()
                 self.upstream = upstream
-                switch state.bodyReceivedChunk(chunk) {
+                switch state.bodyReceivedFrame(frame) {
                 case .returnNil: return nil
                 case .returnChunk(let bodyChunk): return bodyChunk
                 case .emitError(let error): throw IteratorError(error: error)
@@ -142,11 +134,11 @@ extension MultipartChunksToUntypedSequence: AsyncSequence {
             case partSequenceNextCalledBeforeBodyWasConsumed
             case receivedBodyChunkInInitial
             case receivedBodyChunkWhenWaitingForHeaders
-            case receivedChunkWhenAlreadyHasUnsentHeaders
+            case receivedFrameWhenAlreadyHasUnsentHeaders
         }
         enum NextFromPartSequenceAction {
             case returnNil
-            case fetchChunk
+            case fetchFrame
             case emitError(StateError)
             case emitPart(HTTPFields, HTTPBody)
         }
@@ -156,7 +148,7 @@ extension MultipartChunksToUntypedSequence: AsyncSequence {
             switch state {
             case .initial, .partFinished:
                 state = .waitingToSendHeaders(nil)
-                return .fetchChunk
+                return .fetchFrame
             case .waitingToSendHeaders(.some(let headers)):
                 state = .streamingBody
                 let body = makeBody(headers: headers, bodyClosure: bodyClosure)
@@ -167,23 +159,23 @@ extension MultipartChunksToUntypedSequence: AsyncSequence {
             case .finished: return .returnNil
             }
         }
-        enum PartReceivedChunkAction {
+        enum PartReceivedFrameAction {
             case returnNil
             case emitError(StateError)
             case emitPart(HTTPFields, HTTPBody)
         }
-        mutating func partReceivedChunk(
-            _ chunk: MultipartChunk?,
+        mutating func partReceivedFrame(
+            _ frame: MultipartFrame?,
             bodyClosure: @escaping @Sendable () async throws -> ArraySlice<UInt8>?
-        ) -> PartReceivedChunkAction {
+        ) -> PartReceivedFrameAction {
             switch state {
             case .initial: preconditionFailure("Haven't asked for a part chunk, how did we receive one?")
             case .waitingToSendHeaders(.some):
                 state = .finished
-                return .emitError(.receivedChunkWhenAlreadyHasUnsentHeaders)
+                return .emitError(.receivedFrameWhenAlreadyHasUnsentHeaders)
             case .waitingToSendHeaders(.none):
-                if let chunk {
-                    switch chunk {
+                if let frame {
+                    switch frame {
                     case .headerFields(let headers):
                         state = .streamingBody
                         let body = makeBody(headers: headers, bodyClosure: bodyClosure)
@@ -205,7 +197,7 @@ extension MultipartChunksToUntypedSequence: AsyncSequence {
 
         enum NextFromBodySubsequenceAction {
             case returnNil
-            case fetchChunk
+            case fetchFrame
             case emitError(StateError)
         }
         mutating func nextFromBodySubsequence() -> NextFromBodySubsequenceAction {
@@ -216,24 +208,24 @@ extension MultipartChunksToUntypedSequence: AsyncSequence {
             case .waitingToSendHeaders:
                 state = .finished
                 return .emitError(.receivedBodyChunkWhenWaitingForHeaders)
-            case .streamingBody: return .fetchChunk
+            case .streamingBody: return .fetchFrame
             case .finished, .partFinished: return .returnNil
             }
         }
-        enum BodyReceivedChunkAction {
+        enum BodyReceivedFrameAction {
             case returnNil
             case returnChunk(ArraySlice<UInt8>)
             case emitError(StateError)
         }
-        mutating func bodyReceivedChunk(_ chunk: MultipartChunk?) -> BodyReceivedChunkAction {
+        mutating func bodyReceivedFrame(_ frame: MultipartFrame?) -> BodyReceivedFrameAction {
             switch state {
-            case .initial: preconditionFailure("Haven't asked for a body chunk, how did we receive one?")
+            case .initial: preconditionFailure("Haven't asked for a frame, how did we receive one?")
             case .waitingToSendHeaders, .partFinished:
                 state = .finished
                 return .emitError(.receivedBodyChunkWhenWaitingForHeaders)
             case .streamingBody:
-                if let chunk {
-                    switch chunk {
+                if let frame {
+                    switch frame {
                     case .headerFields(let headers):
                         state = .waitingToSendHeaders(headers)
                         return .returnNil

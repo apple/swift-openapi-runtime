@@ -94,7 +94,7 @@ where Upstream.Element: Sendable {
     /// An iterator type that wraps a sync sequence iterator.
     @usableFromInline struct Iterator<IteratorElement: Sendable>: AsyncIteratorProtocol {
 
-        /// The byte chunk element type.
+        /// The element type.
         @usableFromInline typealias Element = IteratorElement
 
         /// The underlying sync sequence iterator.
