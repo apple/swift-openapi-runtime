@@ -17,7 +17,6 @@ import protocol Foundation.LocalizedError
 
 // TODO: Document
 public final class MultipartBody<Part: MultipartPartProtocol>: @unchecked Sendable {
-    
     /// The iteration behavior, which controls how many times
     /// the input sequence can be iterated.
     public let iterationBehavior: IterationBehavior

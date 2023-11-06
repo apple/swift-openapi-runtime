@@ -68,10 +68,8 @@ struct MultipartParsingSequence: AsyncSequence {
             var lastChunkWasNil: Bool = false
             while true {
                 switch try parser.parseNextPartChunk(&buffer, lastChunkWasNil: lastChunkWasNil) {
-                case .chunk(let chunk):
-                    return chunk
-                case .returnNil:
-                    return nil
+                case .chunk(let chunk): return chunk
+                case .returnNil: return nil
                 case .needsMore:
                     precondition(!lastChunkWasNil, "Preventing an infinite loop. This is a parser bug.")
                     if let chunk = try await upstream.next() {

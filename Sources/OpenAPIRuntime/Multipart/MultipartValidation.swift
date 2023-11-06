@@ -22,7 +22,8 @@ struct MultipartValidation: Sendable, Hashable {
     var zeroOrMoreTimesPartNames: Set<String>
 }
 
-struct MultipartValidationSequence<Upstream: AsyncSequence & Sendable>: Sendable where Upstream.Element == MultipartRawPart {
+struct MultipartValidationSequence<Upstream: AsyncSequence & Sendable>: Sendable
+where Upstream.Element == MultipartRawPart {
     var validation: MultipartValidation
     var upstream: Upstream
 }
