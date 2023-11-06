@@ -270,17 +270,17 @@ extension OpenAPISequence {
     where Input.Element == Element, Input.Iterator.Element == Element, Input: Sendable {
 
         /// The type of the iterator.
-        @usableFromInline typealias AsyncIterator = Iterator
+        @usableFromInline typealias AsyncIterator = Iterator<Element>
         /// The type of the element.
         @usableFromInline typealias Element = Input.Element
 
         /// An iterator type that wraps a sync sequence iterator.
-        @usableFromInline struct Iterator: AsyncIteratorProtocol {
+        @usableFromInline struct Iterator<IteratorElement>: AsyncIteratorProtocol {
 
             /// The underlying sync sequence iterator.
-            var iterator: any IteratorProtocol<Element>
+            var iterator: any IteratorProtocol<IteratorElement>
 
-            @usableFromInline mutating func next() async throws -> Element? { iterator.next() }
+            @usableFromInline mutating func next() async throws -> IteratorElement? { iterator.next() }
         }
 
         /// The underlying sync sequence.
@@ -290,7 +290,7 @@ extension OpenAPISequence {
         /// - Parameter sequence: The sync sequence to wrap.
         @usableFromInline init(sequence: Input) { self.sequence = sequence }
 
-        @usableFromInline func makeAsyncIterator() -> Iterator { Iterator(iterator: sequence.makeIterator()) }
+        @usableFromInline func makeAsyncIterator() -> AsyncIterator { Iterator(iterator: sequence.makeIterator()) }
     }
 
     /// An empty async sequence.
