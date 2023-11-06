@@ -50,17 +50,30 @@ public protocol MultipartBoundaryGenerator: Sendable { func makeBoundary() -> St
 
 public struct ConstantMultipartBoundaryGenerator: MultipartBoundaryGenerator {
     public var boundary: String
-    public init(boundary: String) { self.boundary = boundary }
-    public func makeBoundary() -> String { boundary }
+    public init(boundary: String = "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__") { self.boundary = boundary }
+    @inlinable public func makeBoundary() -> String { boundary }
+}
+
+public struct RandomizedMultipartBoundaryGenerator: MultipartBoundaryGenerator {
+    public var boundaryPrefix: String
+    public var randomNumberSuffixLenght: Int
+    @usableFromInline let values: [UInt8] = Array("0123456789".utf8)
+    public init(boundaryPrefix: String = "__X_SWIFT_OPENAPI_", randomNumberSuffixLenght: Int = 20) {
+        self.boundaryPrefix = boundaryPrefix
+        self.randomNumberSuffixLenght = randomNumberSuffixLenght
+    }
+    @inlinable public func makeBoundary() -> String {
+        var randomSuffix = [UInt8](repeating: 0, count: randomNumberSuffixLenght)
+        for i in randomSuffix.startIndex..<randomSuffix.endIndex { randomSuffix[i] = values.randomElement()! }
+        return boundaryPrefix.appending(String(decoding: randomSuffix, as: UTF8.self))
+    }
 }
 
 extension MultipartBoundaryGenerator where Self == ConstantMultipartBoundaryGenerator {
-    public static var constant: Self {
-        ConstantMultipartBoundaryGenerator(boundary: "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__")
-    }
-    #warning(
-        "Add a random suffix to each boundary variant and make it the default. Constant is better for debugging/testing."
-    )
+    @inlinable public static var constant: Self { ConstantMultipartBoundaryGenerator() }
+}
+extension MultipartBoundaryGenerator where Self == RandomizedMultipartBoundaryGenerator {
+    @inlinable public static var randomized: Self { RandomizedMultipartBoundaryGenerator() }
 }
 
 extension JSONEncoder.DateEncodingStrategy {
@@ -98,7 +111,7 @@ public struct Configuration: Sendable {
     ///   and string values.
     public init(
         dateTranscoder: any DateTranscoder = .iso8601,
-        multipartBoundaryGenerator: any MultipartBoundaryGenerator = .constant
+        multipartBoundaryGenerator: any MultipartBoundaryGenerator = .randomized
     ) {
         self.dateTranscoder = dateTranscoder
         self.multipartBoundaryGenerator = multipartBoundaryGenerator
