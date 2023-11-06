@@ -65,25 +65,19 @@ struct MultipartParsingSequence: AsyncSequence {
             self.parser = .init(boundary: boundary)
         }
         mutating func next() async throws -> Element? {
-            print("MultipartParsingSequence - next")
             var lastChunkWasNil: Bool = false
             while true {
                 switch try parser.parseNextPartChunk(&buffer, lastChunkWasNil: lastChunkWasNil) {
                 case .chunk(let chunk):
-                    print("MultipartParsingSequence - returning \(chunk)")
                     return chunk
                 case .returnNil:
-                    print("MultipartParsingSequence - returning nil")
                     return nil
                 case .needsMore:
-                    print("MultipartParsingSequence - fetching more")
                     precondition(!lastChunkWasNil, "Preventing an infinite loop. This is a parser bug.")
                     if let chunk = try await upstream.next() {
                         buffer.append(contentsOf: chunk)
-                        print("MultipartParsingSequence - fetched a chunk of size \(chunk.count)")
                     } else {
                         lastChunkWasNil = true
-                        print("MultipartParsingSequence - fetched a nil chunk")
                     }
                 case .emitError(let error): throw MultipartParserError(error: error)
                 }

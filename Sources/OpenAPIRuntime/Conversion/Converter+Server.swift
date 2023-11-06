@@ -242,7 +242,7 @@ extension Converter {
         transforming transform: (HTTPBody) -> C
     ) throws -> C { try getRequiredRequestBody(type, from: data, transforming: transform, convert: { $0 }) }
 
-    public func getRequiredRequestBodyAsMultipart<C, Part: MultipartTypedPart>(
+    public func getRequiredRequestBodyAsMultipart<C, Part: MultipartPartProtocol>(
         _ type: MultipartBody<Part>.Type,
         from data: HTTPBody?,
         boundary: String,
@@ -252,7 +252,7 @@ extension Converter {
         atMostOncePartNames: Set<String>,
         zeroOrMoreTimesPartNames: Set<String>,
         transforming transform: @escaping @Sendable (MultipartBody<Part>) throws -> C,
-        decoding decoder: @escaping @Sendable (MultipartUntypedPart) async throws -> Part
+        decoding decoder: @escaping @Sendable (MultipartRawPart) async throws -> Part
     ) throws -> C {
         guard let data else { throw RuntimeError.missingRequiredRequestBody }
         let multipart = convertBytesToMultipart(
@@ -342,7 +342,7 @@ extension Converter {
     public func setResponseBodyAsBinary(_ value: HTTPBody, headerFields: inout HTTPFields, contentType: String) throws
         -> HTTPBody
     { try setResponseBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
-    public func setResponseBodyAsMultipart<Part: MultipartTypedPart>(
+    public func setResponseBodyAsMultipart<Part: MultipartPartProtocol>(
         _ value: MultipartBody<Part>,
         headerFields: inout HTTPFields,
         contentType: String,
@@ -351,7 +351,7 @@ extension Converter {
         requiredAtLeastOncePartNames: Set<String>,
         atMostOncePartNames: Set<String>,
         zeroOrMoreTimesPartNames: Set<String>,
-        transform: @escaping @Sendable (Part) throws -> MultipartUntypedPart
+        transform: @escaping @Sendable (Part) throws -> MultipartRawPart
     ) throws -> HTTPBody {
         let boundary = configuration.multipartBoundaryGenerator.makeBoundary()
         let contentTypeWithBoundary = contentType + "; boundary=\(boundary)"

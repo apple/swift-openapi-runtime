@@ -16,7 +16,7 @@ import HTTPTypes
 
 // MARK: - Sequence converting untyped parts -> raw
 
-struct MultipartUntypedToChunksSequence<Upstream: AsyncSequence> where Upstream.Element == MultipartUntypedPart {
+struct MultipartUntypedToChunksSequence<Upstream: AsyncSequence> where Upstream.Element == MultipartRawPart {
     var upstream: Upstream
 }
 
@@ -48,7 +48,7 @@ struct MultipartChunksToUntypedSequence<Upstream: AsyncSequence> where Upstream.
 }
 
 extension MultipartChunksToUntypedSequence: AsyncSequence {
-    typealias Element = MultipartUntypedPart
+    typealias Element = MultipartRawPart
 
     func makeAsyncIterator() -> Iterator { Iterator(upstream: upstream.makeAsyncIterator()) }
     struct Iterator: AsyncIteratorProtocol {

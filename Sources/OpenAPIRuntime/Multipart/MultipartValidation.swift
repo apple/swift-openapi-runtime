@@ -14,8 +14,6 @@
 
 import Foundation
 
-protocol MultipartValidatablePart { var name: String? { get } }
-
 struct MultipartValidation: Sendable, Hashable {
     var allowsUnknownParts: Bool
     var requiredExactlyOncePartNames: Set<String>
@@ -24,14 +22,13 @@ struct MultipartValidation: Sendable, Hashable {
     var zeroOrMoreTimesPartNames: Set<String>
 }
 
-struct MultipartValidationSequence<Part: MultipartValidatablePart, Upstream: AsyncSequence & Sendable>: Sendable
-where Upstream.Element == Part {
+struct MultipartValidationSequence<Upstream: AsyncSequence & Sendable>: Sendable where Upstream.Element == MultipartRawPart {
     var validation: MultipartValidation
     var upstream: Upstream
 }
 
 extension MultipartValidationSequence: AsyncSequence {
-    typealias Element = Part
+    typealias Element = MultipartRawPart
     func makeAsyncIterator() -> Iterator {
         Iterator(
             upstream: upstream.makeAsyncIterator(),

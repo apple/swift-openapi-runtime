@@ -15,21 +15,8 @@
 import Foundation
 import HTTPTypes
 
-// TODO: These names are bad, once we have all we need rename to better ones.
-
-// TODO: Go through and make as many things as possible private/internal/spi
-
-// MARK: - Raw parts
-
-enum MultipartChunk: Sendable, Hashable {
-    case headerFields(HTTPFields)
-    case bodyChunk(ArraySlice<UInt8>)
-}
-
-// MARK: - Untyped parts
-
 // Used in "undocumented" part cases (generated iff additionalProperties != false).
-public struct MultipartUntypedPart: Sendable, Hashable {
+public struct MultipartRawPart: Sendable, Hashable {
     public var headerFields: HTTPFields
     public var body: HTTPBody
     public init(headerFields: HTTPFields, body: HTTPBody) {
@@ -38,9 +25,25 @@ public struct MultipartUntypedPart: Sendable, Hashable {
     }
 }
 
-extension MultipartUntypedPart: MultipartValidatablePart {}
+/// A protocol that all generated multipart enums conform to.
+public protocol MultipartPartProtocol: Sendable {
+    var name: String? { get }
+    var filename: String? { get }
+}
 
-extension MultipartUntypedPart {
+/// Represents a typed part with more content-disposition information parsed out.
+public struct MultipartCase<PartPayload: Sendable & Hashable>: Sendable, Hashable {
+    public var payload: PartPayload
+    public var filename: String?
+    public init(payload: PartPayload, filename: String? = nil) {
+        self.payload = payload
+        self.filename = filename
+    }
+}
+
+// MARK: - Extensions
+
+extension MultipartRawPart {
     public init(name: String?, filename: String? = nil, headerFields: HTTPFields, body: HTTPBody) {
         var contentDisposition = ContentDisposition(dispositionType: .formData, parameters: [:])
         if let name { contentDisposition.parameters[.name] = name }
@@ -92,21 +95,5 @@ extension MultipartUntypedPart {
             contentDisposition.filename = newValue
             headerFields[.contentDisposition] = contentDisposition.rawValue
         }
-    }
-}
-
-// MARK: - Typed parts
-
-public protocol MultipartTypedPart: Sendable {
-    var name: String? { get }
-    var filename: String? { get }
-}
-
-public struct MultipartPartWithInfo<PartPayload: Sendable & Hashable>: Sendable, Hashable {
-    public var payload: PartPayload
-    public var filename: String?
-    public init(payload: PartPayload, filename: String? = nil) {
-        self.payload = payload
-        self.filename = filename
     }
 }

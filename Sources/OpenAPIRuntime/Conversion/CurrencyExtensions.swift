@@ -178,11 +178,11 @@ extension Converter {
         let encodedString = try encoder.encode(value, forKey: "")
         return HTTPBody(encodedString)
     }
-    func convertMultipartToBytes<Part: MultipartTypedPart>(
+    func convertMultipartToBytes<Part: MultipartPartProtocol>(
         _ multipart: MultipartBody<Part>,
         validation: MultipartValidation,
         boundary: String,
-        transform: @escaping @Sendable (Part) throws -> MultipartUntypedPart
+        transform: @escaping @Sendable (Part) throws -> MultipartRawPart
     ) -> HTTPBody {
         let untyped = multipart.map { part in
             var untypedPart = try transform(part)
@@ -204,11 +204,11 @@ extension Converter {
             boundary: boundary
         )
     }
-    func convertBytesToMultipart<Part: MultipartTypedPart>(
+    func convertBytesToMultipart<Part: MultipartPartProtocol>(
         _ bytes: HTTPBody,
         boundary: String,
         validation: MultipartValidation,
-        transform: @escaping @Sendable (MultipartUntypedPart) async throws -> Part
+        transform: @escaping @Sendable (MultipartRawPart) async throws -> Part
     ) -> MultipartBody<Part> {
         let chunks = MultipartParsingSequence(upstream: bytes, boundary: boundary)
         let untyped = MultipartChunksToUntypedSequence(upstream: chunks)

@@ -157,7 +157,7 @@ extension Converter {
     { try setRequiredRequestBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
 
     // TODO: document
-    public func setRequiredRequestBodyAsMultipart<Part: MultipartTypedPart>(
+    public func setRequiredRequestBodyAsMultipart<Part: MultipartPartProtocol>(
         _ value: MultipartBody<Part>,
         headerFields: inout HTTPFields,
         contentType: String,
@@ -166,7 +166,7 @@ extension Converter {
         requiredAtLeastOncePartNames: Set<String>,
         atMostOncePartNames: Set<String>,
         zeroOrMoreTimesPartNames: Set<String>,
-        transform: @escaping @Sendable (Part) throws -> MultipartUntypedPart
+        transform: @escaping @Sendable (Part) throws -> MultipartRawPart
     ) throws -> HTTPBody {
         let boundary = configuration.multipartBoundaryGenerator.makeBoundary()
         let contentTypeWithBoundary = contentType + "; boundary=\(boundary)"
@@ -279,7 +279,7 @@ extension Converter {
         guard let data else { throw RuntimeError.missingRequiredResponseBody }
         return try getResponseBody(type, from: data, transforming: transform, convert: { $0 })
     }
-    public func getResponseBodyAsMultipart<C, Part: MultipartTypedPart>(
+    public func getResponseBodyAsMultipart<C, Part: MultipartPartProtocol>(
         _ type: MultipartBody<Part>.Type,
         from data: HTTPBody?,
         boundary: String,
@@ -289,7 +289,7 @@ extension Converter {
         atMostOncePartNames: Set<String>,
         zeroOrMoreTimesPartNames: Set<String>,
         transforming transform: @escaping @Sendable (MultipartBody<Part>) throws -> C,
-        decoding decoder: @escaping @Sendable (MultipartUntypedPart) async throws -> Part
+        decoding decoder: @escaping @Sendable (MultipartRawPart) async throws -> Part
     ) throws -> C {
         guard let data else { throw RuntimeError.missingRequiredResponseBody }
         let multipart = convertBytesToMultipart(

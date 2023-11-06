@@ -72,8 +72,6 @@ extension HTTPBody {
                 case emittedBodyChunk
             }
             mutating func next() async throws -> Element? {
-                print("MultipartSerializationSequence - start next (state: \(state))")
-                defer { print("MultipartSerializationSequence - end next (state: \(state))") }
                 // Events
                 var buffer: [UInt8] = []
                 func emitHeaders(_ headerFields: HTTPFields) {
