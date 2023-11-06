@@ -16,7 +16,7 @@ import class Foundation.NSLock
 import protocol Foundation.LocalizedError
 
 // TODO: Document
-public final class OpenAPISequence<Element: Sendable>: @unchecked Sendable {
+public final class MultipartBody<Part: MultipartTypedPart>: @unchecked Sendable {
     
     /// The iteration behavior, which controls how many times
     /// the input sequence can be iterated.
@@ -26,7 +26,7 @@ public final class OpenAPISequence<Element: Sendable>: @unchecked Sendable {
     public let length: ByteLength
 
     /// The underlying type-erased async sequence.
-    private let sequence: InnerSequence
+    private let sequence: AnySequence<Part>
 
     /// A lock for shared mutable state.
     private let lock: NSLock = {
@@ -86,14 +86,14 @@ public final class OpenAPISequence<Element: Sendable>: @unchecked Sendable {
     ///   - length: The total length of the sequence's contents in bytes.
     ///   - iterationBehavior: The sequence's iteration behavior, which
     ///     indicates whether the sequence can be iterated multiple times.
-    @usableFromInline init(_ sequence: InnerSequence, length: ByteLength, iterationBehavior: IterationBehavior) {
+    @usableFromInline init(_ sequence: AnySequence<Part>, length: ByteLength, iterationBehavior: IterationBehavior) {
         self.sequence = sequence
         self.length = length
         self.iterationBehavior = iterationBehavior
     }
 }
 
-extension OpenAPISequence: Equatable {
+extension MultipartBody: Equatable {
     /// Compares two OpenAPISequence instances for equality by comparing their object identifiers.
     ///
     /// - Parameters:
@@ -102,21 +102,21 @@ extension OpenAPISequence: Equatable {
     ///
     /// - Returns: `true` if the object identifiers of the two OpenAPISequence instances are equal,
     /// indicating that they are the same object in memory; otherwise, returns `false`.
-    public static func == (lhs: OpenAPISequence, rhs: OpenAPISequence) -> Bool {
+    public static func == (lhs: MultipartBody, rhs: MultipartBody) -> Bool {
         ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
 }
 
-extension OpenAPISequence: Hashable {
+extension MultipartBody: Hashable {
     /// Hashes the OpenAPISequence instance by combining its object identifier into the provided hasher.
     ///
     /// - Parameter hasher: The hasher used to combine the hash value.
     public func hash(into hasher: inout Hasher) { hasher.combine(ObjectIdentifier(self)) }
 }
 
-// MARK: - Creating the OpenAPISequence.
+// MARK: - Creating the MultipartBody.
 
-extension OpenAPISequence {
+extension MultipartBody {
 
     /// Creates a new empty sequence.
     @inlinable public convenience init() {
@@ -177,26 +177,31 @@ extension OpenAPISequence {
 
 // MARK: - Consuming the sequence
 
-extension OpenAPISequence: AsyncSequence {
+extension MultipartBody: AsyncSequence {
+    
+    /// The type of the element.
+    public typealias Element = Part
+    
     /// Represents an asynchronous iterator over a sequence of elements.
     public typealias AsyncIterator = Iterator
+    
     /// Creates and returns an asynchronous iterator
     ///
     /// - Returns: An asynchronous iterator for byte chunks.
     public func makeAsyncIterator() -> AsyncIterator {
         // The crash on error is intentional here.
         try! tryToMarkIteratorCreated()
-        return sequence.makeAsyncIterator()
+        return .init(sequence.makeAsyncIterator())
     }
 }
 
 // MARK: - Underlying async sequences
 
-extension OpenAPISequence {
+extension MultipartBody {
 
     /// An async iterator of both input async sequences and of the sequence itself.
     public struct Iterator: AsyncIteratorProtocol {
-
+        
         /// The closure that produces the next element.
         private let produceNext: () async throws -> Element?
 
@@ -213,75 +218,5 @@ extension OpenAPISequence {
         /// - Returns: The next element in the sequence, or `nil` if there are no more elements.
         /// - Throws: An error if there is an issue advancing the iterator or retrieving the next element.
         public mutating func next() async throws -> Element? { try await produceNext() }
-    }
-}
-
-extension OpenAPISequence {
-
-    /// A type-erased async sequence that wraps input sequences.
-    @usableFromInline struct InnerSequence: AsyncSequence, Sendable {
-
-        /// The type of the type-erased iterator.
-        @usableFromInline typealias AsyncIterator = OpenAPISequence.Iterator
-
-        /// A closure that produces a new iterator.
-        @usableFromInline let produceIterator: @Sendable () -> AsyncIterator
-
-        @usableFromInline init(produceIterator: @Sendable @escaping () -> AsyncIterator) {
-            self.produceIterator = produceIterator
-        }
-        /// Creates a new sequence.
-        /// - Parameter sequence: The input sequence to type-erase.
-        @inlinable init<Input: AsyncSequence>(_ sequence: Input) where Input.Element == Element, Input: Sendable {
-            self.init(produceIterator: { .init(sequence.makeAsyncIterator()) })
-        }
-
-        @usableFromInline func makeAsyncIterator() -> AsyncIterator { produceIterator() }
-    }
-
-    /// An async sequence wrapper for a sync sequence.
-    @usableFromInline struct WrappedSyncSequence<Input: Sequence>: AsyncSequence, Sendable
-    where Input.Element == Element, Input.Iterator.Element == Element, Input: Sendable {
-
-        /// The type of the iterator.
-        @usableFromInline typealias AsyncIterator = Iterator<Element>
-        /// The type of the element.
-        @usableFromInline typealias Element = Input.Element
-
-        /// An iterator type that wraps a sync sequence iterator.
-        @usableFromInline struct Iterator<IteratorElement>: AsyncIteratorProtocol {
-
-            /// The underlying sync sequence iterator.
-            var iterator: any IteratorProtocol<IteratorElement>
-
-            @usableFromInline mutating func next() async throws -> IteratorElement? { iterator.next() }
-        }
-
-        /// The underlying sync sequence.
-        @usableFromInline let sequence: Input
-
-        /// Creates a new async sequence with the provided sync sequence.
-        /// - Parameter sequence: The sync sequence to wrap.
-        @usableFromInline init(sequence: Input) { self.sequence = sequence }
-
-        @usableFromInline func makeAsyncIterator() -> AsyncIterator { Iterator(iterator: sequence.makeIterator()) }
-    }
-
-    /// An empty async sequence.
-    @usableFromInline struct EmptySequence: AsyncSequence, Sendable {
-
-        /// The type of the empty iterator.
-        @usableFromInline typealias AsyncIterator = EmptyIterator
-
-        /// An async iterator of an empty sequence.
-        @usableFromInline struct EmptyIterator: AsyncIteratorProtocol {
-
-            @usableFromInline mutating func next() async throws -> Element? { nil }
-        }
-
-        /// Creates a new empty async sequence.
-        @usableFromInline init() {}
-
-        @usableFromInline func makeAsyncIterator() -> EmptyIterator { EmptyIterator() }
     }
 }

@@ -102,8 +102,6 @@ public protocol MultipartTypedPart: Sendable {
     var filename: String? { get }
 }
 
-public typealias MultipartBody<Part: MultipartTypedPart> = OpenAPISequence<Part>
-
 public struct MultipartPartWithInfo<PartPayload: Sendable & Hashable>: Sendable, Hashable {
     public var payload: PartPayload
     public var filename: String?
