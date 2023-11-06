@@ -178,12 +178,6 @@ extension Converter {
         let encodedString = try encoder.encode(value, forKey: "")
         return HTTPBody(encodedString)
     }
-    func convertMultipartToBinary(_ value: MultipartChunks, boundary: String) -> HTTPBody {
-        HTTPBody(value, boundary: boundary)
-    }
-    func convertBinaryToMultipart(_ body: HTTPBody, boundary: String) -> MultipartChunks {
-        MultipartChunks(parsing: body, boundary: boundary)
-    }
     func convertTypedToRawMultipart<Part: MultipartTypedPart>(
         _ value: MultipartTypedBody<Part>,
         validation: MultipartValidation,

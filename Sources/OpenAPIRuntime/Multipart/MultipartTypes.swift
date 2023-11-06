@@ -26,8 +26,6 @@ import HTTPTypes
     case bodyChunk(ArraySlice<UInt8>)
 }
 
-typealias MultipartChunks = OpenAPISequence<MultipartChunk>
-
 // MARK: - Untyped parts
 
 public struct MultipartUntypedPart: Sendable, Hashable {

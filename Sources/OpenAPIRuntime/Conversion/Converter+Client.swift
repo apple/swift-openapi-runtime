@@ -175,7 +175,7 @@ extension Converter {
             headerFields: &headerFields,
             contentType: contentTypeWithBoundary,
             convert: { value in
-                convertMultipartToBinary(
+                HTTPBody(
                     convertTypedToRawMultipart(
                         value,
                         validation: .init(
@@ -289,7 +289,7 @@ extension Converter {
         decoding decoder: @escaping @Sendable (MultipartUntypedPart) async throws -> Part
     ) throws -> C {
         guard let data else { throw RuntimeError.missingRequiredResponseBody }
-        let chunks = convertBinaryToMultipart(data, boundary: boundary)
+        let chunks = MultipartChunks(parsing: data, boundary: boundary)
         let untypedParts = chunks.asUntypedParts()
         let typedParts = untypedParts.map(decoder)
         return try transform(.init(typedParts, length: data.length, iterationBehavior: data.iterationBehavior))

@@ -22,32 +22,36 @@ private enum ASCII {
 }
 
 extension HTTPBody {
-    convenience init(_ multipart: MultipartChunks, boundary: String) {
-
-        /*
-         On creation: create HTTPBody with a sequence, copy over the length and iteration behavior.
-         Do not start anything on creation, so that this can be iterated multiple times - create things
-         only once the iterator is created.
-         */
-        let sequence = MultipartSerializationSequence(multipart: multipart, boundary: ArraySlice(boundary.utf8))
-        self.init(sequence, length: multipart.length, iterationBehavior: multipart.iterationBehavior)
+    convenience init<Upstream: AsyncSequence>(
+        _ upstream: Upstream,
+        length: ByteLength,
+        iterationBehavior: IterationBehavior,
+        boundary: String
+    ) where Upstream.Element == MultipartChunk {
+        let sequence = MultipartSerializationSequence(upstream: upstream, boundary: ArraySlice(boundary.utf8))
+        self.init(sequence, length: length, iterationBehavior: iterationBehavior)
     }
-    private final class MultipartSerializationSequence: AsyncSequence {
+    private final class MultipartSerializationSequence<Upstream: AsyncSequence>: AsyncSequence where Upstream.Element == MultipartChunk {
         typealias AsyncIterator = Iterator
         typealias Element = ArraySlice<UInt8>
-        let multipart: MultipartChunks
+        let upstream: Upstream
         let boundary: ArraySlice<UInt8>
 
-        init(multipart: MultipartChunks, boundary: ArraySlice<UInt8>) {
-            self.multipart = multipart
+        init(upstream: Upstream, boundary: ArraySlice<UInt8>) {
+            self.upstream = upstream
             self.boundary = boundary
         }
-        func makeAsyncIterator() -> Iterator { Iterator(upstream: multipart.makeAsyncIterator(), boundary: boundary) }
-        struct Iterator: AsyncIteratorProtocol {
-            var upstream: MultipartChunks.AsyncIterator
+        func makeAsyncIterator() -> Iterator<Upstream.AsyncIterator> {
+            Iterator(
+                upstream: upstream.makeAsyncIterator(),
+                boundary: boundary
+            )
+        }
+        struct Iterator<UpstreamIterator: AsyncIteratorProtocol>: AsyncIteratorProtocol where Upstream.Element == MultipartChunk, UpstreamIterator.Element == MultipartChunk {
+            var upstream: UpstreamIterator
             let boundary: ArraySlice<UInt8>
             var state: State
-            init(upstream: MultipartChunks.AsyncIterator, boundary: ArraySlice<UInt8>) {
+            init(upstream: UpstreamIterator, boundary: ArraySlice<UInt8>) {
                 self.upstream = upstream
                 self.boundary = boundary
                 self.state = .notYetStarted

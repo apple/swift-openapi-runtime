@@ -32,6 +32,7 @@ private enum ASCII {
 }
 
 extension MultipartChunks {
+    @available(*, deprecated)
     convenience init(parsing body: HTTPBody, boundary: String) {
         self.init(
             MultipartParsingSequence(upstream: body, boundary: boundary),
