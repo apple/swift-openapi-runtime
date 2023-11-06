@@ -133,7 +133,7 @@ public final class HTTPBody: @unchecked Sendable {
     public let length: ByteLength
 
     /// The underlying type-erased async sequence.
-    private let sequence: BodySequence
+    private let sequence: AnySequence<ByteChunk>
 
     /// A lock for shared mutable state.
     private let lock: NSLock = {
@@ -183,7 +183,7 @@ public final class HTTPBody: @unchecked Sendable {
     ///     length of all the byte chunks.
     ///   - iterationBehavior: The sequence's iteration behavior, which
     ///     indicates whether the sequence can be iterated multiple times.
-    @usableFromInline init(_ sequence: BodySequence, length: ByteLength, iterationBehavior: IterationBehavior) {
+    @usableFromInline init(_ sequence: AnySequence<ByteChunk>, length: ByteLength, iterationBehavior: IterationBehavior) {
         self.sequence = sequence
         self.length = length
         self.iterationBehavior = iterationBehavior
@@ -334,7 +334,7 @@ extension HTTPBody: AsyncSequence {
     public func makeAsyncIterator() -> AsyncIterator {
         // The crash on error is intentional here.
         try! tryToMarkIteratorCreated()
-        return sequence.makeAsyncIterator()
+        return .init(sequence.makeAsyncIterator())
     }
 }
 
@@ -533,16 +533,9 @@ extension Data {
     }
 }
 
-// MARK: - Underlying async sequences
-
 extension HTTPBody {
-
-    /// An async iterator of both input async sequences and of the body itself.
     public struct Iterator: AsyncIteratorProtocol {
-
-        /// The element byte chunk type.
-        public typealias Element = HTTPBody.ByteChunk
-
+        
         /// The closure that produces the next element.
         private let produceNext: () async throws -> Element?
 
@@ -559,85 +552,5 @@ extension HTTPBody {
         /// - Returns: The next element in the sequence, or `nil` if there are no more elements.
         /// - Throws: An error if there is an issue advancing the iterator or retrieving the next element.
         public mutating func next() async throws -> Element? { try await produceNext() }
-    }
-}
-
-extension HTTPBody {
-
-    /// A type-erased async sequence that wraps input sequences.
-    @usableFromInline struct BodySequence: AsyncSequence, Sendable {
-
-        /// The type of the type-erased iterator.
-        @usableFromInline typealias AsyncIterator = HTTPBody.Iterator
-
-        /// The byte chunk element type.
-        @usableFromInline typealias Element = ByteChunk
-
-        /// A closure that produces a new iterator.
-        @usableFromInline let produceIterator: @Sendable () -> AsyncIterator
-
-        /// Creates a new sequence.
-        /// - Parameter sequence: The input sequence to type-erase.
-        @usableFromInline init<Bytes: AsyncSequence>(_ sequence: Bytes) where Bytes.Element == Element, Bytes: Sendable {
-            self.produceIterator = { .init(sequence.makeAsyncIterator()) }
-        }
-
-        @usableFromInline func makeAsyncIterator() -> AsyncIterator { produceIterator() }
-    }
-
-    /// An async sequence wrapper for a sync sequence.
-    @usableFromInline struct WrappedSyncSequence<Bytes: Sequence>: AsyncSequence, Sendable
-    where Bytes.Element == ByteChunk, Bytes.Iterator.Element == ByteChunk, Bytes: Sendable {
-
-        /// The type of the iterator.
-        @usableFromInline typealias AsyncIterator = Iterator
-
-        /// The byte chunk element type.
-        @usableFromInline typealias Element = ByteChunk
-
-        /// An iterator type that wraps a sync sequence iterator.
-        @usableFromInline struct Iterator: AsyncIteratorProtocol {
-
-            /// The byte chunk element type.
-            @usableFromInline typealias Element = ByteChunk
-
-            /// The underlying sync sequence iterator.
-            var iterator: any IteratorProtocol<Element>
-
-            @usableFromInline mutating func next() async throws -> HTTPBody.ByteChunk? { iterator.next() }
-        }
-
-        /// The underlying sync sequence.
-        @usableFromInline let sequence: Bytes
-
-        /// Creates a new async sequence with the provided sync sequence.
-        /// - Parameter sequence: The sync sequence to wrap.
-        @usableFromInline init(sequence: Bytes) { self.sequence = sequence }
-
-        @usableFromInline func makeAsyncIterator() -> Iterator { Iterator(iterator: sequence.makeIterator()) }
-    }
-
-    /// An empty async sequence.
-    @usableFromInline struct EmptySequence: AsyncSequence, Sendable {
-
-        /// The type of the empty iterator.
-        @usableFromInline typealias AsyncIterator = EmptyIterator
-
-        /// The byte chunk element type.
-        @usableFromInline typealias Element = ByteChunk
-
-        /// An async iterator of an empty sequence.
-        @usableFromInline struct EmptyIterator: AsyncIteratorProtocol {
-
-            /// The byte chunk element type.
-            @usableFromInline typealias Element = ByteChunk
-
-            @usableFromInline mutating func next() async throws -> HTTPBody.ByteChunk? { nil }
-        }
-
-        /// Creates a new empty async sequence.
-        @usableFromInline init() {}
-
-        @usableFromInline func makeAsyncIterator() -> EmptyIterator { EmptyIterator() }
     }
 }

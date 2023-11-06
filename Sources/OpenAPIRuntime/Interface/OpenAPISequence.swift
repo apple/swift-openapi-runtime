@@ -15,32 +15,6 @@
 import class Foundation.NSLock
 import protocol Foundation.LocalizedError
 
-/// Describes how many times the provided sequence can be iterated.
-public enum IterationBehavior: Sendable {
-
-    /// The input sequence can only be iterated once.
-    ///
-    /// If a retry or a redirect is encountered, fail the call with
-    /// a descriptive error.
-    case single
-
-    /// The input sequence can be iterated multiple times.
-    ///
-    /// Supports retries and redirects, as a new iterator is created each
-    /// time.
-    case multiple
-}
-
-/// Describes the total length of the sequence in bytes, if known.
-public enum ByteLength: Sendable, Equatable {
-
-    /// Total length not known yet.
-    case unknown
-
-    /// Total length is known.
-    case known(Int)
-}
-
 // TODO: Document
 public final class OpenAPISequence<Element: Sendable>: @unchecked Sendable {
     
