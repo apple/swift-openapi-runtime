@@ -158,7 +158,7 @@ extension Converter {
 
     // TODO: document
     public func setRequiredRequestBodyAsMultipart<Part: MultipartTypedPart>(
-        _ value: MultipartTypedBody<Part>,
+        _ value: MultipartBody<Part>,
         headerFields: inout HTTPFields,
         contentType: String,
         allowsUnknownParts: Bool,
@@ -175,19 +175,17 @@ extension Converter {
             headerFields: &headerFields,
             contentType: contentTypeWithBoundary,
             convert: { value in
-                HTTPBody(
-                    convertTypedToRawMultipart(
-                        value,
-                        validation: .init(
-                            allowsUnknownParts: allowsUnknownParts,
-                            requiredExactlyOncePartNames: requiredExactlyOncePartNames,
-                            requiredAtLeastOncePartNames: requiredAtLeastOncePartNames,
-                            atMostOncePartNames: atMostOncePartNames,
-                            zeroOrMoreTimesPartNames: zeroOrMoreTimesPartNames
-                        ),
-                        transform: transform
+                convertMultipartToBytes(
+                    value,
+                    validation: .init(
+                        allowsUnknownParts: allowsUnknownParts,
+                        requiredExactlyOncePartNames: requiredExactlyOncePartNames,
+                        requiredAtLeastOncePartNames: requiredAtLeastOncePartNames,
+                        atMostOncePartNames: atMostOncePartNames,
+                        zeroOrMoreTimesPartNames: zeroOrMoreTimesPartNames
                     ),
-                    boundary: boundary
+                    boundary: boundary, 
+                    transform: transform
                 )
             }
         )
@@ -282,16 +280,30 @@ extension Converter {
         return try getResponseBody(type, from: data, transforming: transform, convert: { $0 })
     }
     public func getResponseBodyAsMultipart<C, Part: MultipartTypedPart>(
-        _ type: MultipartTypedBody<Part>.Type,
+        _ type: MultipartBody<Part>.Type,
         from data: HTTPBody?,
         boundary: String,
-        transforming transform: @escaping @Sendable (MultipartTypedBody<Part>) throws -> C,
+        allowsUnknownParts: Bool,
+        requiredExactlyOncePartNames: Set<String>,
+        requiredAtLeastOncePartNames: Set<String>,
+        atMostOncePartNames: Set<String>,
+        zeroOrMoreTimesPartNames: Set<String>,
+        transforming transform: @escaping @Sendable (MultipartBody<Part>) throws -> C,
         decoding decoder: @escaping @Sendable (MultipartUntypedPart) async throws -> Part
     ) throws -> C {
         guard let data else { throw RuntimeError.missingRequiredResponseBody }
-        let chunks = MultipartChunks(parsing: data, boundary: boundary)
-        let untypedParts = chunks.asUntypedParts()
-        let typedParts = untypedParts.map(decoder)
-        return try transform(.init(typedParts, length: data.length, iterationBehavior: data.iterationBehavior))
+        let multipart = convertBytesToMultipart(
+            data,
+            boundary: boundary,
+            validation: .init(
+                allowsUnknownParts: allowsUnknownParts,
+                requiredExactlyOncePartNames: requiredExactlyOncePartNames,
+                requiredAtLeastOncePartNames: requiredAtLeastOncePartNames,
+                atMostOncePartNames: atMostOncePartNames,
+                zeroOrMoreTimesPartNames: zeroOrMoreTimesPartNames
+            ),
+            transform: decoder
+        )
+        return try transform(multipart)
     }
 }

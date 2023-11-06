@@ -20,10 +20,6 @@ struct MultipartUntypedToChunksSequence<Upstream: AsyncSequence> where Upstream.
     var upstream: Upstream
 }
 
-extension AsyncSequence where Element == MultipartUntypedPart {
-    func asMultipartChunks() -> MultipartUntypedToChunksSequence<Self> { .init(upstream: self) }
-}
-
 extension MultipartUntypedToChunksSequence: AsyncSequence {
     typealias Element = MultipartChunk
 
@@ -49,10 +45,6 @@ extension MultipartUntypedToChunksSequence: AsyncSequence {
 
 struct MultipartChunksToUntypedSequence<Upstream: AsyncSequence> where Upstream.Element == MultipartChunk {
     var upstream: Upstream
-}
-
-extension AsyncSequence where Element == MultipartChunk {
-    func asUntypedParts() -> MultipartChunksToUntypedSequence<Self> { .init(upstream: self) }
 }
 
 extension MultipartChunksToUntypedSequence: AsyncSequence {

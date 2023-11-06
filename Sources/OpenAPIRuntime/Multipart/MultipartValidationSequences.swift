@@ -17,16 +17,23 @@ import Foundation
 protocol MultipartValidatablePart { var name: String? { get } }
 
 struct MultipartValidation: Sendable, Hashable {
-    var allowsUnknownParts: Bool
-    var requiredExactlyOncePartNames: Set<String>
-    var requiredAtLeastOncePartNames: Set<String>
-    var atMostOncePartNames: Set<String>
-    var zeroOrMoreTimesPartNames: Set<String>
+    public var allowsUnknownParts: Bool
+    public var requiredExactlyOncePartNames: Set<String>
+    public var requiredAtLeastOncePartNames: Set<String>
+    public var atMostOncePartNames: Set<String>
+    public var zeroOrMoreTimesPartNames: Set<String>
+    public init(allowsUnknownParts: Bool, requiredExactlyOncePartNames: Set<String>, requiredAtLeastOncePartNames: Set<String>, atMostOncePartNames: Set<String>, zeroOrMoreTimesPartNames: Set<String>) {
+        self.allowsUnknownParts = allowsUnknownParts
+        self.requiredExactlyOncePartNames = requiredExactlyOncePartNames
+        self.requiredAtLeastOncePartNames = requiredAtLeastOncePartNames
+        self.atMostOncePartNames = atMostOncePartNames
+        self.zeroOrMoreTimesPartNames = zeroOrMoreTimesPartNames
+    }
 }
 
 struct MultipartValidationSequence<Part: MultipartValidatablePart, Upstream: AsyncSequence & Sendable>: Sendable
 where Upstream.Element == Part {
-    var configuration: MultipartValidation
+    var validation: MultipartValidation
     var upstream: Upstream
 }
 
@@ -35,11 +42,11 @@ extension MultipartValidationSequence: AsyncSequence {
     func makeAsyncIterator() -> Iterator {
         Iterator(
             upstream: upstream.makeAsyncIterator(),
-            allowsUnknownParts: configuration.allowsUnknownParts,
-            requiredExactlyOncePartNames: configuration.requiredExactlyOncePartNames,
-            requiredAtLeastOncePartNames: configuration.requiredAtLeastOncePartNames,
-            atMostOncePartNames: configuration.atMostOncePartNames,
-            zeroOrMoreTimesPartNames: configuration.zeroOrMoreTimesPartNames
+            allowsUnknownParts: validation.allowsUnknownParts,
+            requiredExactlyOncePartNames: validation.requiredExactlyOncePartNames,
+            requiredAtLeastOncePartNames: validation.requiredAtLeastOncePartNames,
+            atMostOncePartNames: validation.atMostOncePartNames,
+            zeroOrMoreTimesPartNames: validation.zeroOrMoreTimesPartNames
         )
     }
     enum ValidationError: Swift.Error, LocalizedError, CustomStringConvertible {

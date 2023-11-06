@@ -21,7 +21,7 @@ import HTTPTypes
 
 // MARK: - Raw parts
 
-@frozen public enum MultipartChunk: Sendable, Hashable {
+enum MultipartChunk: Sendable, Hashable {
     case headerFields(HTTPFields)
     case bodyChunk(ArraySlice<UInt8>)
 }
@@ -101,7 +101,7 @@ public protocol MultipartTypedPart: Sendable {
     var filename: String? { get }
 }
 
-public typealias MultipartTypedBody<Part: MultipartTypedPart> = OpenAPISequence<Part>
+public typealias MultipartBody<Part: MultipartTypedPart> = OpenAPISequence<Part>
 
 public struct MultipartPartWithInfo<PartPayload: Sendable & Hashable>: Sendable, Hashable {
     public var payload: PartPayload

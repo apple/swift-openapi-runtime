@@ -31,71 +31,61 @@ private enum ASCII {
     }
 }
 
-extension MultipartChunks {
-    @available(*, deprecated)
-    convenience init(parsing body: HTTPBody, boundary: String) {
-        self.init(
-            MultipartParsingSequence(upstream: body, boundary: boundary),
-            length: body.length,
-            iterationBehavior: body.iterationBehavior
-        )
+struct MultipartParsingSequence: AsyncSequence {
+    typealias Element = MultipartChunk
+    typealias AsyncIterator = Iterator
+    let upstream: HTTPBody
+    let boundary: String
+    init(upstream: HTTPBody, boundary: String) {
+        self.upstream = upstream
+        self.boundary = boundary
     }
-    private final class MultipartParsingSequence: AsyncSequence {
+    func makeAsyncIterator() -> Iterator { Iterator(upstream: upstream.makeAsyncIterator(), boundary: boundary) }
+    struct MultipartParserError: Swift.Error, CustomStringConvertible, LocalizedError {
+        let error: MultipartParser.StateMachine.Action.ActionError
+        var description: String {
+            switch error {
+            case .invalidInitialBoundary: return "Invalid initial boundary."
+            case .invalidCRLFAtStartOfHeaderField: return "Invalid CRLF at the start of a header field."
+            case .missingColonAfterHeaderName: return "Missing colon after header field name."
+            case .invalidCharactersInHeaderFieldName: return "Invalid characters in a header field name."
+            case .incompleteMultipartMessage: return "Incomplete multipart message."
+            }
+        }
+        var errorDescription: String? { description }
+    }
+    struct Iterator: AsyncIteratorProtocol {
         typealias Element = MultipartChunk
-        typealias AsyncIterator = Iterator
-        let upstream: HTTPBody
-        let boundary: String
-        init(upstream: HTTPBody, boundary: String) {
+        private var upstream: HTTPBody.Iterator
+        private var buffer: [UInt8]
+        private var parser: MultipartParser
+        init(upstream: HTTPBody.Iterator, boundary: String) {
             self.upstream = upstream
-            self.boundary = boundary
+            self.buffer = []
+            self.parser = .init(boundary: boundary)
         }
-        func makeAsyncIterator() -> Iterator { Iterator(upstream: upstream.makeAsyncIterator(), boundary: boundary) }
-        struct MultipartParserError: Swift.Error, CustomStringConvertible, LocalizedError {
-            let error: MultipartParser.StateMachine.Action.ActionError
-            var description: String {
-                switch error {
-                case .invalidInitialBoundary: return "Invalid initial boundary."
-                case .invalidCRLFAtStartOfHeaderField: return "Invalid CRLF at the start of a header field."
-                case .missingColonAfterHeaderName: return "Missing colon after header field name."
-                case .invalidCharactersInHeaderFieldName: return "Invalid characters in a header field name."
-                case .incompleteMultipartMessage: return "Incomplete multipart message."
-                }
-            }
-            var errorDescription: String? { description }
-        }
-        struct Iterator: AsyncIteratorProtocol {
-            typealias Element = MultipartChunk
-            private var upstream: HTTPBody.Iterator
-            private var buffer: [UInt8]
-            private var parser: MultipartParser
-            init(upstream: HTTPBody.Iterator, boundary: String) {
-                self.upstream = upstream
-                self.buffer = []
-                self.parser = .init(boundary: boundary)
-            }
-            mutating func next() async throws -> Element? {
-                print("MultipartParsingSequence - next")
-                var lastChunkWasNil: Bool = false
-                while true {
-                    switch try parser.parseNextPartChunk(&buffer, lastChunkWasNil: lastChunkWasNil) {
-                    case .chunk(let chunk):
-                        print("MultipartParsingSequence - returning \(chunk)")
-                        return chunk
-                    case .returnNil:
-                        print("MultipartParsingSequence - returning nil")
-                        return nil
-                    case .needsMore:
-                        print("MultipartParsingSequence - fetching more")
-                        precondition(!lastChunkWasNil, "Preventing an infinite loop. This is a parser bug.")
-                        if let chunk = try await upstream.next() {
-                            buffer.append(contentsOf: chunk)
-                            print("MultipartParsingSequence - fetched a chunk of size \(chunk.count)")
-                        } else {
-                            lastChunkWasNil = true
-                            print("MultipartParsingSequence - fetched a nil chunk")
-                        }
-                    case .emitError(let error): throw MultipartParserError(error: error)
+        mutating func next() async throws -> Element? {
+            print("MultipartParsingSequence - next")
+            var lastChunkWasNil: Bool = false
+            while true {
+                switch try parser.parseNextPartChunk(&buffer, lastChunkWasNil: lastChunkWasNil) {
+                case .chunk(let chunk):
+                    print("MultipartParsingSequence - returning \(chunk)")
+                    return chunk
+                case .returnNil:
+                    print("MultipartParsingSequence - returning nil")
+                    return nil
+                case .needsMore:
+                    print("MultipartParsingSequence - fetching more")
+                    precondition(!lastChunkWasNil, "Preventing an infinite loop. This is a parser bug.")
+                    if let chunk = try await upstream.next() {
+                        buffer.append(contentsOf: chunk)
+                        print("MultipartParsingSequence - fetched a chunk of size \(chunk.count)")
+                    } else {
+                        lastChunkWasNil = true
+                        print("MultipartParsingSequence - fetched a nil chunk")
                     }
+                case .emitError(let error): throw MultipartParserError(error: error)
                 }
             }
         }
