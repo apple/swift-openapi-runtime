@@ -28,6 +28,7 @@ enum MultipartChunk: Sendable, Hashable {
 
 // MARK: - Untyped parts
 
+// Used in "undocumented" part cases (generated iff additionalProperties != false).
 public struct MultipartUntypedPart: Sendable, Hashable {
     public var headerFields: HTTPFields
     public var body: HTTPBody

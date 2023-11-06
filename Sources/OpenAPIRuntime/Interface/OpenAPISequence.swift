@@ -43,7 +43,7 @@ public enum ByteLength: Sendable, Equatable {
 
 // TODO: Document
 public final class OpenAPISequence<Element: Sendable>: @unchecked Sendable {
-
+    
     /// The iteration behavior, which controls how many times
     /// the input sequence can be iterated.
     public let iterationBehavior: IterationBehavior

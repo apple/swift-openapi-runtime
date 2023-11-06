@@ -120,8 +120,8 @@ extension MultipartChunksToUntypedSequence: AsyncSequence {
         {
             let stream = AsyncThrowingStream(unfolding: bodyClosure)
             let length: ByteLength
-            if let contentLengthString = headers[.contentLength], let contentLength = Int64(contentLengthString) {
-                length = .known(Int(contentLength) /* TODO: remove cast */)
+            if let contentLengthString = headers[.contentLength], let contentLength = Int(contentLengthString) {
+                length = .known(contentLength)
             } else {
                 length = .unknown
             }
