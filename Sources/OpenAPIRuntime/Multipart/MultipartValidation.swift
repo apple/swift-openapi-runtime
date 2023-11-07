@@ -96,8 +96,6 @@ extension MultipartValidationSequence: AsyncSequence {
         }
 
         mutating func next() async throws -> Element? {
-            // TODO: Turn this into a synchronous state machines for easier testing.
-
             guard let part = try await upstream.next() else {
                 guard remainingExactlyOncePartNames.isEmpty && remainingAtLeastOncePartNames.isEmpty else {
                     throw ValidationError.missingRequiredParts(

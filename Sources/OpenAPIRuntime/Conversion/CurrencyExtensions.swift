@@ -423,7 +423,7 @@ extension Converter {
         headerFields: inout HTTPFields,
         contentType: String,
         convert: (T) throws -> HTTPBody
-    ) throws -> HTTPBody {
+    ) rethrows -> HTTPBody {
         headerFields[.contentType] = contentType
         return try convert(value)
     }
@@ -442,7 +442,7 @@ extension Converter {
         headerFields: inout HTTPFields,
         contentType: String,
         convert: (T) throws -> HTTPBody
-    ) throws -> HTTPBody? {
+    ) rethrows -> HTTPBody? {
         guard let value else { return nil }
         return try setRequiredRequestBody(
             value,

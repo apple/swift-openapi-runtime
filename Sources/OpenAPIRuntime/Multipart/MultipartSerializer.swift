@@ -25,7 +25,7 @@ extension HTTPBody {
     convenience init<Upstream: AsyncSequence>(
         _ upstream: Upstream,
         length: HTTPBody.Length,
-        iterationBehavior: IterationBehavior,
+        iterationBehavior: OpenAPIRuntime.IterationBehavior,
         boundary: String
     ) where Upstream.Element == MultipartFrame {
         let sequence = MultipartFramesToBytesSequence(upstream: upstream, boundary: ArraySlice(boundary.utf8))

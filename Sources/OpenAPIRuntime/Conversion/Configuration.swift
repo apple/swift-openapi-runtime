@@ -107,13 +107,27 @@ public struct Configuration: Sendable {
 
     /// Creates a new configuration with the specified values.
     ///
-    /// - Parameter dateTranscoder: The transcoder to use when converting between date
+    /// - Parameters:
+    ///   - dateTranscoder: The transcoder to use when converting between date
     ///   and string values.
+    ///   - multipartBoundaryGenerator: The generator to use when creating mutlipart bodies.
     public init(
         dateTranscoder: any DateTranscoder = .iso8601,
         multipartBoundaryGenerator: any MultipartBoundaryGenerator = .randomized
     ) {
         self.dateTranscoder = dateTranscoder
         self.multipartBoundaryGenerator = multipartBoundaryGenerator
+    }
+}
+
+extension Configuration {
+    /// Creates a new configuration with the specified values.
+    ///
+    /// - Parameters:
+    ///   - dateTranscoder: The transcoder to use when converting between date
+    ///   and string values.
+    @available(*, deprecated, renamed: "init(dateTranscoder:multipartBoundaryGenerator:)") @_disfavoredOverload
+    public init(dateTranscoder: any DateTranscoder) {
+        self.init(dateTranscoder: dateTranscoder, multipartBoundaryGenerator: .randomized)
     }
 }

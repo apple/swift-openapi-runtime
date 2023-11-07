@@ -12,11 +12,109 @@
 //
 //===----------------------------------------------------------------------===//
 
-import class Foundation.NSLock
-import protocol Foundation.LocalizedError
+import Foundation
+import HTTPTypes
+
+/// A raw multipart part containing the header fields and the body stream.
+public struct MultipartRawPart: Sendable, Hashable {
+    
+    /// The header fields contained in this part, such as `content-disposition`.
+    public var headerFields: HTTPFields
+    
+    /// The body stream of this part.
+    public var body: HTTPBody
+    
+    /// Creates a new part.
+    /// - Parameters:
+    ///   - headerFields: The header fields contained in this part, such as `content-disposition`.
+    ///   - body: The body stream of this part.
+    public init(headerFields: HTTPFields, body: HTTPBody) {
+        self.headerFields = headerFields
+        self.body = body
+    }
+}
+
+/// A protocol that all generated multipart part enums conform to, providing access to the
+/// known parameters of the `content-disposition` header field.
+public protocol MultipartPartProtocol: Sendable {
+    
+    /// The name parameter of the `content-disposition` header field, if present.
+    var name: String? { get }
+    
+    /// The file name parameter of the `content-disposition` header field, if present.
+    var filename: String? { get }
+}
+
+
+public struct MultipartPartWrapper<PartPayload: Sendable & Hashable>: Sendable, Hashable {
+    public var payload: PartPayload
+    public var filename: String?
+    public init(payload: PartPayload, filename: String? = nil) {
+        self.payload = payload
+        self.filename = filename
+    }
+}
+
+// MARK: - Extensions
+
+extension MultipartRawPart {
+    public init(name: String?, filename: String? = nil, headerFields: HTTPFields, body: HTTPBody) {
+        var contentDisposition = ContentDisposition(dispositionType: .formData, parameters: [:])
+        if let name { contentDisposition.parameters[.name] = name }
+        if let filename { contentDisposition.parameters[.filename] = filename }
+        var headerFields = headerFields
+        headerFields[.contentDisposition] = contentDisposition.rawValue
+        self.init(headerFields: headerFields, body: body)
+    }
+    public var name: String? {
+        get {
+            guard let contentDispositionString = headerFields[.contentDisposition],
+                let contentDisposition = ContentDisposition(rawValue: contentDispositionString),
+                let name = contentDisposition.name
+            else { return nil }
+            return name
+        }
+        set {
+            guard let contentDispositionString = headerFields[.contentDisposition],
+                var contentDisposition = ContentDisposition(rawValue: contentDispositionString)
+            else {
+                if let newValue {
+                    headerFields[.contentDisposition] =
+                        ContentDisposition(dispositionType: .formData, parameters: [.name: newValue]).rawValue
+                }
+                return
+            }
+            contentDisposition.name = newValue
+            headerFields[.contentDisposition] = contentDisposition.rawValue
+        }
+    }
+    public var filename: String? {
+        get {
+            guard let contentDispositionString = headerFields[.contentDisposition],
+                let contentDisposition = ContentDisposition(rawValue: contentDispositionString),
+                let filename = contentDisposition.filename
+            else { return nil }
+            return filename
+        }
+        set {
+            guard let contentDispositionString = headerFields[.contentDisposition],
+                var contentDisposition = ContentDisposition(rawValue: contentDispositionString)
+            else {
+                if let newValue {
+                    headerFields[.contentDisposition] =
+                        ContentDisposition(dispositionType: .formData, parameters: [.filename: newValue]).rawValue
+                }
+                return
+            }
+            contentDisposition.filename = newValue
+            headerFields[.contentDisposition] = contentDisposition.rawValue
+        }
+    }
+}
 
 // TODO: Document
 public final class MultipartBody<Part: MultipartPartProtocol>: @unchecked Sendable {
+
     /// The iteration behavior, which controls how many times
     /// the input sequence can be iterated.
     public let iterationBehavior: IterationBehavior

@@ -13,6 +13,11 @@
 //===----------------------------------------------------------------------===//
 
 @_spi(Generated) extension Optional where Wrapped == OpenAPIMIMEType {
+
+    /// Unwraps the boundary parameter from the parsed MIME type.
+    /// - Returns: The boundary value.
+    /// - Throws: If self is nil, or if the MIME type isn't a `multipart/form-data`
+    ///   with a boundary parameter.
     public func requiredBoundary() throws -> String {
         guard let self else { throw RuntimeError.missingRequiredMultipartFormDataContentType }
         guard case .concrete(type: "multipart", subtype: "form-data") = self.kind else {
