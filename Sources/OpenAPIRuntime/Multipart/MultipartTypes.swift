@@ -15,7 +15,7 @@
 import Foundation
 import HTTPTypes
 
-// Used in "undocumented" part cases (generated iff additionalProperties != false).
+// Used in "other"/"undocumented" part cases (generated iff additionalProperties != false).
 public struct MultipartRawPart: Sendable, Hashable {
     public var headerFields: HTTPFields
     public var body: HTTPBody
@@ -32,7 +32,7 @@ public protocol MultipartPartProtocol: Sendable {
 }
 
 /// Represents a typed part with more content-disposition information parsed out.
-public struct MultipartCase<PartPayload: Sendable & Hashable>: Sendable, Hashable {
+public struct MultipartPartWrapper<PartPayload: Sendable & Hashable>: Sendable, Hashable {
     public var payload: PartPayload
     public var filename: String?
     public init(payload: PartPayload, filename: String? = nil) {

@@ -21,9 +21,6 @@ public final class MultipartBody<Part: MultipartPartProtocol>: @unchecked Sendab
     /// the input sequence can be iterated.
     public let iterationBehavior: IterationBehavior
 
-    /// The total length of the sequence's contents in bytes, if known.
-    public let length: ByteLength
-
     /// The underlying type-erased async sequence.
     private let sequence: AnySequence<Part>
 
@@ -82,12 +79,10 @@ public final class MultipartBody<Part: MultipartPartProtocol>: @unchecked Sendab
     /// Creates a new sequence.
     /// - Parameters:
     ///   - sequence: The input sequence providing the parts.
-    ///   - length: The total length of the sequence's contents in bytes.
     ///   - iterationBehavior: The sequence's iteration behavior, which
     ///     indicates whether the sequence can be iterated multiple times.
-    @usableFromInline init(_ sequence: AnySequence<Part>, length: ByteLength, iterationBehavior: IterationBehavior) {
+    @usableFromInline init(_ sequence: AnySequence<Part>, iterationBehavior: IterationBehavior) {
         self.sequence = sequence
-        self.length = length
         self.iterationBehavior = iterationBehavior
     }
 }
@@ -118,60 +113,52 @@ extension MultipartBody: Hashable {
 extension MultipartBody {
 
     /// Creates a new empty sequence.
-    @inlinable public convenience init() {
-        self.init(.init(EmptySequence()), length: .known(0), iterationBehavior: .multiple)
-    }
+    @inlinable public convenience init() { self.init(.init(EmptySequence()), iterationBehavior: .multiple) }
     /// Creates a new sequence with the provided async sequence.
     /// - Parameters:
     ///   - sequence: An async sequence that provides the elements.
-    ///   - length: The total length of the sequence's contents in bytes.
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
-    @inlinable public convenience init<Input: AsyncSequence>(
-        _ sequence: Input,
-        length: ByteLength,
-        iterationBehavior: IterationBehavior
-    ) where Input.Element == Element {
-        self.init(.init(sequence), length: length, iterationBehavior: iterationBehavior)
-    }
+    @inlinable public convenience init<Input: AsyncSequence>(_ sequence: Input, iterationBehavior: IterationBehavior)
+    where Input.Element == Element { self.init(.init(sequence), iterationBehavior: iterationBehavior) }
 
     /// Creates a new sequence with the provided elements.
     /// - Parameters:
     ///   - elements: A sequence of elements.
-    ///   - length: The total length of the sequence's contents in bytes.
     ///   - iterationBehavior: The iteration behavior of the sequence, which
     ///     indicates whether it can be iterated multiple times.
     @usableFromInline convenience init(
         _ elements: some Sequence<Element> & Sendable,
-        length: ByteLength,
         iterationBehavior: IterationBehavior
-    ) {
-        self.init(.init(WrappedSyncSequence(sequence: elements)), length: length, iterationBehavior: iterationBehavior)
-    }
+    ) { self.init(.init(WrappedSyncSequence(sequence: elements)), iterationBehavior: iterationBehavior) }
 
     /// Creates a new sequence with the provided byte collection.
     /// - Parameters:
     ///   - elements: A collection of elements.
-    ///   - length: The total length of the sequence's contents in bytes.
-    @inlinable public convenience init(_ elements: some Collection<Element> & Sendable, length: ByteLength) {
-        self.init(elements, length: length, iterationBehavior: .multiple)
+    @inlinable public convenience init(_ elements: some Collection<Element> & Sendable) {
+        self.init(elements, iterationBehavior: .multiple)
     }
 
     /// Creates a new sequence with the provided async throwing stream.
     /// - Parameters:
     ///   - stream: An async throwing stream that provides the elements.
-    ///   - length: The total length of the sequence's contents in bytes.
-    @inlinable public convenience init(_ stream: AsyncThrowingStream<Element, any Error>, length: ByteLength) {
-        self.init(.init(stream), length: length, iterationBehavior: .single)
+    @inlinable public convenience init(_ stream: AsyncThrowingStream<Element, any Error>) {
+        self.init(.init(stream), iterationBehavior: .single)
     }
 
     /// Creates a new sequence with the provided async stream.
     /// - Parameters:
     ///   - stream: An async stream that provides the elements.
-    ///   - length: The total length of the sequence's contents in bytes.
-    @inlinable public convenience init(_ stream: AsyncStream<Element>, length: ByteLength) {
-        self.init(.init(stream), length: length, iterationBehavior: .single)
+    @inlinable public convenience init(_ stream: AsyncStream<Element>) {
+        self.init(.init(stream), iterationBehavior: .single)
     }
+}
+
+// MARK: - Conversion from literals
+
+extension MultipartBody: ExpressibleByArrayLiteral {
+    public typealias ArrayLiteralElement = Element
+    public convenience init(arrayLiteral elements: Element...) { self.init(elements) }
 }
 
 // MARK: - Consuming the sequence

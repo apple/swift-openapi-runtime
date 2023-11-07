@@ -197,12 +197,9 @@ extension Converter {
         }
         let validated = MultipartValidationSequence(validation: validation, upstream: untyped)
         let frames = MultipartRawToFrameSequence(upstream: validated)
-        return HTTPBody(
-            frames,
-            length: multipart.length,
-            iterationBehavior: multipart.iterationBehavior,
-            boundary: boundary
-        )
+        // TODO: If all bodies have a known lenght, we could add them + headers + boundaries
+        // and actually compute the final content-length and add it to the body.
+        return HTTPBody(frames, length: .unknown, iterationBehavior: multipart.iterationBehavior, boundary: boundary)
     }
     func convertBytesToMultipart<Part: MultipartPartProtocol>(
         _ bytes: HTTPBody,
@@ -214,7 +211,7 @@ extension Converter {
         let raw = MultipartFrameToRawSequence(upstream: frames)
         let validated = MultipartValidationSequence(validation: validation, upstream: raw)
         let typed = validated.map(transform)
-        return .init(typed, length: bytes.length, iterationBehavior: bytes.iterationBehavior)
+        return .init(typed, iterationBehavior: bytes.iterationBehavior)
     }
     /// Returns a JSON string for the provided encodable value.
     /// - Parameter value: The value to encode.
