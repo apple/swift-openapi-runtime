@@ -56,14 +56,17 @@ public struct MultipartPart<PartPayload: Sendable & Hashable>: Sendable, Hashabl
 
 /// A wrapper of a typed part without a statically known name that adds
 /// dynamic `content-disposition` parameter values, such as `name` and `filename`.
-public struct MultipartAdditionalPart<PartPayload: Sendable & Hashable>: Sendable, Hashable {
+public struct MultipartDynamicallyNamedPart<PartPayload: Sendable & Hashable>: Sendable, Hashable {
+
     /// The underlying typed part payload, which has a statically known part name.
     public var payload: PartPayload
+
     /// A file name parameter provided in the `content-disposition` part header field.
     public var filename: String?
 
     /// A name parameter provided in the `content-disposition` part header field.
     public var name: String?
+
     /// Creates a new wrapper.
     /// - Parameters:
     ///   - payload: The underlying typed part payload, which has a statically known part name.
