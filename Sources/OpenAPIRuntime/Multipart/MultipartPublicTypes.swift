@@ -17,13 +17,13 @@ import HTTPTypes
 
 /// A raw multipart part containing the header fields and the body stream.
 public struct MultipartRawPart: Sendable, Hashable {
-    
+
     /// The header fields contained in this part, such as `content-disposition`.
     public var headerFields: HTTPFields
-    
+
     /// The body stream of this part.
     public var body: HTTPBody
-    
+
     /// Creates a new part.
     /// - Parameters:
     ///   - headerFields: The header fields contained in this part, such as `content-disposition`.
@@ -37,13 +37,13 @@ public struct MultipartRawPart: Sendable, Hashable {
 /// A wrapper of a typed part with a statically known name that adds other
 /// dynamic `content-disposition` parameter values, such as `filename`.
 public struct MultipartPart<PartPayload: Sendable & Hashable>: Sendable, Hashable {
-    
+
     /// The underlying typed part payload, which has a statically known part name.
     public var payload: PartPayload
-    
+
     /// A file name parameter provided in the `content-disposition` part header field.
     public var filename: String?
-    
+
     /// Creates a new wrapper.
     /// - Parameters:
     ///   - payload: The underlying typed part payload, which has a statically known part name.
@@ -56,13 +56,22 @@ public struct MultipartPart<PartPayload: Sendable & Hashable>: Sendable, Hashabl
 
 /// A wrapper of a typed part without a statically known name that adds
 /// dynamic `content-disposition` parameter values, such as `name` and `filename`.
-public struct MultipartTypedDynamicallyNamedPart<PartPayload: Sendable & Hashable>: Sendable, Hashable {
-    // TODO: A better name
-    public var inner: MultipartPart<PartPayload>
+public struct MultipartAdditionalPart<PartPayload: Sendable & Hashable>: Sendable, Hashable {
+    /// The underlying typed part payload, which has a statically known part name.
+    public var payload: PartPayload
+    /// A file name parameter provided in the `content-disposition` part header field.
+    public var filename: String?
+
+    /// A name parameter provided in the `content-disposition` part header field.
     public var name: String?
-    // TODO: Provide a forward for filename? Both get/set?
-    public init(inner: MultipartPart<PartPayload>, name: String? = nil) {
-        self.inner = inner
+    /// Creates a new wrapper.
+    /// - Parameters:
+    ///   - payload: The underlying typed part payload, which has a statically known part name.
+    ///   - filename: A file name parameter provided in the `content-disposition` part header field.
+    ///   - name: A name parameter provided in the `content-disposition` part header field.
+    public init(payload: PartPayload, filename: String? = nil, name: String? = nil) {
+        self.payload = payload
+        self.filename = filename
         self.name = name
     }
 }

@@ -195,7 +195,6 @@ extension Converter {
         let frames = MultipartRawToFrameSequence(upstream: validated)
         return HTTPBody(frames, length: .unknown, iterationBehavior: multipart.iterationBehavior, boundary: boundary)
     }
-    
     func convertBytesToMultipart<Part: Sendable>(
         _ bytes: HTTPBody,
         boundary: String,

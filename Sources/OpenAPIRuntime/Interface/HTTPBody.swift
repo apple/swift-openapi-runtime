@@ -136,8 +136,7 @@ public final class HTTPBody: @unchecked Sendable {
         deprecated,
         renamed: "IterationBehavior",
         message: "Use the top level IterationBehavior directly instead of HTTPBody.IterationBehavior."
-    ) 
-    public typealias IterationBehavior = OpenAPIRuntime.IterationBehavior
+    ) public typealias IterationBehavior = OpenAPIRuntime.IterationBehavior
 
     /// The iteration behavior, which controls how many times
     /// the input sequence can be iterated.
