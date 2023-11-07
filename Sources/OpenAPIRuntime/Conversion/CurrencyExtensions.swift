@@ -178,7 +178,7 @@ extension Converter {
         let encodedString = try encoder.encode(value, forKey: "")
         return HTTPBody(encodedString)
     }
-    func convertMultipartToBytes<Part: MultipartPartProtocol>(
+    func convertMultipartToBytes<Part: Sendable>(
         _ multipart: MultipartBody<Part>,
         validation: MultipartValidation,
         boundary: String,
@@ -186,10 +186,6 @@ extension Converter {
     ) -> HTTPBody {
         let untyped = multipart.map { part in
             var untypedPart = try transform(part)
-            var contentDisposition = ContentDisposition(dispositionType: .formData, parameters: [:])
-            if let name = part.name { contentDisposition.parameters[.name] = name }
-            if let filename = part.filename { contentDisposition.parameters[.filename] = filename }
-            untypedPart.headerFields[.contentDisposition] = contentDisposition.rawValue
             if case .known(let byteCount) = untypedPart.body.length {
                 untypedPart.headerFields[.contentLength] = String(byteCount)
             }
@@ -197,11 +193,10 @@ extension Converter {
         }
         let validated = MultipartValidationSequence(validation: validation, upstream: untyped)
         let frames = MultipartRawToFrameSequence(upstream: validated)
-        // TODO: If all bodies have a known lenght, we could add them + headers + boundaries
-        // and actually compute the final content-length and add it to the body.
         return HTTPBody(frames, length: .unknown, iterationBehavior: multipart.iterationBehavior, boundary: boundary)
     }
-    func convertBytesToMultipart<Part: MultipartPartProtocol>(
+    
+    func convertBytesToMultipart<Part: Sendable>(
         _ bytes: HTTPBody,
         boundary: String,
         validation: MultipartValidation,

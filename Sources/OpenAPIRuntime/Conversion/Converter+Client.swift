@@ -172,7 +172,7 @@ extension Converter {
     ///   - transform: A closure that transforms the type-safe part into a raw part.
     /// - Returns: A streaming body representing the multipart-encoded request body.
     /// - Throws: Currently never, but might in the future.
-    public func setRequiredRequestBodyAsMultipart<Part: MultipartPartProtocol>(
+    public func setRequiredRequestBodyAsMultipart<Part: Sendable>(
         _ value: MultipartBody<Part>,
         headerFields: inout HTTPFields,
         contentType: String,
@@ -294,7 +294,7 @@ extension Converter {
         guard let data else { throw RuntimeError.missingRequiredResponseBody }
         return try getResponseBody(type, from: data, transforming: transform, convert: { $0 })
     }
-    public func getResponseBodyAsMultipart<C, Part: MultipartPartProtocol>(
+    public func getResponseBodyAsMultipart<C, Part: Sendable>(
         _ type: MultipartBody<Part>.Type,
         from data: HTTPBody?,
         boundary: String,

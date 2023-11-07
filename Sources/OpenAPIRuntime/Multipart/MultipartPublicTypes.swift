@@ -34,20 +34,9 @@ public struct MultipartRawPart: Sendable, Hashable {
     }
 }
 
-/// A protocol that all generated multipart part enums conform to, providing access to the
-/// known parameters of the `content-disposition` header field.
-public protocol MultipartPartProtocol: Sendable, Hashable {
-    
-    /// The name parameter of the `content-disposition` header field, if present.
-    var name: String? { get }
-    
-    /// The file name parameter of the `content-disposition` header field, if present.
-    var filename: String? { get }
-}
-
 /// A wrapper of a typed part with a statically known name that adds other
 /// dynamic `content-disposition` parameter values, such as `filename`.
-public struct MultipartTypedPartWrapper<PartPayload: Sendable & Hashable>: Sendable, Hashable {
+public struct MultipartPart<PartPayload: Sendable & Hashable>: Sendable, Hashable {
     
     /// The underlying typed part payload, which has a statically known part name.
     public var payload: PartPayload
@@ -67,14 +56,14 @@ public struct MultipartTypedPartWrapper<PartPayload: Sendable & Hashable>: Senda
 
 /// A wrapper of a typed part without a statically known name that adds
 /// dynamic `content-disposition` parameter values, such as `name` and `filename`.
-public struct MultipartTypedDynamicallyNamedPartWrapper<PartPayload: Sendable & Hashable>: Sendable, Hashable {
-    public var payload: PartPayload
+public struct MultipartTypedDynamicallyNamedPart<PartPayload: Sendable & Hashable>: Sendable, Hashable {
+    // TODO: A better name
+    public var inner: MultipartPart<PartPayload>
     public var name: String?
-    public var filename: String?
-    public init(payload: PartPayload, name: String? = nil, filename: String? = nil) {
-        self.payload = payload
+    // TODO: Provide a forward for filename? Both get/set?
+    public init(inner: MultipartPart<PartPayload>, name: String? = nil) {
+        self.inner = inner
         self.name = name
-        self.filename = filename
     }
 }
 
@@ -136,7 +125,7 @@ extension MultipartRawPart {
 }
 
 // TODO: Document
-public final class MultipartBody<Part: MultipartPartProtocol>: @unchecked Sendable {
+public final class MultipartBody<Part: Sendable>: @unchecked Sendable {
 
     /// The iteration behavior, which controls how many times
     /// the input sequence can be iterated.

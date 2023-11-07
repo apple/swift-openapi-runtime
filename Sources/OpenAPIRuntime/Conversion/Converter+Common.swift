@@ -43,18 +43,6 @@ extension Converter {
         else { return (nil, nil) }
         return (contentDisposition.name, contentDisposition.filename)
     }
-    public func setContentDispositionFilename(_ filename: String?, in headerFields: inout HTTPFields) {
-        var contentDisposition: ContentDisposition
-        if let rawValue = headerFields[.contentDisposition],
-            let _contentDisposition = ContentDisposition(rawValue: rawValue)
-        {
-            contentDisposition = _contentDisposition
-        } else {
-            contentDisposition = .init(dispositionType: .formData, parameters: [:])
-        }
-        contentDisposition.filename = filename
-        headerFields[.contentDisposition] = contentDisposition.rawValue
-    }
 
     /// Chooses the most appropriate content type for the provided received
     /// content type and a list of options.

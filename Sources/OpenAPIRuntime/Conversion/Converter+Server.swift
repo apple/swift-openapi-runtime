@@ -242,7 +242,7 @@ extension Converter {
         transforming transform: (HTTPBody) -> C
     ) throws -> C { try getRequiredRequestBody(type, from: data, transforming: transform, convert: { $0 }) }
 
-    public func getRequiredRequestBodyAsMultipart<C, Part: MultipartPartProtocol>(
+    public func getRequiredRequestBodyAsMultipart<C, Part: Sendable>(
         _ type: MultipartBody<Part>.Type,
         from data: HTTPBody?,
         boundary: String,
@@ -342,7 +342,8 @@ extension Converter {
     public func setResponseBodyAsBinary(_ value: HTTPBody, headerFields: inout HTTPFields, contentType: String) throws
         -> HTTPBody
     { try setResponseBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
-    public func setResponseBodyAsMultipart<Part: MultipartPartProtocol>(
+
+    public func setResponseBodyAsMultipart<Part: Sendable>(
         _ value: MultipartBody<Part>,
         headerFields: inout HTTPFields,
         contentType: String,
