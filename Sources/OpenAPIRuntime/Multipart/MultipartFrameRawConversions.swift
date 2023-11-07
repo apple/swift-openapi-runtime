@@ -111,7 +111,7 @@ extension MultipartFrameToRawSequence: AsyncSequence {
             -> HTTPBody
         {
             let stream = AsyncThrowingStream(unfolding: bodyClosure)
-            let length: ByteLength
+            let length: HTTPBody.Length
             if let contentLengthString = headers[.contentLength], let contentLength = Int(contentLengthString) {
                 length = .known(contentLength)
             } else {

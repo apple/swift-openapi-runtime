@@ -24,7 +24,7 @@ private enum ASCII {
 extension HTTPBody {
     convenience init<Upstream: AsyncSequence>(
         _ upstream: Upstream,
-        length: ByteLength,
+        length: HTTPBody.Length,
         iterationBehavior: IterationBehavior,
         boundary: String
     ) where Upstream.Element == MultipartFrame {

@@ -30,16 +30,6 @@ public enum IterationBehavior: Sendable {
     case multiple
 }
 
-/// Describes the total length of the sequence in bytes, if known.
-public enum ByteLength: Sendable, Equatable {
-
-    /// Total length not known yet.
-    case unknown
-
-    /// Total length is known.
-    case known(Int)
-}
-
 // MARK: - Internal
 
 /// A type-erasing closure-based iterator.
