@@ -36,7 +36,7 @@ public struct MultipartRawPart: Sendable, Hashable {
 
 /// A protocol that all generated multipart part enums conform to, providing access to the
 /// known parameters of the `content-disposition` header field.
-public protocol MultipartPartProtocol: Sendable {
+public protocol MultipartPartProtocol: Sendable, Hashable {
     
     /// The name parameter of the `content-disposition` header field, if present.
     var name: String? { get }
@@ -45,12 +45,35 @@ public protocol MultipartPartProtocol: Sendable {
     var filename: String? { get }
 }
 
-
-public struct MultipartPartWrapper<PartPayload: Sendable & Hashable>: Sendable, Hashable {
+/// A wrapper of a typed part with a statically known name that adds other
+/// dynamic `content-disposition` parameter values, such as `filename`.
+public struct MultipartTypedPartWrapper<PartPayload: Sendable & Hashable>: Sendable, Hashable {
+    
+    /// The underlying typed part payload, which has a statically known part name.
     public var payload: PartPayload
+    
+    /// A file name parameter provided in the `content-disposition` part header field.
     public var filename: String?
+    
+    /// Creates a new wrapper.
+    /// - Parameters:
+    ///   - payload: The underlying typed part payload, which has a statically known part name.
+    ///   - filename: A file name parameter provided in the `content-disposition` part header field.
     public init(payload: PartPayload, filename: String? = nil) {
         self.payload = payload
+        self.filename = filename
+    }
+}
+
+/// A wrapper of a typed part without a statically known name that adds
+/// dynamic `content-disposition` parameter values, such as `name` and `filename`.
+public struct MultipartTypedDynamicallyNamedPartWrapper<PartPayload: Sendable & Hashable>: Sendable, Hashable {
+    public var payload: PartPayload
+    public var name: String?
+    public var filename: String?
+    public init(payload: PartPayload, name: String? = nil, filename: String? = nil) {
+        self.payload = payload
+        self.name = name
         self.filename = filename
     }
 }

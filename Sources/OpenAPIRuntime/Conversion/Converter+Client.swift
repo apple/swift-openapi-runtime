@@ -140,7 +140,7 @@ extension Converter {
     /// - Throws: An error if setting the request body as binary fails.
     public func setOptionalRequestBodyAsBinary(_ value: HTTPBody?, headerFields: inout HTTPFields, contentType: String)
         throws -> HTTPBody?
-    { try setOptionalRequestBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
+    { setOptionalRequestBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
 
     /// Sets a required request body as binary in the specified header fields and returns an `HTTPBody`.
     ///
