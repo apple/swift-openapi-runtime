@@ -36,10 +36,10 @@ public struct MultipartRawPart: Sendable, Hashable {
 
 /// A wrapper of a typed part with a statically known name that adds other
 /// dynamic `content-disposition` parameter values, such as `filename`.
-public struct MultipartPart<PartPayload: Sendable & Hashable>: Sendable, Hashable {
+public struct MultipartPart<Payload: Sendable & Hashable>: Sendable, Hashable {
 
     /// The underlying typed part payload, which has a statically known part name.
-    public var payload: PartPayload
+    public var payload: Payload
 
     /// A file name parameter provided in the `content-disposition` part header field.
     public var filename: String?
@@ -48,7 +48,7 @@ public struct MultipartPart<PartPayload: Sendable & Hashable>: Sendable, Hashabl
     /// - Parameters:
     ///   - payload: The underlying typed part payload, which has a statically known part name.
     ///   - filename: A file name parameter provided in the `content-disposition` part header field.
-    public init(payload: PartPayload, filename: String? = nil) {
+    public init(payload: Payload, filename: String? = nil) {
         self.payload = payload
         self.filename = filename
     }
@@ -56,10 +56,10 @@ public struct MultipartPart<PartPayload: Sendable & Hashable>: Sendable, Hashabl
 
 /// A wrapper of a typed part without a statically known name that adds
 /// dynamic `content-disposition` parameter values, such as `name` and `filename`.
-public struct MultipartDynamicallyNamedPart<PartPayload: Sendable & Hashable>: Sendable, Hashable {
+public struct MultipartDynamicallyNamedPart<Payload: Sendable & Hashable>: Sendable, Hashable {
 
     /// The underlying typed part payload, which has a statically known part name.
-    public var payload: PartPayload
+    public var payload: Payload
 
     /// A file name parameter provided in the `content-disposition` part header field.
     public var filename: String?
@@ -72,7 +72,7 @@ public struct MultipartDynamicallyNamedPart<PartPayload: Sendable & Hashable>: S
     ///   - payload: The underlying typed part payload, which has a statically known part name.
     ///   - filename: A file name parameter provided in the `content-disposition` part header field.
     ///   - name: A name parameter provided in the `content-disposition` part header field.
-    public init(payload: PartPayload, filename: String? = nil, name: String? = nil) {
+    public init(payload: Payload, filename: String? = nil, name: String? = nil) {
         self.payload = payload
         self.filename = filename
         self.name = name

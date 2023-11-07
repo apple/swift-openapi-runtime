@@ -103,6 +103,8 @@ public struct Configuration: Sendable {
 
     /// The transcoder used when converting between date and string values.
     public var dateTranscoder: any DateTranscoder
+
+    /// The generator to use when creating mutlipart bodies.
     public var multipartBoundaryGenerator: any MultipartBoundaryGenerator
 
     /// Creates a new configuration with the specified values.
