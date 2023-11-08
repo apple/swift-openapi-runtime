@@ -241,7 +241,22 @@ extension Converter {
         from data: HTTPBody?,
         transforming transform: (HTTPBody) -> C
     ) throws -> C { try getRequiredRequestBody(type, from: data, transforming: transform, convert: { $0 }) }
-
+    /// Returns an async sequence of multipart parts parsed from the provided body stream.
+    /// - Parameters:
+    ///   - type: The type representing the type-safe multipart body.
+    ///   - data: The HTTP body data to transform.
+    ///   - boundary: The multipart boundary string.
+    ///   - allowsUnknownParts: A Boolean value indicating whether parts with unknown names
+    ///     should be pass through. If `false`, encountering an unknown part throws an error
+    ///     whent the returned body sequence iterates it.
+    ///   - requiredExactlyOncePartNames: The list of part names that are required exactly once.
+    ///   - requiredAtLeastOncePartNames: The list of part names that are required at least once.
+    ///   - atMostOncePartNames: The list of part names that can appear at most once.
+    ///   - zeroOrMoreTimesPartNames: The list of names that can appear any number of times.
+    ///   - transform: A closure that transforms the multipart body into the output type.
+    ///   - decoder: A closure that parses a raw part into a type-safe part.
+    /// - Returns: A value of the output type.
+    /// - Throws: If the transform closure throws.
     public func getRequiredRequestBodyAsMultipart<C, Part: Sendable>(
         _ type: MultipartBody<Part>.Type,
         from data: HTTPBody?,
@@ -341,8 +356,24 @@ extension Converter {
     /// - Throws: An error if there are issues setting the response body or updating the header fields.
     public func setResponseBodyAsBinary(_ value: HTTPBody, headerFields: inout HTTPFields, contentType: String) throws
         -> HTTPBody
-    { try setResponseBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
+    { setResponseBody(value, headerFields: &headerFields, contentType: contentType, convert: { $0 }) }
 
+    /// Sets a response body as multipart and returns the streaming body.
+    ///
+    /// - Parameters:
+    ///   - value: The multipart body to be set as the response body.
+    ///   - headerFields: The header fields in which to set the content type.
+    ///   - contentType: The content type to be set in the header fields.
+    ///   - allowsUnknownParts: A Boolean value indicating whether parts with unknown names
+    ///     should be pass through. If `false`, encountering an unknown part throws an error
+    ///     whent the returned body sequence iterates it.
+    ///   - requiredExactlyOncePartNames: The list of part names that are required exactly once.
+    ///   - requiredAtLeastOncePartNames: The list of part names that are required at least once.
+    ///   - atMostOncePartNames: The list of part names that can appear at most once.
+    ///   - zeroOrMoreTimesPartNames: The list of names that can appear any number of times.
+    ///   - encode: A closure that transforms the type-safe part into a raw part.
+    /// - Returns: A streaming body representing the multipart-encoded response body.
+    /// - Throws: Currently never, but might in the future.
     public func setResponseBodyAsMultipart<Part: Sendable>(
         _ value: MultipartBody<Part>,
         headerFields: inout HTTPFields,
@@ -352,11 +383,11 @@ extension Converter {
         requiredAtLeastOncePartNames: Set<String>,
         atMostOncePartNames: Set<String>,
         zeroOrMoreTimesPartNames: Set<String>,
-        transform: @escaping @Sendable (Part) throws -> MultipartRawPart
+        encoding encode: @escaping @Sendable (Part) throws -> MultipartRawPart
     ) throws -> HTTPBody {
         let boundary = configuration.multipartBoundaryGenerator.makeBoundary()
         let contentTypeWithBoundary = contentType + "; boundary=\(boundary)"
-        return try setResponseBody(
+        return setResponseBody(
             value,
             headerFields: &headerFields,
             contentType: contentTypeWithBoundary,
@@ -371,7 +402,7 @@ extension Converter {
                         zeroOrMoreTimesPartNames: zeroOrMoreTimesPartNames
                     ),
                     boundary: boundary,
-                    transform: transform
+                    encode: encode
                 )
             }
         )

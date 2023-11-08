@@ -169,7 +169,7 @@ extension Converter {
     ///   - requiredAtLeastOncePartNames: The list of part names that are required at least once.
     ///   - atMostOncePartNames: The list of part names that can appear at most once.
     ///   - zeroOrMoreTimesPartNames: The list of names that can appear any number of times.
-    ///   - transform: A closure that transforms the type-safe part into a raw part.
+    ///   - encode: A closure that transforms the type-safe part into a raw part.
     /// - Returns: A streaming body representing the multipart-encoded request body.
     /// - Throws: Currently never, but might in the future.
     public func setRequiredRequestBodyAsMultipart<Part: Sendable>(
@@ -181,7 +181,7 @@ extension Converter {
         requiredAtLeastOncePartNames: Set<String>,
         atMostOncePartNames: Set<String>,
         zeroOrMoreTimesPartNames: Set<String>,
-        transform: @escaping @Sendable (Part) throws -> MultipartRawPart
+        encoding encode: @escaping @Sendable (Part) throws -> MultipartRawPart
     ) throws -> HTTPBody {
         let boundary = configuration.multipartBoundaryGenerator.makeBoundary()
         let contentTypeWithBoundary = contentType + "; boundary=\(boundary)"
@@ -200,7 +200,7 @@ extension Converter {
                         zeroOrMoreTimesPartNames: zeroOrMoreTimesPartNames
                     ),
                     boundary: boundary,
-                    transform: transform
+                    encode: encode
                 )
             }
         )
@@ -294,6 +294,22 @@ extension Converter {
         guard let data else { throw RuntimeError.missingRequiredResponseBody }
         return try getResponseBody(type, from: data, transforming: transform, convert: { $0 })
     }
+    /// Returns an async sequence of multipart parts parsed from the provided body stream.
+    /// - Parameters:
+    ///   - type: The type representing the type-safe multipart body.
+    ///   - data: The HTTP body data to transform.
+    ///   - boundary: The multipart boundary string.
+    ///   - allowsUnknownParts: A Boolean value indicating whether parts with unknown names
+    ///     should be pass through. If `false`, encountering an unknown part throws an error
+    ///     whent the returned body sequence iterates it.
+    ///   - requiredExactlyOncePartNames: The list of part names that are required exactly once.
+    ///   - requiredAtLeastOncePartNames: The list of part names that are required at least once.
+    ///   - atMostOncePartNames: The list of part names that can appear at most once.
+    ///   - zeroOrMoreTimesPartNames: The list of names that can appear any number of times.
+    ///   - transform: A closure that transforms the multipart body into the output type.
+    ///   - decoder: A closure that parses a raw part into a type-safe part.
+    /// - Returns: A value of the output type.
+    /// - Throws: If the transform closure throws.
     public func getResponseBodyAsMultipart<C, Part: Sendable>(
         _ type: MultipartBody<Part>.Type,
         from data: HTTPBody?,

@@ -150,7 +150,7 @@ public final class HTTPBody: @unchecked Sendable {
     /// A lock for shared mutable state.
     private let lock: NSLock = {
         let lock = NSLock()
-        lock.name = "com.apple.swift-openapi-generator.runtime.body"
+        lock.name = "com.apple.swift-openapi-generator.runtime.http-body"
         return lock
     }()
 
@@ -550,6 +550,7 @@ extension Data {
 }
 
 extension HTTPBody {
+    /// The iterator used by the body stream.
     public struct Iterator: AsyncIteratorProtocol {
         /// The closure that produces the next element.
         private let produceNext: () async throws -> Element?

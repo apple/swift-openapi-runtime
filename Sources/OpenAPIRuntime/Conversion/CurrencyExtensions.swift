@@ -182,10 +182,10 @@ extension Converter {
         _ multipart: MultipartBody<Part>,
         validation: MultipartValidation,
         boundary: String,
-        transform: @escaping @Sendable (Part) throws -> MultipartRawPart
+        encode: @escaping @Sendable (Part) throws -> MultipartRawPart
     ) -> HTTPBody {
         let untyped = multipart.map { part in
-            var untypedPart = try transform(part)
+            var untypedPart = try encode(part)
             if case .known(let byteCount) = untypedPart.body.length {
                 untypedPart.headerFields[.contentLength] = String(byteCount)
             }
@@ -411,7 +411,6 @@ extension Converter {
     ///   - contentType: The content type value.
     ///   - convert: The closure that encodes the value into a raw body.
     /// - Returns: The body.
-    /// - Throws: An error if an issue occurs while encoding the request body or setting the content type.
     func setRequiredRequestBody<T>(
         _ value: T,
         headerFields: inout HTTPFields,
@@ -430,7 +429,6 @@ extension Converter {
     ///   - contentType: The content type value.
     ///   - convert: The closure that encodes the value into a raw body.
     /// - Returns: The body, if value was not nil.
-    /// - Throws: An error if an issue occurs while encoding the request body or setting the content type.
     func setOptionalRequestBody<T>(
         _ value: T?,
         headerFields: inout HTTPFields,
@@ -575,13 +573,12 @@ extension Converter {
     ///   - contentType: The content type value.
     ///   - convert: The closure that encodes the value into a raw body.
     /// - Returns: The body, if value was not nil.
-    /// - Throws: An error if an issue occurs while encoding the request body.
     func setResponseBody<T>(
         _ value: T,
         headerFields: inout HTTPFields,
         contentType: String,
         convert: (T) throws -> HTTPBody
-    ) throws -> HTTPBody {
+    ) rethrows -> HTTPBody {
         headerFields[.contentType] = contentType
         return try convert(value)
     }

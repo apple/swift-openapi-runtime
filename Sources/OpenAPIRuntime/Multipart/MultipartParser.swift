@@ -36,10 +36,6 @@ struct MultipartBytesToFramesSequence: AsyncSequence {
     typealias AsyncIterator = Iterator
     let upstream: HTTPBody
     let boundary: String
-    init(upstream: HTTPBody, boundary: String) {
-        self.upstream = upstream
-        self.boundary = boundary
-    }
     func makeAsyncIterator() -> Iterator { Iterator(upstream: upstream.makeAsyncIterator(), boundary: boundary) }
     struct MultipartParserError: Swift.Error, CustomStringConvertible, LocalizedError {
         let error: MultipartParser.StateMachine.Action.ActionError

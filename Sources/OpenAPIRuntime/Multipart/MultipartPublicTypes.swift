@@ -82,6 +82,14 @@ public struct MultipartDynamicallyNamedPart<Payload: Sendable & Hashable>: Senda
 // MARK: - Extensions
 
 extension MultipartRawPart {
+
+    /// Creates a new raw part by injecting the provided name and filename into
+    /// the `content-disposition` header field.
+    /// - Parameters:
+    ///   - name: The name of the part.
+    ///   - filename: The file name of the part.
+    ///   - headerFields: The header fields of the part.
+    ///   - body: The body stream of the part.
     public init(name: String?, filename: String? = nil, headerFields: HTTPFields, body: HTTPBody) {
         var contentDisposition = ContentDisposition(dispositionType: .formData, parameters: [:])
         if let name { contentDisposition.parameters[.name] = name }
@@ -90,6 +98,7 @@ extension MultipartRawPart {
         headerFields[.contentDisposition] = contentDisposition.rawValue
         self.init(headerFields: headerFields, body: body)
     }
+    /// The name of the part stored in the `content-disposition` header field.
     public var name: String? {
         get {
             guard let contentDispositionString = headerFields[.contentDisposition],
@@ -112,6 +121,8 @@ extension MultipartRawPart {
             headerFields[.contentDisposition] = contentDisposition.rawValue
         }
     }
+
+    /// The file name of the part stored in the `content-disposition` header field.
     public var filename: String? {
         get {
             guard let contentDispositionString = headerFields[.contentDisposition],
@@ -136,11 +147,100 @@ extension MultipartRawPart {
     }
 }
 
-// TODO: Document
+/// The body of multipart requests and responses.
+///
+/// `MultipartBody` represents an async sequence of multipart parts of a specific type.
+///
+/// The `Part` generic type parameter is usually a generated enum representing
+/// the different values documented for this multipart body.
+///
+/// ## Creating a body from buffered parts
+///
+/// Create a body from an array of values of type `Part`:
+///
+/// ```swift
+/// let body: MultipartBody<MyPartType> = [
+///     .myCaseA(...),
+///     .myCaseB(...),
+/// ]
+/// ```
+///
+/// ## Creating a body from an async sequence of parts
+///
+/// The body type also supports initialization from an async sequence.
+///
+/// ```swift
+/// let producingSequence = ... // an AsyncSequence of MyPartType
+/// let body = MultipartBody(
+///     producingSequence,
+///     iterationBehavior: .single // or .multiple
+/// )
+/// ```
+///
+/// In addition to the async sequence, also specify whether the sequence is safe
+/// to be iterated multiple times, or can only be iterated once.
+///
+/// Sequences that can be iterated multiple times work better when an HTTP
+/// request needs to be retried, or if a redirect is encountered.
+///
+/// In addition to providing the async sequence, you can also produce the body
+/// using an `AsyncStream` or `AsyncThrowingStream`:
+///
+/// ```swift
+/// let (stream, continuation) = AsyncStream.makeStream(of: MyPartType.self)
+/// // Pass the continuation to another task that produces the parts asynchronously.
+/// Task {
+///     continuation.yield(.myCaseA(...))
+///     // ... later
+///     continuation.yield(.myCaseB(...))
+///     continuation.finish()
+/// }
+/// let body = MultipartBody(stream)
+/// ```
+///
+/// ## Consuming a body as an async sequence
+///
+/// The `MultipartBody` type conforms to `AsyncSequence` and uses a generic element type,
+/// so it can be consumed in a streaming fashion, without ever buffering the whole body
+/// in your process.
+///
+/// ```swift
+/// let multipartBody: MultipartBody<MyPartType> = ...
+/// for try await part in multipartBody {
+///    switch part {
+///    case .myCaseA(let myCaseAValue):
+///        // Handle myCaseAValue.
+///    case .myCaseB(let myCaseBValue):
+///        // Handle myCaseBValue, which is a raw type with a streaming part body.
+///        //
+///        // Option 1: Process the part body bytes in chunks.
+///        for try await bodyChunk in myCaseBValue.body {
+///            // Handle bodyChunk.
+///        }
+///        // Option 2: Accumulate the body into a byte array.
+///        // (For other convenience initializers, check out ``HTTPBody``.
+///        let fullPartBody = try await [UInt8](collecting: myCaseBValue.body, upTo: 1024)
+///    // ...
+///    }
+/// }
+/// ```
+///
+/// Multipart parts of different names can arrive in any order, and the order is not significant.
+///
+/// Consuming the multipart body should be resilient to parts of different names being reordered.
+///
+/// However, multiple parts of the same name, if allowed by the OpenAPI document by defining it as an array,
+/// should be treated as an ordered array of values, and those cannot be reordered without changing
+/// the message's meaning.
+///
+/// > Important: Parts that contain a raw streaming body (of type ``HTTPBody``) must
+/// have their bodies fully consumed before the multipart body sequence is asked for
+/// the next part. The multipart body sequence does not buffer internally, and since
+/// the parts and their bodies arrive in a single stream of bytes, you cannot move on
+/// to the next part until the current one is consumed.
 public final class MultipartBody<Part: Sendable>: @unchecked Sendable {
 
-    /// The iteration behavior, which controls how many times
-    /// the input sequence can be iterated.
+    /// The iteration behavior, which controls how many times the input sequence can be iterated.
     public let iterationBehavior: IterationBehavior
 
     /// The underlying type-erased async sequence.
@@ -149,7 +249,7 @@ public final class MultipartBody<Part: Sendable>: @unchecked Sendable {
     /// A lock for shared mutable state.
     private let lock: NSLock = {
         let lock = NSLock()
-        lock.name = "com.apple.swift-openapi-generator.runtime.openapi-sequence"
+        lock.name = "com.apple.swift-openapi-generator.runtime.multipart-body"
         return lock
     }()
 
@@ -168,15 +268,17 @@ public final class MultipartBody<Part: Sendable>: @unchecked Sendable {
     /// the body is not allowed.
     private struct TooManyIterationsError: Error, CustomStringConvertible, LocalizedError {
 
+        /// A textual representation of this instance.
         var description: String {
-            "OpenAPIRuntime.HTTPBody attempted to create a second iterator, but the underlying sequence is only safe to be iterated once."
+            "OpenAPIRuntime.MultipartBody attempted to create a second iterator, but the underlying sequence is only safe to be iterated once."
         }
 
+        /// A localized message describing what error occurred.
         var errorDescription: String? { description }
     }
 
-    /// Verifying that creating another iterator is allowed based on
-    /// the values of `iterationBehavior` and `locked_iteratorCreated`.
+    /// Verifying that creating another iterator is allowed based on the values of `iterationBehavior`
+    /// and `locked_iteratorCreated`.
     /// - Throws: If another iterator is not allowed to be created.
     internal func checkIfCanCreateIterator() throws {
         lock.lock()
@@ -185,8 +287,8 @@ public final class MultipartBody<Part: Sendable>: @unchecked Sendable {
         if locked_iteratorCreated { throw TooManyIterationsError() }
     }
 
-    /// Tries to mark an iterator as created, verifying that it is allowed
-    /// based on the values of `iterationBehavior` and `locked_iteratorCreated`.
+    /// Tries to mark an iterator as created, verifying that it is allowed based on the values
+    /// of `iterationBehavior` and `locked_iteratorCreated`.
     /// - Throws: If another iterator is not allowed to be created.
     private func tryToMarkIteratorCreated() throws {
         lock.lock()
@@ -201,8 +303,8 @@ public final class MultipartBody<Part: Sendable>: @unchecked Sendable {
     /// Creates a new sequence.
     /// - Parameters:
     ///   - sequence: The input sequence providing the parts.
-    ///   - iterationBehavior: The sequence's iteration behavior, which
-    ///     indicates whether the sequence can be iterated multiple times.
+    ///   - iterationBehavior: The sequence's iteration behavior, which indicates whether the sequence
+    ///     can be iterated multiple times.
     @usableFromInline init(_ sequence: AnySequence<Part>, iterationBehavior: IterationBehavior) {
         self.sequence = sequence
         self.iterationBehavior = iterationBehavior
@@ -210,6 +312,7 @@ public final class MultipartBody<Part: Sendable>: @unchecked Sendable {
 }
 
 extension MultipartBody: Equatable {
+
     /// Compares two OpenAPISequence instances for equality by comparing their object identifiers.
     ///
     /// - Parameters:
@@ -224,6 +327,7 @@ extension MultipartBody: Equatable {
 }
 
 extension MultipartBody: Hashable {
+
     /// Hashes the OpenAPISequence instance by combining its object identifier into the provided hasher.
     ///
     /// - Parameter hasher: The hasher used to combine the hash value.
@@ -234,43 +338,38 @@ extension MultipartBody: Hashable {
 
 extension MultipartBody {
 
-    /// Creates a new empty sequence.
-    @inlinable public convenience init() { self.init(.init(EmptySequence()), iterationBehavior: .multiple) }
-    /// Creates a new sequence with the provided async sequence.
+    /// Creates a new sequence with the provided async sequence of parts.
     /// - Parameters:
-    ///   - sequence: An async sequence that provides the elements.
-    ///   - iterationBehavior: The iteration behavior of the sequence, which
-    ///     indicates whether it can be iterated multiple times.
+    ///   - sequence: An async sequence that provides the parts.
+    ///   - iterationBehavior: The iteration behavior of the sequence, which indicates whether it
+    ///     can be iterated multiple times.
     @inlinable public convenience init<Input: AsyncSequence>(_ sequence: Input, iterationBehavior: IterationBehavior)
     where Input.Element == Element { self.init(.init(sequence), iterationBehavior: iterationBehavior) }
 
-    /// Creates a new sequence with the provided elements.
+    /// Creates a new sequence with the provided sequence parts.
     /// - Parameters:
-    ///   - elements: A sequence of elements.
-    ///   - iterationBehavior: The iteration behavior of the sequence, which
-    ///     indicates whether it can be iterated multiple times.
+    ///   - elements: A sequence of parts.
+    ///   - iterationBehavior: The iteration behavior of the sequence, which indicates whether it
+    ///     can be iterated multiple times.
     @usableFromInline convenience init(
         _ elements: some Sequence<Element> & Sendable,
         iterationBehavior: IterationBehavior
     ) { self.init(.init(WrappedSyncSequence(sequence: elements)), iterationBehavior: iterationBehavior) }
 
-    /// Creates a new sequence with the provided byte collection.
-    /// - Parameters:
-    ///   - elements: A collection of elements.
+    /// Creates a new sequence with the provided collection of parts.
+    /// - Parameter elements: A collection of parts.
     @inlinable public convenience init(_ elements: some Collection<Element> & Sendable) {
         self.init(elements, iterationBehavior: .multiple)
     }
 
     /// Creates a new sequence with the provided async throwing stream.
-    /// - Parameters:
-    ///   - stream: An async throwing stream that provides the elements.
+    /// - Parameter stream: An async throwing stream that provides the parts.
     @inlinable public convenience init(_ stream: AsyncThrowingStream<Element, any Error>) {
         self.init(.init(stream), iterationBehavior: .single)
     }
 
     /// Creates a new sequence with the provided async stream.
-    /// - Parameters:
-    ///   - stream: An async stream that provides the elements.
+    /// - Parameter stream: An async stream that provides the parts.
     @inlinable public convenience init(_ stream: AsyncStream<Element>) {
         self.init(.init(stream), iterationBehavior: .single)
     }
@@ -279,17 +378,24 @@ extension MultipartBody {
 // MARK: - Conversion from literals
 
 extension MultipartBody: ExpressibleByArrayLiteral {
+
+    /// The type of the elements of an array literal.
     public typealias ArrayLiteralElement = Element
+
+    /// Creates an instance initialized with the given elements.
     public convenience init(arrayLiteral elements: Element...) { self.init(elements) }
 }
 
 // MARK: - Consuming the sequence
 
 extension MultipartBody: AsyncSequence {
+
     /// The type of the element.
     public typealias Element = Part
+
     /// Represents an asynchronous iterator over a sequence of elements.
     public typealias AsyncIterator = Iterator
+
     /// Creates and returns an asynchronous iterator
     ///
     /// - Returns: An asynchronous iterator for parts.
@@ -306,6 +412,7 @@ extension MultipartBody {
 
     /// An async iterator of both input async sequences and of the sequence itself.
     public struct Iterator: AsyncIteratorProtocol {
+
         /// The closure that produces the next element.
         private let produceNext: () async throws -> Element?
 

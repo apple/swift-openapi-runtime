@@ -46,23 +46,50 @@ extension DateTranscoder where Self == ISO8601DateTranscoder {
     public static var iso8601: Self { ISO8601DateTranscoder() }
 }
 
-public protocol MultipartBoundaryGenerator: Sendable { func makeBoundary() -> String }
+/// A generator of a new boundary string used by multipart messages to separate parts.
+public protocol MultipartBoundaryGenerator: Sendable {
 
-public struct ConstantMultipartBoundaryGenerator: MultipartBoundaryGenerator {
-    public var boundary: String
-    public init(boundary: String = "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__") { self.boundary = boundary }
-    @inlinable public func makeBoundary() -> String { boundary }
+    /// Generates a boundary string for a multipart message.
+    /// - Returns: A boundary string.
+    func makeBoundary() -> String
 }
 
+/// A generator that always returns the same constant boundary string.
+public struct ConstantMultipartBoundaryGenerator: MultipartBoundaryGenerator {
+
+    /// The boundary string to return.
+    public let boundary: String
+    /// Creates a new generator.
+    /// - Parameter boundary: The boundary string to return every time.
+    public init(boundary: String = "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__") { self.boundary = boundary }
+
+    /// Generates a boundary string for a multipart message.
+    /// - Returns: A boundary string.
+    public func makeBoundary() -> String { boundary }
+}
+
+/// A generator that returns a boundary containg a constant prefix and a randomized suffix.
 public struct RandomizedMultipartBoundaryGenerator: MultipartBoundaryGenerator {
-    public var boundaryPrefix: String
-    public var randomNumberSuffixLenght: Int
-    @usableFromInline let values: [UInt8] = Array("0123456789".utf8)
+
+    /// The constant prefix of each boundary.
+    public let boundaryPrefix: String
+    /// The length, in bytes, of the randomized boundary suffix.
+    public let randomNumberSuffixLenght: Int
+
+    /// The options for the random bytes suffix.
+    private let values: [UInt8] = Array("0123456789".utf8)
+
+    /// Create a new generator.
+    /// - Parameters:
+    ///   - boundaryPrefix: The constant prefix of each boundary.
+    ///   - randomNumberSuffixLenght: The length, in bytes, of the randomized boundary suffix.
     public init(boundaryPrefix: String = "__X_SWIFT_OPENAPI_", randomNumberSuffixLenght: Int = 20) {
         self.boundaryPrefix = boundaryPrefix
         self.randomNumberSuffixLenght = randomNumberSuffixLenght
     }
-    @inlinable public func makeBoundary() -> String {
+    /// Generates a boundary string for a multipart message.
+    /// - Returns: A boundary string.
+    public func makeBoundary() -> String {
         var randomSuffix = [UInt8](repeating: 0, count: randomNumberSuffixLenght)
         for i in randomSuffix.startIndex..<randomSuffix.endIndex { randomSuffix[i] = values.randomElement()! }
         return boundaryPrefix.appending(String(decoding: randomSuffix, as: UTF8.self))
@@ -70,10 +97,14 @@ public struct RandomizedMultipartBoundaryGenerator: MultipartBoundaryGenerator {
 }
 
 extension MultipartBoundaryGenerator where Self == ConstantMultipartBoundaryGenerator {
-    @inlinable public static var constant: Self { ConstantMultipartBoundaryGenerator() }
+
+    /// A generator that always returns the same boundary string.
+    public static var constant: Self { ConstantMultipartBoundaryGenerator() }
 }
 extension MultipartBoundaryGenerator where Self == RandomizedMultipartBoundaryGenerator {
-    @inlinable public static var randomized: Self { RandomizedMultipartBoundaryGenerator() }
+
+    /// A generator that produces a random boundary every time.
+    public static var randomized: Self { RandomizedMultipartBoundaryGenerator() }
 }
 
 extension JSONEncoder.DateEncodingStrategy {
@@ -125,8 +156,7 @@ public struct Configuration: Sendable {
 extension Configuration {
     /// Creates a new configuration with the specified values.
     ///
-    /// - Parameters:
-    ///   - dateTranscoder: The transcoder to use when converting between date
+    /// - Parameter dateTranscoder: The transcoder to use when converting between date
     ///   and string values.
     @available(*, deprecated, renamed: "init(dateTranscoder:multipartBoundaryGenerator:)") @_disfavoredOverload
     public init(dateTranscoder: any DateTranscoder) {
