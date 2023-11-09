@@ -56,7 +56,23 @@ public struct Base64EncodedData: Sendable, Hashable {
 
     /// Initializes an instance of ``Base64EncodedData`` wrapping the provided slice of bytes.
     /// - Parameter data: The underlying bytes to wrap.
+    @available(*, deprecated, renamed: "init(_:)")
+
     public init(data: ArraySlice<UInt8>) { self.data = data }
+
+    /// Initializes an instance of ``Base64EncodedData`` wrapping the provided slice of bytes.
+    /// - Parameter data: The underlying bytes to wrap.
+    public init(_ data: ArraySlice<UInt8>) { self.data = data }
+
+    /// Initializes an instance of ``Base64EncodedData`` wrapping the provided sequence of bytes.
+    /// - Parameter data: The underlying bytes to wrap.
+    public init(_ data: some Sequence<UInt8>) { self.init(ArraySlice(data)) }
+}
+
+extension Base64EncodedData: ExpressibleByArrayLiteral {
+    /// Initializes an instance of ``Base64EncodedData`` with a sequence of bytes provided as an array literal.
+    /// - Parameter elements: The sequence of `UInt8` elements representing the underlying bytes.
+    public init(arrayLiteral elements: UInt8...) { self.init(elements) }
 }
 
 extension Base64EncodedData: Codable {
@@ -74,7 +90,7 @@ extension Base64EncodedData: Codable {
         guard let data = Data(base64Encoded: base64EncodedString, options: options) else {
             throw RuntimeError.invalidBase64String(base64EncodedString)
         }
-        self.init(data: ArraySlice(data))
+        self.init(data)
     }
 
     /// Encodes the binary data as a base64-encoded string.
