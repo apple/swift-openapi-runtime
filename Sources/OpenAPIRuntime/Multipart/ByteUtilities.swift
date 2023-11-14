@@ -31,7 +31,7 @@ enum ASCII {
     static let space: UInt8 = 0x20
 
     /// The horizontal tab `<TAB>` character.
-    static let tab: UInt8 = 0x20
+    static let tab: UInt8 = 0x09
 
     /// Two dash characters.
     static let dashes: [UInt8] = [dash, dash]
