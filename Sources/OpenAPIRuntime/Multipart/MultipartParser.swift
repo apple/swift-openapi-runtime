@@ -206,7 +206,7 @@ extension MultipartParser {
                     case .unexpectedPrefix: break
                     }
                     // Consume CRLF
-                    let indexAfterFirstCRLF: [UInt8].Index
+                    let indexAfterFirstCRLF: Array<UInt8>.Index
                     switch buffer.firstIndexAfterPrefix(ASCII.crlf) {
                     case .index(let index): indexAfterFirstCRLF = index
                     case .reachedEndOfSelf:
@@ -236,7 +236,7 @@ extension MultipartParser {
                         state = .parsingPart(buffer, .parsingHeaderFields(headerFields))
                         return .needsMore
                     }
-                    let startHeaderValueWithWhitespaceIndex: [UInt8].Index
+                    let startHeaderValueWithWhitespaceIndex: Array<UInt8>.Index
                     // Check that what follows is a colon, otherwise this is a malformed header field line.
                     // Source: RFC 7230, section 3.2.4.
                     switch buffer[endHeaderNameIndex...].firstIndexAfterPrefix([ASCII.colon]) {
