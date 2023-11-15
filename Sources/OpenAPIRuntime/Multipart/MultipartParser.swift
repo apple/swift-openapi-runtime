@@ -20,9 +20,11 @@ struct MultipartParser {
 
     /// The underlying state machine.
     private var stateMachine: StateMachine
+
     /// Creates a new parser.
     /// - Parameter boundary: The boundary that separates parts.
     init(boundary: String) { self.stateMachine = .init(boundary: boundary) }
+
     /// Parses the next frame.
     /// - Parameter fetchChunk: A closure that is called when the parser
     ///   needs more bytes to parse the next frame.
@@ -48,6 +50,7 @@ struct MultipartParser {
     }
 }
 extension MultipartParser {
+
     /// An error thrown by the parser.
     struct ParserError: Swift.Error, CustomStringConvertible, LocalizedError {
 
@@ -73,6 +76,7 @@ extension MultipartParser {
 
     /// A state machine representing the byte to multipart frame parser.
     struct StateMachine {
+
         /// The possible states of the state machine.
         enum State: Hashable {
 
@@ -110,6 +114,7 @@ extension MultipartParser {
 
         /// The bytes of the boundary prepended by CRLF + double dash.
         private let crlfDashDashBoundary: ArraySlice<UInt8>
+
         /// Creates a new state machine.
         /// - Parameter boundary: The boundary used to separate parts.
         init(boundary: String) {
@@ -118,6 +123,7 @@ extension MultipartParser {
             self.dashDashBoundary = ASCII.dashes + self.boundary
             self.crlfDashDashBoundary = ASCII.crlf + dashDashBoundary
         }
+
         /// An error returned by the state machine.
         enum ActionError: Hashable {
 
@@ -139,6 +145,7 @@ extension MultipartParser {
             /// Ran out of bytes without the message being complete.
             case incompleteMultipartMessage
         }
+
         /// An action returned by the `readNextPart` method.
         enum ReadNextPartAction: Hashable {
 
@@ -160,6 +167,7 @@ extension MultipartParser {
             /// Needs more bytes to parse the next frame.
             case needsMore
         }
+
         /// Read the next part from the accumulated bytes.
         /// - Returns: An action to perform.
         mutating func readNextPart() -> ReadNextPartAction {
@@ -169,7 +177,7 @@ extension MultipartParser {
             case .parsingInitialBoundary(var buffer):
                 state = .mutating
                 // These first bytes must be the boundary already, otherwise this is a malformed multipart body.
-                switch buffer.firstIndexAfterElements(dashDashBoundary) {
+                switch buffer.firstIndexAfterPrefix(dashDashBoundary) {
                 case .index(let index):
                     buffer.removeSubrange(buffer.startIndex..<index)
                     state = .parsingPart(buffer, .parsingHeaderFields(.init()))
@@ -177,7 +185,7 @@ extension MultipartParser {
                 case .reachedEndOfSelf:
                     state = .parsingInitialBoundary(buffer)
                     return .needsMore
-                case .mismatchedCharacter:
+                case .unexpectedPrefix:
                     state = .finished
                     return .emitError(.invalidInitialBoundary)
                 }
@@ -187,7 +195,7 @@ extension MultipartParser {
                 case .parsingHeaderFields(var headerFields):
                     // Either we find `--` in which case there are no more parts and we're finished, or something else
                     // and we start parsing headers.
-                    switch buffer.firstIndexAfterElements(ASCII.dashes) {
+                    switch buffer.firstIndexAfterPrefix(ASCII.dashes) {
                     case .index(let index):
                         state = .finished
                         buffer.removeSubrange(..<index)
@@ -195,21 +203,21 @@ extension MultipartParser {
                     case .reachedEndOfSelf:
                         state = .parsingPart(buffer, .parsingHeaderFields(headerFields))
                         return .needsMore
-                    case .mismatchedCharacter: break
+                    case .unexpectedPrefix: break
                     }
                     // Consume CRLF
                     let indexAfterFirstCRLF: [UInt8].Index
-                    switch buffer.firstIndexAfterElements(ASCII.crlf) {
+                    switch buffer.firstIndexAfterPrefix(ASCII.crlf) {
                     case .index(let index): indexAfterFirstCRLF = index
                     case .reachedEndOfSelf:
                         state = .parsingPart(buffer, .parsingHeaderFields(headerFields))
                         return .needsMore
-                    case .mismatchedCharacter:
+                    case .unexpectedPrefix:
                         state = .finished
                         return .emitError(.invalidCRLFAtStartOfHeaderField)
                     }
                     // If CRLF is here, this is the end of header fields section.
-                    switch buffer[indexAfterFirstCRLF...].firstIndexAfterElements(ASCII.crlf) {
+                    switch buffer[indexAfterFirstCRLF...].firstIndexAfterPrefix(ASCII.crlf) {
                     case .index(let index):
                         buffer.removeSubrange(buffer.startIndex..<index)
                         state = .parsingPart(buffer, .parsingBody)
@@ -217,7 +225,7 @@ extension MultipartParser {
                     case .reachedEndOfSelf:
                         state = .parsingPart(buffer, .parsingHeaderFields(headerFields))
                         return .needsMore
-                    case .mismatchedCharacter: break
+                    case .unexpectedPrefix: break
                     }
                     let startHeaderNameIndex = indexAfterFirstCRLF
                     guard
@@ -231,12 +239,12 @@ extension MultipartParser {
                     let startHeaderValueWithWhitespaceIndex: [UInt8].Index
                     // Check that what follows is a colon, otherwise this is a malformed header field line.
                     // Source: RFC 7230, section 3.2.4.
-                    switch buffer[endHeaderNameIndex...].firstIndexAfterElements([ASCII.colon]) {
+                    switch buffer[endHeaderNameIndex...].firstIndexAfterPrefix([ASCII.colon]) {
                     case .index(let index): startHeaderValueWithWhitespaceIndex = index
                     case .reachedEndOfSelf:
                         state = .parsingPart(buffer, .parsingHeaderFields(headerFields))
                         return .needsMore
-                    case .mismatchedCharacter:
+                    case .unexpectedPrefix:
                         state = .finished
                         return .emitError(.missingColonAfterHeaderName)
                     }

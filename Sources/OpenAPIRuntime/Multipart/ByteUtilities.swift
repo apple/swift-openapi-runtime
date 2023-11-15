@@ -57,10 +57,10 @@ enum ASCII {
     }
 }
 
-/// A value returned by the `firstIndexAfterElements` method.
-enum FirstIndexAfterElementsResult<C: RandomAccessCollection> {
+/// A value returned by the `firstIndexAfterPrefix` method.
+enum FirstIndexAfterPrefixResult<C: RandomAccessCollection> {
 
-    /// The index after the end of the first match.
+    /// The index after the end of the prefix match.
     case index(C.Index)
 
     /// Matched all characters so far, but reached the end of self before matching all.
@@ -68,7 +68,7 @@ enum FirstIndexAfterElementsResult<C: RandomAccessCollection> {
     case reachedEndOfSelf
 
     /// The character at the provided index does not match the expected character.
-    case mismatchedCharacter(C.Index)
+    case unexpectedPrefix(C.Index)
 }
 
 extension RandomAccessCollection where Element: Equatable {
@@ -76,11 +76,11 @@ extension RandomAccessCollection where Element: Equatable {
     /// Verifies that the elements match the provided sequence and returns the first index past the match.
     /// - Parameter expectedElements: The elements to match against.
     /// - Returns: The result.
-    func firstIndexAfterElements(_ expectedElements: some Sequence<Element>) -> FirstIndexAfterElementsResult<Self> {
+    func firstIndexAfterPrefix(_ expectedElements: some Sequence<Element>) -> FirstIndexAfterPrefixResult<Self> {
         var index = startIndex
         for expectedElement in expectedElements {
             guard index < endIndex else { return .reachedEndOfSelf }
-            guard self[index] == expectedElement else { return .mismatchedCharacter(index) }
+            guard self[index] == expectedElement else { return .unexpectedPrefix(index) }
             formIndex(after: &index)
         }
         return .index(index)
@@ -110,10 +110,10 @@ extension RandomAccessCollection where Element: Equatable {
     func longestMatch(_ expectedElements: some Sequence<Element>) -> LongestMatchResult<Self> {
         var index = startIndex
         while index < endIndex {
-            switch self[index...].firstIndexAfterElements(expectedElements) {
+            switch self[index...].firstIndexAfterPrefix(expectedElements) {
             case .index(let end): return .fullMatch(index..<end)
             case .reachedEndOfSelf: return .prefixMatch(fromIndex: index)
-            case .mismatchedCharacter: formIndex(after: &index)
+            case .unexpectedPrefix: formIndex(after: &index)
             }
         }
         return .noMatch
