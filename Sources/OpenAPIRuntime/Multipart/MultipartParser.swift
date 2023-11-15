@@ -15,7 +15,7 @@
 import Foundation
 import HTTPTypes
 
-/// A parser of mutlipart frames from bytes.
+/// A parser of multipart frames from bytes.
 struct MultipartParser {
 
     /// The underlying state machine.

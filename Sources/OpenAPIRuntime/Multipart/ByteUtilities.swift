@@ -36,8 +36,11 @@ enum ASCII {
     /// Two dash characters.
     static let dashes: [UInt8] = [dash, dash]
 
-    /// The `<CR>` character follow by the `<LF>` character.
+    /// The `<CR>` character followed by the `<LF>` character.
     static let crlf: [UInt8] = [cr, lf]
+
+    /// The colon character followed by the space character.
+    static let colonSpace: [UInt8] = [colon, space]
 
     /// The characters that represent optional whitespace (OWS).
     static let optionalWhitespace: Set<UInt8> = [space, tab]
