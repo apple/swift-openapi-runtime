@@ -109,6 +109,27 @@ class Test_Runtime: XCTestCase {
     }
 }
 
+/// Each line gets a CRLF added. Extra CRLFs are added after the last line's CRLF.
+func chunkFromStringLines(_ strings: [String], addExtraCRLFs: Int = 0) -> ArraySlice<UInt8> {
+    var slice: ArraySlice<UInt8> = []
+    for string in strings { slice.append(contentsOf: chunkFromString(string, addCRLFs: 1)) }
+    slice.append(contentsOf: chunkFromString("", addCRLFs: addExtraCRLFs))
+    return slice
+}
+
+func chunkFromString(_ string: String, addCRLFs: Int = 0) -> ArraySlice<UInt8> {
+    var slice = ArraySlice(string.utf8)
+    for _ in 0..<addCRLFs { slice.append(contentsOf: [0x0d, 0x0a]) }
+    return slice
+}
+
+func bufferFromString(_ string: String) -> [UInt8] { Array(string.utf8) }
+
+extension ArraySlice<UInt8> {
+    mutating func append(_ string: String) { append(contentsOf: chunkFromString(string)) }
+    mutating func appendCRLF() { append(contentsOf: [0x0d, 0x0a]) }
+}
+
 struct TestError: Error, Equatable {}
 
 struct MockMiddleware: ClientMiddleware, ServerMiddleware {
