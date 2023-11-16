@@ -17,20 +17,12 @@ import Foundation
 
 final class Test_MultipartBytesToFramesSequence: Test_Runtime {
     func test() async throws {
-        var chunk = chunkFromStringLines([
+        let chunk = chunkFromStringLines([
             "--__abcd__", #"Content-Disposition: form-data; name="name""#, "", "24", "--__abcd__",
             #"Content-Disposition: form-data; name="info""#, "", "{}", "--__abcd__--",
         ])
-        let next: () async throws -> ArraySlice<UInt8>? = {
-            if let first = chunk.first {
-                let out: ArraySlice<UInt8> = [first]
-                chunk = chunk.dropFirst()
-                return out
-            } else {
-                return nil
-            }
-        }
-        let upstream = HTTPBody(AsyncThrowingStream(unfolding: next), length: .unknown, iterationBehavior: .single)
+        var iterator = chunk.makeIterator()
+        let upstream = AsyncStream { iterator.next().map { ArraySlice([$0]) } }
         let sequence = MultipartBytesToFramesSequence(upstream: upstream, boundary: "__abcd__")
         var frames: [MultipartFrame] = []
         for try await frame in sequence { frames.append(frame) }
