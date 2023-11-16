@@ -186,8 +186,7 @@ extension MultipartFramesToRawPartsSequence {
         }
 
         /// Ingest the provided frame, requested by the part sequence.
-        /// - Parameters:
-        ///   - frame: A new frame. If `nil`, then the source of frames is finished.
+        /// - Parameter frame: A new frame. If `nil`, then the source of frames is finished.
         /// - Returns: An action to perform.
         mutating func partReceivedFrame(_ frame: MultipartFrame?) -> PartReceivedFrameAction {
             switch state {
@@ -258,8 +257,7 @@ extension MultipartFramesToRawPartsSequence {
         }
 
         /// Ingest the provided frame, requested by the body sequence.
-        /// - Parameters:
-        ///   - frame: A new frame. If `nil`, then the source of frames is finished.
+        /// - Parameter frame: A new frame. If `nil`, then the source of frames is finished.
         /// - Returns: An action to perform.
         mutating func bodyReceivedFrame(_ frame: MultipartFrame?) -> BodyReceivedFrameAction {
             switch state {
@@ -337,6 +335,7 @@ extension MultipartFramesToRawPartsSequence {
         /// Request the next element from the outer part sequence.
         /// - Parameter bodyClosure: The closure invoked to fetch the next byte chunk of the part's body.
         /// - Returns: The next element, or `nil` if finished.
+        /// - Throws: When a parsing error is encountered.
         func nextFromPartSequence(bodyClosure: @escaping @Sendable () async throws -> ArraySlice<UInt8>?) async throws
             -> Element?
         {
