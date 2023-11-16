@@ -145,7 +145,7 @@ extension MultipartSerializer {
             case initial
 
             /// Emitted start, but no frames yet.
-            case startedNothingEmittedYet
+            case emittedStart
 
             /// Finished, the terminal state.
             case finished
@@ -188,10 +188,10 @@ extension MultipartSerializer {
         mutating func next() -> NextAction {
             switch state {
             case .initial:
-                state = .startedNothingEmittedYet
+                state = .emittedStart
                 return .emitStart
             case .finished: return .returnNil
-            case .startedNothingEmittedYet, .emittedHeaders, .emittedBodyChunk: return .needsMore
+            case .emittedStart, .emittedHeaders, .emittedBodyChunk: return .needsMore
             }
         }
 
@@ -234,17 +234,17 @@ extension MultipartSerializer {
             switch state {
             case .initial: preconditionFailure("Invalid state: \(state)")
             case .finished: return .returnNil
-            case .startedNothingEmittedYet, .emittedHeaders, .emittedBodyChunk: break
+            case .emittedStart, .emittedHeaders, .emittedBodyChunk: break
             }
             switch (state, frame) {
             case (.initial, _), (.finished, _): preconditionFailure("Already handled above.")
             case (_, .none):
                 state = .finished
                 return .emitEvents([.endOfPart, .end])
-            case (.startedNothingEmittedYet, .headerFields(let headerFields)):
+            case (.emittedStart, .headerFields(let headerFields)):
                 state = .emittedHeaders
                 return .emitEvents([.headerFields(headerFields)])
-            case (.startedNothingEmittedYet, .bodyChunk):
+            case (.emittedStart, .bodyChunk):
                 state = .finished
                 return .emitError(.noHeaderFieldsAtStart)
             case (.emittedHeaders, .headerFields(let headerFields)),

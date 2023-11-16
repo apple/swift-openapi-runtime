@@ -49,7 +49,7 @@ final class Test_MultipartSerializerStateMachine: Test_Runtime {
         var stateMachine = newStateMachine()
         XCTAssertEqual(stateMachine.state, .initial)
         XCTAssertEqual(stateMachine.next(), .emitStart)
-        XCTAssertEqual(stateMachine.state, .startedNothingEmittedYet)
+        XCTAssertEqual(stateMachine.state, .emittedStart)
         XCTAssertEqual(
             stateMachine.receivedFrame(.headerFields([.contentDisposition: #"form-data; name="name""#])),
             .emitEvents([.headerFields([.contentDisposition: #"form-data; name="name""#])])
