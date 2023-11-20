@@ -275,8 +275,10 @@ extension MultipartBody {
     ///   - sequence: An async sequence that provides the parts.
     ///   - iterationBehavior: The iteration behavior of the sequence, which indicates whether it
     ///     can be iterated multiple times.
-    @inlinable public convenience init<Input: AsyncSequence & Sendable>(_ sequence: Input, iterationBehavior: IterationBehavior)
-    where Input.Element == Element { self.init(.init(sequence), iterationBehavior: iterationBehavior) }
+    @inlinable public convenience init<Input: AsyncSequence & Sendable>(
+        _ sequence: Input,
+        iterationBehavior: IterationBehavior
+    ) where Input.Element == Element { self.init(.init(sequence), iterationBehavior: iterationBehavior) }
 
     /// Creates a new sequence with the provided sequence parts.
     /// - Parameters:
