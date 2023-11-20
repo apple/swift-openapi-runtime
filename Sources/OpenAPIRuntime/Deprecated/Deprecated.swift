@@ -195,3 +195,14 @@ extension DecodingError {
         }
     }
 }
+
+extension Configuration {
+    /// Creates a new configuration with the specified values.
+    ///
+    /// - Parameter dateTranscoder: The transcoder to use when converting between date
+    ///   and string values.
+    @available(*, deprecated, renamed: "init(dateTranscoder:multipartBoundaryGenerator:)") @_disfavoredOverload
+    public init(dateTranscoder: any DateTranscoder) {
+        self.init(dateTranscoder: dateTranscoder, multipartBoundaryGenerator: .random)
+    }
+}
