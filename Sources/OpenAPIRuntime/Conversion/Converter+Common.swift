@@ -65,6 +65,29 @@ extension Converter {
         return bestContentType
     }
 
+    /// Verifies the MIME type from the content-type header, if present.
+    /// - Parameters:
+    ///   - headerFields: The header fields to inspect for the content type header.
+    ///   - match: The content type to verify.
+    /// - Throws: If the content type is incompatible or malformed.
+    public func verifyContentTypeIfPresent(in headerFields: HTTPFields, matches match: String) throws {
+        guard let rawValue = headerFields[.contentType] else { return }
+        _ = try bestContentType(received: .init(rawValue), options: [match])
+    }
+
+    /// Returns the name and file name parameter values from the `content-disposition` header field, if found.
+    /// - Parameter headerFields: The header fields to inspect for a `content-disposition` header field.
+    /// - Returns: A tuple of the name and file name string values.
+    /// - Throws: Currently doesn't, but might in the future.
+    public func extractContentDispositionNameAndFilename(in headerFields: HTTPFields) throws -> (
+        name: String?, filename: String?
+    ) {
+        guard let rawValue = headerFields[.contentDisposition],
+            let contentDisposition = ContentDisposition(rawValue: rawValue)
+        else { return (nil, nil) }
+        return (contentDisposition.name, contentDisposition.filename)
+    }
+
     // MARK: - Converter helper methods
 
     /// Sets a header field with an optional value, encoding it as a URI component if not nil.

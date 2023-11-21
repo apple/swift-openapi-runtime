@@ -179,6 +179,52 @@ extension Converter {
         return HTTPBody(encodedString)
     }
 
+    /// Returns a serialized multipart body stream.
+    /// - Parameters:
+    ///   - multipart: The multipart body.
+    ///   - requirements: The multipart requirements to enforce. When violated, an error is thrown in the sequence.
+    ///   - boundary: The multipart boundary string.
+    ///   - encode: A closure that converts a typed part into a raw part.
+    /// - Returns: The serialized body stream.
+    func convertMultipartToBytes<Part: Sendable>(
+        _ multipart: MultipartBody<Part>,
+        requirements: MultipartBodyRequirements,
+        boundary: String,
+        encode: @escaping @Sendable (Part) throws -> MultipartRawPart
+    ) -> HTTPBody {
+        let untyped = multipart.map { part in
+            var untypedPart = try encode(part)
+            if case .known(let byteCount) = untypedPart.body.length {
+                untypedPart.headerFields[.contentLength] = String(byteCount)
+            }
+            return untypedPart
+        }
+        let validated = MultipartValidationSequence(upstream: untyped, requirements: requirements)
+        let frames = MultipartRawPartsToFramesSequence(upstream: validated)
+        let bytes = MultipartFramesToBytesSequence(upstream: frames, boundary: boundary)
+        return HTTPBody(bytes, length: .unknown, iterationBehavior: multipart.iterationBehavior)
+    }
+
+    /// Returns a parsed multipart body.
+    /// - Parameters:
+    ///   - bytes: The multipart body byte stream.
+    ///   - boundary: The multipart boundary string.
+    ///   - requirements: The multipart requirements to enforce. When violated, an error is thrown in the sequence.
+    ///   - transform: A closure that converts a raw part into a typed part.
+    /// - Returns: The typed multipart body stream.
+    func convertBytesToMultipart<Part: Sendable>(
+        _ bytes: HTTPBody,
+        boundary: String,
+        requirements: MultipartBodyRequirements,
+        transform: @escaping @Sendable (MultipartRawPart) async throws -> Part
+    ) -> MultipartBody<Part> {
+        let frames = MultipartBytesToFramesSequence(upstream: bytes, boundary: boundary)
+        let raw = MultipartFramesToRawPartsSequence(upstream: frames)
+        let validated = MultipartValidationSequence(upstream: raw, requirements: requirements)
+        let typed = validated.map(transform)
+        return .init(typed, iterationBehavior: bytes.iterationBehavior)
+    }
+
     /// Returns a JSON string for the provided encodable value.
     /// - Parameter value: The value to encode.
     /// - Returns: A JSON string.
@@ -383,13 +429,12 @@ extension Converter {
     ///   - contentType: The content type value.
     ///   - convert: The closure that encodes the value into a raw body.
     /// - Returns: The body.
-    /// - Throws: An error if an issue occurs while encoding the request body or setting the content type.
     func setRequiredRequestBody<T>(
         _ value: T,
         headerFields: inout HTTPFields,
         contentType: String,
         convert: (T) throws -> HTTPBody
-    ) throws -> HTTPBody {
+    ) rethrows -> HTTPBody {
         headerFields[.contentType] = contentType
         return try convert(value)
     }
@@ -402,13 +447,12 @@ extension Converter {
     ///   - contentType: The content type value.
     ///   - convert: The closure that encodes the value into a raw body.
     /// - Returns: The body, if value was not nil.
-    /// - Throws: An error if an issue occurs while encoding the request body or setting the content type.
     func setOptionalRequestBody<T>(
         _ value: T?,
         headerFields: inout HTTPFields,
         contentType: String,
         convert: (T) throws -> HTTPBody
-    ) throws -> HTTPBody? {
+    ) rethrows -> HTTPBody? {
         guard let value else { return nil }
         return try setRequiredRequestBody(
             value,
@@ -547,13 +591,12 @@ extension Converter {
     ///   - contentType: The content type value.
     ///   - convert: The closure that encodes the value into a raw body.
     /// - Returns: The body, if value was not nil.
-    /// - Throws: An error if an issue occurs while encoding the request body.
     func setResponseBody<T>(
         _ value: T,
         headerFields: inout HTTPFields,
         contentType: String,
         convert: (T) throws -> HTTPBody
-    ) throws -> HTTPBody {
+    ) rethrows -> HTTPBody {
         headerFields[.contentType] = contentType
         return try convert(value)
     }
