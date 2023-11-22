@@ -293,13 +293,13 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let value = try converter.getRequiredRequestBodyAsMultipart(
             MultipartBody<MultipartTestPart>.self,
             from: .init(testMultipartStringBytes),
+            transforming: { $0 },
             boundary: "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__",
             allowsUnknownParts: true,
             requiredExactlyOncePartNames: ["hello"],
             requiredAtLeastOncePartNames: ["world"],
             atMostOncePartNames: [],
             zeroOrMoreTimesPartNames: [],
-            transforming: { $0 },
             decoding: { part in try await .init(part) }
         )
         var parts: [MultipartTestPart] = []

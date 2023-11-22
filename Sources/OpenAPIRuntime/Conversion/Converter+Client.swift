@@ -299,6 +299,7 @@ extension Converter {
     /// - Parameters:
     ///   - type: The type representing the type-safe multipart body.
     ///   - data: The HTTP body data to transform.
+    ///   - transform: A closure that transforms the multipart body into the output type.
     ///   - boundary: The multipart boundary string.
     ///   - allowsUnknownParts: A Boolean value indicating whether parts with unknown names
     ///     should be pass through. If `false`, encountering an unknown part throws an error
@@ -307,20 +308,19 @@ extension Converter {
     ///   - requiredAtLeastOncePartNames: The list of part names that are required at least once.
     ///   - atMostOncePartNames: The list of part names that can appear at most once.
     ///   - zeroOrMoreTimesPartNames: The list of names that can appear any number of times.
-    ///   - transform: A closure that transforms the multipart body into the output type.
     ///   - decoder: A closure that parses a raw part into a type-safe part.
     /// - Returns: A value of the output type.
     /// - Throws: If the transform closure throws.
     public func getResponseBodyAsMultipart<C, Part: Sendable>(
         _ type: MultipartBody<Part>.Type,
         from data: HTTPBody?,
+        transforming transform: @escaping @Sendable (MultipartBody<Part>) throws -> C,
         boundary: String,
         allowsUnknownParts: Bool,
         requiredExactlyOncePartNames: Set<String>,
         requiredAtLeastOncePartNames: Set<String>,
         atMostOncePartNames: Set<String>,
         zeroOrMoreTimesPartNames: Set<String>,
-        transforming transform: @escaping @Sendable (MultipartBody<Part>) throws -> C,
         decoding decoder: @escaping @Sendable (MultipartRawPart) async throws -> Part
     ) throws -> C {
         guard let data else { throw RuntimeError.missingRequiredResponseBody }
