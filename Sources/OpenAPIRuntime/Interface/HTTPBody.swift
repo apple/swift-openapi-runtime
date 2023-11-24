@@ -121,14 +121,6 @@ public final class HTTPBody: @unchecked Sendable {
     /// The underlying byte chunk type.
     public typealias ByteChunk = ArraySlice<UInt8>
 
-    /// Describes how many times the provided sequence can be iterated.
-    @available(
-        *,
-        deprecated,
-        renamed: "IterationBehavior",
-        message: "Use the top level IterationBehavior directly instead of HTTPBody.IterationBehavior."
-    ) public typealias IterationBehavior = OpenAPIRuntime.IterationBehavior
-
     /// The iteration behavior, which controls how many times
     /// the input sequence can be iterated.
     public let iterationBehavior: OpenAPIRuntime.IterationBehavior
