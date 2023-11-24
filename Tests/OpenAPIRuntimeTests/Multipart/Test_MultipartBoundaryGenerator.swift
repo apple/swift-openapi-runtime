@@ -26,7 +26,7 @@ final class Test_MultipartBoundaryGenerator: Test_Runtime {
     }
 
     func testRandom() throws {
-        let generator = RandomMultipartBoundaryGenerator(boundaryPrefix: "__abcd__", randomNumberSuffixLenght: 8)
+        let generator = RandomMultipartBoundaryGenerator(boundaryPrefix: "__abcd__", randomNumberSuffixLength: 8)
         let firstBoundary = generator.makeBoundary()
         let secondBoundary = generator.makeBoundary()
         XCTAssertNotEqual(firstBoundary, secondBoundary)
