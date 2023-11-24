@@ -52,7 +52,7 @@ public struct RandomMultipartBoundaryGenerator: MultipartBoundaryGenerator {
     /// The constant prefix of each boundary.
     public let boundaryPrefix: String
     /// The length, in bytes, of the random boundary suffix.
-    public let randomNumberSuffixLenght: Int
+    public let randomNumberSuffixLength: Int
 
     /// The options for the random bytes suffix.
     private let values: [UInt8] = Array("0123456789".utf8)
@@ -60,15 +60,15 @@ public struct RandomMultipartBoundaryGenerator: MultipartBoundaryGenerator {
     /// Create a new generator.
     /// - Parameters:
     ///   - boundaryPrefix: The constant prefix of each boundary.
-    ///   - randomNumberSuffixLenght: The length, in bytes, of the random boundary suffix.
+    ///   - randomNumberSuffixLength: The length, in bytes, of the random boundary suffix.
     public init(boundaryPrefix: String = "__X_SWIFT_OPENAPI_", randomNumberSuffixLenght: Int = 20) {
         self.boundaryPrefix = boundaryPrefix
-        self.randomNumberSuffixLenght = randomNumberSuffixLenght
+        self.randomNumberSuffixLength = randomNumberSuffixLength
     }
     /// Generates a boundary string for a multipart message.
     /// - Returns: A boundary string.
     public func makeBoundary() -> String {
-        var randomSuffix = [UInt8](repeating: 0, count: randomNumberSuffixLenght)
+        var randomSuffix = [UInt8](repeating: 0, count: randomNumberSuffixLength)
         for i in randomSuffix.startIndex..<randomSuffix.endIndex { randomSuffix[i] = values.randomElement()! }
         return boundaryPrefix.appending(String(decoding: randomSuffix, as: UTF8.self))
     }
