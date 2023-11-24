@@ -206,3 +206,13 @@ extension Configuration {
         self.init(dateTranscoder: dateTranscoder, multipartBoundaryGenerator: .random)
     }
 }
+
+extension HTTPBody {
+    /// Describes how many times the provided sequence can be iterated.
+    @available(
+        *,
+        deprecated,
+        renamed: "IterationBehavior",
+        message: "Use the top level IterationBehavior directly instead of HTTPBody.IterationBehavior."
+    ) public typealias IterationBehavior = OpenAPIRuntime.IterationBehavior
+}
