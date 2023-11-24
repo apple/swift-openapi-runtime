@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-@_spi(Generated) import OpenAPIRuntime
+@_spi(Generated) @testable import OpenAPIRuntime
 import HTTPTypes
 
 class Test_Runtime: XCTestCase {
@@ -26,7 +26,7 @@ class Test_Runtime: XCTestCase {
 
     var serverURL: URL { get throws { try URL(validatingOpenAPIServerURL: "/api") } }
 
-    var configuration: Configuration { .init() }
+    var configuration: Configuration { .init(multipartBoundaryGenerator: .constant) }
 
     var converter: Converter { .init(configuration: configuration) }
 
@@ -51,6 +51,34 @@ class Test_Runtime: XCTestCase {
     var testString: String { "hello" }
 
     var testStringData: Data { Data(testString.utf8) }
+
+    var testMultipartString: String { "hello" }
+
+    var testMultipartStringBytes: ArraySlice<UInt8> {
+        var bytes: [UInt8] = []
+        bytes.append(contentsOf: "--__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__".utf8)
+        bytes.append(contentsOf: ASCII.crlf)
+        bytes.append(contentsOf: #"content-disposition: form-data; filename="foo.txt"; name="hello""#.utf8)
+        bytes.append(contentsOf: ASCII.crlf)
+        bytes.append(contentsOf: #"content-length: 5"#.utf8)
+        bytes.append(contentsOf: ASCII.crlf)
+        bytes.append(contentsOf: ASCII.crlf)
+        bytes.append(contentsOf: "hello".utf8)
+        bytes.append(contentsOf: ASCII.crlf)
+        bytes.append(contentsOf: "--__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__".utf8)
+        bytes.append(contentsOf: ASCII.crlf)
+        bytes.append(contentsOf: #"content-disposition: form-data; filename="bar.txt"; name="world""#.utf8)
+        bytes.append(contentsOf: ASCII.crlf)
+        bytes.append(contentsOf: #"content-length: 5"#.utf8)
+        bytes.append(contentsOf: ASCII.crlf)
+        bytes.append(contentsOf: ASCII.crlf)
+        bytes.append(contentsOf: "world".utf8)
+        bytes.append(contentsOf: ASCII.crlf)
+        bytes.append(contentsOf: "--__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__--".utf8)
+        bytes.append(contentsOf: ASCII.crlf)
+        bytes.append(contentsOf: ASCII.crlf)
+        return ArraySlice(bytes)
+    }
 
     var testQuotedString: String { "\"hello\"" }
 
@@ -196,6 +224,31 @@ enum TestHabitat: String, Codable, Equatable {
     case air
 }
 
+enum MultipartTestPart: Hashable {
+    case hello(payload: String, filename: String?)
+    case world(payload: String, filename: String?)
+    var rawPart: MultipartRawPart {
+        switch self {
+        case .hello(let payload, let filename):
+            return .init(name: "hello", filename: filename, headerFields: [:], body: .init(payload))
+        case .world(let payload, let filename):
+            return .init(name: "world", filename: filename, headerFields: [:], body: .init(payload))
+        }
+    }
+    init(_ rawPart: MultipartRawPart) async throws {
+        switch rawPart.name {
+        case "hello":
+            self = .hello(payload: try await String(collecting: rawPart.body, upTo: .max), filename: rawPart.filename)
+        case "world":
+            self = .world(payload: try await String(collecting: rawPart.body, upTo: .max), filename: rawPart.filename)
+        default: preconditionFailure("Unexpected part: \(rawPart.name ?? "<nil>")")
+        }
+    }
+    static var all: [MultipartTestPart] {
+        [.hello(payload: "hello", filename: "foo.txt"), .world(payload: "world", filename: "bar.txt")]
+    }
+}
+
 /// Injects an authentication header to every request.
 struct AuthenticationMiddleware: ClientMiddleware {
 
@@ -292,6 +345,7 @@ fileprivate extension UInt8 {
         return String(format: "%02x \(original)", self)
     }
 }
+
 /// Asserts that the data matches the expected value.
 public func XCTAssertEqualData<C1: Collection, C2: Collection>(
     _ expression1: @autoclosure () throws -> C1?,
@@ -338,4 +392,20 @@ public func XCTAssertEqualData<C1: Collection, C2: Collection>(
             line: line
         )
     } catch { XCTFail(error.localizedDescription, file: file, line: line) }
+}
+
+/// Asserts that the data matches the expected value.
+public func XCTAssertEqualData<C: Collection>(
+    _ expression1: @autoclosure () throws -> HTTPBody?,
+    _ expression2: @autoclosure () throws -> C,
+    _ message: @autoclosure () -> String = "Data doesn't match.",
+    file: StaticString = #filePath,
+    line: UInt = #line
+) async throws where C.Element == UInt8 {
+    guard let actualBytesBody = try expression1() else {
+        XCTFail("First value is nil", file: file, line: line)
+        return
+    }
+    let actualBytes = try await [UInt8](collecting: actualBytesBody, upTo: .max)
+    XCTAssertEqualData(actualBytes, try expression2(), file: file, line: line)
 }

@@ -39,6 +39,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     case unexpectedContentTypeHeader(String)
     case unexpectedAcceptHeader(String)
     case malformedAcceptHeader(String)
+    case missingOrMalformedContentDispositionName
 
     // Path
     case missingRequiredPathParameter(String)
@@ -50,6 +51,10 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     // Body
     case missingRequiredRequestBody
     case missingRequiredResponseBody
+
+    // Multipart
+    case missingRequiredMultipartFormDataContentType
+    case missingMultipartBoundaryContentTypeParameter
 
     // Transport/Handler
     case transportFailed(any Error)
@@ -90,11 +95,16 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
         case .unexpectedContentTypeHeader(let contentType): return "Unexpected Content-Type header: \(contentType)"
         case .unexpectedAcceptHeader(let accept): return "Unexpected Accept header: \(accept)"
         case .malformedAcceptHeader(let accept): return "Malformed Accept header: \(accept)"
+        case .missingOrMalformedContentDispositionName:
+            return "Missing or malformed Content-Disposition header or it's missing a name."
         case .missingRequiredPathParameter(let name): return "Missing required path parameter named: \(name)"
         case .pathUnset: return "Path was not set on the request."
         case .missingRequiredQueryParameter(let name): return "Missing required query parameter named: \(name)"
         case .missingRequiredRequestBody: return "Missing required request body"
         case .missingRequiredResponseBody: return "Missing required response body"
+        case .missingRequiredMultipartFormDataContentType: return "Expected a 'multipart/form-data' content type."
+        case .missingMultipartBoundaryContentTypeParameter:
+            return "Missing 'boundary' parameter in the 'multipart/form-data' content type."
         case .transportFailed: return "Transport threw an error."
         case .middlewareFailed(middlewareType: let type, _): return "Middleware of type '\(type)' threw an error."
         case .handlerFailed: return "User handler threw an error."

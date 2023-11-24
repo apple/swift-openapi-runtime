@@ -288,6 +288,25 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         try await XCTAssertEqualStringifiedData(body, testString)
     }
 
+    //    | server | get | request body | multipart | required | getRequiredRequestBodyAsMultipart |
+    func test_getRequiredRequestBodyAsMultipart() async throws {
+        let value = try converter.getRequiredRequestBodyAsMultipart(
+            MultipartBody<MultipartTestPart>.self,
+            from: .init(testMultipartStringBytes),
+            transforming: { $0 },
+            boundary: "__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__",
+            allowsUnknownParts: true,
+            requiredExactlyOncePartNames: ["hello"],
+            requiredAtLeastOncePartNames: ["world"],
+            atMostOncePartNames: [],
+            zeroOrMoreTimesPartNames: [],
+            decoding: { part in try await .init(part) }
+        )
+        var parts: [MultipartTestPart] = []
+        for try await part in value { parts.append(part) }
+        XCTAssertEqual(parts, MultipartTestPart.all)
+    }
+
     //    | server | set | response body | JSON | required | setResponseBodyAsJSON |
     func test_setResponseBodyAsJSON_codable() async throws {
         var headers: HTTPFields = [:]
@@ -310,5 +329,27 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         )
         try await XCTAssertEqualStringifiedData(data, testString)
         XCTAssertEqual(headers, [.contentType: "application/octet-stream"])
+    }
+
+    //    | server | set | response body | multipart | required | setResponseBodyAsMultipart |
+    func test_setResponseBodyAsMultipart() async throws {
+        let multipartBody: MultipartBody<MultipartTestPart> = .init(MultipartTestPart.all)
+        var headerFields: HTTPFields = [:]
+        let body = try converter.setResponseBodyAsMultipart(
+            multipartBody,
+            headerFields: &headerFields,
+            contentType: "multipart/form-data",
+            allowsUnknownParts: true,
+            requiredExactlyOncePartNames: ["hello"],
+            requiredAtLeastOncePartNames: ["world"],
+            atMostOncePartNames: [],
+            zeroOrMoreTimesPartNames: [],
+            encoding: { part in part.rawPart }
+        )
+        try await XCTAssertEqualData(body, testMultipartStringBytes)
+        XCTAssertEqual(
+            headerFields,
+            [.contentType: "multipart/form-data; boundary=__X_SWIFT_OPENAPI_GENERATOR_BOUNDARY__"]
+        )
     }
 }
