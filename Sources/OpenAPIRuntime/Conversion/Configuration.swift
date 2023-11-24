@@ -74,9 +74,20 @@ public struct Configuration: Sendable {
     /// The transcoder used when converting between date and string values.
     public var dateTranscoder: any DateTranscoder
 
+    /// The generator to use when creating mutlipart bodies.
+    public var multipartBoundaryGenerator: any MultipartBoundaryGenerator
+
     /// Creates a new configuration with the specified values.
     ///
-    /// - Parameter dateTranscoder: The transcoder to use when converting between date
+    /// - Parameters:
+    ///   - dateTranscoder: The transcoder to use when converting between date
     ///   and string values.
-    public init(dateTranscoder: any DateTranscoder = .iso8601) { self.dateTranscoder = dateTranscoder }
+    ///   - multipartBoundaryGenerator: The generator to use when creating mutlipart bodies.
+    public init(
+        dateTranscoder: any DateTranscoder = .iso8601,
+        multipartBoundaryGenerator: any MultipartBoundaryGenerator = .random
+    ) {
+        self.dateTranscoder = dateTranscoder
+        self.multipartBoundaryGenerator = multipartBoundaryGenerator
+    }
 }

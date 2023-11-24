@@ -121,25 +121,9 @@ public final class HTTPBody: @unchecked Sendable {
     /// The underlying byte chunk type.
     public typealias ByteChunk = ArraySlice<UInt8>
 
-    /// Describes how many times the provided sequence can be iterated.
-    public enum IterationBehavior: Sendable {
-
-        /// The input sequence can only be iterated once.
-        ///
-        /// If a retry or a redirect is encountered, fail the call with
-        /// a descriptive error.
-        case single
-
-        /// The input sequence can be iterated multiple times.
-        ///
-        /// Supports retries and redirects, as a new iterator is created each
-        /// time.
-        case multiple
-    }
-
-    /// The body's iteration behavior, which controls how many times
+    /// The iteration behavior, which controls how many times
     /// the input sequence can be iterated.
-    public let iterationBehavior: IterationBehavior
+    public let iterationBehavior: OpenAPIRuntime.IterationBehavior
 
     /// Describes the total length of the body, if known.
     public enum Length: Sendable, Equatable {
@@ -155,7 +139,7 @@ public final class HTTPBody: @unchecked Sendable {
     public let length: Length
 
     /// The underlying type-erased async sequence.
-    private let sequence: BodySequence
+    private let sequence: AnySequence<ByteChunk>
 
     /// A lock for shared mutable state.
     private let lock: NSLock = {
@@ -205,7 +189,11 @@ public final class HTTPBody: @unchecked Sendable {
     ///     length of all the byte chunks.
     ///   - iterationBehavior: The sequence's iteration behavior, which
     ///     indicates whether the sequence can be iterated multiple times.
-    @usableFromInline init(_ sequence: BodySequence, length: Length, iterationBehavior: IterationBehavior) {
+    @usableFromInline init(
+        _ sequence: AnySequence<ByteChunk>,
+        length: Length,
+        iterationBehavior: OpenAPIRuntime.IterationBehavior
+    ) {
         self.sequence = sequence
         self.length = length
         self.iterationBehavior = iterationBehavior
@@ -220,7 +208,7 @@ public final class HTTPBody: @unchecked Sendable {
     @usableFromInline convenience init(
         _ byteChunks: some Sequence<ByteChunk> & Sendable,
         length: Length,
-        iterationBehavior: IterationBehavior
+        iterationBehavior: OpenAPIRuntime.IterationBehavior
     ) {
         self.init(
             .init(WrappedSyncSequence(sequence: byteChunks)),
@@ -281,7 +269,7 @@ extension HTTPBody {
     @inlinable public convenience init(
         _ bytes: some Sequence<UInt8> & Sendable,
         length: Length,
-        iterationBehavior: IterationBehavior
+        iterationBehavior: OpenAPIRuntime.IterationBehavior
     ) { self.init([ArraySlice(bytes)], length: length, iterationBehavior: iterationBehavior) }
 
     /// Creates a new body with the provided byte collection.
@@ -323,7 +311,7 @@ extension HTTPBody {
     @inlinable public convenience init<Bytes: AsyncSequence>(
         _ sequence: Bytes,
         length: HTTPBody.Length,
-        iterationBehavior: IterationBehavior
+        iterationBehavior: OpenAPIRuntime.IterationBehavior
     ) where Bytes.Element == ByteChunk, Bytes: Sendable {
         self.init(.init(sequence), length: length, iterationBehavior: iterationBehavior)
     }
@@ -337,7 +325,7 @@ extension HTTPBody {
     @inlinable public convenience init<Bytes: AsyncSequence>(
         _ sequence: Bytes,
         length: HTTPBody.Length,
-        iterationBehavior: IterationBehavior
+        iterationBehavior: OpenAPIRuntime.IterationBehavior
     ) where Bytes: Sendable, Bytes.Element: Sequence & Sendable, Bytes.Element.Element == UInt8 {
         self.init(sequence.map { ArraySlice($0) }, length: length, iterationBehavior: iterationBehavior)
     }
@@ -356,7 +344,7 @@ extension HTTPBody: AsyncSequence {
     public func makeAsyncIterator() -> AsyncIterator {
         // The crash on error is intentional here.
         try! tryToMarkIteratorCreated()
-        return sequence.makeAsyncIterator()
+        return .init(sequence.makeAsyncIterator())
     }
 }
 
@@ -482,7 +470,7 @@ extension HTTPBody {
     @inlinable public convenience init<Strings: AsyncSequence>(
         _ sequence: Strings,
         length: HTTPBody.Length,
-        iterationBehavior: IterationBehavior
+        iterationBehavior: OpenAPIRuntime.IterationBehavior
     ) where Strings.Element: StringProtocol & Sendable, Strings: Sendable {
         self.init(.init(sequence.map { ByteChunk.init($0) }), length: length, iterationBehavior: iterationBehavior)
     }
@@ -581,85 +569,5 @@ extension HTTPBody {
         /// - Returns: The next element in the sequence, or `nil` if there are no more elements.
         /// - Throws: An error if there is an issue advancing the iterator or retrieving the next element.
         public mutating func next() async throws -> Element? { try await produceNext() }
-    }
-}
-
-extension HTTPBody {
-
-    /// A type-erased async sequence that wraps input sequences.
-    @usableFromInline struct BodySequence: AsyncSequence, Sendable {
-
-        /// The type of the type-erased iterator.
-        @usableFromInline typealias AsyncIterator = HTTPBody.Iterator
-
-        /// The byte chunk element type.
-        @usableFromInline typealias Element = ByteChunk
-
-        /// A closure that produces a new iterator.
-        @usableFromInline let produceIterator: @Sendable () -> AsyncIterator
-
-        /// Creates a new sequence.
-        /// - Parameter sequence: The input sequence to type-erase.
-        @inlinable init<Bytes: AsyncSequence>(_ sequence: Bytes) where Bytes.Element == Element, Bytes: Sendable {
-            self.produceIterator = { .init(sequence.makeAsyncIterator()) }
-        }
-
-        @usableFromInline func makeAsyncIterator() -> AsyncIterator { produceIterator() }
-    }
-
-    /// An async sequence wrapper for a sync sequence.
-    @usableFromInline struct WrappedSyncSequence<Bytes: Sequence>: AsyncSequence, Sendable
-    where Bytes.Element == ByteChunk, Bytes.Iterator.Element == ByteChunk, Bytes: Sendable {
-
-        /// The type of the iterator.
-        @usableFromInline typealias AsyncIterator = Iterator
-
-        /// The byte chunk element type.
-        @usableFromInline typealias Element = ByteChunk
-
-        /// An iterator type that wraps a sync sequence iterator.
-        @usableFromInline struct Iterator: AsyncIteratorProtocol {
-
-            /// The byte chunk element type.
-            @usableFromInline typealias Element = ByteChunk
-
-            /// The underlying sync sequence iterator.
-            var iterator: any IteratorProtocol<Element>
-
-            @usableFromInline mutating func next() async throws -> HTTPBody.ByteChunk? { iterator.next() }
-        }
-
-        /// The underlying sync sequence.
-        @usableFromInline let sequence: Bytes
-
-        /// Creates a new async sequence with the provided sync sequence.
-        /// - Parameter sequence: The sync sequence to wrap.
-        @inlinable init(sequence: Bytes) { self.sequence = sequence }
-
-        @usableFromInline func makeAsyncIterator() -> Iterator { Iterator(iterator: sequence.makeIterator()) }
-    }
-
-    /// An empty async sequence.
-    @usableFromInline struct EmptySequence: AsyncSequence, Sendable {
-
-        /// The type of the empty iterator.
-        @usableFromInline typealias AsyncIterator = EmptyIterator
-
-        /// The byte chunk element type.
-        @usableFromInline typealias Element = ByteChunk
-
-        /// An async iterator of an empty sequence.
-        @usableFromInline struct EmptyIterator: AsyncIteratorProtocol {
-
-            /// The byte chunk element type.
-            @usableFromInline typealias Element = ByteChunk
-
-            @usableFromInline mutating func next() async throws -> HTTPBody.ByteChunk? { nil }
-        }
-
-        /// Creates a new empty async sequence.
-        @inlinable init() {}
-
-        @usableFromInline func makeAsyncIterator() -> EmptyIterator { EmptyIterator() }
     }
 }
