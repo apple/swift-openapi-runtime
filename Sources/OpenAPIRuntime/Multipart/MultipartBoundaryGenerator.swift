@@ -61,7 +61,7 @@ public struct RandomMultipartBoundaryGenerator: MultipartBoundaryGenerator {
     /// - Parameters:
     ///   - boundaryPrefix: The constant prefix of each boundary.
     ///   - randomNumberSuffixLength: The length, in bytes, of the random boundary suffix.
-    public init(boundaryPrefix: String = "__X_SWIFT_OPENAPI_", randomNumberSuffixLenght: Int = 20) {
+    public init(boundaryPrefix: String = "__X_SWIFT_OPENAPI_", randomNumberSuffixLength: Int = 20) {
         self.boundaryPrefix = boundaryPrefix
         self.randomNumberSuffixLength = randomNumberSuffixLength
     }
