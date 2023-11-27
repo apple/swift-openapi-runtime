@@ -15,4 +15,3 @@ import Foundation
 import HTTPTypes
 
 // MARK: - Functionality to be removed in the future
-
