@@ -19,7 +19,7 @@ Add the package dependency in your `Package.swift`:
 ```swift
 .package(
     url: "https://github.com/apple/swift-openapi-runtime",
-    exact: "1.0.0-alpha.1"
+    exact: "1.0.0-alpha.1"
 ),
 ```
 
