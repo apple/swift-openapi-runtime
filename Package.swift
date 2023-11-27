@@ -1,4 +1,4 @@
-// swift-tools-version: 5.8
+// swift-tools-version: 5.9
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftOpenAPIGenerator open source project
@@ -15,15 +15,11 @@
 import PackageDescription
 
 // General Swift-settings for all targets.
-var swiftSettings: [SwiftSetting] = []
-
-#if swift(>=5.9)
-swiftSettings.append(
+let swiftSettings: [SwiftSetting] = [
     // https://github.com/apple/swift-evolution/blob/main/proposals/0335-existential-any.md
     // Require `any` for existential types.
     .enableUpcomingFeature("ExistentialAny")
-)
-#endif
+]
 
 let package = Package(
     name: "swift-openapi-runtime",
