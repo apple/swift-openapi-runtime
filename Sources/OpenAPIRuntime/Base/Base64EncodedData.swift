@@ -56,12 +56,6 @@ public struct Base64EncodedData: Sendable, Hashable {
 
     /// Initializes an instance of ``Base64EncodedData`` wrapping the provided slice of bytes.
     /// - Parameter data: The underlying bytes to wrap.
-    @available(*, deprecated, renamed: "init(_:)")
-
-    public init(data: ArraySlice<UInt8>) { self.data = data }
-
-    /// Initializes an instance of ``Base64EncodedData`` wrapping the provided slice of bytes.
-    /// - Parameter data: The underlying bytes to wrap.
     public init(_ data: ArraySlice<UInt8>) { self.data = data }
 
     /// Initializes an instance of ``Base64EncodedData`` wrapping the provided sequence of bytes.

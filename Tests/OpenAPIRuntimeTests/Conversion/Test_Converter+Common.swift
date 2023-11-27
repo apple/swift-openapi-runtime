@@ -21,26 +21,6 @@ final class Test_CommonConverterExtensions: Test_Runtime {
 
     // MARK: Miscs
 
-    @available(*, deprecated) func testContentTypeMatching() throws {
-        let cases: [(received: String, expected: String, isMatch: Bool)] = [
-            ("application/json", "application/json", true), ("APPLICATION/JSON", "application/json", true),
-            ("application/json", "application/*", true), ("application/json", "*/*", true),
-            ("application/json", "text/*", false), ("application/json", "application/xml", false),
-            ("application/json", "text/plain", false),
-
-            ("text/plain; charset=UTF-8", "text/plain", true), ("TEXT/PLAIN; CHARSET=UTF-8", "text/plain", true),
-            ("text/plain; charset=UTF-8", "text/*", true), ("text/plain; charset=UTF-8", "*/*", true),
-            ("text/plain; charset=UTF-8", "application/*", false), ("text/plain; charset=UTF-8", "text/html", false),
-        ]
-        for testCase in cases {
-            XCTAssertEqual(
-                try converter.isMatchingContentType(received: .init(testCase.received), expectedRaw: testCase.expected),
-                testCase.isMatch,
-                "Wrong result for (\(testCase.received), \(testCase.expected), \(testCase.isMatch))"
-            )
-        }
-    }
-
     func testBestContentType() throws {
         func testCase(
             received: String?,
