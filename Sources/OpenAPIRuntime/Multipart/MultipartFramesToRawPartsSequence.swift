@@ -77,7 +77,7 @@ extension HTTPBody {
         let stream = AsyncThrowingStream(unfolding: bodyClosure)
         let length: HTTPBody.Length
         if let contentLengthString = headerFields[.contentLength], let contentLength = Int(contentLengthString) {
-            length = .known(contentLength)
+            length = .known(Int64(contentLength))
         } else {
             length = .unknown
         }
