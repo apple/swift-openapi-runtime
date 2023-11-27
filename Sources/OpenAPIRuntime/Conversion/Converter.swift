@@ -15,7 +15,7 @@
 import Foundation
 #else
 @preconcurrency import class Foundation.JSONEncoder
-@preconcurrency import class Foundation.JSONDecoder
+import class Foundation.JSONDecoder
 #endif
 
 /// Converter between generated and HTTP currency types.
