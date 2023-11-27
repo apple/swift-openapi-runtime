@@ -125,17 +125,17 @@ public final class HTTPBody: @unchecked Sendable {
     /// the input sequence can be iterated.
     public let iterationBehavior: OpenAPIRuntime.IterationBehavior
 
-    /// Describes the total length of the body, if known.
+    /// Describes the total length of the body, in bytes, if known.
     public enum Length: Sendable, Equatable {
 
         /// Total length not known yet.
         case unknown
 
         /// Total length is known.
-        case known(Int)
+        case known(Int64)
     }
 
-    /// The total length of the body, if known.
+    /// The total length of the body, in bytes, if known.
     public let length: Length
 
     /// The underlying type-erased async sequence.
@@ -257,7 +257,7 @@ extension HTTPBody {
     /// Creates a new body with the provided byte chunk.
     /// - Parameter bytes: A byte chunk.
     @inlinable public convenience init(_ bytes: ByteChunk) {
-        self.init([bytes], length: .known(bytes.count), iterationBehavior: .multiple)
+        self.init([bytes], length: .known(Int64(bytes.count)), iterationBehavior: .multiple)
     }
 
     /// Creates a new body with the provided byte sequence.
@@ -283,7 +283,7 @@ extension HTTPBody {
     /// Creates a new body with the provided byte collection.
     /// - Parameter bytes: A byte chunk.
     @inlinable public convenience init(_ bytes: some Collection<UInt8> & Sendable) {
-        self.init(bytes, length: .known(bytes.count))
+        self.init(bytes, length: .known(Int64(bytes.count)))
     }
 
     /// Creates a new body with the provided async throwing stream.
