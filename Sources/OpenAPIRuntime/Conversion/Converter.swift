@@ -12,11 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 #if canImport(Darwin)
-import Foundation
+import class Foundation.JSONEncoder
 #else
 @preconcurrency import class Foundation.JSONEncoder
-import class Foundation.JSONDecoder
 #endif
+import class Foundation.JSONDecoder
 
 /// Converter between generated and HTTP currency types.
 @_spi(Generated) public struct Converter: Sendable {
