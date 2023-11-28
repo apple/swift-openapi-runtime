@@ -20,7 +20,6 @@ import struct Foundation.URL
 #endif
 import struct Foundation.URLComponents
 
-
 /// OpenAPI document-agnostic HTTP server used by OpenAPI document-specific,
 /// generated servers to perform request deserialization, middleware and handler
 /// invocation, and response serialization.
