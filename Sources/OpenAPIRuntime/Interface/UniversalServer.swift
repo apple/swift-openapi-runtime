@@ -13,7 +13,6 @@
 //===----------------------------------------------------------------------===//
 
 import HTTPTypes
-
 #if canImport(Darwin)
 import struct Foundation.URL
 #else
