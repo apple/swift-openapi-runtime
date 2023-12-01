@@ -95,6 +95,7 @@ extension StreamingBodyLoggingMiddleware {
 }
 
 extension StreamingBodyLoggingMiddleware: ClientMiddleware {
+    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
     public func intercept(
         _ request: HTTPRequest,
         body: HTTPBody?,
@@ -110,6 +111,7 @@ extension StreamingBodyLoggingMiddleware: ClientMiddleware {
 }
 
 extension StreamingBodyLoggingMiddleware: ServerMiddleware {
+    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
     public func intercept(
         _ request: HTTPRequest,
         body: HTTPBody?,
