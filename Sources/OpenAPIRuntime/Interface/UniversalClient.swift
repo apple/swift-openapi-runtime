@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 import HTTPTypes
 #if canImport(Darwin)
-import Foundation
+import struct Foundation.URL
 #else
 @preconcurrency import struct Foundation.URL
 #endif

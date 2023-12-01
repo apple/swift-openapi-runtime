@@ -14,11 +14,11 @@
 
 import HTTPTypes
 #if canImport(Darwin)
-import Foundation
+import struct Foundation.URL
 #else
 @preconcurrency import struct Foundation.URL
-@preconcurrency import protocol Foundation.LocalizedError
 #endif
+import protocol Foundation.LocalizedError
 
 /// An error thrown by a client performing an OpenAPI operation.
 ///

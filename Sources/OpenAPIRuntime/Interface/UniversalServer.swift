@@ -13,14 +13,12 @@
 //===----------------------------------------------------------------------===//
 
 import HTTPTypes
-
 #if canImport(Darwin)
 import struct Foundation.URL
-import struct Foundation.URLComponents
 #else
 @preconcurrency import struct Foundation.URL
-@preconcurrency import struct Foundation.URLComponents
 #endif
+import struct Foundation.URLComponents
 
 /// OpenAPI document-agnostic HTTP server used by OpenAPI document-specific,
 /// generated servers to perform request deserialization, middleware and handler
