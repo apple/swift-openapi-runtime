@@ -13,11 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 import HTTPTypes
-#if canImport(Darwin)
 import struct Foundation.URL
-#else
-@preconcurrency import struct Foundation.URL
-#endif
 
 /// A type that performs HTTP operations.
 ///

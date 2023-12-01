@@ -16,11 +16,7 @@ import class Foundation.JSONEncoder
 #else
 @preconcurrency import class Foundation.JSONEncoder
 #endif
-#if canImport(Darwin) || swift(>=5.9.1)
 import class Foundation.JSONDecoder
-#else
-@preconcurrency import class Foundation.JSONDecoder
-#endif
 
 /// Converter between generated and HTTP currency types.
 @_spi(Generated) public struct Converter: Sendable {

@@ -12,6 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
+#if canImport(Darwin) || swift(>=5.9.1)
+import struct Foundation.Date
+#else
+@preconcurrency import struct Foundation.Date
+#endif
 @_spi(Generated) @testable import OpenAPIRuntime
 
 final class Test_URICodingRoundtrip: Test_Runtime {
