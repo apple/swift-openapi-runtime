@@ -18,7 +18,11 @@ import struct Foundation.URL
 #else
 @preconcurrency import struct Foundation.URL
 #endif
+#if canImport(Darwin) || swift(>=5.9.1)
 import protocol Foundation.LocalizedError
+#else
+@preconcurrency import protocol Foundation.LocalizedError
+#endif
 
 /// An error thrown by a client performing an OpenAPI operation.
 ///

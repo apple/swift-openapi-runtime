@@ -18,7 +18,11 @@ import struct Foundation.URL
 #else
 @preconcurrency import struct Foundation.URL
 #endif
+#if canImport(Darwin) || swift(>=5.9.1)
 import struct Foundation.URLComponents
+#else
+@preconcurrency import struct Foundation.URLComponents
+#endif
 
 /// OpenAPI document-agnostic HTTP server used by OpenAPI document-specific,
 /// generated servers to perform request deserialization, middleware and handler
