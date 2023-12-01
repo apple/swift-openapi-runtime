@@ -33,8 +33,8 @@ import HTTPTypes
 /// // In servers:
 /// try handler.registerHandlers(on: ..., serverURL: ..., middlewares: [
 ///     StreamingBodyLoggingMiddleware(
-///         request: { print("Sending out request body chunk: \(String(decoding: $0, as: UTF8.self))") },
-///         response: { print("Received a response body chunk: \(String(decoding: $0, as: UTF8.self))") }
+///         request: { print("Received a request body chunk: \(String(decoding: $0, as: UTF8.self))") },
+///         response: { print("Sending out a response body chunk: \(String(decoding: $0, as: UTF8.self))") }
 ///     )
 /// ])
 /// ```
