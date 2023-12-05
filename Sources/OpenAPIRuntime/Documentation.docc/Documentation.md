@@ -87,6 +87,7 @@ Please report any issues related to this library in the [swift-openapi-generator
 - ``UndocumentedPayload``
 
 ### HTTP Currency Types
+- ``HTTPBody``
 - ``ServerRequestMetadata``
 - ``AcceptableProtocol``
 - ``AcceptHeaderContentType``
