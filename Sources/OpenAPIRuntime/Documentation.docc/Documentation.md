@@ -68,6 +68,18 @@ Please report any issues related to this library in the [swift-openapi-generator
 - ``Configuration``
 - ``DateTranscoder``
 - ``ISO8601DateTranscoder``
+- ``MultipartBoundaryGenerator``
+- ``RandomMultipartBoundaryGenerator``
+- ``ConstantMultipartBoundaryGenerator``
+- ``IterationBehavior``
+
+### Content types
+- ``HTTPBody``
+- ``Base64EncodedData``
+- ``MultipartBody``
+- ``MultipartRawPart``
+- ``MultipartPart``
+- ``MultipartDynamicallyNamedPart``
 
 ### Errors
 - ``ClientError``
@@ -77,6 +89,9 @@ Please report any issues related to this library in the [swift-openapi-generator
 ### HTTP Currency Types
 - ``HTTPBody``
 - ``ServerRequestMetadata``
+- ``AcceptableProtocol``
+- ``AcceptHeaderContentType``
+- ``QualityValue``
 
 ### Dynamic Payloads
 - ``OpenAPIValueContainer``
