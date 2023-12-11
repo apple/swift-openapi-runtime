@@ -14,7 +14,7 @@
 
 import Foundation
 
-/// Provides a route to encode or decode base64-encoded data
+/// A type for converting data as a base64 string.
 ///
 /// This type holds raw, unencoded, data as a slice of bytes. It can be used to encode that
 /// data to a provided `Encoder` as base64-encoded data or to decode from base64 encoding when
