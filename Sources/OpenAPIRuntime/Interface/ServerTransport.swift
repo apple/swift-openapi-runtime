@@ -71,20 +71,19 @@ import HTTPTypes
 ///
 /// Create the URL where the server will run. The path of the URL is extracted
 /// by the transport to create a common prefix (such as `/api/v1`) that might
-/// be expected by the clients. If the server URL is defined in the OpenAPI
-/// document, find the generated method for it on the `Servers` type,
-/// for example:
-///
-///     let serverURL = try Servers.server1()
+/// be expected by the clients.
 ///
 /// Register the generated request handlers by calling the method generated
 /// on the `APIProtocol` protocol:
 ///
-///     try handler.registerHandlers(on: transport, serverURL: serverURL)
+///     try handler.registerHandlers(
+///         on: transport,
+///         serverURL: URL(string: "/api/v1")!
+///     )
 ///
 /// Start the server by following the documentation of your chosen transport:
 ///
-///     try app.run()
+///     try await app.execute()
 ///
 /// ### Implement a custom server transport
 ///
@@ -161,7 +160,7 @@ public protocol ServerTransport {
 ///
 ///     try handler.registerHandlers(
 ///         on: transport,
-///         serverURL: serverURL,
+///         serverURL: URL(string: "/api/v1")!,
 ///         middlewares: [
 ///             loggingMiddleware,
 ///         ]
