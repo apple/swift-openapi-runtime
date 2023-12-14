@@ -12,6 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
+import HTTPTypes
+
 /// A payload value used by undocumented operation responses.
 ///
 /// Each operation's `Output` enum type needs to exhaustively
@@ -20,6 +22,19 @@
 /// `undocumented` enum case is used when such a status code is
 /// detected.
 public struct UndocumentedPayload: Sendable, Hashable {
-    /// Creates a new payload.
-    public init() {}
+
+    /// The header fields contained in the response.
+    public var headerFields: HTTPFields
+
+    /// The body stream of this part, if present.
+    public var body: HTTPBody?
+
+    /// Creates a new part.
+    /// - Parameters:
+    ///   - headerFields: The header fields contained in the response.
+    ///   - body: The body stream of this part, if present.
+    public init(headerFields: HTTPFields = [:], body: HTTPBody? = nil) {
+        self.headerFields = headerFields
+        self.body = body
+    }
 }
