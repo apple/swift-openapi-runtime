@@ -122,17 +122,31 @@ class Test_Runtime: XCTestCase {
 
     var testJSONLinesBytes: ArraySlice<UInt8> {
         let encoder = JSONEncoder()
-        let bytes = try! testEvents.map { try encoder.encode($0) }.joined(separator: [0x0a]) + [0x0a]
+        let bytes = try! testEvents.map { try encoder.encode($0) + [ASCII.lf] }.joined()
+        return ArraySlice(bytes)
+    }
+    
+    var testJSONSequenceBytes: ArraySlice<UInt8> {
+        let encoder = JSONEncoder()
+        let bytes = try! testEvents.map { try [ASCII.rs] + encoder.encode($0) + [ASCII.lf] }.joined()
         return ArraySlice(bytes)
     }
 
-    var testJSONLinesOneBytePerElementSequence: HTTPBody {
+    func asOneBytePerElementSequence(_ source: ArraySlice<UInt8>) -> HTTPBody {
         HTTPBody(
-            WrappedSyncSequence(sequence: testJSONLinesBytes)
+            WrappedSyncSequence(sequence: source)
                 .map { ArraySlice([$0]) },
-            length: .known(Int64(testJSONLinesBytes.count)),
+            length: .known(Int64(source.count)),
             iterationBehavior: .multiple
         )
+    }
+    
+    var testJSONLinesOneBytePerElementSequence: HTTPBody {
+        asOneBytePerElementSequence(testJSONLinesBytes)
+    }
+    
+    var testJSONSequenceOneBytePerElementSequence: HTTPBody {
+        asOneBytePerElementSequence(testJSONSequenceBytes)
     }
     
     @discardableResult func _testPrettyEncoded<Value: Encodable>(_ value: Value, expectedJSON: String) throws -> String
@@ -168,7 +182,7 @@ func chunkFromStringLines(_ strings: [String], addExtraCRLFs: Int = 0) -> ArrayS
 
 func chunkFromString(_ string: String, addCRLFs: Int = 0) -> ArraySlice<UInt8> {
     var slice = ArraySlice(string.utf8)
-    for _ in 0..<addCRLFs { slice.append(contentsOf: [0x0d, 0x0a]) }
+    for _ in 0..<addCRLFs { slice.append(contentsOf: ASCII.crlf) }
     return slice
 }
 
@@ -176,7 +190,7 @@ func bufferFromString(_ string: String) -> [UInt8] { Array(string.utf8) }
 
 extension ArraySlice<UInt8> {
     mutating func append(_ string: String) { append(contentsOf: chunkFromString(string)) }
-    mutating func appendCRLF() { append(contentsOf: [0x0d, 0x0a]) }
+    mutating func appendCRLF() { append(contentsOf: ASCII.crlf) }
 }
 
 struct TestError: Error, Equatable {}
@@ -359,8 +373,9 @@ fileprivate extension UInt8 {
     var asHex: String {
         let original: String
         switch self {
-        case 0x0d: original = "CR"
-        case 0x0a: original = "LF"
+        case ASCII.cr: original = "CR"
+        case ASCII.lf: original = "LF"
+        case ASCII.rs: original = "RS"
         default: original = "\(UnicodeScalar(self)) "
         }
         return String(format: "%02x \(original)", self)

@@ -24,6 +24,9 @@ enum ASCII {
     /// The line feed `<LF>` character.
     static let lf: UInt8 = 0x0a
 
+    /// The record separator `<RS>` character.
+    static let rs: UInt8 = 0x1e
+    
     /// The colon `:` character.
     static let colon: UInt8 = 0x3a
 
