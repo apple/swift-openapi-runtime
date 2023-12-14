@@ -17,14 +17,6 @@ import Foundation
 
 final class Test_JSONLinesDecoding: Test_Runtime {
     
-    func testParsed() async throws {
-        let sequence = testJSONLinesOneBytePerElementSequence.asParsedJSONLines()
-        let lines = try await [ArraySlice<UInt8>](collecting: sequence)
-        XCTAssertEqual(lines.count, 2)
-        XCTAssertEqualData(lines[0], "{\"name\":\"Rover\"}".utf8)
-        XCTAssertEqualData(lines[1], "{\"name\":\"Pancake\"}".utf8)
-    }
-    
     func testTyped() async throws {
         let sequence = testJSONLinesOneBytePerElementSequence.asDecodedJSONLines(of: TestPet.self)
         let events = try await [TestPet](collecting: sequence)

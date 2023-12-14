@@ -15,16 +15,11 @@
 import Foundation
 
 extension AsyncSequence where Element == ArraySlice<UInt8> {
-    
-    func asParsedJSONLines() -> LinesDeserializationSequence<Self> {
-        .init(upstream: self)
-    }
-    
     func asDecodedJSONLines<Event: Decodable>(
         of eventType: Event.Type = Event.self,
         using decoder: JSONDecoder = .init()
     ) -> AsyncThrowingMapSequence<LinesDeserializationSequence<Self>, Event> {
-        asParsedJSONLines().map { line in
+        asParsedLines().map { line in
             try decoder.decode(Event.self, from: Data(line))
         }
     }
