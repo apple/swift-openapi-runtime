@@ -23,7 +23,7 @@ final class Test_JSONLinesEncoding: Test_Runtime {
                 ArraySlice(#"{"name":"Rover"}"#.utf8),
                 ArraySlice(#"{"name":"Pancake"}"#.utf8)
             ]
-        ).asSerializedJSONLines()
+        ).asSerializedLines()
         try await XCTAssertEqualAsyncData(sequence, testJSONLinesBytes)
     }
     

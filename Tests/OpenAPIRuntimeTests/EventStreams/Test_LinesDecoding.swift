@@ -11,21 +11,17 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-
+import XCTest
+@_spi(Generated) @testable import OpenAPIRuntime
 import Foundation
 
-extension AsyncSequence where Element == ArraySlice<UInt8> {
+final class Test_LinesDecoding: Test_Runtime {
     
-    func asParsedJSONLines() -> LinesDeserializationSequence<Self> {
-        .init(upstream: self)
-    }
-    
-    func asDecodedJSONLines<Event: Decodable>(
-        of eventType: Event.Type = Event.self,
-        using decoder: JSONDecoder = .init()
-    ) -> AsyncThrowingMapSequence<LinesDeserializationSequence<Self>, Event> {
-        asParsedJSONLines().map { line in
-            try decoder.decode(Event.self, from: Data(line))
-        }
+    func testParsed() async throws {
+        let sequence = asOneBytePerElementSequence(ArraySlice("hello\nworld\n".utf8)).asParsedLines()
+        let lines = try await [ArraySlice<UInt8>](collecting: sequence)
+        XCTAssertEqual(lines.count, 2)
+        XCTAssertEqualData(lines[0], "hello".utf8)
+        XCTAssertEqualData(lines[1], "world".utf8)
     }
 }
