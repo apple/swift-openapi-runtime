@@ -85,7 +85,7 @@ extension AsyncSequence where Element == ArraySlice<UInt8> {
 /// An event sent by the server.
 ///
 /// https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation
-struct ServerSentEventWithJSONData<JSONDataType: Decodable & Sendable>: Sendable {
+struct ServerSentEventWithJSONData<JSONDataType: Decodable & Sendable & Hashable>: Sendable, Hashable {
 
     /// A type of the event, helps inform how to interpret the data.
     var event: String?
@@ -109,7 +109,7 @@ struct ServerSentEventWithJSONData<JSONDataType: Decodable & Sendable>: Sendable
 /// An event sent by the server.
 ///
 /// https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation
-struct ServerSentEvent: Sendable {
+struct ServerSentEvent: Sendable, Hashable {
 
     /// A type of the event, helps inform how to interpret the data.
     var event: String?
@@ -163,7 +163,7 @@ struct ServerSentEventsDeserializerStateMachine {
                 }
                 return .emitEvent(event)
             }
-            if line[0] == ASCII.colon {
+            if line.first! == ASCII.colon {
                 // A comment, skip this line.
                 state = .accumulatingEvent(event, buffer: buffer)
                 return .noop
@@ -177,7 +177,7 @@ struct ServerSentEventsDeserializerStateMachine {
                 let resolvedValueBytes: ArraySlice<UInt8>
                 if valueBytes.isEmpty {
                     resolvedValueBytes = []
-                } else if valueBytes[0] == ASCII.space {
+                } else if valueBytes.first! == ASCII.space {
                     resolvedValueBytes = valueBytes.dropFirst()
                 } else {
                     resolvedValueBytes = valueBytes
@@ -197,8 +197,10 @@ struct ServerSentEventsDeserializerStateMachine {
             case "event":
                 event.event = value
             case "data":
-                event.data?.append(value)
-                event.data?.append("\n")
+                var data = event.data ?? ""
+                data.append(value)
+                data.append("\n")
+                event.data = data
             case "id":
                 event.id = value
             case "retry":
@@ -356,7 +358,7 @@ struct ServerSentEventsLineDeserializerStateMachine {
                 return .needsMore
             }
             state = .mutating
-            if buffer[0] == ASCII.lf {
+            if buffer.first! == ASCII.lf {
                 buffer.removeFirst()
             }
             state = .waitingForEndOfLine(buffer)

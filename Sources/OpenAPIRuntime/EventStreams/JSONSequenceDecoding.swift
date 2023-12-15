@@ -115,7 +115,7 @@ struct JSONSequenceDeserializerStateMachine {
             guard !buffer.isEmpty else {
                 return .needsMore
             }
-            guard buffer[0] == ASCII.rs else {
+            guard buffer.first! == ASCII.rs else {
                 return .emitError(.missingInitialRS)
             }
             state = .mutating
