@@ -15,3 +15,10 @@ import Foundation
 import HTTPTypes
 
 // MARK: - Functionality to be removed in the future
+
+extension UndocumentedPayload {
+    /// Creates a new payload.
+    @available(*, deprecated, renamed: "init(headerFields:body:)") @_disfavoredOverload public init() {
+        self.init(headerFields: [:], body: nil)
+    }
+}
