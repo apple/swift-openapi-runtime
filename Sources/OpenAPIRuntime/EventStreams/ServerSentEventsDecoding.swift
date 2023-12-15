@@ -185,6 +185,12 @@ extension ServerSentEventsLineDeserializationSequence: AsyncSequence {
     }
 }
 
+extension AsyncSequence where Element == ArraySlice<UInt8> {
+    func asParsedServerSentEventLines() -> ServerSentEventsLineDeserializationSequence<Self> {
+        .init(upstream: self)
+    }
+}
+
 /// A state machine for parsing lines in server-sent events.
 ///
 /// https://html.spec.whatwg.org/multipage/server-sent-events.html#parsing-an-event-stream
