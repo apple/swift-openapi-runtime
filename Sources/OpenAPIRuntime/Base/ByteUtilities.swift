@@ -125,3 +125,34 @@ extension RandomAccessCollection where Element: Equatable {
         return .noMatch
     }
 }
+
+/// A value returned by the `longestMatchOfOneOf` method.
+enum MatchOfOneOfResult<C: RandomAccessCollection> {
+
+    /// No match found at any position in self.
+    case noMatch
+
+    case first(C.Index)
+    case second(C.Index)
+}
+
+extension RandomAccessCollection where Element: Equatable {
+
+    func matchOfOneOf(
+        first: Element,
+        second: Element
+    ) -> MatchOfOneOfResult<Self> {
+        var index = startIndex
+        while index < endIndex {
+            let element = self[index]
+            if element == first {
+                return .first(index)
+            }
+            if element == second {
+                return .second(index)
+            }
+            formIndex(after: &index)
+        }
+        return .noMatch
+    }
+}

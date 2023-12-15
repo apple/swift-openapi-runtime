@@ -17,6 +17,16 @@ import Foundation
 
 final class Test_JSONLinesEncoding: Test_Runtime {
     
+    func testSerialized() async throws {
+        let sequence = WrappedSyncSequence(
+            sequence: [
+                ArraySlice("hello".utf8),
+                ArraySlice("world".utf8)
+            ]
+        ).asSerializedJSONLines()
+        try await XCTAssertEqualAsyncData(sequence, "hello\nworld\n".utf8)
+    }
+
     func testTyped() async throws {
         let sequence = testEventsAsyncSequence.asEncodedJSONLines()
         try await XCTAssertEqualAsyncData(sequence, testJSONLinesBytes)
