@@ -76,7 +76,8 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
 
             data: This is the first message.
 
-            data: This is the second message.
+            data: This is the second
+            data: message.
 
             event: customEvent
             data: This is a custom event message.
@@ -89,9 +90,9 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
             output: [
                 .init(retry: 5000),
                 .init(data: "This is the first message."),
-                .init(data: "This is the second message."),
+                .init(data: "This is the second\nmessage."),
                 .init(event: "customEvent", data: "This is a custom event message."),
-                .init(data: "This is a message with an ID.", id: "123")
+                .init(id: "123", data: "This is a message with an ID.")
             ]
         )
     }
@@ -130,7 +131,7 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
             data:   "index": 2
             data: }
 
-            
+
             """#,
             output: [
                 .init(event: "event1", data: TestEvent(index: 1), id: "1"),
