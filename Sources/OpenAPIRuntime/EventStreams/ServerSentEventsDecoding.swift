@@ -64,7 +64,7 @@ extension AsyncSequence where Element == ArraySlice<UInt8> {
 
     public func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable>(
         of dataType: JSONDataType.Type = JSONDataType.self,
-        using decoder: JSONDecoder = .init()
+        decoder: JSONDecoder = .init()
     ) -> AsyncThrowingMapSequence<
         ServerSentEventsDeserializationSequence<ServerSentEventsLineDeserializationSequence<Self>>,
         ServerSentEventWithJSONData<JSONDataType>

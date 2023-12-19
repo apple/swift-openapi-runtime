@@ -59,7 +59,7 @@ extension AsyncSequence where Element == ServerSentEvent {
 
 extension AsyncSequence {
     public func asEncodedServerSentEventsWithJSONData<JSONDataType: Encodable>(
-        using encoder: JSONEncoder = {
+        encoder: JSONEncoder = {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
             return encoder

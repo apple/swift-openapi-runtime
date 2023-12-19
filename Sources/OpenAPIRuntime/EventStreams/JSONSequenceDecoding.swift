@@ -79,7 +79,7 @@ extension AsyncSequence where Element == ArraySlice<UInt8> {
     
     public func asDecodedJSONSequence<Event: Decodable>(
         of eventType: Event.Type = Event.self,
-        using decoder: JSONDecoder = .init()
+        decoder: JSONDecoder = .init()
     ) -> AsyncThrowingMapSequence<JSONSequenceDeserializationSequence<Self>, Event> {
         asParsedJSONSequence().map { line in
             try decoder.decode(Event.self, from: Data(line))

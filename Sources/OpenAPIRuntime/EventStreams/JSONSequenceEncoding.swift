@@ -59,7 +59,7 @@ extension AsyncSequence where Element == ArraySlice<UInt8> {
 
 extension AsyncSequence where Element: Encodable {
     public func asEncodedJSONSequence(
-        using encoder: JSONEncoder = {
+        encoder: JSONEncoder = {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
             return encoder
