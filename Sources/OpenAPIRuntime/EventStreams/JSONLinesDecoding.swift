@@ -14,7 +14,7 @@
 
 import Foundation
 
-/// A sequence that parses arbitrary byte chunks into lines separated by the `<LF>` character.
+/// A sequence that parses arbitrary byte chunks into lines using the JSON Lines format.
 public struct JSONLinesDeserializationSequence<Upstream: AsyncSequence & Sendable>: Sendable
 where Upstream.Element == ArraySlice<UInt8> {
 

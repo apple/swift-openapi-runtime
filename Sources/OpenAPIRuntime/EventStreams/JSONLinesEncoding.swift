@@ -14,7 +14,7 @@
 
 import Foundation
 
-/// A sequence that serializes lines by concatenating them using the `<LF>` character.
+/// A sequence that serializes lines by concatenating them using the JSON Lines format.
 public struct JSONLinesSerializationSequence<Upstream: AsyncSequence & Sendable>: Sendable
 where Upstream.Element == ArraySlice<UInt8> {
 
@@ -82,11 +82,13 @@ extension AsyncSequence where Element: Encodable {
 }
 
 extension JSONLinesSerializationSequence.Iterator {
+
     /// A state machine representing the JSON Lines serializer.
     struct StateMachine {
 
         /// The possible states of the state machine.
         enum State {
+
             /// Is emitting serialized JSON Lines events.
             case running
 

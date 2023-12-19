@@ -18,7 +18,8 @@ import Foundation
 final class Test_JSONSequenceDecoding: Test_Runtime {
     
     func testParsed() async throws {
-        let sequence = testJSONSequenceOneBytePerElementSequence.asParsedJSONSequence()
+        let upstream = testJSONSequenceOneBytePerElementSequence
+        let sequence = JSONSequenceDeserializationSequence(upstream: upstream)
         let events = try await [ArraySlice<UInt8>](collecting: sequence)
         XCTAssertEqual(events.count, 2)
         XCTAssertEqualData(events[0], "{\"name\":\"Rover\"}\n".utf8)
