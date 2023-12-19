@@ -16,20 +16,20 @@ import Foundation
 
 /// https://html.spec.whatwg.org/multipage/server-sent-events.html#server-sent-events
 
-struct ServerSentEventsDeserializationSequence<Upstream: AsyncSequence & Sendable>: Sendable where Upstream.Element == ArraySlice<UInt8> {
+public struct ServerSentEventsDeserializationSequence<Upstream: AsyncSequence & Sendable>: Sendable where Upstream.Element == ArraySlice<UInt8> {
     var upstream: Upstream
-    init(upstream: Upstream) {
+    public init(upstream: Upstream) {
         self.upstream = upstream
     }
 }
 
 extension ServerSentEventsDeserializationSequence: AsyncSequence {
-    typealias Element = ServerSentEvent
+    public typealias Element = ServerSentEvent
     
-    struct Iterator<UpstreamIterator: AsyncIteratorProtocol>: AsyncIteratorProtocol where UpstreamIterator.Element == ArraySlice<UInt8> {
+    public struct Iterator<UpstreamIterator: AsyncIteratorProtocol>: AsyncIteratorProtocol where UpstreamIterator.Element == ArraySlice<UInt8> {
         var upstream: UpstreamIterator
         var stateMachine: ServerSentEventsDeserializerStateMachine = .init()
-        mutating func next() async throws -> ServerSentEvent? {
+        public mutating func next() async throws -> ServerSentEvent? {
             while true {
                 switch stateMachine.next() {
                 case .returnNil:
@@ -51,18 +51,18 @@ extension ServerSentEventsDeserializationSequence: AsyncSequence {
         }
     }
     
-    func makeAsyncIterator() -> Iterator<Upstream.AsyncIterator> {
+    public func makeAsyncIterator() -> Iterator<Upstream.AsyncIterator> {
         Iterator(upstream: upstream.makeAsyncIterator())
     }
 }
 
 extension AsyncSequence where Element == ArraySlice<UInt8> {
 
-    func asDecodedServerSentEvents() -> ServerSentEventsDeserializationSequence<ServerSentEventsLineDeserializationSequence<Self>> {
+    public func asDecodedServerSentEvents() -> ServerSentEventsDeserializationSequence<ServerSentEventsLineDeserializationSequence<Self>> {
         .init(upstream: asParsedServerSentEventLines())
     }
 
-    func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable>(
+    public func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable>(
         of dataType: JSONDataType.Type = JSONDataType.self,
         using decoder: JSONDecoder = .init()
     ) -> AsyncThrowingMapSequence<
@@ -206,20 +206,20 @@ struct ServerSentEventsDeserializerStateMachine {
     }
 }
 
-struct ServerSentEventsLineDeserializationSequence<Upstream: AsyncSequence & Sendable>: Sendable where Upstream.Element == ArraySlice<UInt8> {
+public struct ServerSentEventsLineDeserializationSequence<Upstream: AsyncSequence & Sendable>: Sendable where Upstream.Element == ArraySlice<UInt8> {
     var upstream: Upstream
-    init(upstream: Upstream) {
+    public init(upstream: Upstream) {
         self.upstream = upstream
     }
 }
 
 extension ServerSentEventsLineDeserializationSequence: AsyncSequence {
-    typealias Element = ArraySlice<UInt8>
+    public typealias Element = ArraySlice<UInt8>
 
-    struct Iterator<UpstreamIterator: AsyncIteratorProtocol>: AsyncIteratorProtocol where UpstreamIterator.Element == Element {
+    public struct Iterator<UpstreamIterator: AsyncIteratorProtocol>: AsyncIteratorProtocol where UpstreamIterator.Element == Element {
         var upstream: UpstreamIterator
         var stateMachine: ServerSentEventsLineDeserializerStateMachine = .init()
-        mutating func next() async throws -> ArraySlice<UInt8>? {
+        public mutating func next() async throws -> ArraySlice<UInt8>? {
             while true {
                 switch stateMachine.next() {
                 case .returnNil:
@@ -243,7 +243,7 @@ extension ServerSentEventsLineDeserializationSequence: AsyncSequence {
         }
     }
 
-    func makeAsyncIterator() -> Iterator<Upstream.AsyncIterator> {
+    public func makeAsyncIterator() -> Iterator<Upstream.AsyncIterator> {
         Iterator(upstream: upstream.makeAsyncIterator())
     }
 }

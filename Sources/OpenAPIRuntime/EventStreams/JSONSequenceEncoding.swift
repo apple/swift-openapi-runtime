@@ -14,20 +14,20 @@
 
 import Foundation
 
-struct JSONSequenceSerializationSequence<Upstream: AsyncSequence & Sendable>: Sendable where Upstream.Element == ArraySlice<UInt8> {
+public struct JSONSequenceSerializationSequence<Upstream: AsyncSequence & Sendable>: Sendable where Upstream.Element == ArraySlice<UInt8> {
     var upstream: Upstream
-    init(upstream: Upstream) {
+    public init(upstream: Upstream) {
         self.upstream = upstream
     }
 }
 
 extension JSONSequenceSerializationSequence: AsyncSequence {
-    typealias Element = ArraySlice<UInt8>
+    public typealias Element = ArraySlice<UInt8>
     
-    struct Iterator<UpstreamIterator: AsyncIteratorProtocol>: AsyncIteratorProtocol where UpstreamIterator.Element == Element {
+    public struct Iterator<UpstreamIterator: AsyncIteratorProtocol>: AsyncIteratorProtocol where UpstreamIterator.Element == Element {
         var upstream: UpstreamIterator
         var stateMachine: JSONSequenceSerializerStateMachine = .init()
-        mutating func next() async throws -> ArraySlice<UInt8>? {
+        public mutating func next() async throws -> ArraySlice<UInt8>? {
             while true {
                 switch stateMachine.next() {
                 case .returnNil:
@@ -45,7 +45,7 @@ extension JSONSequenceSerializationSequence: AsyncSequence {
         }
     }
     
-    func makeAsyncIterator() -> Iterator<Upstream.AsyncIterator> {
+    public func makeAsyncIterator() -> Iterator<Upstream.AsyncIterator> {
         Iterator(upstream: upstream.makeAsyncIterator())
     }
 }
@@ -58,7 +58,7 @@ extension AsyncSequence where Element == ArraySlice<UInt8> {
 }
 
 extension AsyncSequence where Element: Encodable {
-    func asEncodedJSONSequence(
+    public func asEncodedJSONSequence(
         using encoder: JSONEncoder = {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]

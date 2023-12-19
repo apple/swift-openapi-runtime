@@ -14,20 +14,20 @@
 
 import Foundation
 
-struct ServerSentEventsSerializationSequence<Upstream: AsyncSequence & Sendable>: Sendable where Upstream.Element == ServerSentEvent {
+public struct ServerSentEventsSerializationSequence<Upstream: AsyncSequence & Sendable>: Sendable where Upstream.Element == ServerSentEvent {
     var upstream: Upstream
-    init(upstream: Upstream) {
+    public init(upstream: Upstream) {
         self.upstream = upstream
     }
 }
 
 extension ServerSentEventsSerializationSequence: AsyncSequence {
-    typealias Element = ArraySlice<UInt8>
+    public typealias Element = ArraySlice<UInt8>
     
-    struct Iterator<UpstreamIterator: AsyncIteratorProtocol>: AsyncIteratorProtocol where UpstreamIterator.Element == ServerSentEvent {
+    public struct Iterator<UpstreamIterator: AsyncIteratorProtocol>: AsyncIteratorProtocol where UpstreamIterator.Element == ServerSentEvent {
         var upstream: UpstreamIterator
         var stateMachine: ServerSentEventsSerializerStateMachine = .init()
-        mutating func next() async throws -> ArraySlice<UInt8>? {
+        public mutating func next() async throws -> ArraySlice<UInt8>? {
             while true {
                 switch stateMachine.next() {
                 case .returnNil:
@@ -45,20 +45,20 @@ extension ServerSentEventsSerializationSequence: AsyncSequence {
         }
     }
     
-    func makeAsyncIterator() -> Iterator<Upstream.AsyncIterator> {
+    public func makeAsyncIterator() -> Iterator<Upstream.AsyncIterator> {
         Iterator(upstream: upstream.makeAsyncIterator())
     }
 }
 
 extension AsyncSequence where Element == ServerSentEvent {
 
-    func asEncodedServerSentEvents() -> ServerSentEventsSerializationSequence<Self> {
+    public func asEncodedServerSentEvents() -> ServerSentEventsSerializationSequence<Self> {
         .init(upstream: self)
     }
 }
 
 extension AsyncSequence {
-    func asEncodedServerSentEventsWithJSONData<JSONDataType: Encodable>(
+    public func asEncodedServerSentEventsWithJSONData<JSONDataType: Encodable>(
         using encoder: JSONEncoder = {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]

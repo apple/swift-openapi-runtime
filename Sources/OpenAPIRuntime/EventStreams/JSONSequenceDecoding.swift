@@ -14,15 +14,15 @@
 
 import Foundation
 
-struct JSONSequenceDeserializationSequence<Upstream: AsyncSequence & Sendable>: Sendable where Upstream.Element == ArraySlice<UInt8> {
+public struct JSONSequenceDeserializationSequence<Upstream: AsyncSequence & Sendable>: Sendable where Upstream.Element == ArraySlice<UInt8> {
     var upstream: Upstream
-    init(upstream: Upstream) {
+    public init(upstream: Upstream) {
         self.upstream = upstream
     }
 }
 
 extension JSONSequenceDeserializationSequence: AsyncSequence {
-    typealias Element = ArraySlice<UInt8>
+    public typealias Element = ArraySlice<UInt8>
     
     struct DeserializerError: Swift.Error, CustomStringConvertible, LocalizedError {
         
@@ -38,10 +38,10 @@ extension JSONSequenceDeserializationSequence: AsyncSequence {
         var errorDescription: String? { description }
     }
 
-    struct Iterator<UpstreamIterator: AsyncIteratorProtocol>: AsyncIteratorProtocol where UpstreamIterator.Element == Element {
+    public struct Iterator<UpstreamIterator: AsyncIteratorProtocol>: AsyncIteratorProtocol where UpstreamIterator.Element == Element {
         var upstream: UpstreamIterator
         var stateMachine: JSONSequenceDeserializerStateMachine = .init()
-        mutating func next() async throws -> ArraySlice<UInt8>? {
+        public mutating func next() async throws -> ArraySlice<UInt8>? {
             while true {
                 switch stateMachine.next() {
                 case .returnNil:
@@ -67,7 +67,7 @@ extension JSONSequenceDeserializationSequence: AsyncSequence {
         }
     }
     
-    func makeAsyncIterator() -> Iterator<Upstream.AsyncIterator> {
+    public func makeAsyncIterator() -> Iterator<Upstream.AsyncIterator> {
         Iterator(upstream: upstream.makeAsyncIterator())
     }
 }
@@ -77,7 +77,7 @@ extension AsyncSequence where Element == ArraySlice<UInt8> {
         .init(upstream: self)
     }
     
-    func asDecodedJSONSequence<Event: Decodable>(
+    public func asDecodedJSONSequence<Event: Decodable>(
         of eventType: Event.Type = Event.self,
         using decoder: JSONDecoder = .init()
     ) -> AsyncThrowingMapSequence<JSONSequenceDeserializationSequence<Self>, Event> {
