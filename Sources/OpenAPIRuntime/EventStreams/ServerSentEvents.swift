@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-/// An event sent by the server.
+/// An event sent by the server that has a JSON payload in the data field.
 ///
 /// https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation
 public struct ServerSentEventWithJSONData<JSONDataType: Sendable & Hashable>: Sendable, Hashable {
@@ -34,7 +34,13 @@ public struct ServerSentEventWithJSONData<JSONDataType: Sendable & Hashable>: Se
     ///
     /// https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsource-interface
     public var retry: Int64?
-    
+
+    /// Creates a new event.
+    /// - Parameters:
+    ///   - event: A type of the event, helps inform how to interpret the data.
+    ///   - data: The payload of the event.
+    ///   - id: A unique identifier of the event.
+    ///   - retry: The amount of time, in milliseconds, to wait before retrying.
     public init(event: String? = nil, data: JSONDataType? = nil, id: String? = nil, retry: Int64? = nil) {
         self.event = event
         self.data = data
@@ -65,7 +71,13 @@ public struct ServerSentEvent: Sendable, Hashable {
     ///
     /// https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsource-interface
     public var retry: Int64?
-    
+
+    /// Creates a new event.
+    /// - Parameters:
+    ///   - event: A type of the event, helps inform how to interpret the data.
+    ///   - data: The payload of the event.
+    ///   - id: A unique identifier of the event.
+    ///   - retry: The amount of time, in milliseconds, to wait before retrying.
     public init(id: String? = nil, event: String? = nil, data: String? = nil, retry: Int64? = nil) {
         self.id = id
         self.event = event

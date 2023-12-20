@@ -16,7 +16,6 @@ import XCTest
 import Foundation
 
 final class Test_JSONLinesDecoding: Test_Runtime {
-    
     func testParsed() async throws {
         let upstream = asOneBytePerElementSequence(ArraySlice("hello\nworld\n".utf8))
         let sequence = JSONLinesDeserializationSequence(upstream: upstream)

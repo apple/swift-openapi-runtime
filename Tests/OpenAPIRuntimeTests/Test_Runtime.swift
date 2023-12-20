@@ -115,17 +115,13 @@ class Test_Runtime: XCTestCase {
     var testStructURLFormData: Data { Data(testStructURLFormString.utf8) }
 
     var testEvents: [TestPet] { [.init(name: "Rover"), .init(name: "Pancake")] }
-    
-    var testEventsAsyncSequence: WrappedSyncSequence<[TestPet]> {
-        WrappedSyncSequence(sequence: testEvents)
-    }
+    var testEventsAsyncSequence: WrappedSyncSequence<[TestPet]> { WrappedSyncSequence(sequence: testEvents) }
 
     var testJSONLinesBytes: ArraySlice<UInt8> {
         let encoder = JSONEncoder()
         let bytes = try! testEvents.map { try encoder.encode($0) + [ASCII.lf] }.joined()
         return ArraySlice(bytes)
     }
-    
     var testJSONSequenceBytes: ArraySlice<UInt8> {
         let encoder = JSONEncoder()
         let bytes = try! testEvents.map { try [ASCII.rs] + encoder.encode($0) + [ASCII.lf] }.joined()
@@ -134,21 +130,13 @@ class Test_Runtime: XCTestCase {
 
     func asOneBytePerElementSequence(_ source: ArraySlice<UInt8>) -> HTTPBody {
         HTTPBody(
-            WrappedSyncSequence(sequence: source)
-                .map { ArraySlice([$0]) },
+            WrappedSyncSequence(sequence: source).map { ArraySlice([$0]) },
             length: .known(Int64(source.count)),
             iterationBehavior: .multiple
         )
     }
-    
-    var testJSONLinesOneBytePerElementSequence: HTTPBody {
-        asOneBytePerElementSequence(testJSONLinesBytes)
-    }
-    
-    var testJSONSequenceOneBytePerElementSequence: HTTPBody {
-        asOneBytePerElementSequence(testJSONSequenceBytes)
-    }
-    
+    var testJSONLinesOneBytePerElementSequence: HTTPBody { asOneBytePerElementSequence(testJSONLinesBytes) }
+    var testJSONSequenceOneBytePerElementSequence: HTTPBody { asOneBytePerElementSequence(testJSONSequenceBytes) }
     @discardableResult func _testPrettyEncoded<Value: Encodable>(_ value: Value, expectedJSON: String) throws -> String
     {
         let encoder = JSONEncoder()
@@ -460,9 +448,7 @@ public func XCTAssertEqualData<C: Collection>(
 extension Array {
     init<Source: AsyncSequence>(collecting source: Source) async throws where Source.Element == Element {
         var elements: [Element] = []
-        for try await element in source {
-            elements.append(element)
-        }
+        for try await element in source { elements.append(element) }
         self = elements
     }
 }

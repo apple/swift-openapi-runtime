@@ -16,7 +16,6 @@ import XCTest
 import Foundation
 
 final class Test_JSONSequenceDecoding: Test_Runtime {
-    
     func testParsed() async throws {
         let upstream = testJSONSequenceOneBytePerElementSequence
         let sequence = JSONSequenceDeserializationSequence(upstream: upstream)
@@ -25,7 +24,6 @@ final class Test_JSONSequenceDecoding: Test_Runtime {
         XCTAssertEqualData(events[0], "{\"name\":\"Rover\"}\n".utf8)
         XCTAssertEqualData(events[1], "{\"name\":\"Pancake\"}\n".utf8)
     }
-    
     func testTyped() async throws {
         let sequence = testJSONSequenceOneBytePerElementSequence.asDecodedJSONSequence(of: TestPet.self)
         let events = try await [TestPet](collecting: sequence)

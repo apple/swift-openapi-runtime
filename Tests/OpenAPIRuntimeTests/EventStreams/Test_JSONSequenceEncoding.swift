@@ -16,18 +16,13 @@ import XCTest
 import Foundation
 
 final class Test_JSONSequenceEncoding: Test_Runtime {
-    
     func testSerialized() async throws {
-        let upstream = WrappedSyncSequence(
-            sequence: [
-                ArraySlice(#"{"name":"Rover"}"#.utf8),
-                ArraySlice(#"{"name":"Pancake"}"#.utf8)
-            ]
-        )
+        let upstream = WrappedSyncSequence(sequence: [
+            ArraySlice(#"{"name":"Rover"}"#.utf8), ArraySlice(#"{"name":"Pancake"}"#.utf8),
+        ])
         let sequence = JSONSequenceSerializationSequence(upstream: upstream)
         try await XCTAssertEqualAsyncData(sequence, testJSONSequenceBytes)
     }
-    
     func testTyped() async throws {
         let sequence = testEventsAsyncSequence.asEncodedJSONSequence()
         try await XCTAssertEqualAsyncData(sequence, testJSONSequenceBytes)
