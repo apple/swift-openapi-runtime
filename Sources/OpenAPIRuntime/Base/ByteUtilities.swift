@@ -26,6 +26,7 @@ enum ASCII {
 
     /// The record separator `<RS>` character.
     static let rs: UInt8 = 0x1e
+
     /// The colon `:` character.
     static let colon: UInt8 = 0x3a
 
@@ -131,12 +132,20 @@ enum MatchOfOneOfResult<C: RandomAccessCollection> {
     /// No match found at any position in self.
     case noMatch
 
+    /// The first option matched.
     case first(C.Index)
+
+    /// The second option matched.
     case second(C.Index)
 }
 
 extension RandomAccessCollection where Element: Equatable {
-
+    
+    /// Returns the index of the first match of one of two elements.
+    /// - Parameters:
+    ///   - first: The first element to match.
+    ///   - second: The second element to match.
+    /// - Returns: The result.
     func matchOfOneOf(first: Element, second: Element) -> MatchOfOneOfResult<Self> {
         var index = startIndex
         while index < endIndex {

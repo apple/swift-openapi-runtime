@@ -74,9 +74,9 @@ public struct ServerSentEvent: Sendable, Hashable {
 
     /// Creates a new event.
     /// - Parameters:
+    ///   - id: A unique identifier of the event.
     ///   - event: A type of the event, helps inform how to interpret the data.
     ///   - data: The payload of the event.
-    ///   - id: A unique identifier of the event.
     ///   - retry: The amount of time, in milliseconds, to wait before retrying.
     public init(id: String? = nil, event: String? = nil, data: String? = nil, retry: Int64? = nil) {
         self.id = id
