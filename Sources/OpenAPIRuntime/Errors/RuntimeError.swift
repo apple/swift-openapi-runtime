@@ -15,7 +15,7 @@ import protocol Foundation.LocalizedError
 import struct Foundation.Data
 
 /// Error thrown by generated code.
-internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, PrettyStringConvertible {
+@_spi(Generated) public enum RuntimeError: Error, CustomStringConvertible, LocalizedError, PrettyStringConvertible {
 
     // Miscs
     case invalidServerURL(String)
