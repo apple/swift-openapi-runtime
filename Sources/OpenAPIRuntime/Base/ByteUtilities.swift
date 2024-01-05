@@ -140,7 +140,6 @@ enum MatchOfOneOfResult<C: RandomAccessCollection> {
 }
 
 extension RandomAccessCollection where Element: Equatable {
-    
     /// Returns the index of the first match of one of two elements.
     /// - Parameters:
     ///   - first: The first element to match.

@@ -74,9 +74,7 @@ extension AsyncSequence {
     /// Returns another sequence that encodes Server-sent Events with generic data in the data field.
     /// - Returns: A sequence that provides the serialized Server-sent Events.
     public func asEncodedServerSentEvents() -> ServerSentEventsSerializationSequence<Self>
-    where Element == ServerSentEvent {
-        .init(upstream: self)
-    }
+    where Element == ServerSentEvent { .init(upstream: self) }
 
     /// Returns another sequence that encodes Server-sent Events that have a JSON value in the data field.
     /// - Parameter encoder: The JSON encoder to use.
