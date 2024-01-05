@@ -126,7 +126,7 @@ extension RandomAccessCollection where Element: Equatable {
     }
 }
 
-/// A value returned by the `longestMatchOfOneOf` method.
+/// A value returned by the `matchOfOneOf` method.
 enum MatchOfOneOfResult<C: RandomAccessCollection> {
 
     /// No match found at any position in self.
