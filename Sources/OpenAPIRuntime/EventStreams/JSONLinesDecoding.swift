@@ -12,7 +12,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Foundation
+#if canImport(Darwin)
+import class Foundation.JSONDecoder
+#else
+@preconcurrency import class Foundation.JSONDecoder
+#endif
+import struct Foundation.Data
 
 /// A sequence that parses arbitrary byte chunks into lines using the JSON Lines format.
 public struct JSONLinesDeserializationSequence<Upstream: AsyncSequence & Sendable>: Sendable

@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Foundation
+#if canImport(Darwin)
+import class Foundation.JSONEncoder
+#else
+@preconcurrency import class Foundation.JSONEncoder
+#endif
 
 /// A sequence that serializes lines by concatenating them using the JSON Sequence format.
 public struct JSONSequenceSerializationSequence<Upstream: AsyncSequence & Sendable>: Sendable
@@ -65,7 +69,7 @@ extension JSONSequenceSerializationSequence: AsyncSequence {
     }
 }
 
-extension AsyncSequence where Element: Encodable {
+extension AsyncSequence where Element: Encodable & Sendable, Self: Sendable {
 
     /// Returns another sequence that encodes the events using the provided encoder into a JSON Sequence.
     /// - Parameter encoder: The JSON encoder to use.

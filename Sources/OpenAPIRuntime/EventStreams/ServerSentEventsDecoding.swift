@@ -12,7 +12,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Foundation
+#if canImport(Darwin)
+import class Foundation.JSONDecoder
+#else
+@preconcurrency import class Foundation.JSONDecoder
+#endif
+import struct Foundation.Data
 
 /// A sequence that parses arbitrary byte chunks into events using the Server-sent Events format.
 ///
@@ -69,7 +74,7 @@ extension ServerSentEventsDeserializationSequence: AsyncSequence {
     }
 }
 
-extension AsyncSequence where Element == ArraySlice<UInt8> {
+extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
 
     /// Returns another sequence that decodes each event's data as the provided type using the provided decoder.
     ///
