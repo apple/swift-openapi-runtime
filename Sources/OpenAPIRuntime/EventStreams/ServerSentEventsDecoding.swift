@@ -290,13 +290,13 @@ extension ServerSentEventsLineDeserializationSequence: AsyncSequence {
             while true {
                 switch stateMachine.next() {
                 case .returnNil: return nil
-                case .returnLine(let line): return line
+                case .emitLine(let line): return line
                 case .noop: continue
                 case .needsMore:
                     let value = try await upstream.next()
                     switch stateMachine.receivedValue(value) {
                     case .returnNil: return nil
-                    case .returnLine(let line): return line
+                    case .emitLine(let line): return line
                     case .noop: continue
                     }
                 }
