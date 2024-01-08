@@ -114,6 +114,29 @@ class Test_Runtime: XCTestCase {
 
     var testStructURLFormData: Data { Data(testStructURLFormString.utf8) }
 
+    var testEvents: [TestPet] { [.init(name: "Rover"), .init(name: "Pancake")] }
+    var testEventsAsyncSequence: WrappedSyncSequence<[TestPet]> { WrappedSyncSequence(sequence: testEvents) }
+
+    var testJSONLinesBytes: ArraySlice<UInt8> {
+        let encoder = JSONEncoder()
+        let bytes = try! testEvents.map { try encoder.encode($0) + [ASCII.lf] }.joined()
+        return ArraySlice(bytes)
+    }
+    var testJSONSequenceBytes: ArraySlice<UInt8> {
+        let encoder = JSONEncoder()
+        let bytes = try! testEvents.map { try [ASCII.rs] + encoder.encode($0) + [ASCII.lf] }.joined()
+        return ArraySlice(bytes)
+    }
+
+    func asOneBytePerElementSequence(_ source: ArraySlice<UInt8>) -> HTTPBody {
+        HTTPBody(
+            WrappedSyncSequence(sequence: source).map { ArraySlice([$0]) },
+            length: .known(Int64(source.count)),
+            iterationBehavior: .multiple
+        )
+    }
+    var testJSONLinesOneBytePerElementSequence: HTTPBody { asOneBytePerElementSequence(testJSONLinesBytes) }
+    var testJSONSequenceOneBytePerElementSequence: HTTPBody { asOneBytePerElementSequence(testJSONSequenceBytes) }
     @discardableResult func _testPrettyEncoded<Value: Encodable>(_ value: Value, expectedJSON: String) throws -> String
     {
         let encoder = JSONEncoder()
@@ -147,7 +170,7 @@ func chunkFromStringLines(_ strings: [String], addExtraCRLFs: Int = 0) -> ArrayS
 
 func chunkFromString(_ string: String, addCRLFs: Int = 0) -> ArraySlice<UInt8> {
     var slice = ArraySlice(string.utf8)
-    for _ in 0..<addCRLFs { slice.append(contentsOf: [0x0d, 0x0a]) }
+    for _ in 0..<addCRLFs { slice.append(contentsOf: ASCII.crlf) }
     return slice
 }
 
@@ -155,7 +178,7 @@ func bufferFromString(_ string: String) -> [UInt8] { Array(string.utf8) }
 
 extension ArraySlice<UInt8> {
     mutating func append(_ string: String) { append(contentsOf: chunkFromString(string)) }
-    mutating func appendCRLF() { append(contentsOf: [0x0d, 0x0a]) }
+    mutating func appendCRLF() { append(contentsOf: ASCII.crlf) }
 }
 
 struct TestError: Error, Equatable {}
@@ -338,8 +361,9 @@ fileprivate extension UInt8 {
     var asHex: String {
         let original: String
         switch self {
-        case 0x0d: original = "CR"
-        case 0x0a: original = "LF"
+        case ASCII.cr: original = "CR"
+        case ASCII.lf: original = "LF"
+        case ASCII.rs: original = "RS"
         default: original = "\(UnicodeScalar(self)) "
         }
         return String(format: "%02x \(original)", self)
@@ -395,6 +419,22 @@ public func XCTAssertEqualData<C1: Collection, C2: Collection>(
 }
 
 /// Asserts that the data matches the expected value.
+public func XCTAssertEqualAsyncData<C: Collection, AS: AsyncSequence>(
+    _ expression1: @autoclosure () throws -> AS?,
+    _ expression2: @autoclosure () throws -> C,
+    _ message: @autoclosure () -> String = "Data doesn't match.",
+    file: StaticString = #filePath,
+    line: UInt = #line
+) async throws where C.Element == UInt8, AS.Element == ArraySlice<UInt8> {
+    guard let actualBytesBody = try expression1() else {
+        XCTFail("First value is nil", file: file, line: line)
+        return
+    }
+    let actualBytes = try await [ArraySlice<UInt8>](collecting: actualBytesBody).flatMap { $0 }
+    XCTAssertEqualData(actualBytes, try expression2(), file: file, line: line)
+}
+
+/// Asserts that the data matches the expected value.
 public func XCTAssertEqualData<C: Collection>(
     _ expression1: @autoclosure () throws -> HTTPBody?,
     _ expression2: @autoclosure () throws -> C,
@@ -402,10 +442,13 @@ public func XCTAssertEqualData<C: Collection>(
     file: StaticString = #filePath,
     line: UInt = #line
 ) async throws where C.Element == UInt8 {
-    guard let actualBytesBody = try expression1() else {
-        XCTFail("First value is nil", file: file, line: line)
-        return
+    try await XCTAssertEqualAsyncData(try expression1(), try expression2(), file: file, line: line)
+}
+
+extension Array {
+    init<Source: AsyncSequence>(collecting source: Source) async throws where Source.Element == Element {
+        var elements: [Element] = []
+        for try await element in source { elements.append(element) }
+        self = elements
     }
-    let actualBytes = try await [UInt8](collecting: actualBytesBody, upTo: .max)
-    XCTAssertEqualData(actualBytes, try expression2(), file: file, line: line)
 }

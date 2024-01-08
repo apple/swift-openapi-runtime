@@ -90,6 +90,7 @@ struct MultipartSerializer {
         self.stateMachine = .init()
         self.outBuffer = []
     }
+
     /// Requests the next byte chunk.
     /// - Parameter fetchFrame: A closure that is called when the serializer is ready to serialize the next frame.
     /// - Returns: A byte chunk.
