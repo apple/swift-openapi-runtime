@@ -34,8 +34,8 @@ public struct ISO8601DateTranscoder: DateTranscoder, @unchecked Sendable {
     private let locked_formatter: ISO8601DateFormatter
 
     /// Creates a new transcoder with the provided options.
-    /// - Parameter optionsOverride: Options to override the default ones. If you provide
-    ///   nil here, the default options are used.
+    /// - Parameter options: Options to override the default ones. If you provide nil here, the default options
+    ///   are used.
     public init(options: ISO8601DateFormatter.Options? = nil) {
         let formatter = ISO8601DateFormatter()
         if let options { formatter.formatOptions = options }
