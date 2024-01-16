@@ -33,22 +33,14 @@ public struct ISO8601DateTranscoder: DateTranscoder, @unchecked Sendable {
     /// The underlying date formatter.
     private let locked_formatter: ISO8601DateFormatter
 
-    /// Creates a new default transcoder.
-    public init() { self.init(optionsOverride: nil) }
-
     /// Creates a new transcoder with the provided options.
     /// - Parameter optionsOverride: Options to override the default ones. If you provide
     ///   nil here, the default options are used.
-    public init(optionsOverride: ISO8601DateFormatter.Options?) {
+    public init(options: ISO8601DateFormatter.Options? = nil) {
         let formatter = ISO8601DateFormatter()
-        if let optionsOverride { formatter.formatOptions = optionsOverride }
-        self.init(formatter: formatter)
-    }
-
-    /// Creates a new transcoder with the provided formatter.
-    /// - Parameter formatter: The formatter to use.
-    public init(formatter: ISO8601DateFormatter) {
+        if let options { formatter.formatOptions = options }
         lock = NSLock()
+        lock.name = "com.apple.swift-openapi-generator.runtime.ISO8601DateTranscoder"
         locked_formatter = formatter
     }
 
@@ -78,7 +70,7 @@ extension DateTranscoder where Self == ISO8601DateTranscoder {
 
     /// A transcoder that transcodes dates as ISO-8601–formatted string (in RFC 3339 format) with fractional seconds.
     public static var iso8601WithFractionalSeconds: Self {
-        ISO8601DateTranscoder(optionsOverride: [.withInternetDateTime, .withFractionalSeconds])
+        ISO8601DateTranscoder(options: [.withInternetDateTime, .withFractionalSeconds])
     }
 }
 
