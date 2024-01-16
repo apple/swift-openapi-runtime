@@ -42,6 +42,10 @@ class Test_Runtime: XCTestCase {
 
     var testDateString: String { "2023-01-18T10:04:11Z" }
 
+    var testDateWithFractionalSeconds: Date { Date(timeIntervalSince1970: 1_674_036_251.123) }
+
+    var testDateWithFractionalSecondsString: String { "2023-01-18T10:04:11.123Z" }
+
     var testDateEscapedString: String { "2023-01-18T10%3A04%3A11Z" }
 
     var testDateStringData: Data { Data(testDateString.utf8) }
