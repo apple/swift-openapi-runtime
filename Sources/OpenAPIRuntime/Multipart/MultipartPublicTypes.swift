@@ -326,9 +326,7 @@ extension MultipartBody: AsyncSequence {
         do {
             try tryToMarkIteratorCreated()
             return .init(sequence.makeAsyncIterator())
-        } catch {
-            return .init(throwing: error)
-        }
+        } catch { return .init(throwing: error) }
     }
 }
 
@@ -351,9 +349,7 @@ extension MultipartBody {
 
         /// Creates an iterator throwing the given error when iterated.
         /// - Parameter error: The error to throw on iteration.
-        fileprivate init(throwing error: any Error) {
-            self.produceNext = { throw error }
-        }
+        fileprivate init(throwing error: any Error) { self.produceNext = { throw error } }
 
         /// Advances the iterator to the next element and returns it asynchronously.
         ///
