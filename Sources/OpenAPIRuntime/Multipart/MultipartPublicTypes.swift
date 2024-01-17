@@ -209,16 +209,6 @@ public final class MultipartBody<Part: Sendable>: @unchecked Sendable {
         var errorDescription: String? { description }
     }
 
-    /// Verifying that creating another iterator is allowed based on the values of `iterationBehavior`
-    /// and `locked_iteratorCreated`.
-    /// - Throws: If another iterator is not allowed to be created.
-    internal func checkIfCanCreateIterator() throws {
-        lock.lock()
-        defer { lock.unlock() }
-        guard iterationBehavior == .single else { return }
-        if locked_iteratorCreated { throw TooManyIterationsError() }
-    }
-
     /// Tries to mark an iterator as created, verifying that it is allowed based on the values
     /// of `iterationBehavior` and `locked_iteratorCreated`.
     /// - Throws: If another iterator is not allowed to be created.
@@ -331,10 +321,14 @@ extension MultipartBody: AsyncSequence {
     /// Creates and returns an asynchronous iterator
     ///
     /// - Returns: An asynchronous iterator for parts.
+    /// - Note: The returned sequence throws an error if no further iterations are allowed. See ``IterationBehavior``.
     public func makeAsyncIterator() -> AsyncIterator {
-        // The crash on error is intentional here.
-        try! tryToMarkIteratorCreated()
-        return .init(sequence.makeAsyncIterator())
+        do {
+            try tryToMarkIteratorCreated()
+            return .init(sequence.makeAsyncIterator())
+        } catch {
+            return .init(throwing: error)
+        }
     }
 }
 
@@ -353,6 +347,12 @@ extension MultipartBody {
         where Iterator.Element == Element {
             var iterator = iterator
             self.produceNext = { try await iterator.next() }
+        }
+
+        /// Creates an iterator throwing the given error when iterated.
+        /// - Parameter error: The error to throw on iteration.
+        fileprivate init(throwing error: any Error) {
+            self.produceNext = { throw error }
         }
 
         /// Advances the iterator to the next element and returns it asynchronously.
