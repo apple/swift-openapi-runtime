@@ -95,7 +95,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             contentType: "application/json"
         )
         try await XCTAssertEqualStringifiedData(body, testStructPrettyString)
-        XCTAssertEqual(headerFields, [.contentType: "application/json"])
+        XCTAssertEqual(headerFields, [.contentType: "application/json", .contentLength: "23"])
     }
 
     func test_setOptionalRequestBodyAsJSON_codable_string() async throws {
@@ -106,7 +106,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             contentType: "application/json"
         )
         try await XCTAssertEqualStringifiedData(body, testQuotedString)
-        XCTAssertEqual(headerFields, [.contentType: "application/json"])
+        XCTAssertEqual(headerFields, [.contentType: "application/json", .contentLength: "7"])
     }
 
     //    | client | set | request body | JSON | required | setRequiredRequestBodyAsJSON |
@@ -118,7 +118,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             contentType: "application/json"
         )
         try await XCTAssertEqualStringifiedData(body, testStructPrettyString)
-        XCTAssertEqual(headerFields, [.contentType: "application/json"])
+        XCTAssertEqual(headerFields, [.contentType: "application/json", .contentLength: "23"])
     }
 
     //    | client | set | request body | urlEncodedForm | codable | optional | setRequiredRequestBodyAsURLEncodedForm |
@@ -136,7 +136,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         }
 
         try await XCTAssertEqualStringifiedData(body, testStructURLFormString)
-        XCTAssertEqual(headerFields, [.contentType: "application/x-www-form-urlencoded"])
+        XCTAssertEqual(headerFields, [.contentType: "application/x-www-form-urlencoded", .contentLength: "41"])
     }
 
     //    | client | set | request body | urlEncodedForm | codable | required | setRequiredRequestBodyAsURLEncodedForm |
@@ -148,7 +148,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             contentType: "application/x-www-form-urlencoded"
         )
         try await XCTAssertEqualStringifiedData(body, testStructURLFormString)
-        XCTAssertEqual(headerFields, [.contentType: "application/x-www-form-urlencoded"])
+        XCTAssertEqual(headerFields, [.contentType: "application/x-www-form-urlencoded", .contentLength: "41"])
     }
 
     //    | client | set | request body | binary | optional | setOptionalRequestBodyAsBinary |
@@ -160,7 +160,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             contentType: "application/octet-stream"
         )
         try await XCTAssertEqualStringifiedData(body, testString)
-        XCTAssertEqual(headerFields, [.contentType: "application/octet-stream"])
+        XCTAssertEqual(headerFields, [.contentType: "application/octet-stream", .contentLength: "5"])
     }
 
     //    | client | set | request body | binary | required | setRequiredRequestBodyAsBinary |
@@ -172,7 +172,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
             contentType: "application/octet-stream"
         )
         try await XCTAssertEqualStringifiedData(body, testString)
-        XCTAssertEqual(headerFields, [.contentType: "application/octet-stream"])
+        XCTAssertEqual(headerFields, [.contentType: "application/octet-stream", .contentLength: "5"])
     }
 
     //    | client | set | request body | multipart | required | setRequiredRequestBodyAsMultipart |

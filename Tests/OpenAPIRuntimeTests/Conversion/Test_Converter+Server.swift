@@ -316,7 +316,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             contentType: "application/json"
         )
         try await XCTAssertEqualStringifiedData(data, testStructPrettyString)
-        XCTAssertEqual(headers, [.contentType: "application/json"])
+        XCTAssertEqual(headers, [.contentType: "application/json", .contentLength: "23"])
     }
 
     //    | server | set | response body | binary | required | setResponseBodyAsBinary |
@@ -328,7 +328,7 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             contentType: "application/octet-stream"
         )
         try await XCTAssertEqualStringifiedData(data, testString)
-        XCTAssertEqual(headers, [.contentType: "application/octet-stream"])
+        XCTAssertEqual(headers, [.contentType: "application/octet-stream", .contentLength: "5"])
     }
 
     //    | server | set | response body | multipart | required | setResponseBodyAsMultipart |

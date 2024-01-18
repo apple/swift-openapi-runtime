@@ -435,8 +435,10 @@ extension Converter {
         contentType: String,
         convert: (T) throws -> HTTPBody
     ) rethrows -> HTTPBody {
+        let body = try convert(value)
         headerFields[.contentType] = contentType
-        return try convert(value)
+        if case let .known(length) = body.length { headerFields[.contentLength] = String(length) }
+        return body
     }
 
     /// Sets the provided request body and the appropriate content type.
@@ -597,8 +599,10 @@ extension Converter {
         contentType: String,
         convert: (T) throws -> HTTPBody
     ) rethrows -> HTTPBody {
+        let body = try convert(value)
         headerFields[.contentType] = contentType
-        return try convert(value)
+        if case let .known(length) = body.length { headerFields[.contentLength] = String(length) }
+        return body
     }
 
     /// Returns a decoded value for the provided path parameter.
