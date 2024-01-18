@@ -173,6 +173,11 @@ final class Test_Body: Test_Runtime {
             _ = try await String(collecting: body, upTo: .max)
             XCTFail("Expected an error to be thrown")
         } catch {}
+
+        do {
+            for try await _ in body {}
+            XCTFail("Expected an error to be thrown")
+        } catch {}
     }
 
     func testIterationBehavior_multiple() async throws {

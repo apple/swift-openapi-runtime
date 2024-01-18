@@ -159,16 +159,6 @@ public final class HTTPBody: @unchecked Sendable {
         return locked_iteratorCreated
     }
 
-    /// Verifying that creating another iterator is allowed based on
-    /// the values of `iterationBehavior` and `locked_iteratorCreated`.
-    /// - Throws: If another iterator is not allowed to be created.
-    private func checkIfCanCreateIterator() throws {
-        lock.lock()
-        defer { lock.unlock() }
-        guard iterationBehavior == .single else { return }
-        if locked_iteratorCreated { throw TooManyIterationsError() }
-    }
-
     /// Tries to mark an iterator as created, verifying that it is allowed
     /// based on the values of `iterationBehavior` and `locked_iteratorCreated`.
     /// - Throws: If another iterator is not allowed to be created.
@@ -341,10 +331,12 @@ extension HTTPBody: AsyncSequence {
     /// Creates and returns an asynchronous iterator
     ///
     /// - Returns: An asynchronous iterator for byte chunks.
+    /// - Note: The returned sequence throws an error if no further iterations are allowed. See ``IterationBehavior``.
     public func makeAsyncIterator() -> AsyncIterator {
-        // The crash on error is intentional here.
-        try! tryToMarkIteratorCreated()
-        return .init(sequence.makeAsyncIterator())
+        do {
+            try tryToMarkIteratorCreated()
+            return .init(sequence.makeAsyncIterator())
+        } catch { return .init(throwing: error) }
     }
 }
 
@@ -381,10 +373,6 @@ extension HTTPBody {
     ///   than `maxBytes`.
     /// - Returns: A byte chunk containing all the accumulated bytes.
     fileprivate func collect(upTo maxBytes: Int) async throws -> ByteChunk {
-
-        // Check that we're allowed to iterate again.
-        try checkIfCanCreateIterator()
-
         // If the length is known, verify it's within the limit.
         if case .known(let knownBytes) = length {
             guard knownBytes <= maxBytes else { throw TooManyBytesError(maxBytes: maxBytes) }
@@ -563,6 +551,9 @@ extension HTTPBody {
             var iterator = iterator
             self.produceNext = { try await iterator.next() }
         }
+        /// Creates an iterator throwing the given error when iterated.
+        /// - Parameter error: The error to throw on iteration.
+        fileprivate init(throwing error: any Error) { self.produceNext = { throw error } }
 
         /// Advances the iterator to the next element and returns it asynchronously.
         ///
