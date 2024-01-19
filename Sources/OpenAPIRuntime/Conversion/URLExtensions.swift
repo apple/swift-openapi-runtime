@@ -11,7 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import Foundation
+#if canImport(Darwin)
+import struct Foundation.URL
+#else
+@preconcurrency import struct Foundation.URL
+#endif
 
 extension URL {
     /// Returns the default server URL of "/".

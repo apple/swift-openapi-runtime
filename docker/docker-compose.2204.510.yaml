@@ -14,7 +14,7 @@ services:
       - IMPORT_CHECK_ARG=--explicit-target-dependency-import-check error
       # Disabled strict concurrency checking as currently it's not possible to iterate an async sequence
       # from inside an actor without warnings.
-      # - STRICT_CONCURRENCY_ARG=-Xswiftc -strict-concurrency=complete
+      - STRICT_CONCURRENCY_ARG=-Xswiftc -strict-concurrency=complete
 
   shell:
     image: *image
