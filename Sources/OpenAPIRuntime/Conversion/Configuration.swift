@@ -96,6 +96,10 @@ extension JSONDecoder.DateDecodingStrategy {
     }
 }
 
+public protocol DecodingErrorHandler: Sendable {
+    func willThrow(_ error: any Error)
+}
+
 /// A set of configuration values used by the generated client and server types.
 public struct Configuration: Sendable {
 
@@ -105,6 +109,8 @@ public struct Configuration: Sendable {
     /// The generator to use when creating mutlipart bodies.
     public var multipartBoundaryGenerator: any MultipartBoundaryGenerator
 
+    public var decodingErrorHandler: (any DecodingErrorHandler)?
+
     /// Creates a new configuration with the specified values.
     ///
     /// - Parameters:
@@ -113,9 +119,11 @@ public struct Configuration: Sendable {
     ///   - multipartBoundaryGenerator: The generator to use when creating mutlipart bodies.
     public init(
         dateTranscoder: any DateTranscoder = .iso8601,
-        multipartBoundaryGenerator: any MultipartBoundaryGenerator = .random
+        multipartBoundaryGenerator: any MultipartBoundaryGenerator = .random,
+        decodingErrorHandler: (any DecodingErrorHandler)? = nil
     ) {
         self.dateTranscoder = dateTranscoder
         self.multipartBoundaryGenerator = multipartBoundaryGenerator
+        self.decodingErrorHandler = decodingErrorHandler
     }
 }

@@ -207,6 +207,40 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(value, testStruct)
     }
 
+    func testDecodingErrorHandler() async throws {
+        let decodingErrorHandler = TestDecodingErrorHandler()
+        let converter = Converter(
+            configuration: Configuration(
+                decodingErrorHandler: decodingErrorHandler
+            )
+        )
+        do {
+            _ = try await converter.getResponseBodyAsJSON(
+                TestPetDetailed.self,
+                from: .init(testStructData),
+                transforming: { $0 }
+            )
+            XCTFail("Unreachable")
+        } catch {
+            XCTAssertEqual(decodingErrorHandler.errorsThrown.count, 1)
+            let interceptedError = try XCTUnwrap(decodingErrorHandler.errorsThrown.first as? DecodingError)
+            switch interceptedError {
+            case .typeMismatch, .valueNotFound, .dataCorrupted:
+                XCTFail("Unreachable")
+            case .keyNotFound(let key, let context):
+                XCTAssertEqual(key.stringValue, "type")
+                XCTAssertEqual(
+                    context.debugDescription,
+                    """
+                    No value associated with key CodingKeys(stringValue: "type", intValue: nil) ("type").
+                    """
+                )
+            @unknown default:
+                XCTFail("Unreachable")
+            }
+        }
+    }
+
     //    | client | get | response body | binary | required | getResponseBodyAsBinary |
     func test_getResponseBodyAsBinary_data() async throws {
         let value: HTTPBody = try converter.getResponseBodyAsBinary(
@@ -255,4 +289,21 @@ public func XCTAssertEqualStringifiedData(
         let actualString = String(decoding: try expression1(), as: UTF8.self)
         XCTAssertEqual(actualString, try expression2(), file: file, line: line)
     } catch { XCTFail(error.localizedDescription, file: file, line: line) }
+}
+
+final class TestDecodingErrorHandler: DecodingErrorHandler, @unchecked Sendable {
+    private let lock = NSLock()
+    private var _errorsThrown = [any Error]()
+
+    var errorsThrown: [any Error] {
+        lock.lock()
+        defer { lock.unlock() }
+        return _errorsThrown
+    }
+
+    func willThrow(_ error: any Error) {
+        lock.lock()
+        _errorsThrown.append(error)
+        lock.unlock()
+    }
 }
