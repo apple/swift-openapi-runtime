@@ -117,6 +117,7 @@ extension URISerializer {
             switch configuration.style {
             case .form: keyAndValueSeparator = "="
             case .simple: keyAndValueSeparator = nil
+            case .deepObject: keyAndValueSeparator = "="
             }
             try serializePrimitiveKeyValuePair(primitive, forKey: key, separator: keyAndValueSeparator)
         case .array(let array): try serializeArray(array.map(unwrapPrimitiveValue), forKey: key)
@@ -180,6 +181,9 @@ extension URISerializer {
         case (.simple, _):
             keyAndValueSeparator = nil
             pairSeparator = ","
+        case (.deepObject, _):
+            keyAndValueSeparator = "="
+            pairSeparator = "&"
         }
         func serializeNext(_ element: URIEncodedNode.Primitive) throws {
             if let keyAndValueSeparator {
@@ -228,8 +232,15 @@ extension URISerializer {
         case (.simple, false):
             keyAndValueSeparator = ","
             pairSeparator = ","
+        case (.deepObject, _):
+            keyAndValueSeparator = "="
+            pairSeparator = "&"
         }
 
+        func serializeNestedKey(_ elementKey: String, forKey rootKey: String) -> String {
+            guard case .deepObject = configuration.style else { return elementKey }
+            return rootKey + "[" + elementKey + "]"
+        }
         func serializeNext(_ element: URIEncodedNode.Primitive, forKey elementKey: String) throws {
             try serializePrimitiveKeyValuePair(element, forKey: elementKey, separator: keyAndValueSeparator)
         }
@@ -238,10 +249,13 @@ extension URISerializer {
             data.append(containerKeyAndValue)
         }
         for (elementKey, element) in sortedDictionary.dropLast() {
-            try serializeNext(element, forKey: elementKey)
+            try serializeNext(element, forKey: serializeNestedKey(elementKey, forKey: key))
             data.append(pairSeparator)
         }
-        if let (elementKey, element) = sortedDictionary.last { try serializeNext(element, forKey: elementKey) }
+        
+        if let (elementKey, element) = sortedDictionary.last {
+            try serializeNext(element, forKey: serializeNestedKey(elementKey, forKey: key))
+        }
     }
 }
 

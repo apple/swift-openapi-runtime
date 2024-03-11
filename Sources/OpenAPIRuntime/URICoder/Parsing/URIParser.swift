@@ -61,6 +61,7 @@ extension URIParser {
             switch configuration.style {
             case .form: return [:]
             case .simple: return ["": [""]]
+            case .deepObject: return [:]
             }
         }
         switch (configuration.style, configuration.explode) {
@@ -68,6 +69,7 @@ extension URIParser {
         case (.form, false): return try parseUnexplodedFormRoot()
         case (.simple, true): return try parseExplodedSimpleRoot()
         case (.simple, false): return try parseUnexplodedSimpleRoot()
+        case (.deepObject, _): return try parseExplodedDeepObjectRoot()
         }
     }
 
@@ -205,6 +207,50 @@ extension URIParser {
             }
         }
     }
+    
+    /// Parses the root node assuming the raw string uses the deepObject style
+    /// and the explode parameter is enabled.
+    /// - Returns: The parsed root node.
+    /// - Throws: An error if parsing fails.
+    private mutating func parseExplodedDeepObjectRoot() throws -> URIParsedNode {
+        try parseGenericRoot { data, appendPair in
+            let keyValueSeparator: Character = "="
+            let pairSeparator: Character = "&"
+            let nestedKeyStartingCharacter: Character = "["
+            let nestedKeyEndingCharacter: Character = "]"
+            
+            func nestedKey(from deepObjectKey: String.SubSequence) -> Raw {
+                var unescapedFirstValue = Substring(deepObjectKey.removingPercentEncoding ?? "")
+                let nestedKey = unescapedFirstValue.parseBetweenCharacters(
+                    startingCharacter: nestedKeyStartingCharacter,
+                    endingCharacter: nestedKeyEndingCharacter
+                )
+                return nestedKey
+            }
+            
+            while !data.isEmpty {
+                let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
+                    first: keyValueSeparator,
+                    second: pairSeparator
+                )
+                let key: Raw
+                let value: Raw
+                switch firstResult {
+                case .foundFirst:
+                    // Hit the key/value separator, so a value will follow.
+                    let secondValue = data.parseUpToCharacterOrEnd(pairSeparator)
+                    
+                    key = nestedKey(from: firstValue)
+                    value = secondValue
+                case .foundSecondOrEnd:
+                    // No key/value separator, treat the string as the key.
+                    key = nestedKey(from: firstValue)
+                    value = .init()
+                }
+                appendPair(key, [value])
+            }
+        }
+    }
 }
 
 // MARK: - URIParser utilities
@@ -323,6 +369,34 @@ extension String.SubSequence {
         while currentIndex != endIndex {
             let currentChar = self[currentIndex]
             if currentChar == character { return finalize() } else { formIndex(after: &currentIndex) }
+        }
+        return finalize()
+    }
+    
+    
+    /// Accumulates characters from the `startingCharacter` character provided,
+    /// until the `endingCharacter` is reached. Moves the underlying startIndex.
+    /// - Parameters:
+    ///   - startingCharacter: A character to start with.
+    ///   - endingCharacter: A character to stop at.
+    /// - Returns: The accumulated substring.
+    fileprivate mutating func parseBetweenCharacters(startingCharacter: Character, endingCharacter: Character) -> Self {
+        guard startIndex != endIndex else { return .init() }
+        guard let startingCharacterIndex = firstIndex(of: startingCharacter) else { return self }
+        var currentIndex = startingCharacterIndex
+        
+        func finalize() -> Self {
+            let parsed = self[index(after: startingCharacterIndex)..<currentIndex]
+            guard currentIndex == endIndex else {
+                self = self[index(after: currentIndex)...]
+                return parsed
+            }
+            self = .init()
+            return parsed
+        }
+        while currentIndex != endIndex {
+            let currentChar = self[currentIndex]
+            if currentChar == endingCharacter { return finalize() } else { formIndex(after: &currentIndex) }
         }
         return finalize()
     }
