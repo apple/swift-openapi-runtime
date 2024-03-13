@@ -132,7 +132,14 @@ extension Converter {
     /// - Throws: An error if decoding from the body fails.
     func convertJSONToBodyCodable<T: Decodable>(_ body: HTTPBody) async throws -> T {
         let data = try await Data(collecting: body, upTo: .max)
-        return try decoder.decode(T.self, from: data)
+        do {
+            return try decoder.decode(T.self, from: data)
+        } catch {
+            if let decodingErrorHandler = configuration.decodingErrorHandler {
+                decodingErrorHandler.willThrow(error)
+            }
+            throw error
+        }
     }
 
     /// Returns a JSON body for the provided encodable value.
