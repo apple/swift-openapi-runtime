@@ -148,22 +148,26 @@ extension Converter {
     /// - Parameter body: The body containing the raw XML bytes.
     /// - Returns: A decoded value.
     /// - Throws: An error if decoding from the body fails.
+    /// - Throws: An error if no custom coder is present for XML coding.
     func convertXMLToBodyCodable<T: Decodable>(_ body: HTTPBody) async throws -> T {
-        fatalError("Not implemented")
-        // TODO: decode data
-        // let data = try await Data(collecting: body, upTo: .max)
-        // return try decoder.decode(T.self, from: data)
+        guard let coder = configuration.customCoder(for: "application/xml") else {
+            throw RuntimeError.missingCoderForCustomContentType(contentType: "application/xml")
+        }
+        let data = try await Data(collecting: body, upTo: .max)
+        return try coder.customDecode(T.self, from: data)
     }
 
-    /// Returns a JSON body for the provided encodable value.
-    /// - Parameter value: The value to encode as JSON.
-    /// - Returns: The raw JSON body.
-    /// - Throws: An error if encoding to JSON fails.
+    /// Returns a XML body for the provided encodable value.
+    /// - Parameter value: The value to encode as XML.
+    /// - Returns: The raw XML body.
+    /// - Throws: An error if encoding to XML fails.
+    /// - Throws: An error if no custom coder is present for XML coding.
     func convertBodyCodableToXML<T: Encodable>(_ value: T) throws -> HTTPBody {
-        fatalError("Not implemented")
-        // TODO: encode data
-        // let data = try encoder.encode(value)
-        // return HTTPBody(data)
+        guard let coder = configuration.customCoder(for: "application/xml") else {
+            throw RuntimeError.missingCoderForCustomContentType(contentType: "application/xml")
+        }
+        let data = try coder.customEncode(value)
+        return HTTPBody(data)
     }
 
     /// Returns a value decoded from a URL-encoded form body.
