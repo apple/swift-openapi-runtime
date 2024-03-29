@@ -98,19 +98,20 @@ extension JSONDecoder.DateDecodingStrategy {
 
 /// A type that allows custom content type encoding and decoding.
 public protocol CustomCoder: Sendable {
-    
+
     /// Encodes the given value and returns its custom encoded representation.
     ///
     /// - parameter value: The value to encode.
     /// - returns: A new `Data` value containing the custom encoded data.
     func customEncode<T: Encodable>(_ value: T) throws -> Data
-        
+
     /// Decodes a value of the given type from the given custom representation.
     ///
     /// - parameter type: The type of the value to decode.
     /// - parameter data: The data to decode from.
     /// - returns: A value of the requested type.
     func customDecode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T
+
 }
 
 /// A set of configuration values used by the generated client and server types.
@@ -140,9 +141,9 @@ public struct Configuration: Sendable {
         self.multipartBoundaryGenerator = multipartBoundaryGenerator
         self.customCoders = customCoders
     }
-    
+
     public func customCoder(for contentType: String) -> (any CustomCoder)? {
         self.customCoders[contentType]
     }
-    
+
 }
