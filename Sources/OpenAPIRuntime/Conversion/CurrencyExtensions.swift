@@ -144,6 +144,28 @@ extension Converter {
         return HTTPBody(data)
     }
 
+    /// Returns a value decoded from a XML body.
+    /// - Parameter body: The body containing the raw XML bytes.
+    /// - Returns: A decoded value.
+    /// - Throws: An error if decoding from the body fails.
+    func convertXMLToBodyCodable<T: Decodable>(_ body: HTTPBody) async throws -> T {
+        fatalError("Not implemented")
+        // TODO: decode data
+        // let data = try await Data(collecting: body, upTo: .max)
+        // return try decoder.decode(T.self, from: data)
+    }
+
+    /// Returns a JSON body for the provided encodable value.
+    /// - Parameter value: The value to encode as JSON.
+    /// - Returns: The raw JSON body.
+    /// - Throws: An error if encoding to JSON fails.
+    func convertBodyCodableToXML<T: Encodable>(_ value: T) throws -> HTTPBody {
+        fatalError("Not implemented")
+        // TODO: encode data
+        // let data = try encoder.encode(value)
+        // return HTTPBody(data)
+    }
+
     /// Returns a value decoded from a URL-encoded form body.
     /// - Parameter body: The body containing the raw URL-encoded form bytes.
     /// - Returns: A decoded value.

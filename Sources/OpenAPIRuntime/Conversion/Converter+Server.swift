@@ -214,6 +214,48 @@ extension Converter {
         )
     }
 
+    /// Retrieves and decodes an optional XML-encoded request body and transforms it to a different type.
+    ///
+    /// - Parameters:
+    ///   - type: The type to decode the request body into.
+    ///   - data: The HTTP request body to decode, or `nil` if the body is not present.
+    ///   - transform: A closure that transforms the decoded value to a different type.
+    /// - Returns: The transformed value, or `nil` if the request body is not present or if decoding fails.
+    /// - Throws: An error if there are issues decoding or transforming the request body.
+    public func getOptionalRequestBodyAsXML<T: Decodable, C>(
+        _ type: T.Type,
+        from data: HTTPBody?,
+        transforming transform: (T) -> C
+    ) async throws -> C? {
+        try await getOptionalBufferingRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertXMLToBodyCodable
+        )
+    }
+    
+    /// Retrieves and decodes a required XML-encoded request body and transforms it to a different type.
+    ///
+    /// - Parameters:
+    ///   - type: The type to decode the request body into.
+    ///   - data: The HTTP request body to decode, or `nil` if the body is not present.
+    ///   - transform: A closure that transforms the decoded value to a different type.
+    /// - Returns: The transformed value.
+    /// - Throws: An error if the request body is not present, if decoding fails, or if there are issues transforming the request body.
+    public func getRequiredRequestBodyAsXML<T: Decodable, C>(
+        _ type: T.Type,
+        from data: HTTPBody?,
+        transforming transform: (T) -> C
+    ) async throws -> C {
+        try await getRequiredBufferingRequestBody(
+            type,
+            from: data,
+            transforming: transform,
+            convert: convertXMLToBodyCodable
+        )
+    }
+
     /// Retrieves and transforms an optional binary request body.
     ///
     /// - Parameters:
@@ -345,6 +387,25 @@ extension Converter {
             headerFields: &headerFields,
             contentType: contentType,
             convert: convertBodyCodableToJSON
+        )
+    }
+    
+    /// Sets the response body as XML data, serializing the provided value.
+    ///
+    /// - Parameters:
+    ///   - value: The value to be serialized into the response body.
+    ///   - headerFields: The HTTP header fields to update with the new `contentType`.
+    ///   - contentType: The content type to set in the HTTP header fields.
+    /// - Returns: An `HTTPBody` with the response body set as XML data.
+    /// - Throws: An error if serialization or setting the response body fails.
+    public func setResponseBodyAsXML<T: Encodable>(_ value: T, headerFields: inout HTTPFields, contentType: String)
+    throws -> HTTPBody
+    {
+        try setResponseBody(
+            value,
+            headerFields: &headerFields,
+            contentType: contentType,
+            convert: convertBodyCodableToXML
         )
     }
 
