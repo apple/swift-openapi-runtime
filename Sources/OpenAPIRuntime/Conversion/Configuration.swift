@@ -123,7 +123,8 @@ public struct Configuration: Sendable {
     /// The generator to use when creating mutlipart bodies.
     public var multipartBoundaryGenerator: any MultipartBoundaryGenerator
 
-    public var customCoders: [String: any CustomCoder]
+    /// Custom XML coder for encoding and decoding xml bodies.
+    public var xmlCoder: (any CustomCoder)?
     
     /// Creates a new configuration with the specified values.
     ///
@@ -131,19 +132,15 @@ public struct Configuration: Sendable {
     ///   - dateTranscoder: The transcoder to use when converting between date
     ///   and string values.
     ///   - multipartBoundaryGenerator: The generator to use when creating mutlipart bodies.
-    ///   - customCoders: Array of custom coder to use for encoding and decoding unsupported content types.
+    ///   - xmlCoder: Custom XML coder for encoding and decoding xml bodies.
     public init(
         dateTranscoder: any DateTranscoder = .iso8601,
         multipartBoundaryGenerator: any MultipartBoundaryGenerator = .random,
-        customCoders: [String: any CustomCoder] = [:]
+        xmlCoder: (any CustomCoder)? = nil
     ) {
         self.dateTranscoder = dateTranscoder
         self.multipartBoundaryGenerator = multipartBoundaryGenerator
-        self.customCoders = customCoders
+        self.xmlCoder = xmlCoder
     }
-
-    public func customCoder(for contentType: String) -> (any CustomCoder)? {
-        self.customCoders[contentType]
-    }
-
+    
 }
