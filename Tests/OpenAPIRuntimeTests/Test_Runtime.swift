@@ -27,9 +27,7 @@ class Test_Runtime: XCTestCase {
     var serverURL: URL { get throws { try URL(validatingOpenAPIServerURL: "/api") } }
 
     var customCoder: any CustomCoder { MockCustomCoder() }
-    var configuration: Configuration {
-        .init(multipartBoundaryGenerator: .constant, customCoders: ["application/xml": customCoder])
-    }
+    var configuration: Configuration { .init(multipartBoundaryGenerator: .constant, xmlCoder: customCoder) }
 
     var converter: Converter { .init(configuration: configuration) }
 
