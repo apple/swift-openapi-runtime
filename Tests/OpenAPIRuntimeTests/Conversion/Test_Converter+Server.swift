@@ -247,6 +247,26 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         )
         XCTAssertEqual(body, testStruct)
     }
+    
+    //    | server | get | request body | XML | optional | getOptionalRequestBodyAsXML |
+    func test_getOptionalRequestBodyAsXML_codable() async throws {
+        let body: TestPet? = try await converter.getOptionalRequestBodyAsXML(
+            TestPet.self,
+            from: .init(testStructData),
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testStruct)
+    }
+    
+    //    | server | get | request body | XML | required | getRequiredRequestBodyAsXML |
+    func test_getRequiredRequestBodyAsXML_codable() async throws {
+        let body: TestPet = try await converter.getRequiredRequestBodyAsXML(
+            TestPet.self,
+            from: .init(testStructData),
+            transforming: { $0 }
+        )
+        XCTAssertEqual(body, testStruct)
+    }
 
     //    | server | get | request body | urlEncodedForm | optional | getOptionalRequestBodyAsURLEncodedForm |
     func test_getOptionalRequestBodyAsURLEncodedForm_codable() async throws {
@@ -317,6 +337,18 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         )
         try await XCTAssertEqualStringifiedData(data, testStructPrettyString)
         XCTAssertEqual(headers, [.contentType: "application/json", .contentLength: "23"])
+    }
+    
+    //    | server | set | response body | XML | required | setResponseBodyAsXML |
+    func test_setResponseBodyAsXML_codable() async throws {
+        var headers: HTTPFields = [:]
+        let data = try converter.setResponseBodyAsXML(
+            testStruct,
+            headerFields: &headers,
+            contentType: "application/xml"
+        )
+        try await XCTAssertEqualStringifiedData(data, testStructString)
+        XCTAssertEqual(headers, [.contentType: "application/xml", .contentLength: "17"])
     }
 
     //    | server | set | response body | binary | required | setResponseBodyAsBinary |

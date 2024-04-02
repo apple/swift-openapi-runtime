@@ -26,7 +26,9 @@ class Test_Runtime: XCTestCase {
 
     var serverURL: URL { get throws { try URL(validatingOpenAPIServerURL: "/api") } }
 
-    var configuration: Configuration { .init(multipartBoundaryGenerator: .constant) }
+    var customCoder: any CustomCoder { MockCustomCoder() }
+    
+    var configuration: Configuration { .init(multipartBoundaryGenerator: .constant, customCoders: ["application/xml": customCoder]) }
 
     var converter: Converter { .init(configuration: configuration) }
 
@@ -219,6 +221,16 @@ struct MockMiddleware: ClientMiddleware, ServerMiddleware {
         let (response, responseBody) = try await next(request, body, metadata)
         if failurePhase == .onResponse { throw TestError() }
         return (response, responseBody)
+    }
+}
+
+struct MockCustomCoder: CustomCoder {
+    func customEncode<T>(_ value: T) throws -> Data where T : Encodable {
+        try JSONEncoder().encode(value)
+    }
+    
+    func customDecode<T>(_ type: T.Type, from data: Data) throws -> T where T : Decodable {
+        try JSONDecoder().decode(T.self, from: data)
     }
 }
 
