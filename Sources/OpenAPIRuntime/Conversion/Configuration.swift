@@ -101,15 +101,18 @@ public protocol CustomCoder: Sendable {
 
     /// Encodes the given value and returns its custom encoded representation.
     ///
-    /// - parameter value: The value to encode.
-    /// - returns: A new `Data` value containing the custom encoded data.
+    /// - Parameter value: The value to encode.
+    /// - Returns: A new `Data` value containing the custom encoded data.
+    /// - Throws: An error if encoding fails.
     func customEncode<T: Encodable>(_ value: T) throws -> Data
 
     /// Decodes a value of the given type from the given custom representation.
     ///
-    /// - parameter type: The type of the value to decode.
-    /// - parameter data: The data to decode from.
-    /// - returns: A value of the requested type.
+    /// - Parameters:
+    ///   - type: The type of the value to decode.
+    ///   - data: The data to decode from.
+    /// - Returns: A value of the requested type.
+    /// - Throws: An error if decoding fails.
     func customDecode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T
 
 }
