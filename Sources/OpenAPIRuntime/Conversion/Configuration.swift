@@ -128,6 +128,7 @@ public struct Configuration: Sendable {
 
     /// Custom XML coder for encoding and decoding xml bodies.
     public var xmlCoder: (any CustomCoder)?
+
     /// Creates a new configuration with the specified values.
     ///
     /// - Parameters:

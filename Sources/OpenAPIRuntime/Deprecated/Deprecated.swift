@@ -22,3 +22,19 @@ extension UndocumentedPayload {
         self.init(headerFields: [:], body: nil)
     }
 }
+
+extension Configuration {
+    /// Creates a new configuration with the specified values.
+    ///
+    /// - Parameters:
+    ///   - dateTranscoder: The transcoder to use when converting between date
+    ///   and string values.
+    ///   - multipartBoundaryGenerator: The generator to use when creating mutlipart bodies.
+    @available(*, deprecated, renamed: "init(dateTranscoder:multipartBoundaryGenerator:xmlCoder:)") @_disfavoredOverload
+    public init(
+        dateTranscoder: any DateTranscoder = .iso8601,
+        multipartBoundaryGenerator: any MultipartBoundaryGenerator = .random
+    ) {
+        self.init(dateTranscoder: dateTranscoder, multipartBoundaryGenerator: multipartBoundaryGenerator, xmlCoder: nil)
+    }
+}
