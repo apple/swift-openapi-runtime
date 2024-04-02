@@ -234,7 +234,6 @@ extension Converter {
             convert: convertXMLToBodyCodable
         )
     }
-    
     /// Retrieves and decodes a required XML-encoded request body and transforms it to a different type.
     ///
     /// - Parameters:
@@ -389,7 +388,6 @@ extension Converter {
             convert: convertBodyCodableToJSON
         )
     }
-    
     /// Sets the response body as XML data, serializing the provided value.
     ///
     /// - Parameters:
@@ -399,7 +397,7 @@ extension Converter {
     /// - Returns: An `HTTPBody` with the response body set as XML data.
     /// - Throws: An error if serialization or setting the response body fails.
     public func setResponseBodyAsXML<T: Encodable>(_ value: T, headerFields: inout HTTPFields, contentType: String)
-    throws -> HTTPBody
+        throws -> HTTPBody
     {
         try setResponseBody(
             value,

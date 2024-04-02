@@ -127,7 +127,6 @@ extension Converter {
             convert: convertBodyCodableToJSON
         )
     }
-    
     /// Sets an optional request body as XML in the specified header fields and returns an `HTTPBody`.
     ///
     /// - Parameters:
@@ -150,7 +149,6 @@ extension Converter {
             convert: convertBodyCodableToXML
         )
     }
-    
     /// Sets a required request body as XML in the specified header fields and returns an `HTTPBody`.
     ///
     /// - Parameters:
@@ -321,7 +319,6 @@ extension Converter {
             convert: convertJSONToBodyCodable
         )
     }
-    
     /// Retrieves the response body as XML and transforms it into a specified type.
     ///
     /// - Parameters:
