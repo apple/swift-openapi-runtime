@@ -26,7 +26,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 
     // Data conversion
     case failedToDecodeStringConvertibleValue(type: String)
-    case missingCoderForCustomContentType(contentType: String)
+    case missingCoderForCustomContentType(contentType: OpenAPIMIMEType)
 
     enum ParameterLocation: String, CustomStringConvertible {
         case query
