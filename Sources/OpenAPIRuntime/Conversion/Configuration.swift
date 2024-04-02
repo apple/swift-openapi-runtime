@@ -134,7 +134,7 @@ public struct Configuration: Sendable {
     ///   - dateTranscoder: The transcoder to use when converting between date
     ///   and string values.
     ///   - multipartBoundaryGenerator: The generator to use when creating mutlipart bodies.
-    ///   - xmlCoder: Custom XML coder for encoding and decoding xml bodies.
+    ///   - xmlCoder: Custom XML coder for encoding and decoding xml bodies. Only required when using XML body payloads.
     public init(
         dateTranscoder: any DateTranscoder = .iso8601,
         multipartBoundaryGenerator: any MultipartBoundaryGenerator = .random,
