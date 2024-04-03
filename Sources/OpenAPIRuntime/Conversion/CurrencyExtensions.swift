@@ -151,7 +151,7 @@ extension Converter {
     /// - Throws: An error if no custom coder is present for XML coding.
     func convertXMLToBodyCodable<T: Decodable>(_ body: HTTPBody) async throws -> T {
         guard let coder = configuration.xmlCoder else {
-            throw RuntimeError.missingCoderForCustomContentType(contentType: OpenAPIMIMEType.xml)
+            throw RuntimeError.missingCoderForCustomContentType(contentType: OpenAPIMIMEType.xml.description)
         }
         let data = try await Data(collecting: body, upTo: .max)
         return try coder.customDecode(T.self, from: data)
@@ -164,7 +164,7 @@ extension Converter {
     /// - Throws: An error if no custom coder is present for XML coding.
     func convertBodyCodableToXML<T: Encodable>(_ value: T) throws -> HTTPBody {
         guard let coder = configuration.xmlCoder else {
-            throw RuntimeError.missingCoderForCustomContentType(contentType: OpenAPIMIMEType.xml)
+            throw RuntimeError.missingCoderForCustomContentType(contentType: OpenAPIMIMEType.xml.description)
         }
         let data = try coder.customEncode(value)
         return HTTPBody(data)
