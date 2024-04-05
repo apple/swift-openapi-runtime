@@ -26,6 +26,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 
     // Data conversion
     case failedToDecodeStringConvertibleValue(type: String)
+    case missingCoderForCustomContentType(contentType: String)
 
     enum ParameterLocation: String, CustomStringConvertible {
         case query
@@ -88,6 +89,8 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
         case .invalidBase64String(let string):
             return "Invalid base64-encoded string (first 128 bytes): '\(string.prefix(128))'"
         case .failedToDecodeStringConvertibleValue(let string): return "Failed to decode a value of type '\(string)'."
+        case .missingCoderForCustomContentType(let contentType):
+            return "Missing custom coder for content type '\(contentType)'."
         case .unsupportedParameterStyle(name: let name, location: let location, style: let style, explode: let explode):
             return
                 "Unsupported parameter style, parameter name: '\(name)', kind: \(location), style: \(style), explode: \(explode)"

@@ -120,6 +120,28 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         try await XCTAssertEqualStringifiedData(body, testStructPrettyString)
         XCTAssertEqual(headerFields, [.contentType: "application/json", .contentLength: "23"])
     }
+    //    | client | set | request body | XML | optional | setOptionalRequestBodyAsXML |
+    func test_setOptionalRequestBodyAsXML_codable() async throws {
+        var headerFields: HTTPFields = [:]
+        let body = try converter.setOptionalRequestBodyAsXML(
+            testStruct,
+            headerFields: &headerFields,
+            contentType: "application/xml"
+        )
+        try await XCTAssertEqualStringifiedData(body, testStructString)
+        XCTAssertEqual(headerFields, [.contentType: "application/xml", .contentLength: "17"])
+    }
+    //    | client | set | request body | XML | required | setRequiredRequestBodyAsXML |
+    func test_setRequiredRequestBodyAsXML_codable() async throws {
+        var headerFields: HTTPFields = [:]
+        let body = try converter.setRequiredRequestBodyAsXML(
+            testStruct,
+            headerFields: &headerFields,
+            contentType: "application/xml"
+        )
+        try await XCTAssertEqualStringifiedData(body, testStructString)
+        XCTAssertEqual(headerFields, [.contentType: "application/xml", .contentLength: "17"])
+    }
 
     //    | client | set | request body | urlEncodedForm | codable | optional | setRequiredRequestBodyAsURLEncodedForm |
     func test_setOptionalRequestBodyAsURLEncodedForm_codable() async throws {
@@ -200,6 +222,15 @@ final class Test_ClientConverterExtensions: Test_Runtime {
     //    | client | get | response body | JSON | required | getResponseBodyAsJSON |
     func test_getResponseBodyAsJSON_codable() async throws {
         let value: TestPet = try await converter.getResponseBodyAsJSON(
+            TestPet.self,
+            from: .init(testStructData),
+            transforming: { $0 }
+        )
+        XCTAssertEqual(value, testStruct)
+    }
+    //    | client | get | response body | XML | required | getResponseBodyAsXML |
+    func test_getResponseBodyAsXML_codable() async throws {
+        let value: TestPet = try await converter.getResponseBodyAsXML(
             TestPet.self,
             from: .init(testStructData),
             transforming: { $0 }

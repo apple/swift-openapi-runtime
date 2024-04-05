@@ -144,6 +144,32 @@ extension Converter {
         return HTTPBody(data)
     }
 
+    /// Returns a value decoded from a XML body.
+    /// - Parameter body: The body containing the raw XML bytes.
+    /// - Returns: A decoded value.
+    /// - Throws: An error if decoding from the body fails.
+    /// - Throws: An error if no custom coder is present for XML coding.
+    func convertXMLToBodyCodable<T: Decodable>(_ body: HTTPBody) async throws -> T {
+        guard let coder = configuration.xmlCoder else {
+            throw RuntimeError.missingCoderForCustomContentType(contentType: OpenAPIMIMEType.xml.description)
+        }
+        let data = try await Data(collecting: body, upTo: .max)
+        return try coder.customDecode(T.self, from: data)
+    }
+
+    /// Returns a XML body for the provided encodable value.
+    /// - Parameter value: The value to encode as XML.
+    /// - Returns: The raw XML body.
+    /// - Throws: An error if encoding to XML fails.
+    /// - Throws: An error if no custom coder is present for XML coding.
+    func convertBodyCodableToXML<T: Encodable>(_ value: T) throws -> HTTPBody {
+        guard let coder = configuration.xmlCoder else {
+            throw RuntimeError.missingCoderForCustomContentType(contentType: OpenAPIMIMEType.xml.description)
+        }
+        let data = try coder.customEncode(value)
+        return HTTPBody(data)
+    }
+
     /// Returns a value decoded from a URL-encoded form body.
     /// - Parameter body: The body containing the raw URL-encoded form bytes.
     /// - Returns: A decoded value.

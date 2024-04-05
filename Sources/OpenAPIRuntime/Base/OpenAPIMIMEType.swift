@@ -16,6 +16,9 @@ import Foundation
 /// A container for a parsed, valid MIME type.
 @_spi(Generated) public struct OpenAPIMIMEType: Equatable {
 
+    /// XML MIME type
+    public static let xml: OpenAPIMIMEType = .init(kind: .concrete(type: "application", subtype: "xml"))
+
     /// The kind of the MIME type.
     public enum Kind: Equatable {
 
