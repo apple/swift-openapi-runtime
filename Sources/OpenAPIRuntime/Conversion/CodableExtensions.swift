@@ -102,7 +102,6 @@
     /// - Parameter additionalProperties: A container of additional properties.
     /// - Throws: An error if there are issues with encoding the additional properties.
     public func encodeAdditionalProperties(_ additionalProperties: OpenAPIObjectContainer) throws {
-        guard !additionalProperties.value.isEmpty else { return }
         var container = container(keyedBy: StringKey.self)
         for (key, value) in additionalProperties.value {
             try container.encode(OpenAPIValueContainer(unvalidatedValue: value), forKey: .init(key))
@@ -116,7 +115,6 @@
     /// - Parameter additionalProperties: A container of additional properties.
     /// - Throws: An error if there are issues with encoding the additional properties.
     public func encodeAdditionalProperties<T: Encodable>(_ additionalProperties: [String: T]) throws {
-        guard !additionalProperties.isEmpty else { return }
         var container = container(keyedBy: StringKey.self)
         for (key, value) in additionalProperties { try container.encode(value, forKey: .init(key)) }
     }
