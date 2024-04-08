@@ -61,7 +61,12 @@ extension Converter {
         // The force unwrap is safe, we only get here if the array is not empty.
         let bestOption = evaluatedOptions.max { a, b in a.match.score < b.match.score }!
         let bestContentType = bestOption.contentType
-        if case .incompatible = bestOption.match { throw RuntimeError.unexpectedContentTypeHeader(bestContentType) }
+        if case .incompatible = bestOption.match {
+            throw RuntimeError.unexpectedContentTypeHeader(
+                expected: bestContentType,
+                received: String(describing: received)
+            )
+        }
         return bestContentType
     }
 

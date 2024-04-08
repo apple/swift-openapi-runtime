@@ -37,7 +37,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 
     // Headers
     case missingRequiredHeaderField(String)
-    case unexpectedContentTypeHeader(String)
+    case unexpectedContentTypeHeader(expected: String, received: String)
     case unexpectedAcceptHeader(String)
     case malformedAcceptHeader(String)
     case missingOrMalformedContentDispositionName
@@ -95,7 +95,8 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
             return
                 "Unsupported parameter style, parameter name: '\(name)', kind: \(location), style: \(style), explode: \(explode)"
         case .missingRequiredHeaderField(let name): return "The required header field named '\(name)' is missing."
-        case .unexpectedContentTypeHeader(let contentType): return "Unexpected Content-Type header: \(contentType)"
+        case .unexpectedContentTypeHeader(expected: let expected, received: let received):
+            return "Unexpected content type, expected: \(expected), received: \(received)"
         case .unexpectedAcceptHeader(let accept): return "Unexpected Accept header: \(accept)"
         case .malformedAcceptHeader(let accept): return "Malformed Accept header: \(accept)"
         case .missingOrMalformedContentDispositionName:
