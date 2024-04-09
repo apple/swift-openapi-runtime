@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-@_spi(Generated) import OpenAPIRuntime
+@testable @_spi(Generated) import OpenAPIRuntime
 import HTTPTypes
 
 extension HTTPField.Name { static var foo: Self { Self("foo")! } }
@@ -84,7 +84,16 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         try testCase(received: "image/png", options: ["image/*", "*/*"], expected: "image/*")
         XCTAssertThrowsError(
             try testCase(received: "text/csv", options: ["text/html", "application/json"], expected: "-")
-        )
+        ) { error in
+            XCTAssert(error is RuntimeError)
+            guard let error = error as? RuntimeError,
+                case .unexpectedContentTypeHeader(expected: let expected, received: let received) = error,
+                expected == "text/html", received == "text/csv"
+            else {
+                XCTFail("Unexpected error: \(error)")
+                return
+            }
+        }
     }
 
     func testVerifyContentTypeIfPresent() throws {
