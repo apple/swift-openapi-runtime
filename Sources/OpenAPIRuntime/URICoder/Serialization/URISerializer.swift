@@ -69,6 +69,12 @@ extension URISerializer {
 
         /// Nested containers are not supported.
         case nestedContainersNotSupported
+        
+        /// Deep object arrays are not supported.
+        case deepObjectsArrayNotSupported
+        
+        /// An invalid configuration was detected.
+        case invalidConfiguration(String)
     }
 
     /// Computes an escaped version of the provided string.
@@ -117,6 +123,7 @@ extension URISerializer {
             switch configuration.style {
             case .form: keyAndValueSeparator = "="
             case .simple: keyAndValueSeparator = nil
+            case .deepObject: keyAndValueSeparator = "="
             }
             try serializePrimitiveKeyValuePair(primitive, forKey: key, separator: keyAndValueSeparator)
         case .array(let array): try serializeArray(array.map(unwrapPrimitiveValue), forKey: key)
@@ -180,6 +187,8 @@ extension URISerializer {
         case (.simple, _):
             keyAndValueSeparator = nil
             pairSeparator = ","
+        case (.deepObject, _):
+            throw SerializationError.deepObjectsArrayNotSupported
         }
         func serializeNext(_ element: URIEncodedNode.Primitive) throws {
             if let keyAndValueSeparator {
@@ -228,8 +237,18 @@ extension URISerializer {
         case (.simple, false):
             keyAndValueSeparator = ","
             pairSeparator = ","
+        case (.deepObject, true):
+            keyAndValueSeparator = "="
+            pairSeparator = "&"
+        case (.deepObject, false):
+            let reason = "Deep object style is only valid with explode set to true"
+            throw SerializationError.invalidConfiguration(reason)
         }
 
+        func serializeNestedKey(_ elementKey: String, forKey rootKey: String) -> String {
+            guard case .deepObject = configuration.style else { return elementKey }
+            return rootKey + "[" + elementKey + "]"
+        }
         func serializeNext(_ element: URIEncodedNode.Primitive, forKey elementKey: String) throws {
             try serializePrimitiveKeyValuePair(element, forKey: elementKey, separator: keyAndValueSeparator)
         }
@@ -238,10 +257,13 @@ extension URISerializer {
             data.append(containerKeyAndValue)
         }
         for (elementKey, element) in sortedDictionary.dropLast() {
-            try serializeNext(element, forKey: elementKey)
+            try serializeNext(element, forKey: serializeNestedKey(elementKey, forKey: key))
             data.append(pairSeparator)
         }
-        if let (elementKey, element) = sortedDictionary.last { try serializeNext(element, forKey: elementKey) }
+        
+        if let (elementKey, element) = sortedDictionary.last {
+            try serializeNext(element, forKey: serializeNestedKey(elementKey, forKey: key))
+        }
     }
 }
 

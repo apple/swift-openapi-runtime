@@ -96,7 +96,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "",
                 simpleUnexplode: "",
                 formDataExplode: "root=",
-                formDataUnexplode: "root="
+                formDataUnexplode: "root=",
+                deepObjectExplode: "root="
             )
         )
 
@@ -110,7 +111,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "Hello%20World%21",
                 simpleUnexplode: "Hello%20World%21",
                 formDataExplode: "root=Hello+World%21",
-                formDataUnexplode: "root=Hello+World%21"
+                formDataUnexplode: "root=Hello+World%21",
+                deepObjectExplode: "root=Hello%20World%21"
             )
         )
 
@@ -124,7 +126,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "red",
                 simpleUnexplode: "red",
                 formDataExplode: "root=red",
-                formDataUnexplode: "root=red"
+                formDataUnexplode: "root=red",
+                deepObjectExplode: "root=red"
             )
         )
 
@@ -138,7 +141,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "1234",
                 simpleUnexplode: "1234",
                 formDataExplode: "root=1234",
-                formDataUnexplode: "root=1234"
+                formDataUnexplode: "root=1234",
+                deepObjectExplode: "root=1234"
             )
         )
 
@@ -152,7 +156,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "12.34",
                 simpleUnexplode: "12.34",
                 formDataExplode: "root=12.34",
-                formDataUnexplode: "root=12.34"
+                formDataUnexplode: "root=12.34",
+                deepObjectExplode: "root=12.34"
             )
         )
 
@@ -166,7 +171,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "true",
                 simpleUnexplode: "true",
                 formDataExplode: "root=true",
-                formDataUnexplode: "root=true"
+                formDataUnexplode: "root=true",
+                deepObjectExplode: "root=true"
             )
         )
 
@@ -180,7 +186,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "2023-08-25T07%3A34%3A59Z",
                 simpleUnexplode: "2023-08-25T07%3A34%3A59Z",
                 formDataExplode: "root=2023-08-25T07%3A34%3A59Z",
-                formDataUnexplode: "root=2023-08-25T07%3A34%3A59Z"
+                formDataUnexplode: "root=2023-08-25T07%3A34%3A59Z",
+                deepObjectExplode: "root=2023-08-25T07%3A34%3A59Z"
             )
         )
 
@@ -194,7 +201,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "a,b,c",
                 simpleUnexplode: "a,b,c",
                 formDataExplode: "list=a&list=b&list=c",
-                formDataUnexplode: "list=a,b,c"
+                formDataUnexplode: "list=a,b,c",
+                deepObjectExplode: nil
             )
         )
 
@@ -208,7 +216,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "2023-08-25T07%3A34%3A59Z,2023-08-25T07%3A35%3A01Z",
                 simpleUnexplode: "2023-08-25T07%3A34%3A59Z,2023-08-25T07%3A35%3A01Z",
                 formDataExplode: "list=2023-08-25T07%3A34%3A59Z&list=2023-08-25T07%3A35%3A01Z",
-                formDataUnexplode: "list=2023-08-25T07%3A34%3A59Z,2023-08-25T07%3A35%3A01Z"
+                formDataUnexplode: "list=2023-08-25T07%3A34%3A59Z,2023-08-25T07%3A35%3A01Z",
+                deepObjectExplode: nil
             )
         )
 
@@ -222,7 +231,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: .custom("", value: [""]),
                 simpleUnexplode: .custom("", value: [""]),
                 formDataExplode: "",
-                formDataUnexplode: ""
+                formDataUnexplode: "",
+                deepObjectExplode: nil
             )
         )
 
@@ -236,7 +246,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "red,green,blue",
                 simpleUnexplode: "red,green,blue",
                 formDataExplode: "list=red&list=green&list=blue",
-                formDataUnexplode: "list=red,green,blue"
+                formDataUnexplode: "list=red,green,blue",
+                deepObjectExplode: nil
             )
         )
 
@@ -250,7 +261,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "bar=24,color=red,date=2023-08-25T07%3A34%3A59Z,empty=,foo=hi%21",
                 simpleUnexplode: "bar,24,color,red,date,2023-08-25T07%3A34%3A59Z,empty,,foo,hi%21",
                 formDataExplode: "bar=24&color=red&date=2023-08-25T07%3A34%3A59Z&empty=&foo=hi%21",
-                formDataUnexplode: "keys=bar,24,color,red,date,2023-08-25T07%3A34%3A59Z,empty,,foo,hi%21"
+                formDataUnexplode: "keys=bar,24,color,red,date,2023-08-25T07%3A34%3A59Z,empty,,foo,hi%21",
+                deepObjectExplode: "keys%5Bbar%5D=24&keys%5Bcolor%5D=red&keys%5Bdate%5D=2023-08-25T07%3A34%3A59Z&keys%5Bempty%5D=&keys%5Bfoo%5D=hi%21"
             )
         )
 
@@ -265,7 +277,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "2023-01-18T10%3A04%3A11Z",
                 simpleUnexplode: "2023-01-18T10%3A04%3A11Z",
                 formDataExplode: "root=2023-01-18T10%3A04%3A11Z",
-                formDataUnexplode: "root=2023-01-18T10%3A04%3A11Z"
+                formDataUnexplode: "root=2023-01-18T10%3A04%3A11Z",
+                deepObjectExplode: "root=2023-01-18T10%3A04%3A11Z"
             )
         )
         try _test(
@@ -277,7 +290,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "green",
                 simpleUnexplode: "green",
                 formDataExplode: "root=green",
-                formDataUnexplode: "root=green"
+                formDataUnexplode: "root=green",
+                deepObjectExplode: "root=green"
             )
         )
         try _test(
@@ -289,7 +303,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "foo=bar",
                 simpleUnexplode: "foo,bar",
                 formDataExplode: "foo=bar",
-                formDataUnexplode: "root=foo,bar"
+                formDataUnexplode: "root=foo,bar",
+                deepObjectExplode: "root%5Bfoo%5D=bar"
             )
         )
 
@@ -304,7 +319,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "",
                 simpleUnexplode: "",
                 formDataExplode: "",
-                formDataUnexplode: ""
+                formDataUnexplode: "",
+                deepObjectExplode: ""
             )
         )
 
@@ -318,7 +334,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: "bar=24,color=red,empty=,foo=hi%21",
                 simpleUnexplode: "bar,24,color,red,empty,,foo,hi%21",
                 formDataExplode: "bar=24&color=red&empty=&foo=hi%21",
-                formDataUnexplode: "keys=bar,24,color,red,empty,,foo,hi%21"
+                formDataUnexplode: "keys=bar,24,color,red,empty,,foo,hi%21",
+                deepObjectExplode: "keys%5Bbar%5D=24&keys%5Bcolor%5D=red&keys%5Bempty%5D=&keys%5Bfoo%5D=hi%21"
             )
         )
 
@@ -332,7 +349,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleExplode: .custom("", value: ["": ""]),
                 simpleUnexplode: .custom("", value: ["": ""]),
                 formDataExplode: "",
-                formDataUnexplode: ""
+                formDataUnexplode: "",
+                deepObjectExplode: ""
             )
         )
     }
@@ -347,6 +365,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
         static let simpleUnexplode: Self = .init(name: "simpleUnexplode", configuration: .simpleUnexplode)
         static let formDataExplode: Self = .init(name: "formDataExplode", configuration: .formDataExplode)
         static let formDataUnexplode: Self = .init(name: "formDataUnexplode", configuration: .formDataUnexplode)
+        static let deepObjectExplode: Self = .init(name: "deepObjectExplode", configuration: .deepObjectExplode)
     }
     struct Variants<T: Codable & Equatable> {
 
@@ -370,6 +389,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
         var simpleUnexplode: Input
         var formDataExplode: Input
         var formDataUnexplode: Input
+        var deepObjectExplode: Input?
     }
 
     func _test<T: Codable & Equatable>(
@@ -397,6 +417,13 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             configuration: .formDataUnexplode,
             variant: variants.formDataUnexplode
         )
+        
+        if let deepObjectExplode = variants.deepObjectExplode {
+            try testVariant(
+                name: "deepObjectExplode",
+                configuration: .deepObjectExplode,
+                variant: deepObjectExplode
+            )
+        }
     }
-
 }

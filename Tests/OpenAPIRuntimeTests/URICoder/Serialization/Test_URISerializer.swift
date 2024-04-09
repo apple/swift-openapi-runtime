@@ -31,7 +31,8 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "",
                     simpleUnexplode: "",
                     formDataExplode: "empty=",
-                    formDataUnexplode: "empty="
+                    formDataUnexplode: "empty=",
+                    deepObjectExplode: "empty="
                 )
             ),
             makeCase(
@@ -43,7 +44,8 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "fred",
                     simpleUnexplode: "fred",
                     formDataExplode: "who=fred",
-                    formDataUnexplode: "who=fred"
+                    formDataUnexplode: "who=fred",
+                    deepObjectExplode: "who=fred"
                 )
             ),
             makeCase(
@@ -55,7 +57,8 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "1234",
                     simpleUnexplode: "1234",
                     formDataExplode: "x=1234",
-                    formDataUnexplode: "x=1234"
+                    formDataUnexplode: "x=1234",
+                    deepObjectExplode: "x=1234"
                 )
             ),
             makeCase(
@@ -67,7 +70,8 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "12.34",
                     simpleUnexplode: "12.34",
                     formDataExplode: "x=12.34",
-                    formDataUnexplode: "x=12.34"
+                    formDataUnexplode: "x=12.34",
+                    deepObjectExplode: "x=12.34"
                 )
             ),
             makeCase(
@@ -79,7 +83,8 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "true",
                     simpleUnexplode: "true",
                     formDataExplode: "enabled=true",
-                    formDataUnexplode: "enabled=true"
+                    formDataUnexplode: "enabled=true",
+                    deepObjectExplode: "enabled=true"
                 )
             ),
             makeCase(
@@ -91,7 +96,8 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "Hello%20World",
                     simpleUnexplode: "Hello%20World",
                     formDataExplode: "hello=Hello+World",
-                    formDataUnexplode: "hello=Hello+World"
+                    formDataUnexplode: "hello=Hello+World",
+                    deepObjectExplode: "hello=Hello%20World"
                 )
             ),
             makeCase(
@@ -103,7 +109,8 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "red,green,blue",
                     simpleUnexplode: "red,green,blue",
                     formDataExplode: "list=red&list=green&list=blue",
-                    formDataUnexplode: "list=red,green,blue"
+                    formDataUnexplode: "list=red,green,blue",
+                    deepObjectExplode: nil
                 )
             ),
             makeCase(
@@ -118,7 +125,8 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "comma=%2C,dot=.,semi=%3B",
                     simpleUnexplode: "comma,%2C,dot,.,semi,%3B",
                     formDataExplode: "comma=%2C&dot=.&semi=%3B",
-                    formDataUnexplode: "keys=comma,%2C,dot,.,semi,%3B"
+                    formDataUnexplode: "keys=comma,%2C,dot,.,semi,%3B",
+                    deepObjectExplode: "keys%5Bcomma%5D=%2C&keys%5Bdot%5D=.&keys%5Bsemi%5D=%3B"
                 )
             ),
         ]
@@ -140,6 +148,9 @@ final class Test_URISerializer: Test_Runtime {
             try testVariant(.simpleUnexplode, testCase.variants.simpleUnexplode)
             try testVariant(.formDataExplode, testCase.variants.formDataExplode)
             try testVariant(.formDataUnexplode, testCase.variants.formDataUnexplode)
+            if let deepObjectExplode = testCase.variants.deepObjectExplode {
+                try testVariant(.deepObjectExplode, deepObjectExplode)
+            }
         }
     }
 }
@@ -156,6 +167,7 @@ extension Test_URISerializer {
             static let simpleUnexplode: Self = .init(name: "simpleUnexplode", config: .simpleUnexplode)
             static let formDataExplode: Self = .init(name: "formDataExplode", config: .formDataExplode)
             static let formDataUnexplode: Self = .init(name: "formDataUnexplode", config: .formDataUnexplode)
+            static let deepObjectExplode: Self = .init(name: "deepObjectExplode", config: .deepObjectExplode)
         }
         struct Variants {
             var formExplode: String
@@ -164,6 +176,7 @@ extension Test_URISerializer {
             var simpleUnexplode: String
             var formDataExplode: String
             var formDataUnexplode: String
+            var deepObjectExplode: String?
         }
         var value: URIEncodedNode
         var key: String

@@ -26,6 +26,11 @@
     ///
     /// Details: https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.2
     case simple
+    
+    /// The deepObject style.
+    ///
+    /// Details: https://spec.openapis.org/oas/v3.1.0.html#style-values
+    case deepObject
 }
 
 extension ParameterStyle {
@@ -53,6 +58,7 @@ extension URICoderConfiguration.Style {
         switch style {
         case .form: self = .form
         case .simple: self = .simple
+        case .deepObject: self = .deepObject
         }
     }
 }

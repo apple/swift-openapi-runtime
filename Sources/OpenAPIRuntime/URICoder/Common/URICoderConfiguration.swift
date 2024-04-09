@@ -25,6 +25,9 @@ struct URICoderConfiguration {
 
         /// A style for form-based URI expansion.
         case form
+        
+        /// A style for nested variable expansion
+        case deepObject
     }
 
     /// A character used to escape the space character.
