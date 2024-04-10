@@ -110,7 +110,10 @@ final class Test_URISerializer: Test_Runtime {
                     simpleUnexplode: "red,green,blue",
                     formDataExplode: "list=red&list=green&list=blue",
                     formDataUnexplode: "list=red,green,blue",
-                    deepObjectExplode: nil
+                    deepObjectExplode: .custom(
+                        "list=red&list=green&list=blue", 
+                        expectedError: .deepObjectsArrayNotSupported
+                    )
                 )
             ),
             makeCase(
@@ -131,16 +134,28 @@ final class Test_URISerializer: Test_Runtime {
             ),
         ]
         for testCase in cases {
-            func testVariant(_ variant: Case.Variant, _ expectedString: String) throws {
+            func testVariant(_ variant: Case.Variant, _ input: Case.Variants.Input) throws {
                 var serializer = URISerializer(configuration: variant.config)
-                let encodedString = try serializer.serializeNode(testCase.value, forKey: testCase.key)
-                XCTAssertEqual(
-                    encodedString,
-                    expectedString,
-                    "Failed for config: \(variant.name)",
-                    file: testCase.file,
-                    line: testCase.line
-                )
+                do {
+                    let encodedString = try serializer.serializeNode(testCase.value, forKey: testCase.key)
+                    XCTAssertEqual(
+                        encodedString,
+                        input.string,
+                        "Failed for config: \(variant.name)",
+                        file: testCase.file,
+                        line: testCase.line
+                    )
+                } catch {
+                    guard let expectedError = input.expectedError,
+                          let serializationError = error as? URISerializer.SerializationError else { throw error }
+                    XCTAssertEqual(
+                        expectedError,
+                        serializationError,
+                        "Failed for config: \(variant.name)",
+                        file: testCase.file,
+                        line: testCase.line
+                    )
+                }
             }
             try testVariant(.formExplode, testCase.variants.formExplode)
             try testVariant(.formUnexplode, testCase.variants.formUnexplode)
@@ -148,9 +163,7 @@ final class Test_URISerializer: Test_Runtime {
             try testVariant(.simpleUnexplode, testCase.variants.simpleUnexplode)
             try testVariant(.formDataExplode, testCase.variants.formDataExplode)
             try testVariant(.formDataUnexplode, testCase.variants.formDataUnexplode)
-            if let deepObjectExplode = testCase.variants.deepObjectExplode {
-                try testVariant(.deepObjectExplode, deepObjectExplode)
-            }
+            try testVariant(.deepObjectExplode, testCase.variants.deepObjectExplode)
         }
     }
 }
@@ -170,13 +183,33 @@ extension Test_URISerializer {
             static let deepObjectExplode: Self = .init(name: "deepObjectExplode", config: .deepObjectExplode)
         }
         struct Variants {
-            var formExplode: String
-            var formUnexplode: String
-            var simpleExplode: String
-            var simpleUnexplode: String
-            var formDataExplode: String
-            var formDataUnexplode: String
-            var deepObjectExplode: String?
+            
+            struct Input: ExpressibleByStringLiteral {
+                var string: String
+                var expectedError: URISerializer.SerializationError?
+                
+                init(string: String, expectedError: URISerializer.SerializationError? = nil) {
+                    self.string = string
+                    self.expectedError = expectedError
+                }
+                
+                static func custom(_ string: String, expectedError: URISerializer.SerializationError) -> Self {
+                    .init(string: string, expectedError: expectedError)
+                }
+                
+                init(stringLiteral value: String) {
+                    self.string = value
+                    self.expectedError = nil
+                }
+            }
+            
+            var formExplode: Input
+            var formUnexplode: Input
+            var simpleExplode: Input
+            var simpleUnexplode: Input
+            var formDataExplode: Input
+            var formDataUnexplode: Input
+            var deepObjectExplode: Input
         }
         var value: URIEncodedNode
         var key: String

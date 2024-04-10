@@ -65,7 +65,7 @@ extension CharacterSet {
 extension URISerializer {
 
     /// A serializer error.
-    private enum SerializationError: Swift.Error {
+    enum SerializationError: Swift.Error, Equatable {
 
         /// Nested containers are not supported.
         case nestedContainersNotSupported

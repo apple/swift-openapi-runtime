@@ -30,7 +30,7 @@ final class Test_URIParser: Test_Runtime {
                     simpleUnexplode: .custom("", value: ["": [""]]),
                     formDataExplode: "empty=",
                     formDataUnexplode: "empty=",
-                    deepObjectExplode: "empty="
+                    deepObjectExplode: "object%5Bempty%5D="
                 ),
                 value: ["empty": [""]]
             ),
@@ -54,7 +54,7 @@ final class Test_URIParser: Test_Runtime {
                     simpleUnexplode: .custom("fred", value: ["": ["fred"]]),
                     formDataExplode: "who=fred",
                     formDataUnexplode: "who=fred",
-                    deepObjectExplode: "who=fred"
+                    deepObjectExplode: "object%5Bwho%5D=fred"
                 ),
                 value: ["who": ["fred"]]
             ),
@@ -66,7 +66,7 @@ final class Test_URIParser: Test_Runtime {
                     simpleUnexplode: .custom("Hello%20World", value: ["": ["Hello World"]]),
                     formDataExplode: "hello=Hello+World",
                     formDataUnexplode: "hello=Hello+World",
-                    deepObjectExplode: "hello=Hello%20World"
+                    deepObjectExplode: "object%5Bhello%5D=Hello%20World"
                 ),
                 value: ["hello": ["Hello World"]]
             ),
@@ -78,7 +78,7 @@ final class Test_URIParser: Test_Runtime {
                     simpleUnexplode: .custom("red,green,blue", value: ["": ["red", "green", "blue"]]),
                     formDataExplode: "list=red&list=green&list=blue",
                     formDataUnexplode: "list=red,green,blue",
-                    deepObjectExplode: "list=red&list=green&list=blue"
+                    deepObjectExplode: .custom("object%5Blist%5D=red&object%5Blist%5D=green&object%5Blist%5D=blue", value: [:])
                 ),
                 value: ["list": ["red", "green", "blue"]]
             ),
@@ -99,7 +99,7 @@ final class Test_URIParser: Test_Runtime {
                         "keys=comma,%2C,dot,.,semi,%3B",
                         value: ["keys": ["comma", ",", "dot", ".", "semi", ";"]]
                     ), 
-                    deepObjectExplode: "comma=%2C&dot=.&semi=%3B"
+                    deepObjectExplode: "keys%5Bcomma%5D=%2C&keys%5Bdot%5D=.&keys%5Bsemi%5D=%3B"
                 ),
                 value: ["semi": [";"], "dot": ["."], "comma": [","]]
             ),
@@ -123,6 +123,7 @@ final class Test_URIParser: Test_Runtime {
             try testVariant(.simpleUnexplode, variants.simpleUnexplode)
             try testVariant(.formDataExplode, variants.formDataExplode)
             try testVariant(.formDataUnexplode, variants.formDataUnexplode)
+            try testVariant(.deepObjectExplode, variants.deepObjectExplode)
         }
     }
 }
