@@ -96,6 +96,27 @@ extension JSONDecoder.DateDecodingStrategy {
     }
 }
 
+/// A type that allows custom content type encoding and decoding.
+public protocol CustomCoder: Sendable {
+
+    /// Encodes the given value and returns its custom encoded representation.
+    ///
+    /// - Parameter value: The value to encode.
+    /// - Returns: A new `Data` value containing the custom encoded data.
+    /// - Throws: An error if encoding fails.
+    func customEncode<T: Encodable>(_ value: T) throws -> Data
+
+    /// Decodes a value of the given type from the given custom representation.
+    ///
+    /// - Parameters:
+    ///   - type: The type of the value to decode.
+    ///   - data: The data to decode from.
+    /// - Returns: A value of the requested type.
+    /// - Throws: An error if decoding fails.
+    func customDecode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T
+
+}
+
 /// A set of configuration values used by the generated client and server types.
 public struct Configuration: Sendable {
 
@@ -105,17 +126,23 @@ public struct Configuration: Sendable {
     /// The generator to use when creating mutlipart bodies.
     public var multipartBoundaryGenerator: any MultipartBoundaryGenerator
 
+    /// Custom XML coder for encoding and decoding xml bodies.
+    public var xmlCoder: (any CustomCoder)?
+
     /// Creates a new configuration with the specified values.
     ///
     /// - Parameters:
     ///   - dateTranscoder: The transcoder to use when converting between date
     ///   and string values.
     ///   - multipartBoundaryGenerator: The generator to use when creating mutlipart bodies.
+    ///   - xmlCoder: Custom XML coder for encoding and decoding xml bodies. Only required when using XML body payloads.
     public init(
         dateTranscoder: any DateTranscoder = .iso8601,
-        multipartBoundaryGenerator: any MultipartBoundaryGenerator = .random
+        multipartBoundaryGenerator: any MultipartBoundaryGenerator = .random,
+        xmlCoder: (any CustomCoder)? = nil
     ) {
         self.dateTranscoder = dateTranscoder
         self.multipartBoundaryGenerator = multipartBoundaryGenerator
+        self.xmlCoder = xmlCoder
     }
 }

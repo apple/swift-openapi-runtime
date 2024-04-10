@@ -26,6 +26,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 
     // Data conversion
     case failedToDecodeStringConvertibleValue(type: String)
+    case missingCoderForCustomContentType(contentType: String)
 
     enum ParameterLocation: String, CustomStringConvertible {
         case query
@@ -36,7 +37,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 
     // Headers
     case missingRequiredHeaderField(String)
-    case unexpectedContentTypeHeader(String)
+    case unexpectedContentTypeHeader(expected: String, received: String)
     case unexpectedAcceptHeader(String)
     case malformedAcceptHeader(String)
     case missingOrMalformedContentDispositionName
@@ -88,11 +89,14 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
         case .invalidBase64String(let string):
             return "Invalid base64-encoded string (first 128 bytes): '\(string.prefix(128))'"
         case .failedToDecodeStringConvertibleValue(let string): return "Failed to decode a value of type '\(string)'."
+        case .missingCoderForCustomContentType(let contentType):
+            return "Missing custom coder for content type '\(contentType)'."
         case .unsupportedParameterStyle(name: let name, location: let location, style: let style, explode: let explode):
             return
                 "Unsupported parameter style, parameter name: '\(name)', kind: \(location), style: \(style), explode: \(explode)"
         case .missingRequiredHeaderField(let name): return "The required header field named '\(name)' is missing."
-        case .unexpectedContentTypeHeader(let contentType): return "Unexpected Content-Type header: \(contentType)"
+        case .unexpectedContentTypeHeader(expected: let expected, received: let received):
+            return "Unexpected content type, expected: \(expected), received: \(received)"
         case .unexpectedAcceptHeader(let accept): return "Unexpected Accept header: \(accept)"
         case .malformedAcceptHeader(let accept): return "Malformed Accept header: \(accept)"
         case .missingOrMalformedContentDispositionName:
