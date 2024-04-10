@@ -78,7 +78,10 @@ final class Test_URIParser: Test_Runtime {
                     simpleUnexplode: .custom("red,green,blue", value: ["": ["red", "green", "blue"]]),
                     formDataExplode: "list=red&list=green&list=blue",
                     formDataUnexplode: "list=red,green,blue",
-                    deepObjectExplode: .custom("object%5Blist%5D=red&object%5Blist%5D=green&object%5Blist%5D=blue", value: [:])
+                    deepObjectExplode: .custom(
+                        "object%5Blist%5D=red&object%5Blist%5D=green&object%5Blist%5D=blue",
+                        expectedError: .malformedKeyValuePair("list")
+                    )
                 ),
                 value: ["list": ["red", "green", "blue"]]
             ),
@@ -107,14 +110,26 @@ final class Test_URIParser: Test_Runtime {
         for testCase in cases {
             func testVariant(_ variant: Case.Variant, _ input: Case.Variants.Input) throws {
                 var parser = URIParser(configuration: variant.config, data: input.string[...])
-                let parsedNode = try parser.parseRoot()
-                XCTAssertEqual(
-                    parsedNode,
-                    input.valueOverride ?? testCase.value,
-                    "Failed for config: \(variant.name)",
-                    file: testCase.file,
-                    line: testCase.line
-                )
+                do {
+                    let parsedNode = try parser.parseRoot()
+                    XCTAssertEqual(
+                        parsedNode,
+                        input.valueOverride ?? testCase.value,
+                        "Failed for config: \(variant.name)",
+                        file: testCase.file,
+                        line: testCase.line
+                    )
+                } catch {
+                    guard let expectedError = input.expectedError,
+                          let serializationError = error as? ParsingError else { throw error }
+                    XCTAssertEqual(
+                        expectedError,
+                        serializationError,
+                        "Failed for config: \(variant.name)",
+                        file: testCase.file,
+                        line: testCase.line
+                    )
+                }
             }
             let variants = testCase.variants
             try testVariant(.formExplode, variants.formExplode)
@@ -147,19 +162,26 @@ extension Test_URIParser {
             struct Input: ExpressibleByStringLiteral {
                 var string: String
                 var valueOverride: URIParsedNode?
+                var expectedError: ParsingError?
 
-                init(string: String, valueOverride: URIParsedNode? = nil) {
+                init(string: String, valueOverride: URIParsedNode? = nil, expectedError: ParsingError? = nil) {
                     self.string = string
                     self.valueOverride = valueOverride
+                    self.expectedError = expectedError
                 }
 
                 static func custom(_ string: String, value: URIParsedNode) -> Self {
-                    .init(string: string, valueOverride: value)
+                    .init(string: string, valueOverride: value, expectedError: nil)
+                }
+                
+                static func custom(_ string: String, expectedError: ParsingError) -> Self {
+                    .init(string: string, valueOverride: nil, expectedError: expectedError)
                 }
 
                 init(stringLiteral value: String) {
                     self.string = value
                     self.valueOverride = nil
+                    self.expectedError = nil
                 }
             }
 

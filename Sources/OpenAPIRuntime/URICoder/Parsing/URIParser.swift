@@ -36,10 +36,10 @@ struct URIParser: Sendable {
 }
 
 /// A typealias for the underlying raw string storage.
-private typealias Raw = String.SubSequence
+typealias Raw = String.SubSequence
 
 /// A parser error.
-private enum ParsingError: Swift.Error {
+enum ParsingError: Swift.Error, Equatable {
 
     /// A malformed key-value pair was detected.
     case malformedKeyValuePair(Raw)
@@ -219,7 +219,7 @@ extension URIParser {
     /// - Returns: The parsed root node.
     /// - Throws: An error if parsing fails.
     private mutating func parseExplodedDeepObjectRoot() throws -> URIParsedNode {
-        try parseGenericRoot { data, appendPair in
+        let parseNode = try parseGenericRoot { data, appendPair in
             let keyValueSeparator: Character = "="
             let pairSeparator: Character = "&"
             let nestedKeyStartingCharacter: Character = "["
@@ -249,6 +249,11 @@ extension URIParser {
                 appendPair(key, [value])
             }
         }
+        
+        try parseNode.forEach { (key, value) in
+            if value.count > 1 { throw ParsingError.malformedKeyValuePair(key) }
+        }
+        return parseNode
     }
 }
 
