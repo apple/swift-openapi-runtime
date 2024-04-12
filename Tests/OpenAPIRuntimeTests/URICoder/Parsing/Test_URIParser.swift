@@ -121,7 +121,7 @@ final class Test_URIParser: Test_Runtime {
                     )
                 } catch {
                     guard let expectedError = input.expectedError,
-                          let serializationError = error as? ParsingError else {
+                          let parsingError = error as? ParsingError else {
                         XCTAssert(
                             false,
                             "Unexpected error thrown: \(error)",
@@ -132,7 +132,7 @@ final class Test_URIParser: Test_Runtime {
                     }
                     XCTAssertEqual(
                         expectedError,
-                        serializationError,
+                        parsingError,
                         "Failed for config: \(variant.name)",
                         file: testCase.file,
                         line: testCase.line

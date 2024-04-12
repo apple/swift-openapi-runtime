@@ -97,7 +97,10 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "",
                 formDataExplode: "root=",
                 formDataUnexplode: "root=",
-                deepObjectExplode: "root="
+                deepObjectExplode: .custom(
+                    "root=",
+                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                )
             )
         )
 
@@ -112,7 +115,10 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "Hello%20World%21",
                 formDataExplode: "root=Hello+World%21",
                 formDataUnexplode: "root=Hello+World%21",
-                deepObjectExplode: "root=Hello%20World%21"
+                deepObjectExplode: .custom(
+                    "root=Hello%20World%21",
+                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                )
             )
         )
 
@@ -127,7 +133,10 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "red",
                 formDataExplode: "root=red",
                 formDataUnexplode: "root=red",
-                deepObjectExplode: "root=red"
+                deepObjectExplode: .custom(
+                    "root=red",
+                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                )
             )
         )
 
@@ -142,7 +151,10 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "1234",
                 formDataExplode: "root=1234",
                 formDataUnexplode: "root=1234",
-                deepObjectExplode: "root=1234"
+                deepObjectExplode: .custom(
+                    "root=1234",
+                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                )
             )
         )
 
@@ -157,7 +169,10 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "12.34",
                 formDataExplode: "root=12.34",
                 formDataUnexplode: "root=12.34",
-                deepObjectExplode: "root=12.34"
+                deepObjectExplode: .custom(
+                    "root=12.34",
+                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                )
             )
         )
 
@@ -172,7 +187,10 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "true",
                 formDataExplode: "root=true",
                 formDataUnexplode: "root=true",
-                deepObjectExplode: "root=true"
+                deepObjectExplode: .custom(
+                    "root=true",
+                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                )
             )
         )
 
@@ -187,7 +205,10 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "2023-08-25T07%3A34%3A59Z",
                 formDataExplode: "root=2023-08-25T07%3A34%3A59Z",
                 formDataUnexplode: "root=2023-08-25T07%3A34%3A59Z",
-                deepObjectExplode: "root=2023-08-25T07%3A34%3A59Z"
+                deepObjectExplode: .custom(
+                    "root=2023-08-25T07%3A34%3A59Z",
+                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                )
             )
         )
 
@@ -202,7 +223,10 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "a,b,c",
                 formDataExplode: "list=a&list=b&list=c",
                 formDataUnexplode: "list=a,b,c",
-                deepObjectExplode: nil
+                deepObjectExplode: .custom(
+                    "list=a&list=b&list=c",
+                    expectedError: .deepObjectsArrayNotSupported
+                )
             )
         )
 
@@ -217,7 +241,10 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "2023-08-25T07%3A34%3A59Z,2023-08-25T07%3A35%3A01Z",
                 formDataExplode: "list=2023-08-25T07%3A34%3A59Z&list=2023-08-25T07%3A35%3A01Z",
                 formDataUnexplode: "list=2023-08-25T07%3A34%3A59Z,2023-08-25T07%3A35%3A01Z",
-                deepObjectExplode: nil
+                deepObjectExplode: .custom(
+                    "list=2023-08-25T07%3A34%3A59Z&list=2023-08-25T07%3A35%3A01Z",
+                    expectedError: .deepObjectsArrayNotSupported
+                )
             )
         )
 
@@ -232,7 +259,10 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: .custom("", value: [""]),
                 formDataExplode: "",
                 formDataUnexplode: "",
-                deepObjectExplode: nil
+                deepObjectExplode: .custom(
+                    "",
+                    expectedError: .deepObjectsArrayNotSupported
+                )
             )
         )
 
@@ -247,7 +277,10 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "red,green,blue",
                 formDataExplode: "list=red&list=green&list=blue",
                 formDataUnexplode: "list=red,green,blue",
-                deepObjectExplode: nil
+                deepObjectExplode: .custom(
+                    "list=red&list=green&list=blue",
+                    expectedError: .deepObjectsArrayNotSupported
+                )
             )
         )
 
@@ -278,7 +311,9 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "2023-01-18T10%3A04%3A11Z",
                 formDataExplode: "root=2023-01-18T10%3A04%3A11Z",
                 formDataUnexplode: "root=2023-01-18T10%3A04%3A11Z",
-                deepObjectExplode: "root=2023-01-18T10%3A04%3A11Z"
+                deepObjectExplode: .custom(
+                    "root=2023-01-18T10%3A04%3A11Z",
+                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
         try _test(
@@ -291,7 +326,9 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "green",
                 formDataExplode: "root=green",
                 formDataUnexplode: "root=green",
-                deepObjectExplode: "root=green"
+                deepObjectExplode: .custom(
+                    "root=green",
+                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
         try _test(
@@ -372,15 +409,25 @@ final class Test_URICodingRoundtrip: Test_Runtime {
         struct Input: ExpressibleByStringLiteral {
             var string: String
             var customValue: T?
-
-            init(string: String, customValue: T?) {
+            var expectedError: URISerializer.SerializationError?
+            
+            init(string: String, customValue: T?, expectedError: URISerializer.SerializationError?) {
                 self.string = string
                 self.customValue = customValue
+                self.expectedError = expectedError
             }
 
-            init(stringLiteral value: String) { self.init(string: value, customValue: nil) }
+            init(stringLiteral value: String) {
+                self.init(string: value, customValue: nil, expectedError: nil)
+            }
 
-            static func custom(_ string: String, value: T) -> Self { .init(string: string, customValue: value) }
+            static func custom(_ string: String, value: T) -> Self {
+                .init(string: string, customValue: value, expectedError: nil)
+            }
+            
+            static func custom(_ string: String, expectedError: URISerializer.SerializationError) -> Self {
+                .init(string: string, customValue: nil, expectedError: expectedError)
+            }
         }
 
         var formExplode: Input
@@ -389,7 +436,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
         var simpleUnexplode: Input
         var formDataExplode: Input
         var formDataUnexplode: Input
-        var deepObjectExplode: Input?
+        var deepObjectExplode: Input
     }
 
     func _test<T: Codable & Equatable>(
@@ -401,11 +448,31 @@ final class Test_URICodingRoundtrip: Test_Runtime {
     ) throws {
         func testVariant(name: String, configuration: URICoderConfiguration, variant: Variants<T>.Input) throws {
             let encoder = URIEncoder(configuration: configuration)
-            let encodedString = try encoder.encode(value, forKey: key)
-            XCTAssertEqual(encodedString, variant.string, "Variant: \(name)", file: file, line: line)
-            let decoder = URIDecoder(configuration: configuration)
-            let decodedValue = try decoder.decode(T.self, forKey: key, from: encodedString[...])
-            XCTAssertEqual(decodedValue, variant.customValue ?? value, "Variant: \(name)", file: file, line: line)
+            do {
+                let encodedString = try encoder.encode(value, forKey: key)
+                XCTAssertEqual(encodedString, variant.string, "Variant: \(name)", file: file, line: line)
+                let decoder = URIDecoder(configuration: configuration)
+                let decodedValue = try decoder.decode(T.self, forKey: key, from: encodedString[...])
+                XCTAssertEqual(decodedValue, variant.customValue ?? value, "Variant: \(name)", file: file, line: line)
+            } catch {
+                guard let expectedError = variant.expectedError,
+                      let serializationError = error as? URISerializer.SerializationError else {
+                    XCTAssert(
+                        false,
+                        "Unexpected error thrown: \(error)",
+                        file: file,
+                        line: line
+                    )
+                    return
+                }
+                XCTAssertEqual(
+                    expectedError,
+                    serializationError,
+                    "Failed for config: \(variant.string)",
+                    file: file,
+                    line: line
+                )
+            }
         }
         try testVariant(name: "formExplode", configuration: .formExplode, variant: variants.formExplode)
         try testVariant(name: "formUnexplode", configuration: .formUnexplode, variant: variants.formUnexplode)
@@ -418,12 +485,10 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             variant: variants.formDataUnexplode
         )
         
-        if let deepObjectExplode = variants.deepObjectExplode {
-            try testVariant(
-                name: "deepObjectExplode",
-                configuration: .deepObjectExplode,
-                variant: deepObjectExplode
-            )
-        }
+        try testVariant(
+            name: "deepObjectExplode",
+            configuration: .deepObjectExplode,
+            variant: variants.deepObjectExplode
+        )
     }
 }
