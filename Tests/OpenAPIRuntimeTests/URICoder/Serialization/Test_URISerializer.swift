@@ -32,7 +32,10 @@ final class Test_URISerializer: Test_Runtime {
                     simpleUnexplode: "",
                     formDataExplode: "empty=",
                     formDataUnexplode: "empty=",
-                    deepObjectExplode: "empty="
+                    deepObjectExplode: .custom(
+                        "empty=",
+                        expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                    )
                 )
             ),
             makeCase(
@@ -45,7 +48,10 @@ final class Test_URISerializer: Test_Runtime {
                     simpleUnexplode: "fred",
                     formDataExplode: "who=fred",
                     formDataUnexplode: "who=fred",
-                    deepObjectExplode: "who=fred"
+                    deepObjectExplode: .custom(
+                        "who=fred",
+                        expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                    )
                 )
             ),
             makeCase(
@@ -58,7 +64,10 @@ final class Test_URISerializer: Test_Runtime {
                     simpleUnexplode: "1234",
                     formDataExplode: "x=1234",
                     formDataUnexplode: "x=1234",
-                    deepObjectExplode: "x=1234"
+                    deepObjectExplode: .custom(
+                        "x=1234",
+                        expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                    )
                 )
             ),
             makeCase(
@@ -71,7 +80,10 @@ final class Test_URISerializer: Test_Runtime {
                     simpleUnexplode: "12.34",
                     formDataExplode: "x=12.34",
                     formDataUnexplode: "x=12.34",
-                    deepObjectExplode: "x=12.34"
+                    deepObjectExplode: .custom(
+                        "x=12.34",
+                        expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                    )
                 )
             ),
             makeCase(
@@ -84,7 +96,10 @@ final class Test_URISerializer: Test_Runtime {
                     simpleUnexplode: "true",
                     formDataExplode: "enabled=true",
                     formDataUnexplode: "enabled=true",
-                    deepObjectExplode: "enabled=true"
+                    deepObjectExplode: .custom(
+                        "enabled=true",
+                        expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                    )
                 )
             ),
             makeCase(
@@ -97,7 +112,10 @@ final class Test_URISerializer: Test_Runtime {
                     simpleUnexplode: "Hello%20World",
                     formDataExplode: "hello=Hello+World",
                     formDataUnexplode: "hello=Hello+World",
-                    deepObjectExplode: "hello=Hello%20World"
+                    deepObjectExplode: .custom(
+                        "hello=Hello%20World",
+                        expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                    )
                 )
             ),
             makeCase(
@@ -147,7 +165,15 @@ final class Test_URISerializer: Test_Runtime {
                     )
                 } catch {
                     guard let expectedError = input.expectedError,
-                          let serializationError = error as? URISerializer.SerializationError else { throw error }
+                          let serializationError = error as? URISerializer.SerializationError else {
+                        XCTAssert(
+                            false,
+                            "Unexpected error thrown: \(error)",
+                            file: testCase.file,
+                            line: testCase.line
+                        )
+                        return
+                    }
                     XCTAssertEqual(
                         expectedError,
                         serializationError,

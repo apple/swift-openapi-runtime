@@ -65,13 +65,16 @@ extension CharacterSet {
 extension URISerializer {
 
     /// A serializer error.
-    enum SerializationError: Swift.Error, Equatable {
+    enum SerializationError: Swift.Error, Hashable {
 
         /// Nested containers are not supported.
         case nestedContainersNotSupported
         
         /// Deep object arrays are not supported.
         case deepObjectsArrayNotSupported
+        
+        /// Deep object with primitive values are not supported.
+        case deepObjectsWithPrimitiveValuesNotSupported
         
         /// An invalid configuration was detected.
         case invalidConfiguration(String)
@@ -123,7 +126,7 @@ extension URISerializer {
             switch configuration.style {
             case .form: keyAndValueSeparator = "="
             case .simple: keyAndValueSeparator = nil
-            case .deepObject: keyAndValueSeparator = "="
+            case .deepObject: throw SerializationError.deepObjectsWithPrimitiveValuesNotSupported
             }
             try serializePrimitiveKeyValuePair(primitive, forKey: key, separator: keyAndValueSeparator)
         case .array(let array): try serializeArray(array.map(unwrapPrimitiveValue), forKey: key)

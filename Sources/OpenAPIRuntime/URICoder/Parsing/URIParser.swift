@@ -39,7 +39,7 @@ struct URIParser: Sendable {
 typealias Raw = String.SubSequence
 
 /// A parser error.
-enum ParsingError: Swift.Error, Equatable {
+enum ParsingError: Swift.Error, Hashable {
 
     /// A malformed key-value pair was detected.
     case malformedKeyValuePair(Raw)

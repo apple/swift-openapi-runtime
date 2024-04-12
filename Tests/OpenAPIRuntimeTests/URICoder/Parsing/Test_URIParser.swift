@@ -121,7 +121,15 @@ final class Test_URIParser: Test_Runtime {
                     )
                 } catch {
                     guard let expectedError = input.expectedError,
-                          let serializationError = error as? ParsingError else { throw error }
+                          let serializationError = error as? ParsingError else {
+                        XCTAssert(
+                            false,
+                            "Unexpected error thrown: \(error)",
+                            file: testCase.file,
+                            line: testCase.line
+                        )
+                        return
+                    }
                     XCTAssertEqual(
                         expectedError,
                         serializationError,
