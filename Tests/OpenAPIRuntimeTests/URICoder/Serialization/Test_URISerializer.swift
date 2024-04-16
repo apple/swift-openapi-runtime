@@ -31,7 +31,8 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "",
                     simpleUnexplode: "",
                     formDataExplode: "empty=",
-                    formDataUnexplode: "empty="
+                    formDataUnexplode: "empty=",
+                    deepObjectExplode: .custom("empty=", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
                 )
             ),
             makeCase(
@@ -43,7 +44,8 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "fred",
                     simpleUnexplode: "fred",
                     formDataExplode: "who=fred",
-                    formDataUnexplode: "who=fred"
+                    formDataUnexplode: "who=fred",
+                    deepObjectExplode: .custom("who=fred", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
                 )
             ),
             makeCase(
@@ -55,7 +57,8 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "1234",
                     simpleUnexplode: "1234",
                     formDataExplode: "x=1234",
-                    formDataUnexplode: "x=1234"
+                    formDataUnexplode: "x=1234",
+                    deepObjectExplode: .custom("x=1234", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
                 )
             ),
             makeCase(
@@ -67,7 +70,8 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "12.34",
                     simpleUnexplode: "12.34",
                     formDataExplode: "x=12.34",
-                    formDataUnexplode: "x=12.34"
+                    formDataUnexplode: "x=12.34",
+                    deepObjectExplode: .custom("x=12.34", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
                 )
             ),
             makeCase(
@@ -79,7 +83,11 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "true",
                     simpleUnexplode: "true",
                     formDataExplode: "enabled=true",
-                    formDataUnexplode: "enabled=true"
+                    formDataUnexplode: "enabled=true",
+                    deepObjectExplode: .custom(
+                        "enabled=true",
+                        expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                    )
                 )
             ),
             makeCase(
@@ -91,7 +99,11 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "Hello%20World",
                     simpleUnexplode: "Hello%20World",
                     formDataExplode: "hello=Hello+World",
-                    formDataUnexplode: "hello=Hello+World"
+                    formDataUnexplode: "hello=Hello+World",
+                    deepObjectExplode: .custom(
+                        "hello=Hello%20World",
+                        expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                    )
                 )
             ),
             makeCase(
@@ -103,7 +115,11 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "red,green,blue",
                     simpleUnexplode: "red,green,blue",
                     formDataExplode: "list=red&list=green&list=blue",
-                    formDataUnexplode: "list=red,green,blue"
+                    formDataUnexplode: "list=red,green,blue",
+                    deepObjectExplode: .custom(
+                        "list=red&list=green&list=blue",
+                        expectedError: .deepObjectsArrayNotSupported
+                    )
                 )
             ),
             makeCase(
@@ -118,21 +134,38 @@ final class Test_URISerializer: Test_Runtime {
                     simpleExplode: "comma=%2C,dot=.,semi=%3B",
                     simpleUnexplode: "comma,%2C,dot,.,semi,%3B",
                     formDataExplode: "comma=%2C&dot=.&semi=%3B",
-                    formDataUnexplode: "keys=comma,%2C,dot,.,semi,%3B"
+                    formDataUnexplode: "keys=comma,%2C,dot,.,semi,%3B",
+                    deepObjectExplode: "keys%5Bcomma%5D=%2C&keys%5Bdot%5D=.&keys%5Bsemi%5D=%3B"
                 )
             ),
         ]
         for testCase in cases {
-            func testVariant(_ variant: Case.Variant, _ expectedString: String) throws {
+            func testVariant(_ variant: Case.Variant, _ input: Case.Variants.Input) throws {
                 var serializer = URISerializer(configuration: variant.config)
-                let encodedString = try serializer.serializeNode(testCase.value, forKey: testCase.key)
-                XCTAssertEqual(
-                    encodedString,
-                    expectedString,
-                    "Failed for config: \(variant.name)",
-                    file: testCase.file,
-                    line: testCase.line
-                )
+                do {
+                    let encodedString = try serializer.serializeNode(testCase.value, forKey: testCase.key)
+                    XCTAssertEqual(
+                        encodedString,
+                        input.string,
+                        "Failed for config: \(variant.name)",
+                        file: testCase.file,
+                        line: testCase.line
+                    )
+                } catch {
+                    guard let expectedError = input.expectedError,
+                        let serializationError = error as? URISerializer.SerializationError
+                    else {
+                        XCTAssert(false, "Unexpected error thrown: \(error)", file: testCase.file, line: testCase.line)
+                        return
+                    }
+                    XCTAssertEqual(
+                        expectedError,
+                        serializationError,
+                        "Failed for config: \(variant.name)",
+                        file: testCase.file,
+                        line: testCase.line
+                    )
+                }
             }
             try testVariant(.formExplode, testCase.variants.formExplode)
             try testVariant(.formUnexplode, testCase.variants.formUnexplode)
@@ -140,6 +173,7 @@ final class Test_URISerializer: Test_Runtime {
             try testVariant(.simpleUnexplode, testCase.variants.simpleUnexplode)
             try testVariant(.formDataExplode, testCase.variants.formDataExplode)
             try testVariant(.formDataUnexplode, testCase.variants.formDataUnexplode)
+            try testVariant(.deepObjectExplode, testCase.variants.deepObjectExplode)
         }
     }
 }
@@ -156,14 +190,31 @@ extension Test_URISerializer {
             static let simpleUnexplode: Self = .init(name: "simpleUnexplode", config: .simpleUnexplode)
             static let formDataExplode: Self = .init(name: "formDataExplode", config: .formDataExplode)
             static let formDataUnexplode: Self = .init(name: "formDataUnexplode", config: .formDataUnexplode)
+            static let deepObjectExplode: Self = .init(name: "deepObjectExplode", config: .deepObjectExplode)
         }
         struct Variants {
-            var formExplode: String
-            var formUnexplode: String
-            var simpleExplode: String
-            var simpleUnexplode: String
-            var formDataExplode: String
-            var formDataUnexplode: String
+            struct Input: ExpressibleByStringLiteral {
+                var string: String
+                var expectedError: URISerializer.SerializationError?
+                init(string: String, expectedError: URISerializer.SerializationError? = nil) {
+                    self.string = string
+                    self.expectedError = expectedError
+                }
+                static func custom(_ string: String, expectedError: URISerializer.SerializationError) -> Self {
+                    .init(string: string, expectedError: expectedError)
+                }
+                init(stringLiteral value: String) {
+                    self.string = value
+                    self.expectedError = nil
+                }
+            }
+            var formExplode: Input
+            var formUnexplode: Input
+            var simpleExplode: Input
+            var simpleUnexplode: Input
+            var formDataExplode: Input
+            var formDataUnexplode: Input
+            var deepObjectExplode: Input
         }
         var value: URIEncodedNode
         var key: String

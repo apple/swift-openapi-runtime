@@ -29,7 +29,9 @@ extension ParameterStyle {
     ) {
         let resolvedStyle = style ?? .defaultForQueryItems
         let resolvedExplode = explode ?? ParameterStyle.defaultExplodeFor(forStyle: resolvedStyle)
-        guard resolvedStyle == .form else {
+        switch resolvedStyle {
+        case .form, .deepObject: break
+        default:
             throw RuntimeError.unsupportedParameterStyle(
                 name: name,
                 location: .query,

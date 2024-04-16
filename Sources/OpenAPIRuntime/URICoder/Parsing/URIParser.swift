@@ -36,13 +36,15 @@ struct URIParser: Sendable {
 }
 
 /// A typealias for the underlying raw string storage.
-private typealias Raw = String.SubSequence
+typealias Raw = String.SubSequence
 
 /// A parser error.
-private enum ParsingError: Swift.Error {
+enum ParsingError: Swift.Error, Hashable {
 
     /// A malformed key-value pair was detected.
     case malformedKeyValuePair(Raw)
+    /// An invalid configuration was detected.
+    case invalidConfiguration(String)
 }
 
 // MARK: - Parser implementations
@@ -61,6 +63,7 @@ extension URIParser {
             switch configuration.style {
             case .form: return [:]
             case .simple: return ["": [""]]
+            case .deepObject: return [:]
             }
         }
         switch (configuration.style, configuration.explode) {
@@ -68,6 +71,10 @@ extension URIParser {
         case (.form, false): return try parseUnexplodedFormRoot()
         case (.simple, true): return try parseExplodedSimpleRoot()
         case (.simple, false): return try parseUnexplodedSimpleRoot()
+        case (.deepObject, true): return try parseExplodedDeepObjectRoot()
+        case (.deepObject, false):
+            let reason = "Deep object style is only valid with explode set to true"
+            throw ParsingError.invalidConfiguration(reason)
         }
     }
 
@@ -204,6 +211,38 @@ extension URIParser {
                 appendPair(.init(), [value])
             }
         }
+    }
+    /// Parses the root node assuming the raw string uses the deepObject style
+    /// and the explode parameter is enabled.
+    /// - Returns: The parsed root node.
+    /// - Throws: An error if parsing fails.
+    private mutating func parseExplodedDeepObjectRoot() throws -> URIParsedNode {
+        let parseNode = try parseGenericRoot { data, appendPair in
+            let keyValueSeparator: Character = "="
+            let pairSeparator: Character = "&"
+            let nestedKeyStartingCharacter: Character = "["
+            let nestedKeyEndingCharacter: Character = "]"
+            func nestedKey(from deepObjectKey: String.SubSequence) -> Raw {
+                var unescapedDeepObjectKey = Substring(deepObjectKey.removingPercentEncoding ?? "")
+                let topLevelKey = unescapedDeepObjectKey.parseUpToCharacterOrEnd(nestedKeyStartingCharacter)
+                let nestedKey = unescapedDeepObjectKey.parseUpToCharacterOrEnd(nestedKeyEndingCharacter)
+                return nestedKey.isEmpty ? topLevelKey : nestedKey
+            }
+            while !data.isEmpty {
+                let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
+                    first: keyValueSeparator,
+                    second: pairSeparator
+                )
+                guard case .foundFirst = firstResult else { throw ParsingError.malformedKeyValuePair(firstValue) }
+                // Hit the key/value separator, so a value will follow.
+                let secondValue = data.parseUpToCharacterOrEnd(pairSeparator)
+                let key = nestedKey(from: firstValue)
+                let value = secondValue
+                appendPair(key, [value])
+            }
+        }
+        for (key, value) in parseNode where value.count > 1 { throw ParsingError.malformedKeyValuePair(key) }
+        return parseNode
     }
 }
 

@@ -18,6 +18,7 @@ final class Test_URIParser: Test_Runtime {
 
     let testedVariants: [URICoderConfiguration] = [
         .formExplode, .formUnexplode, .simpleExplode, .simpleUnexplode, .formDataExplode, .formDataUnexplode,
+        .deepObjectExplode,
     ]
 
     func testParsing() throws {
@@ -29,7 +30,8 @@ final class Test_URIParser: Test_Runtime {
                     simpleExplode: .custom("", value: ["": [""]]),
                     simpleUnexplode: .custom("", value: ["": [""]]),
                     formDataExplode: "empty=",
-                    formDataUnexplode: "empty="
+                    formDataUnexplode: "empty=",
+                    deepObjectExplode: "object%5Bempty%5D="
                 ),
                 value: ["empty": [""]]
             ),
@@ -40,7 +42,8 @@ final class Test_URIParser: Test_Runtime {
                     simpleExplode: .custom("", value: ["": [""]]),
                     simpleUnexplode: .custom("", value: ["": [""]]),
                     formDataExplode: "",
-                    formDataUnexplode: ""
+                    formDataUnexplode: "",
+                    deepObjectExplode: ""
                 ),
                 value: [:]
             ),
@@ -51,7 +54,8 @@ final class Test_URIParser: Test_Runtime {
                     simpleExplode: .custom("fred", value: ["": ["fred"]]),
                     simpleUnexplode: .custom("fred", value: ["": ["fred"]]),
                     formDataExplode: "who=fred",
-                    formDataUnexplode: "who=fred"
+                    formDataUnexplode: "who=fred",
+                    deepObjectExplode: "object%5Bwho%5D=fred"
                 ),
                 value: ["who": ["fred"]]
             ),
@@ -62,7 +66,8 @@ final class Test_URIParser: Test_Runtime {
                     simpleExplode: .custom("Hello%20World", value: ["": ["Hello World"]]),
                     simpleUnexplode: .custom("Hello%20World", value: ["": ["Hello World"]]),
                     formDataExplode: "hello=Hello+World",
-                    formDataUnexplode: "hello=Hello+World"
+                    formDataUnexplode: "hello=Hello+World",
+                    deepObjectExplode: "object%5Bhello%5D=Hello%20World"
                 ),
                 value: ["hello": ["Hello World"]]
             ),
@@ -73,7 +78,11 @@ final class Test_URIParser: Test_Runtime {
                     simpleExplode: .custom("red,green,blue", value: ["": ["red", "green", "blue"]]),
                     simpleUnexplode: .custom("red,green,blue", value: ["": ["red", "green", "blue"]]),
                     formDataExplode: "list=red&list=green&list=blue",
-                    formDataUnexplode: "list=red,green,blue"
+                    formDataUnexplode: "list=red,green,blue",
+                    deepObjectExplode: .custom(
+                        "object%5Blist%5D=red&object%5Blist%5D=green&object%5Blist%5D=blue",
+                        expectedError: .malformedKeyValuePair("list")
+                    )
                 ),
                 value: ["list": ["red", "green", "blue"]]
             ),
@@ -93,7 +102,8 @@ final class Test_URIParser: Test_Runtime {
                     formDataUnexplode: .custom(
                         "keys=comma,%2C,dot,.,semi,%3B",
                         value: ["keys": ["comma", ",", "dot", ".", "semi", ";"]]
-                    )
+                    ),
+                    deepObjectExplode: "keys%5Bcomma%5D=%2C&keys%5Bdot%5D=.&keys%5Bsemi%5D=%3B"
                 ),
                 value: ["semi": [";"], "dot": ["."], "comma": [","]]
             ),
@@ -101,14 +111,28 @@ final class Test_URIParser: Test_Runtime {
         for testCase in cases {
             func testVariant(_ variant: Case.Variant, _ input: Case.Variants.Input) throws {
                 var parser = URIParser(configuration: variant.config, data: input.string[...])
-                let parsedNode = try parser.parseRoot()
-                XCTAssertEqual(
-                    parsedNode,
-                    input.valueOverride ?? testCase.value,
-                    "Failed for config: \(variant.name)",
-                    file: testCase.file,
-                    line: testCase.line
-                )
+                do {
+                    let parsedNode = try parser.parseRoot()
+                    XCTAssertEqual(
+                        parsedNode,
+                        input.valueOverride ?? testCase.value,
+                        "Failed for config: \(variant.name)",
+                        file: testCase.file,
+                        line: testCase.line
+                    )
+                } catch {
+                    guard let expectedError = input.expectedError, let parsingError = error as? ParsingError else {
+                        XCTAssert(false, "Unexpected error thrown: \(error)", file: testCase.file, line: testCase.line)
+                        return
+                    }
+                    XCTAssertEqual(
+                        expectedError,
+                        parsingError,
+                        "Failed for config: \(variant.name)",
+                        file: testCase.file,
+                        line: testCase.line
+                    )
+                }
             }
             let variants = testCase.variants
             try testVariant(.formExplode, variants.formExplode)
@@ -117,6 +141,7 @@ final class Test_URIParser: Test_Runtime {
             try testVariant(.simpleUnexplode, variants.simpleUnexplode)
             try testVariant(.formDataExplode, variants.formDataExplode)
             try testVariant(.formDataUnexplode, variants.formDataUnexplode)
+            try testVariant(.deepObjectExplode, variants.deepObjectExplode)
         }
     }
 }
@@ -133,25 +158,32 @@ extension Test_URIParser {
             static let simpleUnexplode: Self = .init(name: "simpleUnexplode", config: .simpleUnexplode)
             static let formDataExplode: Self = .init(name: "formDataExplode", config: .formDataExplode)
             static let formDataUnexplode: Self = .init(name: "formDataUnexplode", config: .formDataUnexplode)
+            static let deepObjectExplode: Self = .init(name: "deepObjectExplode", config: .deepObjectExplode)
         }
         struct Variants {
 
             struct Input: ExpressibleByStringLiteral {
                 var string: String
                 var valueOverride: URIParsedNode?
+                var expectedError: ParsingError?
 
-                init(string: String, valueOverride: URIParsedNode? = nil) {
+                init(string: String, valueOverride: URIParsedNode? = nil, expectedError: ParsingError? = nil) {
                     self.string = string
                     self.valueOverride = valueOverride
+                    self.expectedError = expectedError
                 }
 
                 static func custom(_ string: String, value: URIParsedNode) -> Self {
-                    .init(string: string, valueOverride: value)
+                    .init(string: string, valueOverride: value, expectedError: nil)
+                }
+                static func custom(_ string: String, expectedError: ParsingError) -> Self {
+                    .init(string: string, valueOverride: nil, expectedError: expectedError)
                 }
 
                 init(stringLiteral value: String) {
                     self.string = value
                     self.valueOverride = nil
+                    self.expectedError = nil
                 }
             }
 
@@ -161,6 +193,7 @@ extension Test_URIParser {
             var simpleUnexplode: Input
             var formDataExplode: Input
             var formDataUnexplode: Input
+            var deepObjectExplode: Input
         }
         var variants: Variants
         var value: URIParsedNode
