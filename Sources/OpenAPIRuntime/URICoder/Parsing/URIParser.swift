@@ -43,7 +43,6 @@ enum ParsingError: Swift.Error, Hashable {
 
     /// A malformed key-value pair was detected.
     case malformedKeyValuePair(Raw)
-    
     /// An invalid configuration was detected.
     case invalidConfiguration(String)
 }
@@ -213,7 +212,6 @@ extension URIParser {
             }
         }
     }
-    
     /// Parses the root node assuming the raw string uses the deepObject style
     /// and the explode parameter is enabled.
     /// - Returns: The parsed root node.
@@ -224,35 +222,26 @@ extension URIParser {
             let pairSeparator: Character = "&"
             let nestedKeyStartingCharacter: Character = "["
             let nestedKeyEndingCharacter: Character = "]"
-            
             func nestedKey(from deepObjectKey: String.SubSequence) -> Raw {
                 var unescapedDeepObjectKey = Substring(deepObjectKey.removingPercentEncoding ?? "")
                 let topLevelKey = unescapedDeepObjectKey.parseUpToCharacterOrEnd(nestedKeyStartingCharacter)
                 let nestedKey = unescapedDeepObjectKey.parseUpToCharacterOrEnd(nestedKeyEndingCharacter)
                 return nestedKey.isEmpty ? topLevelKey : nestedKey
             }
-            
             while !data.isEmpty {
                 let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
                     first: keyValueSeparator,
                     second: pairSeparator
                 )
-                
-                guard case .foundFirst = firstResult else {
-                    throw ParsingError.malformedKeyValuePair(firstValue)
-                }
+                guard case .foundFirst = firstResult else { throw ParsingError.malformedKeyValuePair(firstValue) }
                 // Hit the key/value separator, so a value will follow.
                 let secondValue = data.parseUpToCharacterOrEnd(pairSeparator)
                 let key = nestedKey(from: firstValue)
                 let value = secondValue
-                
                 appendPair(key, [value])
             }
         }
-        
-        try parseNode.forEach { (key, value) in
-            if value.count > 1 { throw ParsingError.malformedKeyValuePair(key) }
-        }
+        for (key, value) in parseNode where value.count > 1 { throw ParsingError.malformedKeyValuePair(key) }
         return parseNode
     }
 }

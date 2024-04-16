@@ -32,10 +32,7 @@ final class Test_URISerializer: Test_Runtime {
                     simpleUnexplode: "",
                     formDataExplode: "empty=",
                     formDataUnexplode: "empty=",
-                    deepObjectExplode: .custom(
-                        "empty=",
-                        expectedError: .deepObjectsWithPrimitiveValuesNotSupported
-                    )
+                    deepObjectExplode: .custom("empty=", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
                 )
             ),
             makeCase(
@@ -48,10 +45,7 @@ final class Test_URISerializer: Test_Runtime {
                     simpleUnexplode: "fred",
                     formDataExplode: "who=fred",
                     formDataUnexplode: "who=fred",
-                    deepObjectExplode: .custom(
-                        "who=fred",
-                        expectedError: .deepObjectsWithPrimitiveValuesNotSupported
-                    )
+                    deepObjectExplode: .custom("who=fred", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
                 )
             ),
             makeCase(
@@ -64,10 +58,7 @@ final class Test_URISerializer: Test_Runtime {
                     simpleUnexplode: "1234",
                     formDataExplode: "x=1234",
                     formDataUnexplode: "x=1234",
-                    deepObjectExplode: .custom(
-                        "x=1234",
-                        expectedError: .deepObjectsWithPrimitiveValuesNotSupported
-                    )
+                    deepObjectExplode: .custom("x=1234", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
                 )
             ),
             makeCase(
@@ -80,10 +71,7 @@ final class Test_URISerializer: Test_Runtime {
                     simpleUnexplode: "12.34",
                     formDataExplode: "x=12.34",
                     formDataUnexplode: "x=12.34",
-                    deepObjectExplode: .custom(
-                        "x=12.34",
-                        expectedError: .deepObjectsWithPrimitiveValuesNotSupported
-                    )
+                    deepObjectExplode: .custom("x=12.34", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
                 )
             ),
             makeCase(
@@ -129,7 +117,7 @@ final class Test_URISerializer: Test_Runtime {
                     formDataExplode: "list=red&list=green&list=blue",
                     formDataUnexplode: "list=red,green,blue",
                     deepObjectExplode: .custom(
-                        "list=red&list=green&list=blue", 
+                        "list=red&list=green&list=blue",
                         expectedError: .deepObjectsArrayNotSupported
                     )
                 )
@@ -165,13 +153,9 @@ final class Test_URISerializer: Test_Runtime {
                     )
                 } catch {
                     guard let expectedError = input.expectedError,
-                          let serializationError = error as? URISerializer.SerializationError else {
-                        XCTAssert(
-                            false,
-                            "Unexpected error thrown: \(error)",
-                            file: testCase.file,
-                            line: testCase.line
-                        )
+                        let serializationError = error as? URISerializer.SerializationError
+                    else {
+                        XCTAssert(false, "Unexpected error thrown: \(error)", file: testCase.file, line: testCase.line)
                         return
                     }
                     XCTAssertEqual(
@@ -209,26 +193,21 @@ extension Test_URISerializer {
             static let deepObjectExplode: Self = .init(name: "deepObjectExplode", config: .deepObjectExplode)
         }
         struct Variants {
-            
             struct Input: ExpressibleByStringLiteral {
                 var string: String
                 var expectedError: URISerializer.SerializationError?
-                
                 init(string: String, expectedError: URISerializer.SerializationError? = nil) {
                     self.string = string
                     self.expectedError = expectedError
                 }
-                
                 static func custom(_ string: String, expectedError: URISerializer.SerializationError) -> Self {
                     .init(string: string, expectedError: expectedError)
                 }
-                
                 init(stringLiteral value: String) {
                     self.string = value
                     self.expectedError = nil
                 }
             }
-            
             var formExplode: Input
             var formUnexplode: Input
             var simpleExplode: Input

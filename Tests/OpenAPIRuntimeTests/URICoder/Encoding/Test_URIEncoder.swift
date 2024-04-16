@@ -23,7 +23,6 @@ final class Test_URIEncoder: Test_Runtime {
         let encodedString = try encoder.encode(Foo(bar: "hello world"), forKey: "root")
         XCTAssertEqual(encodedString, "bar=hello+world")
     }
-    
     func testNestedEncoding() throws {
         struct Foo: Encodable { var bar: String }
         let serializer = URISerializer(configuration: .deepObjectExplode)

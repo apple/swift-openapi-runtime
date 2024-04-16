@@ -97,10 +97,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "",
                 formDataExplode: "root=",
                 formDataUnexplode: "root=",
-                deepObjectExplode: .custom(
-                    "root=",
-                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
-                )
+                deepObjectExplode: .custom("root=", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
 
@@ -133,10 +130,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "red",
                 formDataExplode: "root=red",
                 formDataUnexplode: "root=red",
-                deepObjectExplode: .custom(
-                    "root=red",
-                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
-                )
+                deepObjectExplode: .custom("root=red", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
 
@@ -151,10 +145,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "1234",
                 formDataExplode: "root=1234",
                 formDataUnexplode: "root=1234",
-                deepObjectExplode: .custom(
-                    "root=1234",
-                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
-                )
+                deepObjectExplode: .custom("root=1234", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
 
@@ -169,10 +160,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "12.34",
                 formDataExplode: "root=12.34",
                 formDataUnexplode: "root=12.34",
-                deepObjectExplode: .custom(
-                    "root=12.34",
-                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
-                )
+                deepObjectExplode: .custom("root=12.34", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
 
@@ -187,10 +175,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "true",
                 formDataExplode: "root=true",
                 formDataUnexplode: "root=true",
-                deepObjectExplode: .custom(
-                    "root=true",
-                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
-                )
+                deepObjectExplode: .custom("root=true", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
 
@@ -223,10 +208,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "a,b,c",
                 formDataExplode: "list=a&list=b&list=c",
                 formDataUnexplode: "list=a,b,c",
-                deepObjectExplode: .custom(
-                    "list=a&list=b&list=c",
-                    expectedError: .deepObjectsArrayNotSupported
-                )
+                deepObjectExplode: .custom("list=a&list=b&list=c", expectedError: .deepObjectsArrayNotSupported)
             )
         )
 
@@ -259,10 +241,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: .custom("", value: [""]),
                 formDataExplode: "",
                 formDataUnexplode: "",
-                deepObjectExplode: .custom(
-                    "",
-                    expectedError: .deepObjectsArrayNotSupported
-                )
+                deepObjectExplode: .custom("", expectedError: .deepObjectsArrayNotSupported)
             )
         )
 
@@ -295,7 +274,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "bar,24,color,red,date,2023-08-25T07%3A34%3A59Z,empty,,foo,hi%21",
                 formDataExplode: "bar=24&color=red&date=2023-08-25T07%3A34%3A59Z&empty=&foo=hi%21",
                 formDataUnexplode: "keys=bar,24,color,red,date,2023-08-25T07%3A34%3A59Z,empty,,foo,hi%21",
-                deepObjectExplode: "keys%5Bbar%5D=24&keys%5Bcolor%5D=red&keys%5Bdate%5D=2023-08-25T07%3A34%3A59Z&keys%5Bempty%5D=&keys%5Bfoo%5D=hi%21"
+                deepObjectExplode:
+                    "keys%5Bbar%5D=24&keys%5Bcolor%5D=red&keys%5Bdate%5D=2023-08-25T07%3A34%3A59Z&keys%5Bempty%5D=&keys%5Bfoo%5D=hi%21"
             )
         )
 
@@ -313,7 +293,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 formDataUnexplode: "root=2023-01-18T10%3A04%3A11Z",
                 deepObjectExplode: .custom(
                     "root=2023-01-18T10%3A04%3A11Z",
-                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
+                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
+                )
             )
         )
         try _test(
@@ -326,9 +307,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "green",
                 formDataExplode: "root=green",
                 formDataUnexplode: "root=green",
-                deepObjectExplode: .custom(
-                    "root=green",
-                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
+                deepObjectExplode: .custom("root=green", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
         try _test(
@@ -410,21 +389,17 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             var string: String
             var customValue: T?
             var expectedError: URISerializer.SerializationError?
-            
             init(string: String, customValue: T?, expectedError: URISerializer.SerializationError?) {
                 self.string = string
                 self.customValue = customValue
                 self.expectedError = expectedError
             }
 
-            init(stringLiteral value: String) {
-                self.init(string: value, customValue: nil, expectedError: nil)
-            }
+            init(stringLiteral value: String) { self.init(string: value, customValue: nil, expectedError: nil) }
 
             static func custom(_ string: String, value: T) -> Self {
                 .init(string: string, customValue: value, expectedError: nil)
             }
-            
             static func custom(_ string: String, expectedError: URISerializer.SerializationError) -> Self {
                 .init(string: string, customValue: nil, expectedError: expectedError)
             }
@@ -456,13 +431,9 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 XCTAssertEqual(decodedValue, variant.customValue ?? value, "Variant: \(name)", file: file, line: line)
             } catch {
                 guard let expectedError = variant.expectedError,
-                      let serializationError = error as? URISerializer.SerializationError else {
-                    XCTAssert(
-                        false,
-                        "Unexpected error thrown: \(error)",
-                        file: file,
-                        line: line
-                    )
+                    let serializationError = error as? URISerializer.SerializationError
+                else {
+                    XCTAssert(false, "Unexpected error thrown: \(error)", file: file, line: line)
                     return
                 }
                 XCTAssertEqual(
@@ -484,7 +455,6 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             configuration: .formDataUnexplode,
             variant: variants.formDataUnexplode
         )
-        
         try testVariant(
             name: "deepObjectExplode",
             configuration: .deepObjectExplode,

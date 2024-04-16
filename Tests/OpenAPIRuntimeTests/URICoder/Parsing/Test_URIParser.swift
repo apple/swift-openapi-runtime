@@ -17,7 +17,8 @@ import XCTest
 final class Test_URIParser: Test_Runtime {
 
     let testedVariants: [URICoderConfiguration] = [
-        .formExplode, .formUnexplode, .simpleExplode, .simpleUnexplode, .formDataExplode, .formDataUnexplode, .deepObjectExplode
+        .formExplode, .formUnexplode, .simpleExplode, .simpleUnexplode, .formDataExplode, .formDataUnexplode,
+        .deepObjectExplode,
     ]
 
     func testParsing() throws {
@@ -101,7 +102,7 @@ final class Test_URIParser: Test_Runtime {
                     formDataUnexplode: .custom(
                         "keys=comma,%2C,dot,.,semi,%3B",
                         value: ["keys": ["comma", ",", "dot", ".", "semi", ";"]]
-                    ), 
+                    ),
                     deepObjectExplode: "keys%5Bcomma%5D=%2C&keys%5Bdot%5D=.&keys%5Bsemi%5D=%3B"
                 ),
                 value: ["semi": [";"], "dot": ["."], "comma": [","]]
@@ -120,14 +121,8 @@ final class Test_URIParser: Test_Runtime {
                         line: testCase.line
                     )
                 } catch {
-                    guard let expectedError = input.expectedError,
-                          let parsingError = error as? ParsingError else {
-                        XCTAssert(
-                            false,
-                            "Unexpected error thrown: \(error)",
-                            file: testCase.file,
-                            line: testCase.line
-                        )
+                    guard let expectedError = input.expectedError, let parsingError = error as? ParsingError else {
+                        XCTAssert(false, "Unexpected error thrown: \(error)", file: testCase.file, line: testCase.line)
                         return
                     }
                     XCTAssertEqual(
@@ -181,7 +176,6 @@ extension Test_URIParser {
                 static func custom(_ string: String, value: URIParsedNode) -> Self {
                     .init(string: string, valueOverride: value, expectedError: nil)
                 }
-                
                 static func custom(_ string: String, expectedError: ParsingError) -> Self {
                     .init(string: string, valueOverride: nil, expectedError: expectedError)
                 }

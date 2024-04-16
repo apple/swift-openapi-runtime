@@ -69,13 +69,10 @@ extension URISerializer {
 
         /// Nested containers are not supported.
         case nestedContainersNotSupported
-        
         /// Deep object arrays are not supported.
         case deepObjectsArrayNotSupported
-        
         /// Deep object with primitive values are not supported.
         case deepObjectsWithPrimitiveValuesNotSupported
-        
         /// An invalid configuration was detected.
         case invalidConfiguration(String)
     }
@@ -190,8 +187,7 @@ extension URISerializer {
         case (.simple, _):
             keyAndValueSeparator = nil
             pairSeparator = ","
-        case (.deepObject, _):
-            throw SerializationError.deepObjectsArrayNotSupported
+        case (.deepObject, _): throw SerializationError.deepObjectsArrayNotSupported
         }
         func serializeNext(_ element: URIEncodedNode.Primitive) throws {
             if let keyAndValueSeparator {
@@ -263,7 +259,6 @@ extension URISerializer {
             try serializeNext(element, forKey: serializeNestedKey(elementKey, forKey: key))
             data.append(pairSeparator)
         }
-        
         if let (elementKey, element) = sortedDictionary.last {
             try serializeNext(element, forKey: serializeNestedKey(elementKey, forKey: key))
         }
