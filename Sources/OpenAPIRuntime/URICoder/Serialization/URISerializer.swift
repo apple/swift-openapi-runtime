@@ -126,7 +126,6 @@ extension URISerializer {
             case .deepObject: throw SerializationError.deepObjectsWithPrimitiveValuesNotSupported
             }
             try serializePrimitiveKeyValuePair(primitive, forKey: key, separator: keyAndValueSeparator)
-        case .emptyArray: try serializeArray([], forKey: key)
         case .array(let array): try serializeArray(array.map(unwrapPrimitiveValue), forKey: key)
         case .dictionary(let dictionary):
             try serializeDictionary(dictionary.mapValues(unwrapPrimitiveValue), forKey: key)

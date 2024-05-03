@@ -20,8 +20,6 @@ enum URIEncodedNode: Equatable {
     /// No value.
     case unset
 
-    case emptyArray
-
     /// A single primitive value.
     case primitive(Primitive)
 
@@ -81,7 +79,7 @@ extension URIEncodedNode {
         switch self {
         case .unset: self = .primitive(value)
         case .primitive: throw InsertionError.settingPrimitiveValueAgain
-        case .emptyArray, .array, .dictionary: throw InsertionError.settingValueOnAContainer
+        case .array, .dictionary: throw InsertionError.settingValueOnAContainer
         }
     }
 
