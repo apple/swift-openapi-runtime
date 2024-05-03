@@ -56,6 +56,12 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(request.soar_query, "search=foo&search=bar")
     }
 
+    func test_setQueryItemAsURI_arrayOfStrings_empty() throws {
+        var request = testRequest
+        try converter.setQueryItemAsURI(in: &request, style: .form, explode: true, name: "search", value: [String]())
+        XCTAssertEqual(request.soar_query, "search[]=")
+    }
+
     func test_setQueryItemAsURI_arrayOfStrings_unexploded() throws {
         var request = testRequest
         try converter.setQueryItemAsURI(

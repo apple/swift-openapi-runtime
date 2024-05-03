@@ -126,6 +126,7 @@ extension URISerializer {
             case .deepObject: throw SerializationError.deepObjectsWithPrimitiveValuesNotSupported
             }
             try serializePrimitiveKeyValuePair(primitive, forKey: key, separator: keyAndValueSeparator)
+        case .emptyArray: try serializeArray([], forKey: key)
         case .array(let array): try serializeArray(array.map(unwrapPrimitiveValue), forKey: key)
         case .dictionary(let dictionary):
             try serializeDictionary(dictionary.mapValues(unwrapPrimitiveValue), forKey: key)
@@ -174,7 +175,13 @@ extension URISerializer {
     ///     style and explode parameters in the configuration).
     /// - Throws: An error if serialization of the array fails.
     private mutating func serializeArray(_ array: [URIEncodedNode.Primitive], forKey key: String) throws {
-        guard !array.isEmpty else { return }
+        guard !array.isEmpty else {
+            if configuration.style == .form && configuration.explode {
+                data.append("\(try stringifiedKey(key))[]=")
+            }
+            return
+        }
+
         let keyAndValueSeparator: String?
         let pairSeparator: String
         switch (configuration.style, configuration.explode) {

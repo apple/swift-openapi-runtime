@@ -235,11 +235,11 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             [] as [String],
             key: "list",
             .init(
-                formExplode: "",
+                formExplode: "list[]=",
                 formUnexplode: "",
                 simpleExplode: .custom("", value: [""]),
                 simpleUnexplode: .custom("", value: [""]),
-                formDataExplode: "",
+                formDataExplode: "list[]=",
                 formDataUnexplode: "",
                 deepObjectExplode: .custom("", expectedError: .deepObjectsArrayNotSupported)
             )

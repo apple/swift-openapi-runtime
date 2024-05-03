@@ -71,6 +71,8 @@ final class URIValueToNodeEncoder {
         if let date = value as? Date {
             var container = singleValueContainer()
             try container.encode(date)
+        } else if (value as? Array<Any>)?.isEmpty == true {
+            currentStackEntry = CodingStackEntry(key: .init(stringValue: ""), storage: .emptyArray)
         } else {
             try value.encode(to: self)
         }
