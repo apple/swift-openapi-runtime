@@ -16,7 +16,9 @@ import XCTest
 import Foundation
 
 final class Test_ServerSentEventsDecoding: Test_Runtime {
-    func _test(input: String, output: [ServerSentEvent], file: StaticString = #file, line: UInt = #line) async throws {
+    func _test(input: String, output: [ServerSentEvent], file: StaticString = #filePath, line: UInt = #line)
+        async throws
+    {
         let sequence = asOneBytePerElementSequence(ArraySlice(input.utf8)).asDecodedServerSentEvents()
         let events = try await [ServerSentEvent](collecting: sequence)
         XCTAssertEqual(events.count, output.count, file: file, line: line)
@@ -85,7 +87,7 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
     func _testJSONData<JSONType: Decodable & Hashable & Sendable>(
         input: String,
         output: [ServerSentEventWithJSONData<JSONType>],
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) async throws {
         let sequence = asOneBytePerElementSequence(ArraySlice(input.utf8))
@@ -123,7 +125,7 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
 }
 
 final class Test_ServerSentEventsDecoding_Lines: Test_Runtime {
-    func _test(input: String, output: [String], file: StaticString = #file, line: UInt = #line) async throws {
+    func _test(input: String, output: [String], file: StaticString = #filePath, line: UInt = #line) async throws {
         let upstream = asOneBytePerElementSequence(ArraySlice(input.utf8))
         let sequence = ServerSentEventsLineDeserializationSequence(upstream: upstream)
         let lines = try await [ArraySlice<UInt8>](collecting: sequence)
