@@ -16,7 +16,7 @@ import XCTest
 import Foundation
 
 final class Test_ServerSentEventsEncoding: Test_Runtime {
-    func _test(input: [ServerSentEvent], output: String, file: StaticString = #file, line: UInt = #line) async throws {
+    func _test(input: [ServerSentEvent], output: String, file: StaticString = #filePath, line: UInt = #line) async throws {
         let sequence = WrappedSyncSequence(sequence: input).asEncodedServerSentEvents()
         try await XCTAssertEqualAsyncData(sequence, output.utf8, file: file, line: line)
     }
@@ -73,7 +73,7 @@ final class Test_ServerSentEventsEncoding: Test_Runtime {
     func _testJSONData<JSONType: Encodable & Hashable & Sendable>(
         input: [ServerSentEventWithJSONData<JSONType>],
         output: String,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) async throws {
         let sequence = WrappedSyncSequence(sequence: input).asEncodedServerSentEventsWithJSONData()

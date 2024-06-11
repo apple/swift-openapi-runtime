@@ -26,7 +26,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
             received: String?,
             options: [String],
             expected expectedChoice: String,
-            file: StaticString = #file,
+            file: StaticString = #filePath,
             line: UInt = #line
         ) throws {
             let choice = try converter.bestContentType(received: received.map { .init($0)! }, options: options)
@@ -109,7 +109,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
     }
 
     func testExtractContentDispositionNameAndFilename() throws {
-        func testCase(value: String?, name: String?, filename: String?, file: StaticString = #file, line: UInt = #line)
+        func testCase(value: String?, name: String?, filename: String?, file: StaticString = #filePath, line: UInt = #line)
             throws
         {
             let headerFields: HTTPFields

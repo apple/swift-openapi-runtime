@@ -237,7 +237,7 @@ struct MockCustomCoder: CustomCoder {
 ///   - rhs: The expected absolute string representation.
 ///   - file: The file name to include in the failure message (default is the source file where this function is called).
 ///   - line: The line number to include in the failure message (default is the line where this function is called).
-public func XCTAssertEqualURLString(_ lhs: URL?, _ rhs: String, file: StaticString = #file, line: UInt = #line) {
+public func XCTAssertEqualURLString(_ lhs: URL?, _ rhs: String, file: StaticString = #filePath, line: UInt = #line) {
     guard let lhs else {
         XCTFail("URL is nil")
         return

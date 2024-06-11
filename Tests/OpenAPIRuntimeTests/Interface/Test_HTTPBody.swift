@@ -229,14 +229,14 @@ final class Test_Body: Test_Runtime {
 }
 
 extension Test_Body {
-    func _testConsume(_ body: HTTPBody, expected: HTTPBody.ByteChunk, file: StaticString = #file, line: UInt = #line)
+    func _testConsume(_ body: HTTPBody, expected: HTTPBody.ByteChunk, file: StaticString = #filePath, line: UInt = #line)
         async throws
     {
         let output = try await ArraySlice(collecting: body, upTo: .max)
         XCTAssertEqual(output, expected, file: file, line: line)
     }
 
-    func _testConsume(_ body: HTTPBody, expected: some StringProtocol, file: StaticString = #file, line: UInt = #line)
+    func _testConsume(_ body: HTTPBody, expected: some StringProtocol, file: StaticString = #filePath, line: UInt = #line)
         async throws
     {
         let output = try await String(collecting: body, upTo: .max)

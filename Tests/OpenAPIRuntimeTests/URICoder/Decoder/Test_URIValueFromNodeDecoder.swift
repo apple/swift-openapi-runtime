@@ -81,7 +81,7 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
             key: String,
             style: URICoderConfiguration.Style = .form,
             explode: Bool = true,
-            file: StaticString = #file,
+            file: StaticString = #filePath,
             line: UInt = #line
         ) throws {
             let decoder = URIValueFromNodeDecoder(

@@ -88,7 +88,7 @@ final class Test_OpenAPIMIMEType: Test_Runtime {
             receivedParameters: [String: String],
             against option: OpenAPIMIMEType,
             expected expectedMatch: OpenAPIMIMEType.Match,
-            file: StaticString = #file,
+            file: StaticString = #filePath,
             line: UInt = #line
         ) {
             let result = OpenAPIMIMEType.evaluate(
@@ -109,7 +109,7 @@ final class Test_OpenAPIMIMEType: Test_Runtime {
         func testJSONWith2Params(
             against option: OpenAPIMIMEType,
             expected expectedMatch: OpenAPIMIMEType.Match,
-            file: StaticString = #file,
+            file: StaticString = #filePath,
             line: UInt = #line
         ) {
             testCase(

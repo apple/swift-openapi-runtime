@@ -418,7 +418,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
         _ value: T,
         key: String,
         _ variants: Variants<T>,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) throws {
         func testVariant(name: String, configuration: URICoderConfiguration, variant: Variants<T>.Input) throws {
