@@ -16,7 +16,9 @@ import XCTest
 import Foundation
 
 final class Test_ServerSentEventsDecoding: Test_Runtime {
-    func _test(input: String, output: [ServerSentEvent], file: StaticString = #filePath, line: UInt = #line) async throws {
+    func _test(input: String, output: [ServerSentEvent], file: StaticString = #filePath, line: UInt = #line)
+        async throws
+    {
         let sequence = asOneBytePerElementSequence(ArraySlice(input.utf8)).asDecodedServerSentEvents()
         let events = try await [ServerSentEvent](collecting: sequence)
         XCTAssertEqual(events.count, output.count, file: file, line: line)

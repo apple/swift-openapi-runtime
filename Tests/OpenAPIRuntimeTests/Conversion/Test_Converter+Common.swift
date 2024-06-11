@@ -109,9 +109,13 @@ final class Test_CommonConverterExtensions: Test_Runtime {
     }
 
     func testExtractContentDispositionNameAndFilename() throws {
-        func testCase(value: String?, name: String?, filename: String?, file: StaticString = #filePath, line: UInt = #line)
-            throws
-        {
+        func testCase(
+            value: String?,
+            name: String?,
+            filename: String?,
+            file: StaticString = #filePath,
+            line: UInt = #line
+        ) throws {
             let headerFields: HTTPFields
             if let value { headerFields = [.contentDisposition: value] } else { headerFields = [:] }
             let (actualName, actualFilename) = try converter.extractContentDispositionNameAndFilename(in: headerFields)
