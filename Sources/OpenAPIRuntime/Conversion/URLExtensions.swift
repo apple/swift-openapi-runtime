@@ -17,7 +17,7 @@ extension URL {
     /// Returns the default server URL of "/".
     ///
     /// Specification: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#fixed-fields
-    public static let defaultOpenAPIServerURL: Self = {
+    public nonisolated(unsafe) static let defaultOpenAPIServerURL: Self = {
         guard let url = URL(string: "/") else { fatalError("Failed to create an URL with the string '/'.") }
         return url
     }()

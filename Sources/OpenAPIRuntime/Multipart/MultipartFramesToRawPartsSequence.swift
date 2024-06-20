@@ -342,8 +342,13 @@ extension MultipartFramesToRawPartsSequence {
             switch stateMachine.nextFromPartSequence() {
             case .returnNil: return nil
             case .fetchFrame:
+              let frame : Upstream.AsyncIterator.Element?
                 var upstream = upstream
-                let frame = try await upstream.next()
+                #if os(Linux)
+                  frame = try await upstream.next(isolation: self)
+                #else
+                  frame = try await upstream.next()
+                #endif
                 self.upstream = upstream
                 switch stateMachine.partReceivedFrame(frame) {
                 case .returnNil: return nil
@@ -365,8 +370,13 @@ extension MultipartFramesToRawPartsSequence {
             switch stateMachine.nextFromBodySubsequence() {
             case .returnNil: return nil
             case .fetchFrame:
+              let frame : Upstream.AsyncIterator.Element?
                 var upstream = upstream
-                let frame = try await upstream.next()
+                #if os(Linux)
+                  frame = try await upstream.next(isolation: self)
+                #else
+                  frame = try await upstream.next()
+                #endif
                 self.upstream = upstream
                 switch stateMachine.bodyReceivedFrame(frame) {
                 case .returnNil: return nil

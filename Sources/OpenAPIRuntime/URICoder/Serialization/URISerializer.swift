@@ -50,16 +50,16 @@ extension CharacterSet {
 
     /// A character set of unreserved symbols only from RFC 6570 (excludes
     /// alphanumeric characters).
-    fileprivate static let unreservedSymbols: CharacterSet = .init(charactersIn: "-._~")
+    fileprivate nonisolated(unsafe) static let unreservedSymbols: CharacterSet = .init(charactersIn: "-._~")
 
     /// A character set of unreserved characters from RFC 6570.
-    fileprivate static let unreserved: CharacterSet = .alphanumerics.union(unreservedSymbols)
+    fileprivate nonisolated(unsafe) static let unreserved: CharacterSet = .alphanumerics.union(unreservedSymbols)
 
     /// A character set with only the space character.
-    fileprivate static let space: CharacterSet = .init(charactersIn: " ")
+    fileprivate nonisolated(unsafe) static let space: CharacterSet = .init(charactersIn: " ")
 
     /// A character set of unreserved characters and a space.
-    fileprivate static let unreservedAndSpace: CharacterSet = .unreserved.union(space)
+    fileprivate nonisolated(unsafe) static let unreservedAndSpace: CharacterSet = .unreserved.union(space)
 }
 
 extension URISerializer {
