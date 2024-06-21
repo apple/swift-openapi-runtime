@@ -14,19 +14,28 @@
 import Foundation
 
 extension URL {
+  private static func defaultOpenAPIServer () -> Self {
+    guard let url = URL(string: "/") else { fatalError("Failed to create an URL with the string '/'.") }
+    return url
+  }
+  
+  #if swift(>=6.0)
     /// Returns the default server URL of "/".
     ///
     /// Specification: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#fixed-fields
-    public static let defaultOpenAPIServerURL: Self = {
-        guard let url = URL(string: "/") else { fatalError("Failed to create an URL with the string '/'.") }
-        return url
-    }()
-
-    /// Returns a validated server URL, or throws an error.
-    /// - Parameter string: A URL string.
-    /// - Throws: If the provided string doesn't convert to URL.
-    public init(validatingOpenAPIServerURL string: String) throws {
-        guard let url = Self(string: string) else { throw RuntimeError.invalidServerURL(string) }
-        self = url
-    }
+    public nonisolated(unsafe) static let defaultOpenAPIServerURL: Self = defaultOpenAPIServer()
+  #else
+    /// Returns the default server URL of "/".
+    ///
+    /// Specification: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#fixed-fields
+    public static let defaultOpenAPIServerURL: Self = defaultOpenAPIServer()
+  #endif
+  
+  /// Returns a validated server URL, or throws an error.
+  /// - Parameter string: A URL string.
+  /// - Throws: If the provided string doesn't convert to URL.
+  public init(validatingOpenAPIServerURL string: String) throws {
+    guard let url = Self(string: string) else { throw RuntimeError.invalidServerURL(string) }
+    self = url
+  }
 }
