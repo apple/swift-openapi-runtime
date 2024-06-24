@@ -64,6 +64,25 @@ extension MultipartFramesToRawPartsSequence: AsyncSequence {
     }
 }
 
+extension AsyncIteratorProtocol {
+    /// Asynchronously advances to the next element and returns it, or ends the
+    /// sequence if there is no next element.
+    ///
+    /// - Returns: The next element, if it exists, or `nil` to signal the end of
+    ///   the sequence.
+    fileprivate mutating func next(isolatedWith actor: isolated (any Actor)?) async throws -> Self.Element? {
+        if #available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, macCatalyst 18.0, visionOS 2.0, *) {
+            #if compiler(>=6.0)
+            return try await self.next(isolation: actor)
+            #else
+            return try await self.next()
+            #endif
+        } else {
+            return try await self.next()
+        }
+    }
+}
+
 extension HTTPBody {
 
     /// Creates a new body from the provided header fields and body closure.
@@ -342,17 +361,8 @@ extension MultipartFramesToRawPartsSequence {
             switch stateMachine.nextFromPartSequence() {
             case .returnNil: return nil
             case .fetchFrame:
-                let frame: Upstream.AsyncIterator.Element?
                 var upstream = upstream
-                if #available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, macCatalyst 18.0, visionOS 2.0, *) {
-                    #if compiler(>=6.0)
-                    frame = try await upstream.next(isolation: self)
-                    #else
-                    frame = try await upstream.next()
-                    #endif
-                } else {
-                    frame = try await upstream.next()
-                }
+                let frame = try await upstream.next(isolatedWith: self)
                 self.upstream = upstream
                 switch stateMachine.partReceivedFrame(frame) {
                 case .returnNil: return nil
@@ -374,17 +384,8 @@ extension MultipartFramesToRawPartsSequence {
             switch stateMachine.nextFromBodySubsequence() {
             case .returnNil: return nil
             case .fetchFrame:
-                let frame: Upstream.AsyncIterator.Element?
                 var upstream = upstream
-                if #available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, macCatalyst 18.0, visionOS 2.0, *) {
-                    #if compiler(>=6.0)
-                    frame = try await upstream.next(isolation: self)
-                    #else
-                    frame = try await upstream.next()
-                    #endif
-                } else {
-                    frame = try await upstream.next()
-                }
+                let frame = try await upstream.next(isolatedWith: self)
                 self.upstream = upstream
                 switch stateMachine.bodyReceivedFrame(frame) {
                 case .returnNil: return nil
