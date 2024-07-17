@@ -12,6 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
+#if canImport(Foundation)
+import Foundation
+#endif
 @_spi(Generated) @testable import OpenAPIRuntime
 
 final class Test_OpenAPIValue: Test_Runtime {
@@ -21,6 +24,10 @@ final class Test_OpenAPIValue: Test_Runtime {
         _ = OpenAPIValueContainer(true)
         _ = OpenAPIValueContainer(1)
         _ = OpenAPIValueContainer(4.5)
+
+        #if canImport(Foundation)
+        XCTAssertEqual(try OpenAPIValueContainer(unvalidatedValue: NSNull()).value as? NSNull, NSNull())
+        #endif
 
         _ = try OpenAPIValueContainer(unvalidatedValue: ["hello"])
         _ = try OpenAPIValueContainer(unvalidatedValue: ["hello": "world"])
@@ -60,6 +67,16 @@ final class Test_OpenAPIValue: Test_Runtime {
             """#
         try _testPrettyEncoded(container, expectedJSON: expectedString)
     }
+    #if canImport(Foundation)
+    func testEncodingNSNull() throws {
+        let value = NSNull()
+        let container = try OpenAPIValueContainer(unvalidatedValue: value)
+        let expectedString = #"""
+            null
+            """#
+        try _testPrettyEncoded(container, expectedJSON: expectedString)
+    }
+    #endif
 
     func testEncoding_container_failure() throws {
         struct Foobar: Equatable {}
