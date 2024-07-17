@@ -13,7 +13,11 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 #if canImport(Foundation)
-import Foundation
+#if canImport(Darwin)
+import class Foundation.NSNull
+#else
+@preconcurrency import class Foundation.NSNull
+#endif
 #endif
 @_spi(Generated) @testable import OpenAPIRuntime
 

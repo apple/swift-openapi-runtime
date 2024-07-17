@@ -13,7 +13,11 @@
 //===----------------------------------------------------------------------===//
 
 #if canImport(Foundation)
+#if canImport(Darwin)
 import class Foundation.NSNull
+#else
+@preconcurrency import class Foundation.NSNull
+#endif
 #endif
 
 /// A container for a value represented by JSON Schema.
