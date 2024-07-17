@@ -12,6 +12,14 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(Foundation)
+#if canImport(Darwin)
+import class Foundation.NSNull
+#else
+@preconcurrency import class Foundation.NSNull
+#endif
+#endif
+
 /// A container for a value represented by JSON Schema.
 ///
 /// Contains an untyped JSON value. In some cases, the structure of the data
@@ -62,6 +70,9 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
     /// - Throws: When the value is not supported.
     static func tryCast(_ value: (any Sendable)?) throws -> (any Sendable)? {
         guard let value = value else { return nil }
+        #if canImport(Foundation)
+        if value is NSNull { return value }
+        #endif
         if let array = value as? [(any Sendable)?] { return try array.map(tryCast(_:)) }
         if let dictionary = value as? [String: (any Sendable)?] { return try dictionary.mapValues(tryCast(_:)) }
         if let value = tryCastPrimitiveType(value) { return value }
@@ -123,6 +134,12 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             try container.encodeNil()
             return
         }
+        #if canImport(Foundation)
+        if value is NSNull {
+            try container.encodeNil()
+            return
+        }
+        #endif
         switch value {
         case let value as Bool: try container.encode(value)
         case let value as Int: try container.encode(value)
