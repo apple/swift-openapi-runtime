@@ -166,13 +166,19 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
     /// - Parameters:
     ///   - value: The NSNumber that boxes one of possibly many different types of values.
     ///   - container: The container to encode the value in.
+    /// - Throws: An error if the encoding process encounters issues or if the value is invalid.
     private func encode(_ value: NSNumber, to container: inout any SingleValueEncodingContainer) throws {
         if value === kCFBooleanTrue {
             try container.encode(true)
         } else if value === kCFBooleanFalse {
             try container.encode(false)
         } else {
-            let type = CFNumberGetType(value)
+            #if canImport(ObjectiveC)
+            let nsNumber = value as CFNumber
+            #else
+            let nsNumber = unsafeBitCast(value, to: CFNumber.self)
+            #endif
+            let type = CFNumberGetType(nsNumber)
             switch type {
             case .sInt8Type, .charType: try container.encode(value.int8Value)
             case .sInt16Type, .shortType: try container.encode(value.int16Value)

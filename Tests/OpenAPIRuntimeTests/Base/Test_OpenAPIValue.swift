@@ -13,12 +13,7 @@
 //===----------------------------------------------------------------------===//
 import XCTest
 #if canImport(Foundation)
-#if canImport(Darwin)
-import class Foundation.NSNull
-#else
-@preconcurrency import class Foundation.NSNull
-#endif
-import Foundation
+@preconcurrency import Foundation
 import CoreFoundation
 #endif
 @_spi(Generated) @testable import OpenAPIRuntime
@@ -84,6 +79,19 @@ final class Test_OpenAPIValue: Test_Runtime {
     }
 
     func testEncodingNSNumber() throws {
+        func assertEncodedCF(
+            _ value: CFNumber,
+            as encodedValue: String,
+            file: StaticString = #filePath,
+            line: UInt = #line
+        ) throws {
+            #if canImport(ObjectiveC)
+            let nsNumber = value as NSNumber
+            #else
+            let nsNumber = unsafeBitCast(self, to: NSNumber.self)
+            #endif
+            try assertEncoded(nsNumber, as: encodedValue, file: file, line: line)
+        }
         func assertEncoded(
             _ value: NSNumber,
             as encodedValue: String,
@@ -108,15 +116,17 @@ final class Test_OpenAPIValue: Test_Runtime {
         try assertEncoded(NSNumber(value: 24 as UInt32), as: "24")
         try assertEncoded(NSNumber(value: 24 as UInt64), as: "24")
         try assertEncoded(NSNumber(value: 24 as UInt), as: "24")
+        #if canImport(ObjectiveC)
         try assertEncoded(NSNumber(value: 24 as NSInteger), as: "24")
+        #endif
         try assertEncoded(NSNumber(value: 24 as CFIndex), as: "24")
         try assertEncoded(NSNumber(value: 24.1 as Float32), as: "24.1")
         try assertEncoded(NSNumber(value: 24.1 as Float64), as: "24.1")
         try assertEncoded(NSNumber(value: 24.1 as Float), as: "24.1")
         try assertEncoded(NSNumber(value: 24.1 as Double), as: "24.1")
-        XCTAssertThrowsError(try assertEncoded(kCFNumberNaN, as: "-"))
-        XCTAssertThrowsError(try assertEncoded(kCFNumberNegativeInfinity, as: "-"))
-        XCTAssertThrowsError(try assertEncoded(kCFNumberPositiveInfinity, as: "-"))
+        XCTAssertThrowsError(try assertEncodedCF(kCFNumberNaN, as: "-"))
+        XCTAssertThrowsError(try assertEncodedCF(kCFNumberNegativeInfinity, as: "-"))
+        XCTAssertThrowsError(try assertEncodedCF(kCFNumberPositiveInfinity, as: "-"))
     }
     #endif
     func testEncoding_container_failure() throws {
