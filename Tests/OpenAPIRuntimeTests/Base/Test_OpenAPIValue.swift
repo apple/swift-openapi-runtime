@@ -12,6 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
+import Foundation
+import CoreFoundation
+
 #if canImport(Foundation)
 #if canImport(Darwin)
 import class Foundation.NSNull
@@ -80,8 +83,43 @@ final class Test_OpenAPIValue: Test_Runtime {
             """#
         try _testPrettyEncoded(container, expectedJSON: expectedString)
     }
-    #endif
 
+    func testEncodingNSNumber() throws {
+        func assertEncoded(
+            _ value: NSNumber,
+            as encodedValue: String,
+            file: StaticString = #filePath,
+            line: UInt = #line
+        ) throws {
+            let container = try OpenAPIValueContainer(unvalidatedValue: value)
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .sortedKeys
+            let data = try encoder.encode(container)
+            XCTAssertEqual(String(decoding: data, as: UTF8.self), encodedValue, file: file, line: line)
+        }
+        try assertEncoded(NSNumber(value: true as Bool), as: "true")
+        try assertEncoded(NSNumber(value: false as Bool), as: "false")
+        try assertEncoded(NSNumber(value: 24 as Int8), as: "24")
+        try assertEncoded(NSNumber(value: 24 as Int16), as: "24")
+        try assertEncoded(NSNumber(value: 24 as Int32), as: "24")
+        try assertEncoded(NSNumber(value: 24 as Int64), as: "24")
+        try assertEncoded(NSNumber(value: 24 as Int), as: "24")
+        try assertEncoded(NSNumber(value: 24 as UInt8), as: "24")
+        try assertEncoded(NSNumber(value: 24 as UInt16), as: "24")
+        try assertEncoded(NSNumber(value: 24 as UInt32), as: "24")
+        try assertEncoded(NSNumber(value: 24 as UInt64), as: "24")
+        try assertEncoded(NSNumber(value: 24 as UInt), as: "24")
+        try assertEncoded(NSNumber(value: 24 as NSInteger), as: "24")
+        try assertEncoded(NSNumber(value: 24 as CFIndex), as: "24")
+        try assertEncoded(NSNumber(value: 24.1 as Float32), as: "24.1")
+        try assertEncoded(NSNumber(value: 24.1 as Float64), as: "24.1")
+        try assertEncoded(NSNumber(value: 24.1 as Float), as: "24.1")
+        try assertEncoded(NSNumber(value: 24.1 as Double), as: "24.1")
+        XCTAssertThrowsError(try assertEncoded(kCFNumberNaN, as: "-"))
+        XCTAssertThrowsError(try assertEncoded(kCFNumberNegativeInfinity, as: "-"))
+        XCTAssertThrowsError(try assertEncoded(kCFNumberPositiveInfinity, as: "-"))
+    }
+    #endif
     func testEncoding_container_failure() throws {
         struct Foobar: Equatable {}
         XCTAssertThrowsError(try OpenAPIValueContainer(unvalidatedValue: Foobar())) { error in
