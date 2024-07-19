@@ -18,6 +18,8 @@ import class Foundation.NSNull
 #else
 @preconcurrency import class Foundation.NSNull
 #endif
+import class Foundation.NSNumber
+import CoreFoundation
 #endif
 
 /// A container for a value represented by JSON Schema.
@@ -139,6 +141,10 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             try container.encodeNil()
             return
         }
+        if let nsNumber = value as? NSNumber {
+            try encode(nsNumber, to: &container)
+            return
+        }
         #endif
         switch value {
         case let value as Bool: try container.encode(value)
@@ -154,6 +160,42 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
                 value,
                 .init(codingPath: container.codingPath, debugDescription: "OpenAPIValueContainer cannot be encoded")
             )
+        }
+    }
+    /// Encodes the provided NSNumber based on its internal representation.
+    /// - Parameters:
+    ///   - value: The NSNumber that boxes one of possibly many different types of values.
+    ///   - container: The container to encode the value in.
+    /// - Throws: An error if the encoding process encounters issues or if the value is invalid.
+    private func encode(_ value: NSNumber, to container: inout any SingleValueEncodingContainer) throws {
+        if value === kCFBooleanTrue {
+            try container.encode(true)
+        } else if value === kCFBooleanFalse {
+            try container.encode(false)
+        } else {
+            #if canImport(ObjectiveC)
+            let nsNumber = value as CFNumber
+            #else
+            let nsNumber = unsafeBitCast(value, to: CFNumber.self)
+            #endif
+            let type = CFNumberGetType(nsNumber)
+            switch type {
+            case .sInt8Type, .charType: try container.encode(value.int8Value)
+            case .sInt16Type, .shortType: try container.encode(value.int16Value)
+            case .sInt32Type, .intType: try container.encode(value.int32Value)
+            case .sInt64Type, .longLongType: try container.encode(value.int64Value)
+            case .float32Type, .floatType: try container.encode(value.floatValue)
+            case .float64Type, .doubleType, .cgFloatType: try container.encode(value.doubleValue)
+            case .nsIntegerType, .longType, .cfIndexType: try container.encode(value.intValue)
+            default:
+                throw EncodingError.invalidValue(
+                    value,
+                    .init(
+                        codingPath: container.codingPath,
+                        debugDescription: "OpenAPIValueContainer cannot encode NSNumber of the underlying type: \(type)"
+                    )
+                )
+            }
         }
     }
 
