@@ -134,7 +134,7 @@ extension Converter {
     /// - Throws: An error if decoding from the body fails.
     func convertJSONToBodyCodable<T: Decodable>(_ body: HTTPBody) async throws -> T {
         let data = try await Data(collecting: body, upTo: .max)
-        return try decoder.decode(T.self, from: data)
+        return try jsonCoder.customDecode(T.self, from: data)
     }
 
     /// Returns a JSON body for the provided encodable value.
@@ -142,7 +142,7 @@ extension Converter {
     /// - Returns: The raw JSON body.
     /// - Throws: An error if encoding to JSON fails.
     func convertBodyCodableToJSON<T: Encodable>(_ value: T) throws -> HTTPBody {
-        let data = try encoder.encode(value)
+        let data = try jsonCoder.customEncode(value)
         return HTTPBody(data)
     }
 
@@ -258,7 +258,7 @@ extension Converter {
     /// - Returns: A JSON string.
     /// - Throws: An error if encoding the value to JSON fails.
     func convertHeaderFieldCodableToJSON<T: Encodable>(_ value: T) throws -> String {
-        let data = try headerFieldEncoder.encode(value)
+        let data = try headerFieldJSONEncoder.encode(value)
         let stringValue = String(decoding: data, as: UTF8.self)
         return stringValue
     }
@@ -269,7 +269,7 @@ extension Converter {
     /// - Throws: An error if decoding from the JSON string fails.
     func convertJSONToHeaderFieldCodable<T: Decodable>(_ stringValue: Substring) throws -> T {
         let data = Data(stringValue.utf8)
-        return try decoder.decode(T.self, from: data)
+        return try jsonCoder.customDecode(T.self, from: data)
     }
 
     // MARK: - Helpers for specific types of parameters

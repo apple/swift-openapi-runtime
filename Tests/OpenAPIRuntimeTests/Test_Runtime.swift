@@ -102,6 +102,18 @@ class Test_Runtime: XCTestCase {
         }
         """#
     }
+    var testPetWithPath: TestPetWithPath { .init(name: "Fluffz", path: URL(string: "/land/forest")!) }
+
+    var testPetWithPathMinifiedWithoutEscapingSlashes: String { #"{"name":"Fluffz","path":"/land/forest"}"# }
+
+    var testPetWithPathPrettifiedWithEscapingSlashes: String {
+        #"""
+        {
+          "name" : "Fluffz",
+          "path" : "\/land\/forest"
+        }
+        """#
+    }
 
     var testStructURLFormString: String { "age=3&name=Rover%21&type=Golden+Retriever" }
 
@@ -246,6 +258,11 @@ public func XCTAssertEqualURLString(_ lhs: URL?, _ rhs: String, file: StaticStri
 }
 
 struct TestPet: Codable, Equatable { var name: String }
+
+struct TestPetWithPath: Codable, Equatable {
+    var name: String
+    var path: URL
+}
 
 struct TestPetDetailed: Codable, Equatable {
     var name: String

@@ -27,4 +27,25 @@ final class Test_Configuration: Test_Runtime {
         XCTAssertEqual(try transcoder.encode(testDateWithFractionalSeconds), testDateWithFractionalSecondsString)
         XCTAssertEqual(testDateWithFractionalSeconds, try transcoder.decode(testDateWithFractionalSecondsString))
     }
+    func testJSONCoder_defaultConfiguration() throws {
+        let configuration = Configuration()
+        XCTAssertEqualStringifiedData(
+            try configuration.jsonCoder.customEncode(testPetWithPath),
+            testPetWithPathPrettifiedWithEscapingSlashes
+        )
+    }
+    func testJSONCoder_defaultInit() throws {
+        let coder = FoundationJSONCoder()
+        XCTAssertEqualStringifiedData(
+            try coder.customEncode(testPetWithPath),
+            testPetWithPathPrettifiedWithEscapingSlashes
+        )
+    }
+    func testJSONCoder_minifiedWithoutEscapingSlashes() throws {
+        let coder = FoundationJSONCoder(outputFormatting: [.sortedKeys, .withoutEscapingSlashes])
+        XCTAssertEqualStringifiedData(
+            try coder.customEncode(testPetWithPath),
+            testPetWithPathMinifiedWithoutEscapingSlashes
+        )
+    }
 }

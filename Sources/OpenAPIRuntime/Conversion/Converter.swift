@@ -24,28 +24,29 @@ import class Foundation.JSONDecoder
     /// Configuration used to set up the converter.
     public let configuration: Configuration
 
-    /// JSON encoder.
-    internal var encoder: JSONEncoder
-
-    /// JSON decoder.
-    internal var decoder: JSONDecoder
+    /// JSON coder for body data.
+    internal var jsonCoder: any CustomCoder
 
     /// JSON encoder used for header fields.
-    internal var headerFieldEncoder: JSONEncoder
+    internal var headerFieldJSONEncoder: JSONEncoder
 
     /// Creates a new converter with the behavior specified by the configuration.
     public init(configuration: Configuration) {
         self.configuration = configuration
 
-        self.encoder = JSONEncoder()
-        self.encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
-        self.encoder.dateEncodingStrategy = .from(dateTranscoder: configuration.dateTranscoder)
+        self.jsonCoder = configuration.jsonCoder
+        self.headerFieldJSONEncoder = Self.newHeaderFieldJSONEncoder(dateTranscoder: configuration.dateTranscoder)
+    }
+}
 
-        self.headerFieldEncoder = JSONEncoder()
-        self.headerFieldEncoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
-        self.headerFieldEncoder.dateEncodingStrategy = .from(dateTranscoder: configuration.dateTranscoder)
-
-        self.decoder = JSONDecoder()
-        self.decoder.dateDecodingStrategy = .from(dateTranscoder: configuration.dateTranscoder)
+extension Converter {
+    /// Creates a new JSON encoder specifically for header fields.
+    /// - Parameter dateTranscoder: The transcoder for dates.
+    /// - Returns: The configured JSON encoder.
+    internal static func newHeaderFieldJSONEncoder(dateTranscoder: any DateTranscoder) -> JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        encoder.dateEncodingStrategy = .from(dateTranscoder: dateTranscoder)
+        return encoder
     }
 }

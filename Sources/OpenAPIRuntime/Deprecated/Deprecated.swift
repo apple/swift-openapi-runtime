@@ -37,4 +37,25 @@ extension Configuration {
     ) {
         self.init(dateTranscoder: dateTranscoder, multipartBoundaryGenerator: multipartBoundaryGenerator, xmlCoder: nil)
     }
+
+    /// Creates a new configuration with the specified values.
+    ///
+    /// - Parameters:
+    ///   - dateTranscoder: The transcoder to use when converting between date
+    ///   and string values.
+    ///   - multipartBoundaryGenerator: The generator to use when creating mutlipart bodies.
+    ///   - xmlCoder: The XML coder for encoding and decoding XML bodies. Only required when using XML body payloads.
+    @available(*, deprecated, renamed: "init(jsonCoder:dateTranscoder:multipartBoundaryGenerator:xmlCoder:)")
+    @_disfavoredOverload public init(
+        dateTranscoder: any DateTranscoder = .iso8601,
+        multipartBoundaryGenerator: any MultipartBoundaryGenerator = .random,
+        xmlCoder: (any CustomCoder)? = nil
+    ) {
+        self.init(
+            jsonCoder: FoundationJSONCoder(),
+            dateTranscoder: dateTranscoder,
+            multipartBoundaryGenerator: multipartBoundaryGenerator,
+            xmlCoder: xmlCoder
+        )
+    }
 }
