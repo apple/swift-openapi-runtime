@@ -38,7 +38,7 @@ import class Foundation.JSONDecoder
         self.configuration = configuration
 
         self.encoder = JSONEncoder()
-        self.encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
+        self.encoder.outputFormatting = .init(configuration.jsonEncodingOptions)
         self.encoder.dateEncodingStrategy = .from(dateTranscoder: configuration.dateTranscoder)
 
         self.headerFieldEncoder = JSONEncoder()
@@ -47,5 +47,14 @@ import class Foundation.JSONDecoder
 
         self.decoder = JSONDecoder()
         self.decoder.dateDecodingStrategy = .from(dateTranscoder: configuration.dateTranscoder)
+    }
+}
+
+extension JSONEncoder.OutputFormatting {
+    init(_ options: JSONEncodingOptions) {
+        self.init()
+        if options.contains(.prettyPrinted) { formUnion(.prettyPrinted) }
+        if options.contains(.sortedKeys) { formUnion(.sortedKeys) }
+        if options.contains(.withoutEscapingSlashes) { formUnion(.withoutEscapingSlashes) }
     }
 }
