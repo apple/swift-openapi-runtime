@@ -51,6 +51,8 @@ import class Foundation.JSONDecoder
 }
 
 extension JSONEncoder.OutputFormatting {
+    /// Creates a new value.
+    /// - Parameter options: The JSON encoding options to represent.
     init(_ options: JSONEncodingOptions) {
         self.init()
         if options.contains(.prettyPrinted) { formUnion(.prettyPrinted) }
