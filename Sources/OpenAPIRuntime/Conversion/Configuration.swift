@@ -114,7 +114,27 @@ public protocol CustomCoder: Sendable {
     /// - Returns: A value of the requested type.
     /// - Throws: An error if decoding fails.
     func customDecode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T
+}
 
+/// The options that control the encoded JSON data.
+public struct JSONEncodingOptions: OptionSet, Sendable {
+
+    /// The format's default value.
+    public let rawValue: UInt
+
+    /// Creates a JSONEncodingOptions value with the given raw value.
+    public init(rawValue: UInt) { self.rawValue = rawValue }
+
+    /// Include newlines and indentation to make the output more human-readable.
+    public static let prettyPrinted: JSONEncodingOptions = .init(rawValue: 1 << 0)
+
+    /// Serialize JSON objects with field keys sorted in lexicographic order.
+    public static let sortedKeys: JSONEncodingOptions = .init(rawValue: 1 << 1)
+
+    /// Omit escaping forward slashes with backslashes.
+    ///
+    /// Important: Only use this option when the output is not embedded in HTML/XML.
+    public static let withoutEscapingSlashes: JSONEncodingOptions = .init(rawValue: 1 << 2)
 }
 
 /// A set of configuration values used by the generated client and server types.
@@ -122,6 +142,9 @@ public struct Configuration: Sendable {
 
     /// The transcoder used when converting between date and string values.
     public var dateTranscoder: any DateTranscoder
+
+    /// The options for the underlying JSON encoder.
+    public var jsonEncodingOptions: JSONEncodingOptions
 
     /// The generator to use when creating mutlipart bodies.
     public var multipartBoundaryGenerator: any MultipartBoundaryGenerator
@@ -134,14 +157,17 @@ public struct Configuration: Sendable {
     /// - Parameters:
     ///   - dateTranscoder: The transcoder to use when converting between date
     ///   and string values.
+    ///   - jsonEncodingOptions: The options for the underlying JSON encoder.
     ///   - multipartBoundaryGenerator: The generator to use when creating mutlipart bodies.
     ///   - xmlCoder: Custom XML coder for encoding and decoding xml bodies. Only required when using XML body payloads.
     public init(
         dateTranscoder: any DateTranscoder = .iso8601,
+        jsonEncodingOptions: JSONEncodingOptions = [.sortedKeys, .prettyPrinted],
         multipartBoundaryGenerator: any MultipartBoundaryGenerator = .random,
         xmlCoder: (any CustomCoder)? = nil
     ) {
         self.dateTranscoder = dateTranscoder
+        self.jsonEncodingOptions = jsonEncodingOptions
         self.multipartBoundaryGenerator = multipartBoundaryGenerator
         self.xmlCoder = xmlCoder
     }
