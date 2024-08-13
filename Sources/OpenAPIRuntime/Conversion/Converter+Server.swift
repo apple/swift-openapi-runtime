@@ -56,11 +56,34 @@ extension Converter {
                 // Drop everything after the optional semicolon (q, extensions, ...)
                 value.split(separator: ";")[0].trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
             }
-
         if acceptValues.isEmpty { return }
-        if acceptValues.contains("*/*") { return }
-        if acceptValues.contains("\(substring.split(separator: "/")[0].lowercased())/*") { return }
-        if acceptValues.contains(where: { $0.localizedCaseInsensitiveContains(substring) }) { return }
+        guard let parsedSubstring = OpenAPIMIMEType(substring) else {
+            throw RuntimeError.invalidAcceptSubstring(substring)
+        }
+        guard case .concrete(let substringType, let substringSubtype) = parsedSubstring.kind else {
+            // If the substring content type has a wildcard, just let it through.
+            // It's not well defined how such a case should behave, so be permissive.
+            return
+        }
+
+        // Look for the first match.
+        for acceptValue in acceptValues {
+            // Fast path.
+            if acceptValue == substring { return }
+            guard let parsedAcceptValue = OpenAPIMIMEType(acceptValue) else {
+                throw RuntimeError.invalidExpectedContentType(acceptValue)
+            }
+            switch parsedAcceptValue.kind {
+            case .any: return
+            case .anySubtype(type: let type): if substringType.lowercased() == type.lowercased() { return }
+            case .concrete(type: let type, subtype: let subtype):
+                if type.lowercased() == substringType.lowercased()
+                    && subtype.lowercased() == substringSubtype.lowercased()
+                {
+                    return
+                }
+            }
+        }
         throw RuntimeError.unexpectedAcceptHeader(acceptHeader)
     }
 
