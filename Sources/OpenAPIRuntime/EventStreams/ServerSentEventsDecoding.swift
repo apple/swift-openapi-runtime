@@ -28,9 +28,19 @@ where Upstream.Element == ArraySlice<UInt8> {
     /// The upstream sequence.
     private let upstream: Upstream
 
+    /// An optional closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
+    /// - Parameter: A byte chunk.
+    /// - Returns: `True` if the given byte sequence is the terminating byte sequence defined by the API.
+    private let terminate: (@Sendable (ArraySlice<UInt8>) -> Bool)?
+
     /// Creates a new sequence.
-    /// - Parameter upstream: The upstream sequence of arbitrary byte chunks.
-    public init(upstream: Upstream) { self.upstream = upstream }
+    /// - Parameters:
+    ///     - upstream: The upstream sequence of arbitrary byte chunks.
+    ///     - terminate: An optional closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
+    public init(upstream: Upstream, terminate: (@Sendable (ArraySlice<UInt8>) -> Bool)?) {
+        self.upstream = upstream
+        self.terminate = terminate
+    }
 }
 
 extension ServerSentEventsDeserializationSequence: AsyncSequence {
@@ -47,6 +57,17 @@ extension ServerSentEventsDeserializationSequence: AsyncSequence {
 
         /// The state machine of the iterator.
         var stateMachine: StateMachine = .init()
+
+        /// An optional closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
+        /// - Parameter: A byte chunk.
+        /// - Returns: `True` if the given byte sequence is the terminating byte sequence defined by the API.
+        let terminate: ((ArraySlice<UInt8>) -> Bool)?
+
+        init(upstream: any AsyncIteratorProtocol, terminate: ((ArraySlice<UInt8>) -> Bool)?) {
+            self.upstream = upstream as! UpstreamIterator
+            self.stateMachine = .init(terminate: terminate)
+            self.terminate = terminate
+        }
 
         /// Asynchronously advances to the next element and returns it, or ends the
         /// sequence if there is no next element.
@@ -70,7 +91,7 @@ extension ServerSentEventsDeserializationSequence: AsyncSequence {
     /// Creates the asynchronous iterator that produces elements of this
     /// asynchronous sequence.
     public func makeAsyncIterator() -> Iterator<Upstream.AsyncIterator> {
-        Iterator(upstream: upstream.makeAsyncIterator())
+        Iterator(upstream: upstream.makeAsyncIterator(), terminate: terminate)
     }
 }
 
@@ -79,10 +100,16 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
     /// Returns another sequence that decodes each event's data as the provided type using the provided decoder.
     ///
     /// Use this method if the event's `data` field is not JSON, or if you don't want to parse it using `asDecodedServerSentEventsWithJSONData`.
+    /// - Parameter: An optional closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
     /// - Returns: A sequence that provides the events.
-    public func asDecodedServerSentEvents() -> ServerSentEventsDeserializationSequence<
+    public func asDecodedServerSentEvents(terminate: (@Sendable (ArraySlice<UInt8>) -> Bool)? = nil) -> ServerSentEventsDeserializationSequence<
         ServerSentEventsLineDeserializationSequence<Self>
-    > { .init(upstream: ServerSentEventsLineDeserializationSequence(upstream: self)) }
+    > { .init(upstream: ServerSentEventsLineDeserializationSequence(upstream: self), terminate: terminate) }
+    
+    /// Convenience function for `asDecodedServerSentEvents` that directly receives the terminating byte sequence.
+    public func asDecodedServerSentEvents(terminatingSequence: ArraySlice<UInt8>) -> ServerSentEventsDeserializationSequence<
+        ServerSentEventsLineDeserializationSequence<Self>
+    > { asDecodedServerSentEvents(terminate: { incomingSequence in return incomingSequence == terminatingSequence }) }
 
     /// Returns another sequence that decodes each event's data as the provided type using the provided decoder.
     ///
@@ -90,15 +117,17 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
     /// - Parameters:
     ///   - dataType: The type to decode the JSON data into.
     ///   - decoder: The JSON decoder to use.
+    ///   - terminate: An optional closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
     /// - Returns: A sequence that provides the events with the decoded JSON data.
     public func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable>(
         of dataType: JSONDataType.Type = JSONDataType.self,
-        decoder: JSONDecoder = .init()
+        decoder: JSONDecoder = .init(),
+        terminate: (@Sendable (ArraySlice<UInt8>) -> Bool)? = nil
     ) -> AsyncThrowingMapSequence<
         ServerSentEventsDeserializationSequence<ServerSentEventsLineDeserializationSequence<Self>>,
         ServerSentEventWithJSONData<JSONDataType>
     > {
-        asDecodedServerSentEvents()
+        asDecodedServerSentEvents(terminate: terminate)
             .map { event in
                 ServerSentEventWithJSONData(
                     event: event.event,
@@ -109,6 +138,19 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
                     retry: event.retry
                 )
             }
+    }
+
+    public func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable>(
+        of dataType: JSONDataType.Type = JSONDataType.self,
+        decoder: JSONDecoder = .init(),
+        terminatingData: ArraySlice<UInt8>
+    ) -> AsyncThrowingMapSequence<
+        ServerSentEventsDeserializationSequence<ServerSentEventsLineDeserializationSequence<Self>>,
+        ServerSentEventWithJSONData<JSONDataType>
+    > {
+        asDecodedServerSentEventsWithJSONData(of: dataType, decoder: decoder) { incomingData in
+            terminatingData == incomingData
+        }
     }
 }
 
@@ -133,8 +175,16 @@ extension ServerSentEventsDeserializationSequence.Iterator {
         /// The current state of the state machine.
         private(set) var state: State
 
+        
+        /// An optional closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
+        /// - Parameter: A sequence of byte chunks.
+        /// - Returns: `True` if the given byte sequence is the terminating byte sequence defined by the API.
+        let terminate: ((ArraySlice<UInt8>) -> Bool)?
+        
         /// Creates a new state machine.
-        init() { self.state = .accumulatingEvent(.init(), buffer: []) }
+        init(terminate: ((ArraySlice<UInt8>) -> Bool)? = nil) {
+            self.state = .accumulatingEvent(.init(), buffer: [])
+            self.terminate = terminate}
 
         /// An action returned by the `next` method.
         enum NextAction {
@@ -165,6 +215,14 @@ extension ServerSentEventsDeserializationSequence.Iterator {
                     state = .accumulatingEvent(.init(), buffer: buffer)
                     // If the last character of data is a newline, strip it.
                     if event.data?.hasSuffix("\n") ?? false { event.data?.removeLast() }
+
+                    if let terminate = terminate {
+                        if let data = event.data {
+                            if terminate(ArraySlice(Data(data.utf8))) {
+                                return .returnNil
+                            }
+                        }
+                    }
                     return .emitEvent(event)
                 }
                 if line.first! == ASCII.colon {
