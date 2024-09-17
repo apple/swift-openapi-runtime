@@ -16,17 +16,31 @@ import XCTest
 import Foundation
 
 final class Test_ServerSentEventsDecoding: Test_Runtime {
-    func _test(input: String, output: [ServerSentEvent], file: StaticString = #filePath, line: UInt = #line)
+    func _test(input: String, output: [ServerSentEvent], file: StaticString = #filePath, line: UInt = #line, terminate: ((ArraySlice<UInt8>) -> Bool)? = nil, eventCountOffset: Int = 0)
         async throws
     {
         let sequence = asOneBytePerElementSequence(ArraySlice(input.utf8)).asDecodedServerSentEvents()
         let events = try await [ServerSentEvent](collecting: sequence)
-        XCTAssertEqual(events.count, output.count, file: file, line: line)
+        let eventCount = events.count + eventCountOffset
+        XCTAssertEqual(eventCount, output.count, file: file, line: line)
         for (index, linePair) in zip(events, output).enumerated() {
             let (actualEvent, expectedEvent) = linePair
             XCTAssertEqual(actualEvent, expectedEvent, "Event: \(index)", file: file, line: line)
         }
     }
+
+    func _test(input: String, output: [ServerSentEvent], file: StaticString = #filePath, line: UInt = #line, terminatingData: ArraySlice<UInt8>, eventCountOffset: Int)
+        async throws {
+        try await _test(
+            input: input,
+            output: output,
+            file: file,
+            line: line,
+            terminate: { incomingData in incomingData == terminatingData },
+            eventCountOffset: eventCountOffset
+        )
+    }
+
     func test() async throws {
         // Simple event.
         try await _test(
@@ -83,15 +97,56 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
                 .init(id: "123", data: "This is a message with an ID."),
             ]
         )
+
+        try await _test(
+            input: #"""
+                data: hello
+                data: world
+
+                data: [DONE]
+
+                data: hello2
+                data: world2
+
+
+                """#,
+            output: [
+                .init(data: "hello\nworld")
+            ],
+            terminate: { incomingData in
+                incomingData == ArraySlice<UInt8>(Data("[DONE]".utf8))
+            },
+            eventCountOffset: -2
+        )
+
+        try await _test(
+            input: #"""
+                data: hello
+                data: world
+
+                data: [DONE]
+
+                data: hello2
+                data: world2
+
+
+                """#,
+            output: [
+                .init(data: "hello\nworld")
+            ],
+            terminatingData: ArraySlice<UInt8>(Data("[DONE]".utf8)),
+            eventCountOffset: -2
+        )
     }
     func _testJSONData<JSONType: Decodable & Hashable & Sendable>(
         input: String,
         output: [ServerSentEventWithJSONData<JSONType>],
         file: StaticString = #filePath,
-        line: UInt = #line
+        line: UInt = #line,
+        terminate: (@Sendable (ArraySlice<UInt8>) -> Bool)? = nil
     ) async throws {
         let sequence = asOneBytePerElementSequence(ArraySlice(input.utf8))
-            .asDecodedServerSentEventsWithJSONData(of: JSONType.self)
+            .asDecodedServerSentEventsWithJSONData(of: JSONType.self, terminate: terminate)
         let events = try await [ServerSentEventWithJSONData<JSONType>](collecting: sequence)
         XCTAssertEqual(events.count, output.count, file: file, line: line)
         for (index, linePair) in zip(events, output).enumerated() {
@@ -99,6 +154,23 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
             XCTAssertEqual(actualEvent, expectedEvent, "Event: \(index)", file: file, line: line)
         }
     }
+
+    func _testJSONData<JSONType: Decodable & Hashable & Sendable>(
+        input: String,
+        output: [ServerSentEventWithJSONData<JSONType>],
+        file: StaticString = #filePath,
+        line: UInt = #line,
+        terminatingDataSequence: ArraySlice<UInt8>?
+    ) async throws {
+        try await _testJSONData(
+            input: input,
+            output: output,
+            file: file,
+            terminate: { incomingData in incomingData == ArraySlice<UInt8>(Data("[DONE]".utf8))
+            }
+        )
+    }
+
     struct TestEvent: Decodable, Hashable, Sendable { var index: Int }
     func testJSONData() async throws {
         // Simple event.
@@ -120,6 +192,62 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
                 .init(event: "event1", data: TestEvent(index: 1), id: "1"),
                 .init(event: "event2", data: TestEvent(index: 2), id: "2"),
             ]
+        )
+
+        try await _testJSONData(
+            input: #"""
+                event: event1
+                id: 1
+                data: {"index":1}
+
+                event: event2
+                id: 2
+                data: {
+                data:   "index": 2
+                data: }
+
+                data: [DONE]
+
+                event: event3
+                id: 1
+                data: {"index":3}
+                
+                
+                """#,
+            output: [
+                .init(event: "event1", data: TestEvent(index: 1), id: "1"),
+                .init(event: "event2", data: TestEvent(index: 2), id: "2"),
+            ],
+            terminate: { incomingData in
+                incomingData == ArraySlice<UInt8>(Data("[DONE]".utf8))
+            }
+        )
+        
+        try await _testJSONData(
+            input: #"""
+                event: event1
+                id: 1
+                data: {"index":1}
+
+                event: event2
+                id: 2
+                data: {
+                data:   "index": 2
+                data: }
+
+                data: [DONE]
+
+                event: event3
+                id: 1
+                data: {"index":3}
+                
+                
+                """#,
+            output: [
+                .init(event: "event1", data: TestEvent(index: 1), id: "1"),
+                .init(event: "event2", data: TestEvent(index: 2), id: "2"),
+            ],
+            terminatingDataSequence: ArraySlice<UInt8>(Data("[DONE]".utf8))
         )
     }
 }
