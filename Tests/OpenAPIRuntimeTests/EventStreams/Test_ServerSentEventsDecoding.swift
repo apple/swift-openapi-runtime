@@ -16,7 +16,7 @@ import XCTest
 import Foundation
 
 final class Test_ServerSentEventsDecoding: Test_Runtime {
-    func _test(input: String, output: [ServerSentEvent], file: StaticString = #filePath, line: UInt = #line, terminate: ((ArraySlice<UInt8>) -> Bool)? = nil, eventCountOffset: Int = 0)
+    func _test(input: String, output: [ServerSentEvent], file: StaticString = #filePath, line: UInt = #line, while predicate: ((ArraySlice<UInt8>) -> Bool)? = nil, eventCountOffset: Int = 0)
         async throws
     {
         let sequence = asOneBytePerElementSequence(ArraySlice(input.utf8)).asDecodedServerSentEvents()
@@ -101,8 +101,8 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
             output: [
                 .init(data: "hello\nworld")
             ],
-            terminate: { incomingData in
-                incomingData == ArraySlice<UInt8>(Data("[DONE]".utf8))
+            while: { incomingData in
+                incomingData != ArraySlice<UInt8>(Data("[DONE]".utf8))
             },
             eventCountOffset: -2
         )
@@ -112,10 +112,10 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
         output: [ServerSentEventWithJSONData<JSONType>],
         file: StaticString = #filePath,
         line: UInt = #line,
-        terminate: (@Sendable (ArraySlice<UInt8>) -> Bool)? = nil
+        while predicate: (@Sendable (ArraySlice<UInt8>) -> Bool)? = nil
     ) async throws {
         let sequence = asOneBytePerElementSequence(ArraySlice(input.utf8))
-            .asDecodedServerSentEventsWithJSONData(of: JSONType.self, terminate: terminate)
+            .asDecodedServerSentEventsWithJSONData(of: JSONType.self, while: predicate)
         let events = try await [ServerSentEventWithJSONData<JSONType>](collecting: sequence)
         XCTAssertEqual(events.count, output.count, file: file, line: line)
         for (index, linePair) in zip(events, output).enumerated() {
@@ -171,8 +171,8 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
                 .init(event: "event1", data: TestEvent(index: 1), id: "1"),
                 .init(event: "event2", data: TestEvent(index: 2), id: "2"),
             ],
-            terminate: { incomingData in
-                incomingData == ArraySlice<UInt8>(Data("[DONE]".utf8))
+            while: { incomingData in
+                incomingData != ArraySlice<UInt8>(Data("[DONE]".utf8))
             }
         )
     }
