@@ -16,7 +16,7 @@ import XCTest
 import Foundation
 
 final class Test_ServerSentEventsDecoding: Test_Runtime {
-    func _test(input: String, output: [ServerSentEvent], file: StaticString = #filePath, line: UInt = #line, while predicate: ((ArraySlice<UInt8>) -> Bool)? = nil, eventCountOffset: Int = 0)
+    func _test(input: String, output: [ServerSentEvent], file: StaticString = #filePath, line: UInt = #line, while predicate: (ArraySlice<UInt8>) -> Bool = { _ in true }, eventCountOffset: Int = 0)
         async throws
     {
         let sequence = asOneBytePerElementSequence(ArraySlice(input.utf8)).asDecodedServerSentEvents()
@@ -112,7 +112,7 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
         output: [ServerSentEventWithJSONData<JSONType>],
         file: StaticString = #filePath,
         line: UInt = #line,
-        while predicate: (@Sendable (ArraySlice<UInt8>) -> Bool)? = nil
+        while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool = { _ in true }
     ) async throws {
         let sequence = asOneBytePerElementSequence(ArraySlice(input.utf8))
             .asDecodedServerSentEventsWithJSONData(of: JSONType.self, while: predicate)

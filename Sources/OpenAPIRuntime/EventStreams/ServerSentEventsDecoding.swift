@@ -28,16 +28,16 @@ where Upstream.Element == ArraySlice<UInt8> {
     /// The upstream sequence.
     private let upstream: Upstream
 
-    /// An optional closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
+    /// A closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
     /// - Parameter: A byte chunk.
     /// - Returns: `True` until the terminating byte sequence is received.
-    private let predicate: (@Sendable (ArraySlice<UInt8>) -> Bool)?
+    private let predicate: @Sendable (ArraySlice<UInt8>) -> Bool
 
     /// Creates a new sequence.
     /// - Parameters:
     ///     - upstream: The upstream sequence of arbitrary byte chunks.
-    ///     - while: An optional closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
-    public init(upstream: Upstream, while predicate: (@Sendable (ArraySlice<UInt8>) -> Bool)?) {
+    ///     - while: A closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
+    public init(upstream: Upstream, while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool) {
         self.upstream = upstream
         self.predicate = predicate
     }
@@ -56,14 +56,14 @@ extension ServerSentEventsDeserializationSequence: AsyncSequence {
         var upstream: UpstreamIterator
 
         /// The state machine of the iterator.
-        var stateMachine: StateMachine = .init()
+        var stateMachine: StateMachine
 
-        /// An optional closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
+        /// A closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
         /// - Parameter: A byte chunk.
         /// - Returns: `True` until the terminating byte sequence is received.
-        let predicate: ((ArraySlice<UInt8>) -> Bool)?
+        let predicate: (ArraySlice<UInt8>) -> Bool
 
-        init(upstream: any AsyncIteratorProtocol, while predicate: ((ArraySlice<UInt8>) -> Bool)?) {
+        init(upstream: any AsyncIteratorProtocol, while predicate: @escaping ((ArraySlice<UInt8>) -> Bool)) {
             self.upstream = upstream as! UpstreamIterator
             self.stateMachine = .init(while: predicate)
             self.predicate = predicate 
@@ -100,9 +100,9 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
     /// Returns another sequence that decodes each event's data as the provided type using the provided decoder.
     ///
     /// Use this method if the event's `data` field is not JSON, or if you don't want to parse it using `asDecodedServerSentEventsWithJSONData`.
-    /// - Parameter: An optional closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
+    /// - Parameter: A closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
     /// - Returns: A sequence that provides the events.
-    public func asDecodedServerSentEvents(while predicate: (@Sendable (ArraySlice<UInt8>) -> Bool)? = nil) -> ServerSentEventsDeserializationSequence<
+    public func asDecodedServerSentEvents(while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool = { _ in true }) -> ServerSentEventsDeserializationSequence<
         ServerSentEventsLineDeserializationSequence<Self>
     > { .init(upstream: ServerSentEventsLineDeserializationSequence(upstream: self), while: predicate) }
     
@@ -112,12 +112,12 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
     /// - Parameters:
     ///   - dataType: The type to decode the JSON data into.
     ///   - decoder: The JSON decoder to use.
-    ///   - while: An optional closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
+    ///   - while: A closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
     /// - Returns: A sequence that provides the events with the decoded JSON data.
     public func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable>(
         of dataType: JSONDataType.Type = JSONDataType.self,
         decoder: JSONDecoder = .init(),
-        while predicate: (@Sendable (ArraySlice<UInt8>) -> Bool)? = nil
+        while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool = { _ in true }
     ) -> AsyncThrowingMapSequence<
         ServerSentEventsDeserializationSequence<ServerSentEventsLineDeserializationSequence<Self>>,
         ServerSentEventWithJSONData<JSONDataType>
@@ -158,13 +158,13 @@ extension ServerSentEventsDeserializationSequence.Iterator {
         private(set) var state: State
 
         
-        /// An optional closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
+        /// A closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
         /// - Parameter: A sequence of byte chunks.
         /// - Returns: `True` until the terminating byte sequence is received.
-        let predicate: ((ArraySlice<UInt8>) -> Bool)?
+        let predicate: (ArraySlice<UInt8>) -> Bool
         
         /// Creates a new state machine.
-        init(while predicate: ((ArraySlice<UInt8>) -> Bool)? = nil) {
+        init(while predicate: @escaping (ArraySlice<UInt8>) -> Bool) {
             self.state = .accumulatingEvent(.init(), buffer: [])
             self.predicate = predicate}
 
@@ -198,11 +198,9 @@ extension ServerSentEventsDeserializationSequence.Iterator {
                     // If the last character of data is a newline, strip it.
                     if event.data?.hasSuffix("\n") ?? false { event.data?.removeLast() }
 
-                    if let predicate = predicate {
-                        if let data = event.data {
-                            if !predicate(ArraySlice(Data(data.utf8))) {
-                                return .returnNil
-                            }
+                    if let data = event.data {
+                        if !predicate(ArraySlice(Data(data.utf8))) {
+                            return .returnNil
                         }
                     }
                     return .emitEvent(event)
