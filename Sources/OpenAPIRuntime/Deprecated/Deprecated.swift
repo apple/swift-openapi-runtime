@@ -59,3 +59,14 @@ extension Configuration {
         )
     }
 }
+
+extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
+    /// Returns another sequence that decodes each event's data as the provided type using the provided decoder.
+    ///
+    /// Use this method if the event's `data` field is not JSON, or if you don't want to parse it using `asDecodedServerSentEventsWithJSONData`.
+    /// - Returns: A sequence that provides the events.
+    @available(*, deprecated, renamed: "asDecodedServerSentEvents(while:)")
+    @_disfavoredOverload public func asDecodedServerSentEvents() -> ServerSentEventsDeserializationSequence<
+        ServerSentEventsLineDeserializationSequence<Self>
+    > { asDecodedServerSentEvents(while: { _ in true }) }
+}
