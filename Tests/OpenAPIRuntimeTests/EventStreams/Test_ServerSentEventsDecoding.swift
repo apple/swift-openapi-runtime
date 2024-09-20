@@ -29,18 +29,6 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
         }
     }
 
-    func _test(input: String, output: [ServerSentEvent], file: StaticString = #filePath, line: UInt = #line, terminatingData: ArraySlice<UInt8>, eventCountOffset: Int)
-        async throws {
-        try await _test(
-            input: input,
-            output: output,
-            file: file,
-            line: line,
-            terminate: { incomingData in incomingData == terminatingData },
-            eventCountOffset: eventCountOffset
-        )
-    }
-
     func test() async throws {
         // Simple event.
         try await _test(
@@ -118,25 +106,6 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
             },
             eventCountOffset: -2
         )
-
-        try await _test(
-            input: #"""
-                data: hello
-                data: world
-
-                data: [DONE]
-
-                data: hello2
-                data: world2
-
-
-                """#,
-            output: [
-                .init(data: "hello\nworld")
-            ],
-            terminatingData: ArraySlice<UInt8>(Data("[DONE]".utf8)),
-            eventCountOffset: -2
-        )
     }
     func _testJSONData<JSONType: Decodable & Hashable & Sendable>(
         input: String,
@@ -153,22 +122,6 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
             let (actualEvent, expectedEvent) = linePair
             XCTAssertEqual(actualEvent, expectedEvent, "Event: \(index)", file: file, line: line)
         }
-    }
-
-    func _testJSONData<JSONType: Decodable & Hashable & Sendable>(
-        input: String,
-        output: [ServerSentEventWithJSONData<JSONType>],
-        file: StaticString = #filePath,
-        line: UInt = #line,
-        terminatingDataSequence: ArraySlice<UInt8>?
-    ) async throws {
-        try await _testJSONData(
-            input: input,
-            output: output,
-            file: file,
-            terminate: { incomingData in incomingData == ArraySlice<UInt8>(Data("[DONE]".utf8))
-            }
-        )
     }
 
     struct TestEvent: Decodable, Hashable, Sendable { var index: Int }
@@ -221,33 +174,6 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
             terminate: { incomingData in
                 incomingData == ArraySlice<UInt8>(Data("[DONE]".utf8))
             }
-        )
-        
-        try await _testJSONData(
-            input: #"""
-                event: event1
-                id: 1
-                data: {"index":1}
-
-                event: event2
-                id: 2
-                data: {
-                data:   "index": 2
-                data: }
-
-                data: [DONE]
-
-                event: event3
-                id: 1
-                data: {"index":3}
-                
-                
-                """#,
-            output: [
-                .init(event: "event1", data: TestEvent(index: 1), id: "1"),
-                .init(event: "event2", data: TestEvent(index: 2), id: "2"),
-            ],
-            terminatingDataSequence: ArraySlice<UInt8>(Data("[DONE]".utf8))
         )
     }
 }

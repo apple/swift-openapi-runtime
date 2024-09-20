@@ -106,11 +106,6 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
         ServerSentEventsLineDeserializationSequence<Self>
     > { .init(upstream: ServerSentEventsLineDeserializationSequence(upstream: self), terminate: terminate) }
     
-    /// Convenience function for `asDecodedServerSentEvents` that directly receives the terminating byte sequence.
-    public func asDecodedServerSentEvents(terminatingSequence: ArraySlice<UInt8>) -> ServerSentEventsDeserializationSequence<
-        ServerSentEventsLineDeserializationSequence<Self>
-    > { asDecodedServerSentEvents(terminate: { incomingSequence in return incomingSequence == terminatingSequence }) }
-
     /// Returns another sequence that decodes each event's data as the provided type using the provided decoder.
     ///
     /// Use this method if the event's `data` field is JSON.
@@ -138,19 +133,6 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
                     retry: event.retry
                 )
             }
-    }
-
-    public func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable>(
-        of dataType: JSONDataType.Type = JSONDataType.self,
-        decoder: JSONDecoder = .init(),
-        terminatingData: ArraySlice<UInt8>
-    ) -> AsyncThrowingMapSequence<
-        ServerSentEventsDeserializationSequence<ServerSentEventsLineDeserializationSequence<Self>>,
-        ServerSentEventWithJSONData<JSONDataType>
-    > {
-        asDecodedServerSentEventsWithJSONData(of: dataType, decoder: decoder) { incomingData in
-            terminatingData == incomingData
-        }
     }
 }
 
