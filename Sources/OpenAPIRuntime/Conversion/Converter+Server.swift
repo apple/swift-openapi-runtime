@@ -60,12 +60,6 @@ extension Converter {
         guard let parsedSubstring = OpenAPIMIMEType(substring) else {
             throw RuntimeError.invalidAcceptSubstring(substring)
         }
-        guard case .concrete(let substringType, let substringSubtype) = parsedSubstring.kind else {
-            // If the substring content type has a wildcard, just let it through.
-            // It's not well defined how such a case should behave, so be permissive.
-            return
-        }
-
         // Look for the first match.
         for acceptValue in acceptValues {
             // Fast path.
@@ -73,9 +67,34 @@ extension Converter {
             guard let parsedAcceptValue = OpenAPIMIMEType(acceptValue) else {
                 throw RuntimeError.invalidExpectedContentType(acceptValue)
             }
-            switch parsedAcceptValue.kind {
-            case .any: return
-            case .anySubtype(type: let type): if substringType.lowercased() == type.lowercased() { return }
+            switch (parsedAcceptValue.kind, parsedSubstring.kind) {
+            case (.any, _):
+                // Accept: */* always matches
+                return
+            case (.anySubtype(type: let acceptType), let substring):
+                switch substring {
+                case .any:
+                    // */* as a concrete content type is NOT a match for an Accept header of foo/*
+                    break
+                case .anySubtype(type: let substringType):
+                    if substringType.lowercased() == acceptType.lowercased() {
+                        return
+                    }
+                case .concrete(type: let substringType, subtype: let substringSubtype):
+                    if
+                        substringType.lowercased() == acceptType.lowercased() &&
+                        
+                    {
+                        return
+                    }
+
+                    if accept.lowercased() == substringType.lowercased()
+                        && subtype.lowercased() == substringSubtype.lowercased()
+                    {
+                        return
+                    }
+                }
+                
             case .concrete(type: let type, subtype: let subtype):
                 if type.lowercased() == substringType.lowercased()
                     && subtype.lowercased() == substringSubtype.lowercased()
