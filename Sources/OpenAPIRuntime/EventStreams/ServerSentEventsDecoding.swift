@@ -166,7 +166,8 @@ extension ServerSentEventsDeserializationSequence.Iterator {
         /// Creates a new state machine.
         init(while predicate: @escaping (ArraySlice<UInt8>) -> Bool) {
             self.state = .accumulatingEvent(.init(), buffer: [])
-            self.predicate = predicate}
+            self.predicate = predicate
+        }
 
         /// An action returned by the `next` method.
         enum NextAction {
