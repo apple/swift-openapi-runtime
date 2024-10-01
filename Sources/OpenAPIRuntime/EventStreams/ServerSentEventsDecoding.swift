@@ -58,7 +58,7 @@ extension ServerSentEventsDeserializationSequence: AsyncSequence {
         /// The state machine of the iterator.
         var stateMachine: StateMachine
 
-        /// A closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
+        /// A closure that determines whether the given byte chunk should be forwarded to the consumer.
         /// - Parameter: A byte chunk.
         /// - Returns: `True` until the terminating byte sequence is received.
         let predicate: (ArraySlice<UInt8>) -> Bool
