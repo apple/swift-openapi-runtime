@@ -60,7 +60,7 @@ extension ServerSentEventsDeserializationSequence: AsyncSequence {
 
         /// A closure that determines whether the given byte chunk should be forwarded to the consumer.
         /// - Parameter: A byte chunk.
-        /// - Returns: `True` until the terminating byte sequence is received.
+        /// - Returns: `true` if the byte chunk should be forwarded, `false` if this byte chunk is the terminating sequence.
         let predicate: (ArraySlice<UInt8>) -> Bool
 
         init(upstream: any AsyncIteratorProtocol, while predicate: @escaping ((ArraySlice<UInt8>) -> Bool)) {
