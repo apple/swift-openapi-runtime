@@ -199,14 +199,14 @@ extension ServerSentEventsDeserializationSequence.Iterator {
                 buffer.removeFirst()
                 if line.isEmpty {
                     // Dispatch the accumulated event.
-                    state = .accumulatingEvent(.init(), buffer: buffer)
                     // If the last character of data is a newline, strip it.
                     if event.data?.hasSuffix("\n") ?? false { event.data?.removeLast() }
-
-                    if let data = event.data {
-                        if !predicate(ArraySlice(Data(data.utf8))) {
-                            return .returnNil
-                        }
+                    
+                    state = .accumulatingEvent(.init(), buffer: buffer)
+                    
+                    if let data = event.data, !predicate(ArraySlice(data.utf8)) {
+                        state = .finished
+                        return .returnNil
                     }
                     return .emitEvent(event)
                 }
