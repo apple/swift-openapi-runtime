@@ -146,10 +146,10 @@ extension ServerSentEventsDeserializationSequence.Iterator {
     struct StateMachine {
 
         /// The possible states of the state machine.
-        enum State: Hashable {
+        enum State {
 
             /// Accumulating an event, which hasn't been emitted yet.
-            case accumulatingEvent(ServerSentEvent, buffer: [ArraySlice<UInt8>])
+            case accumulatingEvent(ServerSentEvent, buffer: [ArraySlice<UInt8>], predicate: (ArraySlice<UInt8>) -> Bool)
 
             /// Finished, the terminal state.
             case finished
@@ -161,16 +161,9 @@ extension ServerSentEventsDeserializationSequence.Iterator {
         /// The current state of the state machine.
         private(set) var state: State
 
-        
-        /// A closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
-        /// - Parameter: A sequence of byte chunks.
-        /// - Returns: `True` until the terminating byte sequence is received.
-        let predicate: (ArraySlice<UInt8>) -> Bool
-        
         /// Creates a new state machine.
         init(while predicate: @escaping (ArraySlice<UInt8>) -> Bool) {
-            self.state = .accumulatingEvent(.init(), buffer: [])
-            self.predicate = predicate
+            self.state = .accumulatingEvent(.init(), buffer: [], predicate: predicate)
         }
 
         /// An action returned by the `next` method.
@@ -193,7 +186,7 @@ extension ServerSentEventsDeserializationSequence.Iterator {
         /// - Returns: An action to perform.
         mutating func next() -> NextAction {
             switch state {
-            case .accumulatingEvent(var event, var buffer):
+            case .accumulatingEvent(var event, var buffer, let predicate):
                 guard let line = buffer.first else { return .needsMore }
                 state = .mutating
                 buffer.removeFirst()
@@ -202,7 +195,7 @@ extension ServerSentEventsDeserializationSequence.Iterator {
                     // If the last character of data is a newline, strip it.
                     if event.data?.hasSuffix("\n") ?? false { event.data?.removeLast() }
                     
-                    state = .accumulatingEvent(.init(), buffer: buffer)
+                    state = .accumulatingEvent(.init(), buffer: buffer, predicate: predicate)
                     
                     if let data = event.data, !predicate(ArraySlice(data.utf8)) {
                         state = .finished
@@ -212,7 +205,7 @@ extension ServerSentEventsDeserializationSequence.Iterator {
                 }
                 if line.first! == ASCII.colon {
                     // A comment, skip this line.
-                    state = .accumulatingEvent(event, buffer: buffer)
+                    state = .accumulatingEvent(event, buffer: buffer, predicate: predicate)
                     return .noop
                 }
                 // Parse the field name and value.
@@ -236,7 +229,7 @@ extension ServerSentEventsDeserializationSequence.Iterator {
                 }
                 guard let value else {
                     // An unknown type of event, skip.
-                    state = .accumulatingEvent(event, buffer: buffer)
+                    state = .accumulatingEvent(event, buffer: buffer, predicate: predicate)
                     return .noop
                 }
                 // Process the field.
@@ -257,11 +250,11 @@ extension ServerSentEventsDeserializationSequence.Iterator {
                     }
                 default:
                     // An unknown or invalid field, skip.
-                    state = .accumulatingEvent(event, buffer: buffer)
+                    state = .accumulatingEvent(event, buffer: buffer, predicate: predicate)
                     return .noop
                 }
                 // Processed the field, continue.
-                state = .accumulatingEvent(event, buffer: buffer)
+                state = .accumulatingEvent(event, buffer: buffer, predicate: predicate)
                 return .noop
             case .finished: return .returnNil
             case .mutating: preconditionFailure("Invalid state")
@@ -283,11 +276,11 @@ extension ServerSentEventsDeserializationSequence.Iterator {
         /// - Returns: An action to perform.
         mutating func receivedValue(_ value: ArraySlice<UInt8>?) -> ReceivedValueAction {
             switch state {
-            case .accumulatingEvent(let event, var buffer):
+            case .accumulatingEvent(let event, var buffer, let predicate):
                 if let value {
                     state = .mutating
                     buffer.append(value)
-                    state = .accumulatingEvent(event, buffer: buffer)
+                    state = .accumulatingEvent(event, buffer: buffer, predicate: predicate)
                     return .noop
                 } else {
                     // If no value is received, drop the existing event on the floor.
