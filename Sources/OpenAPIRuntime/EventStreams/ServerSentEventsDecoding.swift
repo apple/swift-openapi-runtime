@@ -28,9 +28,9 @@ where Upstream.Element == ArraySlice<UInt8> {
     /// The upstream sequence.
     private let upstream: Upstream
 
-    /// A closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
+    /// A closure that determines whether the given byte chunk should be forwarded to the consumer.
     /// - Parameter: A byte chunk.
-    /// - Returns: `True` until the terminating byte sequence is received.
+    /// - Returns: `true` if the byte chunk should be forwarded, `false` if this byte chunk is the terminating sequence.
     private let predicate: @Sendable (ArraySlice<UInt8>) -> Bool
 
     /// Creates a new sequence.
