@@ -88,3 +88,11 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
         asDecodedServerSentEventsWithJSONData(of: dataType, decoder: decoder, while: { _ in true })
     }
 }
+
+extension ServerSentEventsDeserializationSequence<Upstream: AsyncSequence & Sendable>: Sendable
+where Upstream.Element == ArraySlice<UInt8> {
+    /// Creates a new sequence.
+    /// - Parameter upstream: The upstream sequence of arbitrary byte chunks.
+    @available(*, deprecated, renamed: "init(upstream:while:)")
+    @_disfavoredOverload public init(upstream: Upstream) { init(upstream: upstream, while: { _ in true }) }
+}
