@@ -9,16 +9,14 @@ jobs:
         name: Soundness
         uses: apple/swift-nio/.github/workflows/soundness.yml@main
         with:
-            # These are set to false to stage this in with the old CI.
-            # A follow-up PR will cut them over.
-            api_breakage_check_enabled: false
-            broken_symlink_check_enabled: false
-            docs_check_enabled: false
-            format_check_enabled: false
-            license_header_check_enabled: false
+            api_breakage_check_enabled: true
+            broken_symlink_check_enabled: true
+            docs_check_enabled: true
+            format_check_enabled: true
+            license_header_check_enabled: true
             license_header_check_project_name: "SwiftOpenAPIGenerator"
-            shell_check_enabled: false
-            unacceptable_language_check_enabled: false
+            shell_check_enabled: true
+            unacceptable_language_check_enabled: true
 
     unit-tests:
         name: Unit tests

@@ -26,11 +26,11 @@ services:
 
   soundness:
     <<: *common
-    command: /bin/bash -xcl "swift -version && uname -a && ./scripts/soundness.sh"
+    command: echo "skipping; moved to Github Actions"
 
   test:
     <<: *common
-    command: /bin/bash -xcl "swift $${SWIFT_TEST_VERB-test} $${WARN_AS_ERROR_ARG-} $${SANITIZER_ARG-} $${IMPORT_CHECK_ARG-} $${STRICT_CONCURRENCY_ARG-}"
+    command: echo "skipping; moved to Github Actions"
 
   shell:
     <<: *common
@@ -38,10 +38,10 @@ services:
 
   integration-test:
     <<: *common
-    command: /bin/bash -xcl "swift -version && uname -a && bash ./scripts/run-integration-test.sh"
+    command: echo "skipping; moved to Github Actions"
 
   docc-test:
     <<: *common
-    command: /bin/bash -xcl "swift -version && uname -a && bash ./scripts/check-for-docc-warnings.sh"
+    command: echo "skipping; moved to Github Actions"
     environment:
       DOCC_TARGET: OpenAPIRuntime
