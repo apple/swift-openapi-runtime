@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 ##===----------------------------------------------------------------------===##
 ##
 ## This source file is part of the SwiftOpenAPIGenerator open source project
@@ -24,7 +24,7 @@ JQ_BIN=${JQ_BIN:-$(command -v jq)} || fatal "JQ_BIN unset and no jq on PATH"
 
 CURRENT_SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT="$(git -C "${CURRENT_SCRIPT_DIR}" rev-parse --show-toplevel)"
-TMP_DIR=$(mktemp -d "${PWD}/tmp.$(basename "$0").XXXXXXXXXX.noindex")
+TMP_DIR=$(/usr/bin/mktemp -d -p "${TMPDIR-/tmp}" "$(basename "$0").XXXXXXXXXX")
 
 PACKAGE_PATH=${PACKAGE_PATH:-${REPO_ROOT}}
 
@@ -43,6 +43,6 @@ swift package --package-path "${INTEGRATION_TEST_PACKAGE_PATH}" \
     edit "${PACKAGE_NAME}" --path "${PACKAGE_PATH}"
 
 log "Building integration test package: ${INTEGRATION_TEST_PACKAGE_PATH}"
-swift build --package-path "${INTEGRATION_TEST_PACKAGE_PATH}" -Xswiftc -strict-concurrency=complete
+swift build --package-path "${INTEGRATION_TEST_PACKAGE_PATH}"
 
 log "✅ Successfully built integration test package."
