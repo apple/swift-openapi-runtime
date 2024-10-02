@@ -6,7 +6,7 @@ xcuserdata/
 DerivedData/
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .vscode
-/Package.resolved
+Package.resolved
 .ci/
 .docc-build/
 .swiftpm
