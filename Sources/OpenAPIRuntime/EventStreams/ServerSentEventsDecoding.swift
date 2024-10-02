@@ -104,7 +104,7 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
     /// Returns another sequence that decodes each event's data as the provided type using the provided decoder.
     ///
     /// Use this method if the event's `data` field is not JSON, or if you don't want to parse it using `asDecodedServerSentEventsWithJSONData`.
-    /// - Parameter: A closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
+    /// - Parameter: A closure that determines whether the given byte chunk should be forwarded to the consumer.
     /// - Returns: A sequence that provides the events.
     public func asDecodedServerSentEvents(while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool = { _ in true }) -> ServerSentEventsDeserializationSequence<
         ServerSentEventsLineDeserializationSequence<Self>
