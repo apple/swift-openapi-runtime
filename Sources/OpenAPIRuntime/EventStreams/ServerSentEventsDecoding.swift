@@ -100,10 +100,11 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
     /// Use this method if the event's `data` field is not JSON, or if you don't want to parse it using `asDecodedServerSentEventsWithJSONData`.
     /// - Parameter: A closure that determines whether the given byte chunk should be forwarded to the consumer.
     /// - Returns: A sequence that provides the events.
-    public func asDecodedServerSentEvents(while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool = { _ in true }) -> ServerSentEventsDeserializationSequence<
-        ServerSentEventsLineDeserializationSequence<Self>
-    > { .init(upstream: ServerSentEventsLineDeserializationSequence(upstream: self), while: predicate) }
-    
+    public func asDecodedServerSentEvents(
+        while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool = { _ in true }
+    ) -> ServerSentEventsDeserializationSequence<ServerSentEventsLineDeserializationSequence<Self>> {
+        .init(upstream: ServerSentEventsLineDeserializationSequence(upstream: self), while: predicate)
+    }
     /// Returns another sequence that decodes each event's data as the provided type using the provided decoder.
     ///
     /// Use this method if the event's `data` field is JSON.
@@ -188,7 +189,6 @@ extension ServerSentEventsDeserializationSequence.Iterator {
                     // Dispatch the accumulated event.
                     // If the last character of data is a newline, strip it.
                     if event.data?.hasSuffix("\n") ?? false { event.data?.removeLast() }
-                    
                     if let data = event.data, !predicate(ArraySlice(data.utf8)) {
                         state = .finished
                         return .returnNil

@@ -16,9 +16,13 @@ import XCTest
 import Foundation
 
 final class Test_ServerSentEventsDecoding: Test_Runtime {
-    func _test(input: String, output: [ServerSentEvent], file: StaticString = #filePath, line: UInt = #line, while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool = { _ in true })
-        async throws
-    {
+    func _test(
+        input: String,
+        output: [ServerSentEvent],
+        file: StaticString = #filePath,
+        line: UInt = #line,
+        while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool = { _ in true }
+    ) async throws {
         let sequence = asOneBytePerElementSequence(ArraySlice(input.utf8)).asDecodedServerSentEvents(while: predicate)
         let events = try await [ServerSentEvent](collecting: sequence)
         XCTAssertEqual(events.count, output.count, file: file, line: line)
@@ -97,12 +101,8 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
 
 
                 """#,
-            output: [
-                .init(data: "hello\nworld")
-            ],
-            while: { incomingData in
-                incomingData != ArraySlice<UInt8>(Data("[DONE]".utf8))
-            }
+            output: [.init(data: "hello\nworld")],
+            while: { incomingData in incomingData != ArraySlice<UInt8>(Data("[DONE]".utf8)) }
         )
     }
     func _testJSONData<JSONType: Decodable & Hashable & Sendable>(
@@ -162,16 +162,14 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
                 event: event3
                 id: 1
                 data: {"index":3}
-                
-                
+
+
                 """#,
             output: [
                 .init(event: "event1", data: TestEvent(index: 1), id: "1"),
                 .init(event: "event2", data: TestEvent(index: 2), id: "2"),
             ],
-            while: { incomingData in
-                incomingData != ArraySlice<UInt8>(Data("[DONE]".utf8))
-            }
+            while: { incomingData in incomingData != ArraySlice<UInt8>(Data("[DONE]".utf8)) }
         )
     }
 }

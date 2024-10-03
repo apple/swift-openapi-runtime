@@ -65,11 +65,10 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
     ///
     /// Use this method if the event's `data` field is not JSON, or if you don't want to parse it using `asDecodedServerSentEventsWithJSONData`.
     /// - Returns: A sequence that provides the events.
-    @available(*, deprecated, renamed: "asDecodedServerSentEvents(while:)")
-    @_disfavoredOverload public func asDecodedServerSentEvents() -> ServerSentEventsDeserializationSequence<
+    @available(*, deprecated, renamed: "asDecodedServerSentEvents(while:)") @_disfavoredOverload
+    public func asDecodedServerSentEvents() -> ServerSentEventsDeserializationSequence<
         ServerSentEventsLineDeserializationSequence<Self>
     > { asDecodedServerSentEvents(while: { _ in true }) }
-    
     /// Returns another sequence that decodes each event's data as the provided type using the provided decoder.
     ///
     /// Use this method if the event's `data` field is JSON.
@@ -77,21 +76,20 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
     ///   - dataType: The type to decode the JSON data into.
     ///   - decoder: The JSON decoder to use.
     /// - Returns: A sequence that provides the events with the decoded JSON data.
-    @available(*, deprecated, renamed: "asDecodedServerSentEventsWithJSONData(of:decoder:while:)")
-    @_disfavoredOverload public func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable>(
+    @available(*, deprecated, renamed: "asDecodedServerSentEventsWithJSONData(of:decoder:while:)") @_disfavoredOverload
+    public func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable>(
         of dataType: JSONDataType.Type = JSONDataType.self,
         decoder: JSONDecoder = .init()
     ) -> AsyncThrowingMapSequence<
         ServerSentEventsDeserializationSequence<ServerSentEventsLineDeserializationSequence<Self>>,
         ServerSentEventWithJSONData<JSONDataType>
-    > {
-        asDecodedServerSentEventsWithJSONData(of: dataType, decoder: decoder, while: { _ in true })
-    }
+    > { asDecodedServerSentEventsWithJSONData(of: dataType, decoder: decoder, while: { _ in true }) }
 }
 
 extension ServerSentEventsDeserializationSequence {
     /// Creates a new sequence.
     /// - Parameter upstream: The upstream sequence of arbitrary byte chunks.
-    @available(*, deprecated, renamed: "init(upstream:while:)")
-    @_disfavoredOverload public init(upstream: Upstream) { self.init(upstream: upstream, while: { _ in true }) }
+    @available(*, deprecated, renamed: "init(upstream:while:)") @_disfavoredOverload public init(upstream: Upstream) {
+        self.init(upstream: upstream, while: { _ in true })
+    }
 }
