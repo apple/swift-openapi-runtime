@@ -189,12 +189,11 @@ extension ServerSentEventsDeserializationSequence.Iterator {
                     // If the last character of data is a newline, strip it.
                     if event.data?.hasSuffix("\n") ?? false { event.data?.removeLast() }
                     
-                    state = .accumulatingEvent(.init(), buffer: buffer, predicate: predicate)
-                    
                     if let data = event.data, !predicate(ArraySlice(data.utf8)) {
                         state = .finished
                         return .returnNil
                     }
+                    state = .accumulatingEvent(.init(), buffer: buffer, predicate: predicate)
                     return .emitEvent(event)
                 }
                 if line.first! == ASCII.colon {
