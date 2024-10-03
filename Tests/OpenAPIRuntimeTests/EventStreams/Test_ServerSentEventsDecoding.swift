@@ -16,10 +16,14 @@ import XCTest
 import Foundation
 
 final class Test_ServerSentEventsDecoding: Test_Runtime {
-    func _test(input: String, output: [ServerSentEvent], file: StaticString = #filePath, line: UInt = #line)
-        async throws
-    {
-        let sequence = asOneBytePerElementSequence(ArraySlice(input.utf8)).asDecodedServerSentEvents()
+    func _test(
+        input: String,
+        output: [ServerSentEvent],
+        file: StaticString = #filePath,
+        line: UInt = #line,
+        while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool = { _ in true }
+    ) async throws {
+        let sequence = asOneBytePerElementSequence(ArraySlice(input.utf8)).asDecodedServerSentEvents(while: predicate)
         let events = try await [ServerSentEvent](collecting: sequence)
         XCTAssertEqual(events.count, output.count, file: file, line: line)
         for (index, linePair) in zip(events, output).enumerated() {
@@ -27,6 +31,7 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
             XCTAssertEqual(actualEvent, expectedEvent, "Event: \(index)", file: file, line: line)
         }
     }
+
     func test() async throws {
         // Simple event.
         try await _test(
@@ -83,15 +88,32 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
                 .init(id: "123", data: "This is a message with an ID."),
             ]
         )
+
+        try await _test(
+            input: #"""
+                data: hello
+                data: world
+
+                data: [DONE]
+
+                data: hello2
+                data: world2
+
+
+                """#,
+            output: [.init(data: "hello\nworld")],
+            while: { incomingData in incomingData != ArraySlice<UInt8>(Data("[DONE]".utf8)) }
+        )
     }
     func _testJSONData<JSONType: Decodable & Hashable & Sendable>(
         input: String,
         output: [ServerSentEventWithJSONData<JSONType>],
         file: StaticString = #filePath,
-        line: UInt = #line
+        line: UInt = #line,
+        while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool = { _ in true }
     ) async throws {
         let sequence = asOneBytePerElementSequence(ArraySlice(input.utf8))
-            .asDecodedServerSentEventsWithJSONData(of: JSONType.self)
+            .asDecodedServerSentEventsWithJSONData(of: JSONType.self, while: predicate)
         let events = try await [ServerSentEventWithJSONData<JSONType>](collecting: sequence)
         XCTAssertEqual(events.count, output.count, file: file, line: line)
         for (index, linePair) in zip(events, output).enumerated() {
@@ -99,6 +121,7 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
             XCTAssertEqual(actualEvent, expectedEvent, "Event: \(index)", file: file, line: line)
         }
     }
+
     struct TestEvent: Decodable, Hashable, Sendable { var index: Int }
     func testJSONData() async throws {
         // Simple event.
@@ -120,6 +143,33 @@ final class Test_ServerSentEventsDecoding: Test_Runtime {
                 .init(event: "event1", data: TestEvent(index: 1), id: "1"),
                 .init(event: "event2", data: TestEvent(index: 2), id: "2"),
             ]
+        )
+
+        try await _testJSONData(
+            input: #"""
+                event: event1
+                id: 1
+                data: {"index":1}
+
+                event: event2
+                id: 2
+                data: {
+                data:   "index": 2
+                data: }
+
+                data: [DONE]
+
+                event: event3
+                id: 1
+                data: {"index":3}
+
+
+                """#,
+            output: [
+                .init(event: "event1", data: TestEvent(index: 1), id: "1"),
+                .init(event: "event2", data: TestEvent(index: 2), id: "2"),
+            ],
+            while: { incomingData in incomingData != ArraySlice<UInt8>(Data("[DONE]".utf8)) }
         )
     }
 }
