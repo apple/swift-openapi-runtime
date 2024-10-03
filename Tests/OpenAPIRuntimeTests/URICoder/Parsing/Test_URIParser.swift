@@ -79,33 +79,31 @@ final class Test_URIParser: Test_Runtime {
                     simpleUnexplode: .custom("red,green,blue", value: ["": ["red", "green", "blue"]]),
                     formDataExplode: "list=red&list=green&list=blue",
                     formDataUnexplode: "list=red,green,blue",
-                    deepObjectExplode: .custom(
-                        "object%5Blist%5D=red&object%5Blist%5D=green&object%5Blist%5D=blue",
-                        expectedError: .malformedKeyValuePair("list")
-                    )
+                    deepObjectExplode:
+                        "object%5Blist%5D=red&object%5Blist%5D=green&object%5Blist%5D=blue"
                 ),
                 value: ["list": ["red", "green", "blue"]]
             ),
             makeCase(
                 .init(
-                    formExplode: "comma=%2C&dot=.&semi=%3B",
+                    formExplode: "comma=%2C&dot=.&list=one&list=two&semi=%3B",
                     formUnexplode: .custom(
-                        "keys=comma,%2C,dot,.,semi,%3B",
-                        value: ["keys": ["comma", ",", "dot", ".", "semi", ";"]]
+                        "keys=comma,%2C,dot,.,list,one,list,two,semi,%3B",
+                        value: ["keys": ["comma", ",", "dot", ".", "list", "one", "list", "two", "semi", ";"]]
                     ),
-                    simpleExplode: "comma=%2C,dot=.,semi=%3B",
+                    simpleExplode: "comma=%2C,dot=.,list=one,list=two,semi=%3B",
                     simpleUnexplode: .custom(
-                        "comma,%2C,dot,.,semi,%3B",
-                        value: ["": ["comma", ",", "dot", ".", "semi", ";"]]
+                        "comma,%2C,dot,.,list,one,list,two,semi,%3B",
+                        value: ["": ["comma", ",", "dot", ".", "list", "one", "list", "two", "semi", ";"]]
                     ),
-                    formDataExplode: "comma=%2C&dot=.&semi=%3B",
+                    formDataExplode: "comma=%2C&dot=.&list=one&list=two&semi=%3B",
                     formDataUnexplode: .custom(
-                        "keys=comma,%2C,dot,.,semi,%3B",
-                        value: ["keys": ["comma", ",", "dot", ".", "semi", ";"]]
+                        "keys=comma,%2C,dot,.,list,one,list,two,semi,%3B",
+                        value: ["keys": ["comma", ",", "dot", ".", "list", "one", "list", "two", "semi", ";"]]
                     ),
-                    deepObjectExplode: "keys%5Bcomma%5D=%2C&keys%5Bdot%5D=.&keys%5Bsemi%5D=%3B"
+                    deepObjectExplode: "keys%5Bcomma%5D=%2C&keys%5Bdot%5D=.&keys%5Blist%5D=one&keys%5Blist%5D=two&keys%5Bsemi%5D=%3B"
                 ),
-                value: ["semi": [";"], "dot": ["."], "comma": [","]]
+                value: ["semi": [";"], "dot": ["."], "comma": [","], "list": ["one", "two"]]
             ),
         ]
         for testCase in cases {
