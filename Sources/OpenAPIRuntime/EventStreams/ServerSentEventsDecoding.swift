@@ -58,11 +58,6 @@ extension ServerSentEventsDeserializationSequence: AsyncSequence {
         /// The state machine of the iterator.
         var stateMachine: StateMachine
 
-        /// A closure that determines whether the given byte chunk should be forwarded to the consumer.
-        /// - Parameter: A byte chunk.
-        /// - Returns: `true` if the byte chunk should be forwarded, `false` if this byte chunk is the terminating sequence.
-        let predicate: (ArraySlice<UInt8>) -> Bool
-
         /// Creates a new sequence.
         /// - Parameters:
         ///     - upstream: The upstream sequence of arbitrary byte chunks.
@@ -70,7 +65,6 @@ extension ServerSentEventsDeserializationSequence: AsyncSequence {
         init(upstream: UpstreamIterator, while predicate: @escaping ((ArraySlice<UInt8>) -> Bool)) {
             self.upstream = upstream
             self.stateMachine = .init(while: predicate)
-            self.predicate = predicate 
         }
 
         /// Asynchronously advances to the next element and returns it, or ends the
