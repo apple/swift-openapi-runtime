@@ -67,11 +67,7 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
 
         // A struct with an array property.
         try test(
-            [
-                "foo": ["bar"],
-                "bar": ["1", "2"],
-                "val": ["baz", "baq"]
-            ],
+            ["foo": ["bar"], "bar": ["1", "2"], "val": ["baz", "baq"]],
             StructWithArray(foo: "bar", bar: [1, 2], val: ["baz", "baq"]),
             key: "root"
         )

@@ -79,8 +79,7 @@ final class Test_URIParser: Test_Runtime {
                     simpleUnexplode: .custom("red,green,blue", value: ["": ["red", "green", "blue"]]),
                     formDataExplode: "list=red&list=green&list=blue",
                     formDataUnexplode: "list=red,green,blue",
-                    deepObjectExplode:
-                        "object%5Blist%5D=red&object%5Blist%5D=green&object%5Blist%5D=blue"
+                    deepObjectExplode: "object%5Blist%5D=red&object%5Blist%5D=green&object%5Blist%5D=blue"
                 ),
                 value: ["list": ["red", "green", "blue"]]
             ),
@@ -101,7 +100,8 @@ final class Test_URIParser: Test_Runtime {
                         "keys=comma,%2C,dot,.,list,one,list,two,semi,%3B",
                         value: ["keys": ["comma", ",", "dot", ".", "list", "one", "list", "two", "semi", ";"]]
                     ),
-                    deepObjectExplode: "keys%5Bcomma%5D=%2C&keys%5Bdot%5D=.&keys%5Blist%5D=one&keys%5Blist%5D=two&keys%5Bsemi%5D=%3B"
+                    deepObjectExplode:
+                        "keys%5Bcomma%5D=%2C&keys%5Bdot%5D=.&keys%5Blist%5D=one&keys%5Blist%5D=two&keys%5Bsemi%5D=%3B"
                 ),
                 value: ["semi": [";"], "dot": ["."], "comma": [","], "list": ["one", "two"]]
             ),

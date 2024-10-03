@@ -82,14 +82,11 @@ extension URISerializer {
         /// - Returns: A string describing the serialization error and its associated details.
         var description: String {
             switch self {
-            case .nestedContainersNotSupported:
-                "URISerializer: Nested containers are not supported"
-            case .deepObjectsArrayNotSupported:
-                "URISerializer: Deep object arrays are not supported"
+            case .nestedContainersNotSupported: "URISerializer: Nested containers are not supported"
+            case .deepObjectsArrayNotSupported: "URISerializer: Deep object arrays are not supported"
             case .deepObjectsWithPrimitiveValuesNotSupported:
                 "URISerializer: Deep object with primitive values are not supported"
-            case .invalidConfiguration(let string):
-                "URISerializer: Invalid configuration: \(string)"
+            case .invalidConfiguration(let string): "URISerializer: Invalid configuration: \(string)"
             }
         }
 
@@ -98,9 +95,7 @@ extension URISerializer {
         /// This computed property provides a localized human-readable description of the serialization error, which is suitable for displaying to users.
         ///
         /// - Returns: A localized string describing the serialization error.
-        var errorDescription: String? {
-            description
-        }
+        var errorDescription: String? { description }
     }
 
     /// Computes an escaped version of the provided string.
@@ -140,12 +135,10 @@ extension URISerializer {
             guard case let .primitive(primitive) = node else { throw SerializationError.nestedContainersNotSupported }
             return primitive
         }
-        func unwrapPrimitiveOrArrayOfPrimitives(
-            _ node: URIEncodedNode
-        ) throws -> URIEncodedNode.PrimitiveOrArrayOfPrimitives {
-            if case let .primitive(primitive) = node {
-                return .primitive(primitive)
-            }
+        func unwrapPrimitiveOrArrayOfPrimitives(_ node: URIEncodedNode) throws
+            -> URIEncodedNode.PrimitiveOrArrayOfPrimitives
+        {
+            if case let .primitive(primitive) = node { return .primitive(primitive) }
             if case let .array(array) = node {
                 let primitives = try array.map(unwrapPrimitiveValue)
                 return .arrayOfPrimitives(primitives)
@@ -292,22 +285,12 @@ extension URISerializer {
             case .primitive(let primitive):
                 try serializePrimitiveKeyValuePair(primitive, forKey: elementKey, separator: keyAndValueSeparator)
             case .arrayOfPrimitives(let array):
-                guard !array.isEmpty else {
-                    return
-                }
+                guard !array.isEmpty else { return }
                 for item in array.dropLast() {
-                    try serializePrimitiveKeyValuePair(
-                        item,
-                        forKey: elementKey,
-                        separator: keyAndValueSeparator
-                    )
+                    try serializePrimitiveKeyValuePair(item, forKey: elementKey, separator: keyAndValueSeparator)
                     data.append(pairSeparator)
                 }
-                try serializePrimitiveKeyValuePair(
-                    array.last!,
-                    forKey: elementKey,
-                    separator: keyAndValueSeparator
-                )
+                try serializePrimitiveKeyValuePair(array.last!, forKey: elementKey, separator: keyAndValueSeparator)
             }
         }
         if let containerKeyAndValue = configuration.containerKeyAndValueSeparator {
