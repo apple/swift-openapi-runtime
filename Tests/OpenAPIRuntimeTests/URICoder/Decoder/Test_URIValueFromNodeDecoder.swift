@@ -23,6 +23,12 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
             var color: SimpleEnum?
         }
 
+        struct StructWithArray: Decodable, Equatable {
+            var foo: String
+            var bar: [Int]?
+            var val: [String]
+        }
+
         enum SimpleEnum: String, Decodable, Equatable {
             case red
             case green
@@ -58,6 +64,13 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
 
         // A struct.
         try test(["foo": ["bar"]], SimpleStruct(foo: "bar"), key: "root")
+
+        // A struct with an array property.
+        try test(
+            ["foo": ["bar"], "bar": ["1", "2"], "val": ["baz", "baq"]],
+            StructWithArray(foo: "bar", bar: [1, 2], val: ["baz", "baq"]),
+            key: "root"
+        )
 
         // A struct with a nested enum.
         try test(["foo": ["bar"], "color": ["blue"]], SimpleStruct(foo: "bar", color: .blue), key: "root")

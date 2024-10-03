@@ -241,7 +241,6 @@ extension URIParser {
                 appendPair(key, [value])
             }
         }
-        for (key, value) in parseNode where value.count > 1 { throw ParsingError.malformedKeyValuePair(key) }
         return parseNode
     }
 }

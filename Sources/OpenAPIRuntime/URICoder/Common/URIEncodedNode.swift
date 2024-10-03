@@ -47,6 +47,16 @@ enum URIEncodedNode: Equatable {
         /// A date value.
         case date(Date)
     }
+
+    /// A primitive value or an array of primitive values.
+    enum PrimitiveOrArrayOfPrimitives: Equatable {
+
+        /// A primitive value.
+        case primitive(Primitive)
+
+        /// An array of primitive values.
+        case arrayOfPrimitives([Primitive])
+    }
 }
 
 extension URIEncodedNode {
