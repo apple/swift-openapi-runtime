@@ -36,7 +36,7 @@ where Upstream.Element == ArraySlice<UInt8> {
     /// Creates a new sequence.
     /// - Parameters:
     ///     - upstream: The upstream sequence of arbitrary byte chunks.
-    ///     - while: A closure that determines whether the given byte chunk should be forwarded to the consumer.
+    ///     - predicate: A closure that determines whether the given byte chunk should be forwarded to the consumer.
     public init(upstream: Upstream, while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool) {
         self.upstream = upstream
         self.predicate = predicate
