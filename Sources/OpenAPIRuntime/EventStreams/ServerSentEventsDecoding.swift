@@ -61,7 +61,7 @@ extension ServerSentEventsDeserializationSequence: AsyncSequence {
         /// Creates a new sequence.
         /// - Parameters:
         ///     - upstream: The upstream sequence of arbitrary byte chunks.
-        ///     - while: A closure that determines whether the given byte chunk should be forwarded to the consumer.
+        ///     - predicate: A closure that determines whether the given byte chunk should be forwarded to the consumer.
         init(upstream: UpstreamIterator, while predicate: @escaping ((ArraySlice<UInt8>) -> Bool)) {
             self.upstream = upstream
             self.stateMachine = .init(while: predicate)
@@ -110,7 +110,7 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
     /// - Parameters:
     ///   - dataType: The type to decode the JSON data into.
     ///   - decoder: The JSON decoder to use.
-    ///   - while: A closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
+    ///   - predicate: A closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
     /// - Returns: A sequence that provides the events with the decoded JSON data.
     public func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable>(
         of dataType: JSONDataType.Type = JSONDataType.self,
