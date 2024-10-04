@@ -22,11 +22,3 @@ jobs:
             name: "Integration test"
             matrix_linux_command: "apt-get update -yq && apt-get install -yq jq && ./scripts/run-integration-test.sh"
             matrix_linux_5_8_enabled: false
-
-    example-packages:
-        name: Example packages
-        uses: apple/swift-nio/.github/workflows/swift_matrix.yml@main
-        with:
-            name: "Example packages"
-            matrix_linux_command: "./scripts/test-examples.sh"
-            matrix_linux_5_8_enabled: false
