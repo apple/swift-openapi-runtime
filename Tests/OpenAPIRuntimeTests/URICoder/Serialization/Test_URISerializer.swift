@@ -126,16 +126,18 @@ final class Test_URISerializer: Test_Runtime {
                 value: .dictionary([
                     "semi": .primitive(.string(";")), "dot": .primitive(.string(".")),
                     "comma": .primitive(.string(",")),
+                    "list": .array([.primitive(.string("one")), .primitive(.string("two"))]),
                 ]),
                 key: "keys",
                 .init(
-                    formExplode: "comma=%2C&dot=.&semi=%3B",
-                    formUnexplode: "keys=comma,%2C,dot,.,semi,%3B",
-                    simpleExplode: "comma=%2C,dot=.,semi=%3B",
-                    simpleUnexplode: "comma,%2C,dot,.,semi,%3B",
-                    formDataExplode: "comma=%2C&dot=.&semi=%3B",
-                    formDataUnexplode: "keys=comma,%2C,dot,.,semi,%3B",
-                    deepObjectExplode: "keys%5Bcomma%5D=%2C&keys%5Bdot%5D=.&keys%5Bsemi%5D=%3B"
+                    formExplode: "comma=%2C&dot=.&list=one&list=two&semi=%3B",
+                    formUnexplode: "keys=comma,%2C,dot,.,list,one,list,two,semi,%3B",
+                    simpleExplode: "comma=%2C,dot=.,list=one,list=two,semi=%3B",
+                    simpleUnexplode: "comma,%2C,dot,.,list,one,list,two,semi,%3B",
+                    formDataExplode: "comma=%2C&dot=.&list=one&list=two&semi=%3B",
+                    formDataUnexplode: "keys=comma,%2C,dot,.,list,one,list,two,semi,%3B",
+                    deepObjectExplode:
+                        "keys%5Bcomma%5D=%2C&keys%5Bdot%5D=.&keys%5Blist%5D=one&keys%5Blist%5D=two&keys%5Bsemi%5D=%3B"
                 )
             ),
         ]

@@ -41,6 +41,12 @@ final class Test_URIValueToNodeEncoder: Test_Runtime {
             var val: SimpleEnum?
         }
 
+        struct StructWithArray: Encodable {
+            var foo: String
+            var bar: [Int]?
+            var val: [String]
+        }
+
         struct NestedStruct: Encodable { var simple: SimpleStruct }
 
         let cases: [Case] = [
@@ -87,6 +93,16 @@ final class Test_URIValueToNodeEncoder: Test_Runtime {
             makeCase(
                 SimpleStruct(foo: "bar", val: .foo),
                 .dictionary(["foo": .primitive(.string("bar")), "val": .primitive(.string("foo"))])
+            ),
+
+            // A struct with an array property.
+            makeCase(
+                StructWithArray(foo: "bar", bar: [1, 2], val: ["baz", "baq"]),
+                .dictionary([
+                    "foo": .primitive(.string("bar")),
+                    "bar": .array([.primitive(.integer(1)), .primitive(.integer(2))]),
+                    "val": .array([.primitive(.string("baz")), .primitive(.string("baq"))]),
+                ])
             ),
 
             // A nested struct.
