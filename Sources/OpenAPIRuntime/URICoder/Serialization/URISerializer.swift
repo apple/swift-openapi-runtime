@@ -65,8 +65,7 @@ extension CharacterSet {
 extension URISerializer {
 
     /// A serializer error.
-    enum SerializationError: Swift.Error, Hashable {
-
+    enum SerializationError: Swift.Error, Hashable, CustomStringConvertible, LocalizedError {
         /// Nested containers are not supported.
         case nestedContainersNotSupported
         /// Deep object arrays are not supported.
@@ -75,6 +74,28 @@ extension URISerializer {
         case deepObjectsWithPrimitiveValuesNotSupported
         /// An invalid configuration was detected.
         case invalidConfiguration(String)
+
+        /// A human-readable description of the serialization error.
+        ///
+        /// This computed property returns a string that includes information about the serialization error.
+        ///
+        /// - Returns: A string describing the serialization error and its associated details.
+        var description: String {
+            switch self {
+            case .nestedContainersNotSupported: "URISerializer: Nested containers are not supported"
+            case .deepObjectsArrayNotSupported: "URISerializer: Deep object arrays are not supported"
+            case .deepObjectsWithPrimitiveValuesNotSupported:
+                "URISerializer: Deep object with primitive values are not supported"
+            case .invalidConfiguration(let string): "URISerializer: Invalid configuration: \(string)"
+            }
+        }
+
+        /// A localized description of the serialization error.
+        ///
+        /// This computed property provides a localized human-readable description of the serialization error, which is suitable for displaying to users.
+        ///
+        /// - Returns: A localized string describing the serialization error.
+        var errorDescription: String? { description }
     }
 
     /// Computes an escaped version of the provided string.
@@ -114,6 +135,16 @@ extension URISerializer {
             guard case let .primitive(primitive) = node else { throw SerializationError.nestedContainersNotSupported }
             return primitive
         }
+        func unwrapPrimitiveOrArrayOfPrimitives(_ node: URIEncodedNode) throws
+            -> URIEncodedNode.PrimitiveOrArrayOfPrimitives
+        {
+            if case let .primitive(primitive) = node { return .primitive(primitive) }
+            if case let .array(array) = node {
+                let primitives = try array.map(unwrapPrimitiveValue)
+                return .arrayOfPrimitives(primitives)
+            }
+            throw SerializationError.nestedContainersNotSupported
+        }
         switch value {
         case .unset:
             // Nothing to serialize.
@@ -128,7 +159,7 @@ extension URISerializer {
             try serializePrimitiveKeyValuePair(primitive, forKey: key, separator: keyAndValueSeparator)
         case .array(let array): try serializeArray(array.map(unwrapPrimitiveValue), forKey: key)
         case .dictionary(let dictionary):
-            try serializeDictionary(dictionary.mapValues(unwrapPrimitiveValue), forKey: key)
+            try serializeDictionary(dictionary.mapValues(unwrapPrimitiveOrArrayOfPrimitives), forKey: key)
         }
     }
 
@@ -213,9 +244,10 @@ extension URISerializer {
     ///   - key: The key to serialize the value under (details depend on the
     ///     style and explode parameters in the configuration).
     /// - Throws: An error if serialization of the dictionary fails.
-    private mutating func serializeDictionary(_ dictionary: [String: URIEncodedNode.Primitive], forKey key: String)
-        throws
-    {
+    private mutating func serializeDictionary(
+        _ dictionary: [String: URIEncodedNode.PrimitiveOrArrayOfPrimitives],
+        forKey key: String
+    ) throws {
         guard !dictionary.isEmpty else { return }
         let sortedDictionary = dictionary.sorted { a, b in
             a.key.localizedCaseInsensitiveCompare(b.key) == .orderedAscending
@@ -248,8 +280,18 @@ extension URISerializer {
             guard case .deepObject = configuration.style else { return elementKey }
             return rootKey + "[" + elementKey + "]"
         }
-        func serializeNext(_ element: URIEncodedNode.Primitive, forKey elementKey: String) throws {
-            try serializePrimitiveKeyValuePair(element, forKey: elementKey, separator: keyAndValueSeparator)
+        func serializeNext(_ element: URIEncodedNode.PrimitiveOrArrayOfPrimitives, forKey elementKey: String) throws {
+            switch element {
+            case .primitive(let primitive):
+                try serializePrimitiveKeyValuePair(primitive, forKey: elementKey, separator: keyAndValueSeparator)
+            case .arrayOfPrimitives(let array):
+                guard !array.isEmpty else { return }
+                for item in array.dropLast() {
+                    try serializePrimitiveKeyValuePair(item, forKey: elementKey, separator: keyAndValueSeparator)
+                    data.append(pairSeparator)
+                }
+                try serializePrimitiveKeyValuePair(array.last!, forKey: elementKey, separator: keyAndValueSeparator)
+            }
         }
         if let containerKeyAndValue = configuration.containerKeyAndValueSeparator {
             data.append(try stringifiedKey(key))
