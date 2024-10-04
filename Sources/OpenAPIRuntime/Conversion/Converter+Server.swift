@@ -78,13 +78,9 @@ extension Converter {
                     break
                 case .anySubtype(type: let substringType):
                     // Only match if the types match.
-                    if substringType.lowercased() == acceptType.lowercased() {
-                        return
-                    }
+                    if substringType.lowercased() == acceptType.lowercased() { return }
                 case .concrete(type: let substringType, _):
-                    if substringType.lowercased() == acceptType.lowercased() {
-                        return
-                    }
+                    if substringType.lowercased() == acceptType.lowercased() { return }
                 }
             case (.concrete(type: let acceptType, subtype: let acceptSubtype), let substring):
                 if case let .concrete(substringType, substringSubtype) = substring {

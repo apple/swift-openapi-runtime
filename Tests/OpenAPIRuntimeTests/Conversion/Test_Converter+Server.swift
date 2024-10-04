@@ -51,8 +51,8 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             (partialWildcard, "text/plain", true), (partialWildcard, "application/json", false),
 
             // Accept: text/plain, text/plain succeeds, application/json fails
-            (short, "text/plain", true), (short, "application/json", false),
-            (short, "application/*", false), (short, "*/*", false),
+            (short, "text/plain", true), (short, "application/json", false), (short, "application/*", false),
+            (short, "*/*", false),
 
             // A bunch of acceptable content types
             (long, "text/html", true), (long, "application/xhtml+xml", true), (long, "application/xml", true),
