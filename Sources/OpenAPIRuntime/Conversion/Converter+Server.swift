@@ -77,29 +77,22 @@ extension Converter {
                     // */* as a concrete content type is NOT a match for an Accept header of foo/*
                     break
                 case .anySubtype(type: let substringType):
+                    // Only match if the types match.
                     if substringType.lowercased() == acceptType.lowercased() {
                         return
                     }
-                case .concrete(type: let substringType, subtype: let substringSubtype):
-                    if
-                        substringType.lowercased() == acceptType.lowercased() &&
-                        
-                    {
-                        return
-                    }
-
-                    if accept.lowercased() == substringType.lowercased()
-                        && subtype.lowercased() == substringSubtype.lowercased()
-                    {
+                case .concrete(type: let substringType, _):
+                    if substringType.lowercased() == acceptType.lowercased() {
                         return
                     }
                 }
-                
-            case .concrete(type: let type, subtype: let subtype):
-                if type.lowercased() == substringType.lowercased()
-                    && subtype.lowercased() == substringSubtype.lowercased()
-                {
-                    return
+            case (.concrete(type: let acceptType, subtype: let acceptSubtype), let substring):
+                if case let .concrete(substringType, substringSubtype) = substring {
+                    if acceptType.lowercased() == substringType.lowercased()
+                        && acceptSubtype.lowercased() == substringSubtype.lowercased()
+                    {
+                        return
+                    }
                 }
             }
         }
