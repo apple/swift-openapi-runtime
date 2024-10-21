@@ -56,11 +56,42 @@ extension Converter {
                 // Drop everything after the optional semicolon (q, extensions, ...)
                 value.split(separator: ";")[0].trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
             }
-
         if acceptValues.isEmpty { return }
-        if acceptValues.contains("*/*") { return }
-        if acceptValues.contains("\(substring.split(separator: "/")[0].lowercased())/*") { return }
-        if acceptValues.contains(where: { $0.localizedCaseInsensitiveContains(substring) }) { return }
+        guard let parsedSubstring = OpenAPIMIMEType(substring) else {
+            throw RuntimeError.invalidAcceptSubstring(substring)
+        }
+        // Look for the first match.
+        for acceptValue in acceptValues {
+            // Fast path.
+            if acceptValue == substring { return }
+            guard let parsedAcceptValue = OpenAPIMIMEType(acceptValue) else {
+                throw RuntimeError.invalidExpectedContentType(acceptValue)
+            }
+            switch (parsedAcceptValue.kind, parsedSubstring.kind) {
+            case (.any, _):
+                // Accept: */* always matches
+                return
+            case (.anySubtype(type: let acceptType), let substring):
+                switch substring {
+                case .any:
+                    // */* as a concrete content type is NOT a match for an Accept header of foo/*
+                    break
+                case .anySubtype(type: let substringType):
+                    // Only match if the types match.
+                    if substringType.lowercased() == acceptType.lowercased() { return }
+                case .concrete(type: let substringType, _):
+                    if substringType.lowercased() == acceptType.lowercased() { return }
+                }
+            case (.concrete(type: let acceptType, subtype: let acceptSubtype), let substring):
+                if case let .concrete(substringType, substringSubtype) = substring {
+                    if acceptType.lowercased() == substringType.lowercased()
+                        && acceptSubtype.lowercased() == substringSubtype.lowercased()
+                    {
+                        return
+                    }
+                }
+            }
+        }
         throw RuntimeError.unexpectedAcceptHeader(acceptHeader)
     }
 
