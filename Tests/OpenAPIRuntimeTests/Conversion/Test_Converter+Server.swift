@@ -171,6 +171,18 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         XCTAssertEqual(value, ["foo", "bar"])
     }
 
+    func test_getOptionalQueryItemAsURI_deepObject_exploded() throws {
+        let query: Substring = "sort%5Bid%5D=ascending&sort%5Bname%5D=descending"
+        let value: [String: String]? = try converter.getOptionalQueryItemAsURI(
+            in: query,
+            style: .deepObject,
+            explode: true,
+            name: "sort",
+            as: [String: String].self
+        )
+        XCTAssertEqual(value, ["id": "ascending", "name": "descending"])
+    }
+    
     func test_getRequiredQueryItemAsURI_arrayOfStrings() throws {
         let query: Substring = "search=foo&search=bar"
         let value: [String] = try converter.getRequiredQueryItemAsURI(
@@ -193,6 +205,18 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             as: [String].self
         )
         XCTAssertEqual(value, ["foo", "bar"])
+    }
+
+    func test_getRequiredQueryItemAsURI_deepObject_exploded() throws {
+        let query: Substring = "sort%5Bid%5D=ascending&sort%5Bname%5D=descending"
+        let value: [String: String] = try converter.getRequiredQueryItemAsURI(
+            in: query,
+            style: .deepObject,
+            explode: true,
+            name: "sort",
+            as: [String: String].self
+        )
+        XCTAssertEqual(value, ["id": "ascending", "name": "descending"])
     }
 
     func test_getOptionalQueryItemAsURI_date() throws {

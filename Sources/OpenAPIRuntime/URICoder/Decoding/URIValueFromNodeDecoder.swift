@@ -82,7 +82,9 @@ final class URIValueFromNodeDecoder {
     /// - Throws: When a decoding error occurs.
     func decodeRootIfPresent<T: Decodable>(_ type: T.Type = T.self) throws -> T? {
         // The root is only nil if the node is empty.
-        if try currentElementAsArray().isEmpty { return nil }
+        if style != .deepObject, try currentElementAsArray().isEmpty {
+            return nil
+        }
         return try decodeRoot(type)
     }
 }

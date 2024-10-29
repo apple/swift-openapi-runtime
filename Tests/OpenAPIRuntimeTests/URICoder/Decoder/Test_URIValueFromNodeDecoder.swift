@@ -35,6 +35,11 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
             case blue
         }
 
+        struct SimpleDeepObject: Decodable, Equatable {
+            let id: String
+            let name: String
+        }
+        
         // An empty string.
         try test(["root": [""]], "", key: "root")
 
@@ -88,6 +93,14 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
             key: "root"
         )
 
+        try test(
+            ["id": ["ascending"], "name": ["descending"]],
+            SimpleDeepObject(id: "ascending", name: "descending"),
+            key: "sort",
+            style: .deepObject,
+            explode: true
+        )
+        
         func test<T: Decodable & Equatable>(
             _ node: URIParsedNode,
             _ expectedValue: T,
