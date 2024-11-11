@@ -73,6 +73,7 @@ public protocol HTTPResponseConvertible {
     /// HTTP status to return in the response.
     var httpStatus: HTTPResponse.Status { get }
     /// Headers to return in the response.
+    ///
     /// This is optional as default values are provided in the extension.
     var httpHeaderFields: HTTPTypes.HTTPFields { get }
     /// (Optional) The body of the response to return
