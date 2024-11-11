@@ -80,8 +80,8 @@ public protocol HTTPResponseConvertible {
     var httpBody: OpenAPIRuntime.HTTPBody? { get }
 }
 
-/// Extension to HTTPResponseConvertible to provide default values for certian fields.
-public extension HTTPResponseConvertible {
-    var httpHeaderFields: HTTPTypes.HTTPFields { [:] }
-    var httpBody: OpenAPIRuntime.HTTPBody? { nil }
+/// Extension to HTTPResponseConvertible to provide default values for certain fields.
+extension HTTPResponseConvertible {
+    public var httpHeaderFields: HTTPTypes.HTTPFields { [:] }
+    public var httpBody: OpenAPIRuntime.HTTPBody? { nil }
 }
