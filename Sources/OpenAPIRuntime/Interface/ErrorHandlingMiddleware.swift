@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftOpenAPIGenerator open source project
 //
-// Copyright (c) 2023 Apple Inc. and the SwiftOpenAPIGenerator project authors
+// Copyright (c) 2024 Apple Inc. and the SwiftOpenAPIGenerator project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -14,16 +14,14 @@
 
 import HTTPTypes
 
-/// Error Handling middleware that converts an error to a HTTP response
+/// An opt-in error Handling middleware that converts an error to a HTTP response.
 ///
-/// This is an opt-in middleware that adopters may choose to include to convert application errors
-/// to a HTTP Response
-///
-/// Inclusion of this ErrorHandling Middleware should be accompanied by confirming errors to
-/// HTTPResponseConvertible protocol. Only errors  confirming to HTTPResponseConvertible are converted to a HTTP response. Other errors are re-thrown from this middleware.
+/// Inclusion of  ``ErrorHandlingMiddleware`` should be accompanied by confirming errors to ``HTTPResponseConvertible``  protocol.
+/// Undocumented errors, i.e, errors not confriming to ``HTTPResponseConvertible`` are converted to a response with 500 status code.
 ///
 /// Example usage
-/// 1. Create an error type that conforms to HTTPResponseConvertible protocol
+/// 1. Create an error type that conforms to HTTPResponseConvertible protocol:
+///
 /// ```swift
 /// extension MyAppError: HTTPResponseConvertible {
 ///    var httpStatus: HTTPResponse.Status {
@@ -37,13 +35,15 @@ import HTTPTypes
 /// }
 /// ```
 ///
-/// 2. Opt in to the error middleware while registering the handler
+/// 2. Opt in to the ``ErrorHandlingMiddleware``  while registering the handler:
 ///
 /// ```swift
 /// let handler = try await RequestHandler()
 /// try handler.registerHandlers(on: transport, middlewares: [ErrorHandlingMiddleware()])
-///
-
+/// ```
+/// - Note: The placement of ``ErrorHandlingMiddleware`` in the middleware chain is important.
+/// It should be determined based on the specific needs of each application.
+/// Consider the order of execution and dependencies between middlewares.
 public struct ErrorHandlingMiddleware: ServerMiddleware {
     public func intercept(_ request: HTTPTypes.HTTPRequest,
                           body: OpenAPIRuntime.HTTPBody?,
@@ -57,29 +57,28 @@ public struct ErrorHandlingMiddleware: ServerMiddleware {
                 return (HTTPResponse(status: appError.httpStatus, headerFields: appError.httpHeaderFields),
                 appError.httpBody)
             } else {
-                throw error
+                return (HTTPResponse(status: .internalServerError), nil)
             }
         }
     }
 }
 
-/// Protocol used by ErrorHandling middleware to map an error to a HTTPResponse
-///
-/// Adopters who wish to convert their application error to a HTTPResponse
-/// should confirm their error(s) to this protocol
-
+/// Protocol used by ErrorHandling middleware to map an error to a HTTPResponse.
+/// Adopters who wish to convert their application error to a HTTPResponse should confirm their error(s) to this protocol.
 public protocol HTTPResponseConvertible {
-    /// HTTP status to return in the response
+
+    /// HTTP status to return in the response.
     var httpStatus: HTTPResponse.Status { get }
     
-    /// (Optional) Headers to return in the response
+    /// Headers to return in the response.
+    /// This is optional as default values are provided in the extension.
     var httpHeaderFields: HTTPTypes.HTTPFields { get }
     
     /// (Optional) The body of the response to return
     var httpBody: OpenAPIRuntime.HTTPBody? { get }
 }
 
-/// Extension to HTTPResponseConvertible to provide default values for certian fields
+/// Extension to HTTPResponseConvertible to provide default values for certian fields.
 public extension HTTPResponseConvertible {
     var httpHeaderFields: HTTPTypes.HTTPFields { [:] }
     var httpBody: OpenAPIRuntime.HTTPBody? { nil }

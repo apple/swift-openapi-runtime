@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftOpenAPIGenerator open source project
 //
-// Copyright (c) 2023 Apple Inc. and the SwiftOpenAPIGenerator project authors
+// Copyright (c) 2024 Apple Inc. and the SwiftOpenAPIGenerator project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -46,24 +46,20 @@ final class Test_ErrorHandlingMiddlewareTests: XCTestCase {
         let (response, responseBody) = try await Test_ErrorHandlingMiddlewareTests.errorHandlingMiddleware.intercept(Test_ErrorHandlingMiddlewareTests.mockRequest,
                                                                                                      body: Test_ErrorHandlingMiddlewareTests.mockBody,
                                                                                                      metadata: .init(), operationID: "testop",
-                                                                                                                     next: getNextMiddleware(failurePhase: .partialConvertibleError))
+                                                                                                     next: getNextMiddleware(failurePhase: .partialConvertibleError))
         XCTAssertEqual(response.status, .badRequest)
         XCTAssertEqual(response.headerFields, [:])
         XCTAssertEqual(responseBody, nil)
     }
     
-    func testError_notConfirmingToProtocol_throws() async throws {
-
-        do {
-            _ = try await Test_ErrorHandlingMiddlewareTests.errorHandlingMiddleware.intercept(Test_ErrorHandlingMiddlewareTests.mockRequest,
-                                                                                                                body: Test_ErrorHandlingMiddlewareTests.mockBody,
-                                                                                                                metadata: .init(), operationID: "testop",
-                                                                                          next: getNextMiddleware(failurePhase: .nonConvertibleError))
-            XCTFail("Expected error to be thrown")
-        } catch {
-            let error = error as? ServerError
-            XCTAssertTrue(error?.underlyingError is NonConvertibleError)
-        }
+    func testError_notConfirmingToProtocol_returns500() async throws {
+        let (response, responseBody) = try await Test_ErrorHandlingMiddlewareTests.errorHandlingMiddleware.intercept(Test_ErrorHandlingMiddlewareTests.mockRequest,
+                                                                                                                     body: Test_ErrorHandlingMiddlewareTests.mockBody,
+                                                                                                                     metadata: .init(), operationID: "testop",
+                                                                                                                     next: getNextMiddleware(failurePhase: .nonConvertibleError))
+        XCTAssertEqual(response.status, .internalServerError)
+        XCTAssertEqual(response.headerFields, [:])
+        XCTAssertEqual(responseBody, nil)
     }
         
     private func getNextMiddleware(failurePhase: MockErrorMiddleware_Next.FailurePhase) -> @Sendable (HTTPTypes.HTTPRequest,
