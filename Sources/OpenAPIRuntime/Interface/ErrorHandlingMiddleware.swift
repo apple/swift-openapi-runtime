@@ -19,7 +19,7 @@ import HTTPTypes
 /// Inclusion of  ``ErrorHandlingMiddleware`` should be accompanied by conforming errors to the ``HTTPResponseConvertible``  protocol.
 /// Errors not conforming to ``HTTPResponseConvertible`` are converted to a response with the 500 status code.
 ///
-/// Example usage
+/// ## Example usage
 /// 1. Create an error type that conforms to HTTPResponseConvertible protocol:
 ///
 /// ```swift
