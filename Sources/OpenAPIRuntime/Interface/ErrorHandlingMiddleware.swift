@@ -76,7 +76,7 @@ public protocol HTTPResponseConvertible {
     ///
     /// This is optional as default values are provided in the extension.
     var httpHeaderFields: HTTPTypes.HTTPFields { get }
-    /// (Optional) The body of the response to return
+    /// The body of the HTTP response.
     var httpBody: OpenAPIRuntime.HTTPBody? { get }
 }
 
