@@ -138,4 +138,4 @@ struct PartialConvertibleError: Error, HTTPResponseConvertible {
 
 struct NonConvertibleError: Error {}
 
-let TEST_HTTP_BODY = HTTPBody(try! JSONEncoder().encode(["error", " test error"]))
+let testHTTPBody = HTTPBody(try! JSONEncoder().encode(["error", " test error"]))
