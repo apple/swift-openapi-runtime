@@ -20,7 +20,7 @@ import HTTPTypes
 /// Errors not conforming to ``HTTPResponseConvertible`` are converted to a response with the 500 status code.
 ///
 /// ## Example usage
-/// 1. Create an error type that conforms to HTTPResponseConvertible protocol:
+/// 1. Create an error type that conforms to the ``HTTPResponseConvertible`` protocol:
 ///
 /// ```swift
 /// extension MyAppError: HTTPResponseConvertible {
