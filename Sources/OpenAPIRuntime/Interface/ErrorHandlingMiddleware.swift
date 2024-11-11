@@ -45,17 +45,20 @@ import HTTPTypes
 /// It should be determined based on the specific needs of each application.
 /// Consider the order of execution and dependencies between middlewares.
 public struct ErrorHandlingMiddleware: ServerMiddleware {
-    public func intercept(_ request: HTTPTypes.HTTPRequest,
-                          body: OpenAPIRuntime.HTTPBody?,
-                          metadata: OpenAPIRuntime.ServerRequestMetadata,
-                          operationID: String,
-                          next: @Sendable (HTTPTypes.HTTPRequest, OpenAPIRuntime.HTTPBody?, OpenAPIRuntime.ServerRequestMetadata) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?)) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
-        do {
-            return try await next(request, body, metadata)
-        } catch let error as ServerError {
+    public func intercept(
+        _ request: HTTPTypes.HTTPRequest,
+        body: OpenAPIRuntime.HTTPBody?,
+        metadata: OpenAPIRuntime.ServerRequestMetadata,
+        operationID: String,
+        next: @Sendable (HTTPTypes.HTTPRequest, OpenAPIRuntime.HTTPBody?, OpenAPIRuntime.ServerRequestMetadata)
+            async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?)
+    ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
+        do { return try await next(request, body, metadata) } catch let error as ServerError {
             if let appError = error.underlyingError as? (any HTTPResponseConvertible) {
-                return (HTTPResponse(status: appError.httpStatus, headerFields: appError.httpHeaderFields),
-                appError.httpBody)
+                return (
+                    HTTPResponse(status: appError.httpStatus, headerFields: appError.httpHeaderFields),
+                    appError.httpBody
+                )
             } else {
                 return (HTTPResponse(status: .internalServerError), nil)
             }
@@ -69,11 +72,9 @@ public protocol HTTPResponseConvertible {
 
     /// HTTP status to return in the response.
     var httpStatus: HTTPResponse.Status { get }
-    
     /// Headers to return in the response.
     /// This is optional as default values are provided in the extension.
     var httpHeaderFields: HTTPTypes.HTTPFields { get }
-    
     /// (Optional) The body of the response to return
     var httpBody: OpenAPIRuntime.HTTPBody? { get }
 }

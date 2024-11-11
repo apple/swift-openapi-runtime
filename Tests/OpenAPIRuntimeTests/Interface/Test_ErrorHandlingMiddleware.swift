@@ -17,67 +17,73 @@ import HTTPTypes
 import XCTest
 @_spi(Generated) @testable import OpenAPIRuntime
 
-
 final class Test_ErrorHandlingMiddlewareTests: XCTestCase {
     static let mockRequest: HTTPRequest = .init(soar_path: "http://abc.com", method: .get)
     static let mockBody: HTTPBody = HTTPBody("hello")
     static let errorHandlingMiddleware = ErrorHandlingMiddleware()
 
     func testSuccessfulRequest() async throws {
-        let response = try await Test_ErrorHandlingMiddlewareTests.errorHandlingMiddleware.intercept(Test_ErrorHandlingMiddlewareTests.mockRequest,
-                                                                                                     body: Test_ErrorHandlingMiddlewareTests.mockBody,
-                                                                                                     metadata: .init(), operationID: "testop",
-                                                                                                     next: getNextMiddleware(failurePhase: .never))
+        let response = try await Test_ErrorHandlingMiddlewareTests.errorHandlingMiddleware.intercept(
+            Test_ErrorHandlingMiddlewareTests.mockRequest,
+            body: Test_ErrorHandlingMiddlewareTests.mockBody,
+            metadata: .init(),
+            operationID: "testop",
+            next: getNextMiddleware(failurePhase: .never)
+        )
         XCTAssertEqual(response.0.status, .ok)
     }
-    
     func testError_confirmingToProtocol_convertedToResponse() async throws {
-        let (response, responseBody) = try await Test_ErrorHandlingMiddlewareTests.errorHandlingMiddleware.intercept(Test_ErrorHandlingMiddlewareTests.mockRequest,
-                                                                                                     body: Test_ErrorHandlingMiddlewareTests.mockBody,
-                                                                                                     metadata: .init(), operationID: "testop",
-                                                                                                     next: getNextMiddleware(failurePhase: .convertibleError))
+        let (response, responseBody) = try await Test_ErrorHandlingMiddlewareTests.errorHandlingMiddleware.intercept(
+            Test_ErrorHandlingMiddlewareTests.mockRequest,
+            body: Test_ErrorHandlingMiddlewareTests.mockBody,
+            metadata: .init(),
+            operationID: "testop",
+            next: getNextMiddleware(failurePhase: .convertibleError)
+        )
         XCTAssertEqual(response.status, .badGateway)
         XCTAssertEqual(response.headerFields, [.contentType: "application/json"])
         XCTAssertEqual(responseBody, TEST_HTTP_BODY)
     }
 
-    
     func testError_confirmingToProtocolWithoutAllValues_convertedToResponse() async throws {
-        let (response, responseBody) = try await Test_ErrorHandlingMiddlewareTests.errorHandlingMiddleware.intercept(Test_ErrorHandlingMiddlewareTests.mockRequest,
-                                                                                                     body: Test_ErrorHandlingMiddlewareTests.mockBody,
-                                                                                                     metadata: .init(), operationID: "testop",
-                                                                                                     next: getNextMiddleware(failurePhase: .partialConvertibleError))
+        let (response, responseBody) = try await Test_ErrorHandlingMiddlewareTests.errorHandlingMiddleware.intercept(
+            Test_ErrorHandlingMiddlewareTests.mockRequest,
+            body: Test_ErrorHandlingMiddlewareTests.mockBody,
+            metadata: .init(),
+            operationID: "testop",
+            next: getNextMiddleware(failurePhase: .partialConvertibleError)
+        )
         XCTAssertEqual(response.status, .badRequest)
         XCTAssertEqual(response.headerFields, [:])
         XCTAssertEqual(responseBody, nil)
     }
-    
     func testError_notConfirmingToProtocol_returns500() async throws {
-        let (response, responseBody) = try await Test_ErrorHandlingMiddlewareTests.errorHandlingMiddleware.intercept(Test_ErrorHandlingMiddlewareTests.mockRequest,
-                                                                                                                     body: Test_ErrorHandlingMiddlewareTests.mockBody,
-                                                                                                                     metadata: .init(), operationID: "testop",
-                                                                                                                     next: getNextMiddleware(failurePhase: .nonConvertibleError))
+        let (response, responseBody) = try await Test_ErrorHandlingMiddlewareTests.errorHandlingMiddleware.intercept(
+            Test_ErrorHandlingMiddlewareTests.mockRequest,
+            body: Test_ErrorHandlingMiddlewareTests.mockBody,
+            metadata: .init(),
+            operationID: "testop",
+            next: getNextMiddleware(failurePhase: .nonConvertibleError)
+        )
         XCTAssertEqual(response.status, .internalServerError)
         XCTAssertEqual(response.headerFields, [:])
         XCTAssertEqual(responseBody, nil)
     }
-        
-    private func getNextMiddleware(failurePhase: MockErrorMiddleware_Next.FailurePhase) -> @Sendable (HTTPTypes.HTTPRequest,
-                                                                                                     OpenAPIRuntime.HTTPBody?,
-                                                                                                     OpenAPIRuntime.ServerRequestMetadata) async throws ->
-                                                                            (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
-        
-        let mockNext: @Sendable (HTTPTypes.HTTPRequest,
-                                 OpenAPIRuntime.HTTPBody?,
-                                 OpenAPIRuntime.ServerRequestMetadata) async throws ->
-        (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) =
-        { request, body, metadata in
-            try await MockErrorMiddleware_Next(failurePhase: failurePhase).intercept(request,
-                                                                                    body: body,
-                                                                                    metadata: metadata,
-                                                                                    operationID: "testop",
-                                                                                    next: { _,_,_  in (HTTPResponse.init(status: .ok), nil) })
-        }
+    private func getNextMiddleware(failurePhase: MockErrorMiddleware_Next.FailurePhase) -> @Sendable (
+        HTTPTypes.HTTPRequest, OpenAPIRuntime.HTTPBody?, OpenAPIRuntime.ServerRequestMetadata
+    ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
+        let mockNext:
+            @Sendable (HTTPTypes.HTTPRequest, OpenAPIRuntime.HTTPBody?, OpenAPIRuntime.ServerRequestMetadata)
+                async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) = { request, body, metadata in
+                    try await MockErrorMiddleware_Next(failurePhase: failurePhase)
+                        .intercept(
+                            request,
+                            body: body,
+                            metadata: metadata,
+                            operationID: "testop",
+                            next: { _, _, _ in (HTTPResponse.init(status: .ok), nil) }
+                        )
+                }
         return mockNext
     }
 }
@@ -91,8 +97,7 @@ struct MockErrorMiddleware_Next: ServerMiddleware {
     }
     var failurePhase: FailurePhase = .never
 
-    @Sendable
-    func intercept(
+    @Sendable func intercept(
         _ request: HTTPRequest,
         body: HTTPBody?,
         metadata: ServerRequestMetadata,
@@ -101,25 +106,21 @@ struct MockErrorMiddleware_Next: ServerMiddleware {
     ) async throws -> (HTTPResponse, HTTPBody?) {
         var error: (any Error)?
         switch failurePhase {
-        case .never:
-            break
-        case .convertibleError:
-            error = ConvertibleError()
-        case .nonConvertibleError:
-            error = NonConvertibleError()
-        case .partialConvertibleError:
-            error = PartialConvertibleError()
+        case .never: break
+        case .convertibleError: error = ConvertibleError()
+        case .nonConvertibleError: error = NonConvertibleError()
+        case .partialConvertibleError: error = PartialConvertibleError()
         }
-        
         if let underlyingError = error {
-            throw ServerError(operationID: operationID,
-                              request: request,
-                              requestBody: body,
-                              requestMetadata: metadata,
-                              causeDescription: "",
-                              underlyingError: underlyingError)
+            throw ServerError(
+                operationID: operationID,
+                request: request,
+                requestBody: body,
+                requestMetadata: metadata,
+                causeDescription: "",
+                underlyingError: underlyingError
+            )
         }
-        
         let (response, responseBody) = try await next(request, body, metadata)
         return (response, responseBody)
     }
@@ -137,4 +138,4 @@ struct PartialConvertibleError: Error, HTTPResponseConvertible {
 
 struct NonConvertibleError: Error {}
 
-let TEST_HTTP_BODY = HTTPBody(try! JSONEncoder().encode(["error"," test error"]))
+let TEST_HTTP_BODY = HTTPBody(try! JSONEncoder().encode(["error", " test error"]))
