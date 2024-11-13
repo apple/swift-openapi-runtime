@@ -15,7 +15,27 @@
 import Foundation
 
 /// The type used for keys by `URIParser`.
-typealias URIParsedKey = String.SubSequence
+typealias URIParsedKeyComponent = String.SubSequence
+
+struct URIParsedKey: Hashable, CustomStringConvertible {
+
+    private(set) var components: [URIParsedKeyComponent]
+
+    init(_ components: [URIParsedKeyComponent]) { self.components = components }
+
+    static var empty: Self { .init([]) }
+
+    func appending(_ component: URIParsedKeyComponent) -> Self {
+        var copy = self
+        copy.components.append(component)
+        return copy
+    }
+
+    var description: String {
+        if components.isEmpty { return "<empty>" }
+        return components.joined(separator: "/")
+    }
+}
 
 /// The type used for values by `URIParser`.
 typealias URIParsedValue = String.SubSequence
@@ -23,5 +43,16 @@ typealias URIParsedValue = String.SubSequence
 /// The type used for an array of values by `URIParser`.
 typealias URIParsedValueArray = [URIParsedValue]
 
-/// The type used for a node and a dictionary by `URIParser`.
-typealias URIParsedNode = [URIParsedKey: URIParsedValueArray]
+/// A key-value pair.
+struct URIParsedPair: Equatable {
+    var key: URIParsedKey
+    var value: URIParsedValue
+}
+
+typealias URIParsedPairArray = [URIParsedPair]
+
+typealias URIDecodedPrimitive = URIParsedValue
+
+typealias URIDecodedDictionary = [Substring: URIParsedValueArray]
+
+typealias URIDecodedArray = URIParsedValueArray

@@ -14,24 +14,22 @@
 
 import Foundation
 
-/// A type that parses a `URIParsedNode` from a URI-encoded string.
+/// A type that can parse a primitive, array, and a dictionary from a URI-encoded string.
 struct URIParser: Sendable {
 
     /// The configuration instructing the parser how to interpret the raw
     /// string.
     private let configuration: URICoderConfiguration
-
     /// The underlying raw string storage.
-    private var data: Raw
+    private let data: Raw
 
     /// Creates a new parser.
     /// - Parameters:
-    ///   - configuration: The configuration instructing the parser how
-    ///   to interpret the raw string.
+    ///   - configuration: The configuration instructing the parser how to interpret the raw string.
     ///   - data: The string to parse.
-    init(configuration: URICoderConfiguration, data: Substring) {
+    init(configuration: URICoderConfiguration, data: Substring, ) {
         self.configuration = configuration
-        self.data = data[...]
+        self.data = data
     }
 }
 
@@ -43,6 +41,7 @@ enum ParsingError: Swift.Error, Hashable {
 
     /// A malformed key-value pair was detected.
     case malformedKeyValuePair(Raw)
+
     /// An invalid configuration was detected.
     case invalidConfiguration(String)
 }
@@ -51,221 +50,258 @@ enum ParsingError: Swift.Error, Hashable {
 
 extension URIParser {
 
-    /// Parses the root node from the underlying string, selecting the logic
-    /// based on the configuration.
-    /// - Returns: The parsed root node.
-    /// - Throws: An error if parsing fails.
-    mutating func parseRoot() throws -> URIParsedNode {
-        // A completely empty string should get parsed as a single
-        // empty key with a single element array with an empty string
-        // if the style is simple, otherwise it's an empty dictionary.
-        if data.isEmpty {
-            switch configuration.style {
-            case .form: return [:]
-            case .simple: return ["": [""]]
-            case .deepObject: return [:]
-            }
-        }
+    func parseRootAsPrimitive(rootKey: URIParsedKeyComponent) throws -> URIParsedPair? {
+        var data = data
         switch (configuration.style, configuration.explode) {
-        case (.form, true): return try parseExplodedFormRoot()
-        case (.form, false): return try parseUnexplodedFormRoot()
-        case (.simple, true): return try parseExplodedSimpleRoot()
-        case (.simple, false): return try parseUnexplodedSimpleRoot()
-        case (.deepObject, true): return try parseExplodedDeepObjectRoot()
-        case (.deepObject, false):
-            let reason = "Deep object style is only valid with explode set to true"
-            throw ParsingError.invalidConfiguration(reason)
-        }
-    }
-
-    /// Parses the root node assuming the raw string uses the form style
-    /// and the explode parameter is enabled.
-    /// - Returns: The parsed root node.
-    /// - Throws: An error if parsing fails.
-    private mutating func parseExplodedFormRoot() throws -> URIParsedNode {
-        try parseGenericRoot { data, appendPair in
+        case (.form, _):
             let keyValueSeparator: Character = "="
             let pairSeparator: Character = "&"
-
             while !data.isEmpty {
                 let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
                     first: keyValueSeparator,
                     second: pairSeparator
                 )
-                let key: Raw
-                let value: Raw
                 switch firstResult {
                 case .foundFirst:
-                    // Hit the key/value separator, so a value will follow.
-                    let secondValue = data.parseUpToCharacterOrEnd(pairSeparator)
-                    key = firstValue
-                    value = secondValue
-                case .foundSecondOrEnd:
-                    // No key/value separator, treat the string as the key.
-                    key = firstValue
-                    value = .init()
-                }
-                appendPair(key, [value])
-            }
-        }
-    }
-
-    /// Parses the root node assuming the raw string uses the form style
-    /// and the explode parameter is disabled.
-    /// - Returns: The parsed root node.
-    /// - Throws: An error if parsing fails.
-    private mutating func parseUnexplodedFormRoot() throws -> URIParsedNode {
-        try parseGenericRoot { data, appendPair in
-            let keyValueSeparator: Character = "="
-            let pairSeparator: Character = "&"
-            let valueSeparator: Character = ","
-
-            while !data.isEmpty {
-                let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
-                    first: keyValueSeparator,
-                    second: pairSeparator
-                )
-                let key: Raw
-                let values: [Raw]
-                switch firstResult {
-                case .foundFirst:
-                    // Hit the key/value separator, so one or more values will follow.
-                    var accumulatedValues: [Raw] = []
-                    valueLoop: while !data.isEmpty {
-                        let (secondResult, secondValue) = data.parseUpToEitherCharacterOrEnd(
-                            first: valueSeparator,
-                            second: pairSeparator
-                        )
-                        accumulatedValues.append(secondValue)
-                        switch secondResult {
-                        case .foundFirst:
-                            // Hit the value separator, so ended one value and
-                            // another one is coming.
-                            continue
-                        case .foundSecondOrEnd:
-                            // Hit the pair separator or the end, this is the
-                            // last value.
-                            break valueLoop
-                        }
+                    let unescapedKey = unescapeValue(firstValue)
+                    if unescapedKey == rootKey {
+                        let secondValue = data.parseUpToCharacterOrEnd(pairSeparator)
+                        let key = URIParsedKey([unescapedKey])
+                        return .init(key: key, value: unescapeValue(secondValue))
+                    } else {
+                        // Ignore the value, skip to the end of the pair.
+                        _ = data.parseUpToCharacterOrEnd(pairSeparator)
                     }
-                    if accumulatedValues.isEmpty {
-                        // We hit the key/value separator, so always write
-                        // at least one empty value.
-                        accumulatedValues.append("")
-                    }
-                    key = firstValue
-                    values = accumulatedValues
                 case .foundSecondOrEnd: throw ParsingError.malformedKeyValuePair(firstValue)
                 }
-                appendPair(key, values)
             }
+            return nil
+        case (.simple, _): return .init(key: .empty, value: unescapeValue(data))
+        case (.deepObject, true):
+            throw ParsingError.invalidConfiguration("deepObject does not support primitive values, only dictionaries")
+        case (.deepObject, false):
+            throw ParsingError.invalidConfiguration("deepObject + explode: false is not supported")
         }
     }
 
-    /// Parses the root node assuming the raw string uses the simple style
-    /// and the explode parameter is enabled.
-    /// - Returns: The parsed root node.
-    /// - Throws: An error if parsing fails.
-    private mutating func parseExplodedSimpleRoot() throws -> URIParsedNode {
-        try parseGenericRoot { data, appendPair in
-            let keyValueSeparator: Character = "="
-            let pairSeparator: Character = ","
-
-            while !data.isEmpty {
-                let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
-                    first: keyValueSeparator,
-                    second: pairSeparator
-                )
-                let key: Raw
-                let value: Raw
-                switch firstResult {
-                case .foundFirst:
-                    // Hit the key/value separator, so a value will follow.
-                    let secondValue = data.parseUpToCharacterOrEnd(pairSeparator)
-                    key = firstValue
-                    value = secondValue
-                case .foundSecondOrEnd:
-                    // No key/value separator, treat the string as the value.
-                    key = .init()
-                    value = firstValue
-                }
-                appendPair(key, [value])
-            }
-        }
-    }
-
-    /// Parses the root node assuming the raw string uses the simple style
-    /// and the explode parameter is disabled.
-    /// - Returns: The parsed root node.
-    /// - Throws: An error if parsing fails.
-    private mutating func parseUnexplodedSimpleRoot() throws -> URIParsedNode {
-        // Unexploded simple dictionary cannot be told apart from
-        // an array, so we just accumulate all pairs as standalone
-        // values and add them to the array. It'll be the higher
-        // level decoder's responsibility to parse this properly.
-
-        try parseGenericRoot { data, appendPair in
-            let pairSeparator: Character = ","
-            while !data.isEmpty {
-                let value = data.parseUpToCharacterOrEnd(pairSeparator)
-                appendPair(.init(), [value])
-            }
-        }
-    }
-    /// Parses the root node assuming the raw string uses the deepObject style
-    /// and the explode parameter is enabled.
-    /// - Returns: The parsed root node.
-    /// - Throws: An error if parsing fails.
-    private mutating func parseExplodedDeepObjectRoot() throws -> URIParsedNode {
-        let parseNode = try parseGenericRoot { data, appendPair in
+    func parseRootAsArray(rootKey: URIParsedKeyComponent) throws -> URIParsedPairArray {
+        var data = data
+        switch (configuration.style, configuration.explode) {
+        case (.form, true):
             let keyValueSeparator: Character = "="
             let pairSeparator: Character = "&"
-            let nestedKeyStartingCharacter: Character = "["
-            let nestedKeyEndingCharacter: Character = "]"
-            func nestedKey(from deepObjectKey: String.SubSequence) -> Raw {
-                var unescapedDeepObjectKey = Substring(deepObjectKey.removingPercentEncoding ?? "")
-                let topLevelKey = unescapedDeepObjectKey.parseUpToCharacterOrEnd(nestedKeyStartingCharacter)
-                let nestedKey = unescapedDeepObjectKey.parseUpToCharacterOrEnd(nestedKeyEndingCharacter)
-                return nestedKey.isEmpty ? topLevelKey : nestedKey
-            }
+            var items: URIParsedPairArray = []
             while !data.isEmpty {
                 let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
                     first: keyValueSeparator,
                     second: pairSeparator
                 )
-                guard case .foundFirst = firstResult else { throw ParsingError.malformedKeyValuePair(firstValue) }
-                // Hit the key/value separator, so a value will follow.
-                let secondValue = data.parseUpToCharacterOrEnd(pairSeparator)
-                let key = nestedKey(from: firstValue)
-                let value = secondValue
-                appendPair(key, [value])
+                switch firstResult {
+                case .foundFirst:
+                    let unescapedKey = unescapeValue(firstValue)
+                    if unescapedKey == rootKey {
+                        let secondValue = data.parseUpToCharacterOrEnd(pairSeparator)
+                        let key = URIParsedKey([unescapedKey])
+                        items.append(.init(key: key, value: unescapeValue(secondValue)))
+                    } else {
+                        // Ignore the value, skip to the end of the pair.
+                        _ = data.parseUpToCharacterOrEnd(pairSeparator)
+                    }
+                case .foundSecondOrEnd: throw ParsingError.malformedKeyValuePair(firstValue)
+                }
             }
+            return items
+        case (.form, false):
+            let keyValueSeparator: Character = "="
+            let pairSeparator: Character = "&"
+            let arrayElementSeparator: Character = ","
+            var items: URIParsedPairArray = []
+            while !data.isEmpty {
+                let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
+                    first: keyValueSeparator,
+                    second: pairSeparator
+                )
+                switch firstResult {
+                case .foundFirst:
+                    let unescapedKey = unescapeValue(firstValue)
+                    if unescapedKey == rootKey {
+                        let key = URIParsedKey([unescapedKey])
+                        elementScan: while !data.isEmpty {
+                            let (secondResult, secondValue) = data.parseUpToEitherCharacterOrEnd(
+                                first: arrayElementSeparator,
+                                second: pairSeparator
+                            )
+                            items.append(.init(key: key, value: unescapeValue(secondValue)))
+                            switch secondResult {
+                            case .foundFirst: continue elementScan
+                            case .foundSecondOrEnd: break elementScan
+                            }
+                        }
+                    } else {
+                        // Ignore the value, skip to the end of the pair.
+                        _ = data.parseUpToCharacterOrEnd(pairSeparator)
+                    }
+                case .foundSecondOrEnd: throw ParsingError.malformedKeyValuePair(firstValue)
+                }
+            }
+            return items
+        case (.simple, _):
+            let pairSeparator: Character = ","
+            var items: URIParsedPairArray = []
+            while !data.isEmpty {
+                let value = data.parseUpToCharacterOrEnd(pairSeparator)
+                items.append(.init(key: .empty, value: unescapeValue(value)))
+            }
+            return items
+        case (.deepObject, true):
+            throw ParsingError.invalidConfiguration("deepObject does not support array values, only dictionaries")
+        case (.deepObject, false):
+            throw ParsingError.invalidConfiguration("deepObject + explode: false is not supported")
         }
-        return parseNode
+    }
+
+    func parseRootAsDictionary(rootKey: URIParsedKeyComponent) throws -> URIParsedPairArray {
+        var data = data
+        switch (configuration.style, configuration.explode) {
+        case (.form, true):
+            let keyValueSeparator: Character = "="
+            let pairSeparator: Character = "&"
+            var items: URIParsedPairArray = []
+            while !data.isEmpty {
+                let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
+                    first: keyValueSeparator,
+                    second: pairSeparator
+                )
+                switch firstResult {
+                case .foundFirst:
+                    let secondValue = data.parseUpToCharacterOrEnd(pairSeparator)
+                    let key = URIParsedKey([unescapeValue(firstValue)])
+                    items.append(.init(key: key, value: unescapeValue(secondValue)))
+                case .foundSecondOrEnd: throw ParsingError.malformedKeyValuePair(firstValue)
+                }
+            }
+            return items
+        case (.form, false):
+            let keyValueSeparator: Character = "="
+            let pairSeparator: Character = "&"
+            let arrayElementSeparator: Character = ","
+            var items: URIParsedPairArray = []
+            while !data.isEmpty {
+                let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
+                    first: keyValueSeparator,
+                    second: pairSeparator
+                )
+                switch firstResult {
+                case .foundFirst:
+                    let unescapedKey = unescapeValue(firstValue)
+                    if unescapedKey == rootKey {
+                        let parentKey = URIParsedKey([unescapedKey])
+                        elementScan: while !data.isEmpty {
+                            let (innerKeyResult, innerKeyValue) = data.parseUpToEitherCharacterOrEnd(
+                                first: arrayElementSeparator,
+                                second: pairSeparator
+                            )
+                            switch innerKeyResult {
+                            case .foundFirst:
+                                let (innerValueResult, innerValueValue) = data.parseUpToEitherCharacterOrEnd(
+                                    first: arrayElementSeparator,
+                                    second: pairSeparator
+                                )
+                                items.append(
+                                    .init(
+                                        key: parentKey.appending(innerKeyValue),
+                                        value: unescapeValue(innerValueValue)
+                                    )
+                                )
+                                switch innerValueResult {
+                                case .foundFirst: continue elementScan
+                                case .foundSecondOrEnd: break elementScan
+                                }
+                            case .foundSecondOrEnd: throw ParsingError.malformedKeyValuePair(innerKeyValue)
+                            }
+                        }
+                    } else {
+                        // Ignore the value, skip to the end of the pair.
+                        _ = data.parseUpToCharacterOrEnd(pairSeparator)
+                    }
+                case .foundSecondOrEnd: throw ParsingError.malformedKeyValuePair(firstValue)
+                }
+            }
+            return items
+        case (.simple, true):
+            let keyValueSeparator: Character = "="
+            let pairSeparator: Character = ","
+            var items: URIParsedPairArray = []
+            while !data.isEmpty {
+                let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
+                    first: keyValueSeparator,
+                    second: pairSeparator
+                )
+                let key: URIParsedKey
+                let value: URIParsedValue
+                switch firstResult {
+                case .foundFirst:
+                    let secondValue = data.parseUpToCharacterOrEnd(pairSeparator)
+                    key = URIParsedKey([unescapeValue(firstValue)])
+                    value = secondValue
+                    items.append(.init(key: key, value: unescapeValue(value)))
+                case .foundSecondOrEnd: throw ParsingError.malformedKeyValuePair(firstValue)
+                }
+            }
+            return items
+        case (.simple, false):
+            let pairSeparator: Character = ","
+            var items: URIParsedPairArray = []
+            while !data.isEmpty {
+                let rawKey = data.parseUpToCharacterOrEnd(pairSeparator)
+                let value: URIParsedValue
+                if data.isEmpty { value = "" } else { value = data.parseUpToCharacterOrEnd(pairSeparator) }
+                let key = URIParsedKey([unescapeValue(rawKey)])
+                items.append(.init(key: key, value: unescapeValue(value)))
+            }
+            return items
+        case (.deepObject, true):
+            let keyValueSeparator: Character = "="
+            let pairSeparator: Character = "&"
+            let nestedKeyStart: Character = "["
+            let nestedKeyEnd: Character = "]"
+            var items: URIParsedPairArray = []
+            while !data.isEmpty {
+                let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
+                    first: keyValueSeparator,
+                    second: pairSeparator
+                )
+                switch firstResult {
+                case .foundFirst:
+                    var unescapedComposedKey = unescapeValue(firstValue)
+                    if unescapedComposedKey.contains("[") && unescapedComposedKey.contains("]") {
+                        // Do a quick check whether this is even a deepObject-encoded key, as
+                        // we need to safely skip any unrelated keys, which might be formatted
+                        // some other way.
+                        let parentParsedKey = unescapedComposedKey.parseUpToCharacterOrEnd(nestedKeyStart)
+                        let childParsedKey = unescapedComposedKey.parseUpToCharacterOrEnd(nestedKeyEnd)
+                        if parentParsedKey == rootKey {
+                            let key = URIParsedKey([parentParsedKey, childParsedKey])
+                            let secondValue = data.parseUpToCharacterOrEnd(pairSeparator)
+                            items.append(.init(key: key, value: unescapeValue(secondValue)))
+                            continue
+                        }
+                    }
+                    // Ignore the value, skip to the end of the pair.
+                    _ = data.parseUpToCharacterOrEnd(pairSeparator)
+                case .foundSecondOrEnd: throw ParsingError.malformedKeyValuePair(firstValue)
+                }
+            }
+            return items
+        case (.deepObject, false):
+            throw ParsingError.invalidConfiguration("deepObject + explode: false is not supported")
+        }
     }
 }
 
 // MARK: - URIParser utilities
 
 extension URIParser {
-
-    /// Parses the underlying string using a parser closure.
-    /// - Parameter parser: A closure that accepts another closure, which should
-    ///   be called 0 or more times, once for each parsed key-value pair.
-    /// - Returns: The accumulated node.
-    /// - Throws: An error if parsing using the provided parser closure fails,
-    private mutating func parseGenericRoot(_ parser: (inout Raw, (Raw, [Raw]) -> Void) throws -> Void) throws
-        -> URIParsedNode
-    {
-        var root = URIParsedNode()
-        let spaceEscapingCharacter = configuration.spaceEscapingCharacter
-        let unescapeValue: (Raw) -> Raw = { Self.unescapeValue($0, spaceEscapingCharacter: spaceEscapingCharacter) }
-        try parser(&data) { key, values in
-            let newItem = [unescapeValue(key): values.map(unescapeValue)]
-            root.merge(newItem) { $0 + $1 }
-        }
-        return root
-    }
 
     /// Removes escaping from the provided string.
     /// - Parameter escapedValue: An escaped string.

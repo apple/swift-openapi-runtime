@@ -128,6 +128,18 @@ extension URIEncodedNode {
         }
     }
 
+    /// Marks the node as an array, starting of empty.
+    /// - Throws: If the node is already set to be anything else but an array.
+    mutating func markAsArray() throws {
+        switch self {
+        case .array:
+            // Already an array.
+            break
+        case .unset: self = .array([])
+        default: throw InsertionError.appendingToNonArrayContainer
+        }
+    }
+
     /// Appends a value to the array node.
     /// - Parameter childValue: The node to append to the underlying array.
     /// - Throws: If the node is already set to be anything else but an array.

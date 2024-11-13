@@ -205,7 +205,6 @@ extension URISerializer {
     ///     style and explode parameters in the configuration).
     /// - Throws: An error if serialization of the array fails.
     private mutating func serializeArray(_ array: [URIEncodedNode.Primitive], forKey key: String) throws {
-        guard !array.isEmpty else { return }
         let keyAndValueSeparator: String?
         let pairSeparator: String
         switch (configuration.style, configuration.explode) {
@@ -220,6 +219,7 @@ extension URISerializer {
             pairSeparator = ","
         case (.deepObject, _): throw SerializationError.deepObjectsArrayNotSupported
         }
+        guard !array.isEmpty else { return }
         func serializeNext(_ element: URIEncodedNode.Primitive) throws {
             if let keyAndValueSeparator {
                 try serializePrimitiveKeyValuePair(element, forKey: key, separator: keyAndValueSeparator)

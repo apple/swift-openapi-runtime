@@ -19,9 +19,6 @@ struct URIKeyedDecodingContainer<Key: CodingKey> {
 
     /// The associated decoder.
     let decoder: URIValueFromNodeDecoder
-
-    /// The underlying dictionary.
-    let values: URIParsedNode
 }
 
 extension URIKeyedDecodingContainer {
@@ -32,7 +29,7 @@ extension URIKeyedDecodingContainer {
     /// - Returns: The value found for the provided key.
     /// - Throws: An error if no value for the key was found.
     private func _decodeValue(forKey key: Key) throws -> URIParsedValue {
-        guard let value = values[key.stringValue[...]]?.first else {
+        guard let value = try decoder.nestedElementInCurrentDictionary(forKey: key.stringValue) else {
             throw DecodingError.keyNotFound(key, .init(codingPath: codingPath, debugDescription: "Key not found."))
         }
         return value
@@ -97,9 +94,15 @@ extension URIKeyedDecodingContainer {
 
 extension URIKeyedDecodingContainer: KeyedDecodingContainerProtocol {
 
-    var allKeys: [Key] { values.keys.map { key in Key.init(stringValue: String(key))! } }
+    var allKeys: [Key] {
+        do { return try decoder.elementKeysInCurrentDictionary().compactMap { .init(stringValue: $0) } } catch {
+            return []
+        }
+    }
 
-    func contains(_ key: Key) -> Bool { values[key.stringValue[...]] != nil }
+    func contains(_ key: Key) -> Bool {
+        do { return try decoder.containsElementInCurrentDictionary(forKey: key.stringValue) } catch { return false }
+    }
 
     var codingPath: [any CodingKey] { decoder.codingPath }
 
@@ -153,7 +156,7 @@ extension URIKeyedDecodingContainer: KeyedDecodingContainerProtocol {
         case is UInt64.Type: return try decode(UInt64.self, forKey: key) as! T
         case is Date.Type: return try decoder.dateTranscoder.decode(String(_decodeValue(forKey: key))) as! T
         default:
-            try decoder.push(.init(key))
+            decoder.push(.init(key))
             defer { decoder.pop() }
             return try type.init(from: decoder)
         }

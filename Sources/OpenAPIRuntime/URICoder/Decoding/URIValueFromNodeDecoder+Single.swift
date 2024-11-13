@@ -24,7 +24,7 @@ struct URISingleValueDecodingContainer {
 extension URISingleValueDecodingContainer {
 
     /// The underlying value as a single value.
-    var value: URIParsedValue { get throws { try decoder.currentElementAsSingleValue() } }
+    var value: URIParsedValue? { get throws { try decoder.currentElementAsSingleValue() } }
 
     /// Returns the value found in the underlying node converted to
     /// the provided type.
@@ -33,7 +33,17 @@ extension URISingleValueDecodingContainer {
     /// - Returns: The converted value found.
     /// - Throws: An error if the conversion failed.
     private func _decodeBinaryFloatingPoint<T: BinaryFloatingPoint>(_: T.Type = T.self) throws -> T {
-        guard let double = try Double(value) else {
+        guard let value = try value else {
+            throw DecodingError.valueNotFound(
+                T.self,
+                DecodingError.Context.init(
+                    codingPath: codingPath,
+                    debugDescription: "Value not found.",
+                    underlyingError: nil
+                )
+            )
+        }
+        guard let double = Double(value) else {
             throw DecodingError.typeMismatch(
                 T.self,
                 .init(codingPath: codingPath, debugDescription: "Failed to convert to Double.")
@@ -49,7 +59,17 @@ extension URISingleValueDecodingContainer {
     /// - Returns: The converted value found.
     /// - Throws: An error if the conversion failed.
     private func _decodeFixedWidthInteger<T: FixedWidthInteger>(_: T.Type = T.self) throws -> T {
-        guard let parsedValue = try T(value) else {
+        guard let value = try value else {
+            throw DecodingError.valueNotFound(
+                T.self,
+                DecodingError.Context.init(
+                    codingPath: codingPath,
+                    debugDescription: "Value not found.",
+                    underlyingError: nil
+                )
+            )
+        }
+        guard let parsedValue = T(value) else {
             throw DecodingError.typeMismatch(
                 T.self,
                 .init(codingPath: codingPath, debugDescription: "Failed to convert to the requested type.")
@@ -65,7 +85,17 @@ extension URISingleValueDecodingContainer {
     /// - Returns: The converted value found.
     /// - Throws: An error if the conversion failed.
     private func _decodeLosslessStringConvertible<T: LosslessStringConvertible>(_: T.Type = T.self) throws -> T {
-        guard let parsedValue = try T(String(value)) else {
+        guard let value = try value else {
+            throw DecodingError.valueNotFound(
+                T.self,
+                DecodingError.Context.init(
+                    codingPath: codingPath,
+                    debugDescription: "Value not found.",
+                    underlyingError: nil
+                )
+            )
+        }
+        guard let parsedValue = T(String(value)) else {
             throw DecodingError.typeMismatch(
                 T.self,
                 .init(codingPath: codingPath, debugDescription: "Failed to convert to the requested type.")
@@ -79,11 +109,23 @@ extension URISingleValueDecodingContainer: SingleValueDecodingContainer {
 
     var codingPath: [any CodingKey] { decoder.codingPath }
 
-    func decodeNil() -> Bool { false }
+    func decodeNil() -> Bool { do { return try value == nil } catch { return false } }
 
     func decode(_ type: Bool.Type) throws -> Bool { try _decodeLosslessStringConvertible() }
 
-    func decode(_ type: String.Type) throws -> String { try String(value) }
+    func decode(_ type: String.Type) throws -> String {
+        guard let value = try value else {
+            throw DecodingError.valueNotFound(
+                String.self,
+                DecodingError.Context.init(
+                    codingPath: codingPath,
+                    debugDescription: "Value not found.",
+                    underlyingError: nil
+                )
+            )
+        }
+        return String(value)
+    }
 
     func decode(_ type: Double.Type) throws -> Double { try _decodeBinaryFloatingPoint() }
 
@@ -125,7 +167,18 @@ extension URISingleValueDecodingContainer: SingleValueDecodingContainer {
         case is UInt16.Type: return try decode(UInt16.self) as! T
         case is UInt32.Type: return try decode(UInt32.self) as! T
         case is UInt64.Type: return try decode(UInt64.self) as! T
-        case is Date.Type: return try decoder.dateTranscoder.decode(String(value)) as! T
+        case is Date.Type:
+            guard let value = try value else {
+                throw DecodingError.valueNotFound(
+                    T.self,
+                    DecodingError.Context.init(
+                        codingPath: codingPath,
+                        debugDescription: "Value not found.",
+                        underlyingError: nil
+                    )
+                )
+            }
+            return try decoder.dateTranscoder.decode(String(value)) as! T
         default: return try T.init(from: decoder)
         }
     }

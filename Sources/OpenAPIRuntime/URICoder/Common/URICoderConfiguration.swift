@@ -21,11 +21,18 @@ struct URICoderConfiguration {
     enum Style {
 
         /// A style for simple string variable expansion.
+        ///
+        /// The whole string always belongs to the root key.
         case simple
 
         /// A style for form-based URI expansion.
+        ///
+        /// Only some key/value pairs can belong to the root key, rest are ignored.
         case form
+
         /// A style for nested variable expansion
+        ///
+        /// Only some key/value pairs can belong to the root key, rest are ignored.
         case deepObject
     }
 

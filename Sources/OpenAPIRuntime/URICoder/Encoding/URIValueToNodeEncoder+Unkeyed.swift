@@ -19,6 +19,10 @@ struct URIUnkeyedEncodingContainer {
 
     /// The associated encoder.
     let encoder: URIValueToNodeEncoder
+    init(encoder: URIValueToNodeEncoder) {
+        self.encoder = encoder
+        try? encoder.currentStackEntry.storage.markAsArray()
+    }
 }
 
 extension URIUnkeyedEncodingContainer {

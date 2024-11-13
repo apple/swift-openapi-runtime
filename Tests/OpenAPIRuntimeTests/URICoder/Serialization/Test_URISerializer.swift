@@ -16,10 +16,6 @@ import XCTest
 
 final class Test_URISerializer: Test_Runtime {
 
-    let testedVariants: [URICoderConfiguration] = [
-        .formExplode, .formUnexplode, .simpleExplode, .simpleUnexplode, .formDataExplode, .formDataUnexplode,
-    ]
-
     func testSerializing() throws {
         let cases: [Case] = [
             makeCase(
