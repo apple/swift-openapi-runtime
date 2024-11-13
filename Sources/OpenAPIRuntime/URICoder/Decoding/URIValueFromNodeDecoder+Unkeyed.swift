@@ -21,6 +21,10 @@ struct URIUnkeyedDecodingContainer {
 
     /// The index of the next item to be decoded.
     private var index: URIParsedValueArray.Index = 0
+
+    /// Creates a new unkeyed container ready to decode the first key.
+    /// - Parameter decoder: The underlying decoder.
+    init(decoder: URIValueFromNodeDecoder) { self.decoder = decoder }
 }
 
 extension URIUnkeyedDecodingContainer {
