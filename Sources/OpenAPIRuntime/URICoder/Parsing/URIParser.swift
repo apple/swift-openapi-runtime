@@ -49,10 +49,10 @@ enum ParsingError: Swift.Error, Hashable {
 // MARK: - Parser implementations
 
 extension URIParser {
-    
     /// Parses the string as a primitive value.
     /// - Parameter rootKey: The key of the root object, used to filter out unrelated values.
     /// - Returns: The parsed primitive value, or nil if not found.
+    /// - Throws: When parsing the root fails.
     func parseRootAsPrimitive(rootKey: URIParsedKeyComponent) throws -> URIParsedPair? {
         var data = data
         switch (configuration.style, configuration.explode) {
@@ -90,6 +90,7 @@ extension URIParser {
     /// Parses the string as an array.
     /// - Parameter rootKey: The key of the root object, used to filter out unrelated values.
     /// - Returns: The parsed array.
+    /// - Throws: When parsing the root fails.
     func parseRootAsArray(rootKey: URIParsedKeyComponent) throws -> URIParsedPairArray {
         var data = data
         switch (configuration.style, configuration.explode) {
@@ -169,6 +170,7 @@ extension URIParser {
     /// Parses the string as a dictionary.
     /// - Parameter rootKey: The key of the root object, used to filter out unrelated values.
     /// - Returns: The parsed key/value pairs as an array.
+    /// - Throws: When parsing the root fails.
     func parseRootAsDictionary(rootKey: URIParsedKeyComponent) throws -> URIParsedPairArray {
         var data = data
         switch (configuration.style, configuration.explode) {

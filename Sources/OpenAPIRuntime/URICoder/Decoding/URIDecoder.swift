@@ -74,11 +74,7 @@ extension URIDecoder {
     ///   - data: The URI-encoded string.
     /// - Returns: The decoded value.
     /// - Throws: An error if decoding fails, for example, due to incompatible data or key.
-    func decode<T: Decodable>(
-        _ type: T.Type = T.self,
-        forKey key: String = "",
-        from data: Substring
-    ) throws -> T {
+    func decode<T: Decodable>(_ type: T.Type = T.self, forKey key: String = "", from data: Substring) throws -> T {
         let decoder = URIValueFromNodeDecoder(data: data, rootKey: key[...], configuration: configuration)
         return try decoder.decodeRoot(type)
     }

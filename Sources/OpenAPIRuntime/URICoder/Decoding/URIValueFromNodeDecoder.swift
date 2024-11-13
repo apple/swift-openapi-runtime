@@ -56,11 +56,7 @@ final class URIValueFromNodeDecoder {
     ///   - data: The data to parse.
     ///   - rootKey: The key of the root object.
     ///   - configuration: The configuration of the decoder.
-    init(
-        data: Substring,
-        rootKey: URIParsedKeyComponent,
-        configuration: URICoderConfiguration
-    ) {
+    init(data: Substring, rootKey: URIParsedKeyComponent, configuration: URICoderConfiguration) {
         self.rootKey = rootKey
         self.dateTranscoder = configuration.dateTranscoder
         self.configuration = configuration
@@ -144,6 +140,7 @@ extension URIValueFromNodeDecoder {
     /// Use the root as a primitive value.
     /// - Parameter work: The closure in which to use the value.
     /// - Returns: Any value returned from the closure.
+    /// - Throws: When parsing the root fails.
     private func withParsedRootAsPrimitive<R>(_ work: (URIDecodedPrimitive?) throws -> R) throws -> R {
         let value: URIDecodedPrimitive?
         if let cached = cache.primitive {
@@ -165,6 +162,7 @@ extension URIValueFromNodeDecoder {
     /// Use the root as an array.
     /// - Parameter work: The closure in which to use the value.
     /// - Returns: Any value returned from the closure.
+    /// - Throws: When parsing the root fails.
     private func withParsedRootAsArray<R>(_ work: (URIDecodedArray) throws -> R) throws -> R {
         let value: URIDecodedArray
         if let cached = cache.array {
@@ -186,6 +184,7 @@ extension URIValueFromNodeDecoder {
     /// Use the root as a dictionary.
     /// - Parameter work: The closure in which to use the value.
     /// - Returns: Any value returned from the closure.
+    /// - Throws: When parsing the root fails.
     private func withParsedRootAsDictionary<R>(_ work: (URIDecodedDictionary) throws -> R) throws -> R {
         let value: URIDecodedDictionary
         if let cached = cache.dictionary {
@@ -234,6 +233,7 @@ extension URIValueFromNodeDecoder {
     ///   - key: The key for which to return the value.
     ///   - dictionary: The dictionary in which to find the value.
     /// - Returns: The value in the dictionary, or nil if not found.
+    /// - Throws: When multiple values are found for the key.
     func primitiveValue(forKey key: String, in dictionary: URIDecodedDictionary) throws -> URIParsedValue? {
         let values = dictionary[key[...], default: []]
         if values.isEmpty { return nil }
@@ -246,6 +246,7 @@ extension URIValueFromNodeDecoder {
     /// Use the current top of the stack as a primitive value.
     /// - Parameter work: The closure in which to use the value.
     /// - Returns: Any value returned from the closure.
+    /// - Throws: When parsing the root fails.
     private func withCurrentPrimitiveElement<R>(_ work: (URIDecodedPrimitive?) throws -> R) throws -> R {
         if !codingStack.isEmpty {
             // Nesting is involved.
@@ -285,6 +286,7 @@ extension URIValueFromNodeDecoder {
     /// Use the current top of the stack as an array.
     /// - Parameter work: The closure in which to use the value.
     /// - Returns: Any value returned from the closure.
+    /// - Throws: When parsing the root fails.
     private func withCurrentArrayElements<R>(_ work: (URIDecodedArray) throws -> R) throws -> R {
         if let nestedArrayParentKey = codingStack.first {
             // Top level is dictionary, first level nesting is array.
@@ -301,6 +303,7 @@ extension URIValueFromNodeDecoder {
     /// Use the current top of the stack as a dictionary.
     /// - Parameter work: The closure in which to use the value.
     /// - Returns: Any value returned from the closure.
+    /// - Throws: When parsing the root fails or if there is unsupported extra nesting of containers.
     private func withCurrentDictionaryElements<R>(_ work: (URIDecodedDictionary) throws -> R) throws -> R {
         if !codingStack.isEmpty {
             try throwMismatch("Nesting a dictionary inside another container is not supported.")
@@ -314,15 +317,18 @@ extension URIValueFromNodeDecoder {
 
     /// Returns the current top-of-stack as a primitive value.
     /// - Returns: The primitive value, or nil if not found.
+    /// - Throws: When parsing the root fails.
     func currentElementAsSingleValue() throws -> URIParsedValue? { try withCurrentPrimitiveElement { $0 } }
 
     /// Returns the count of elements in the current top-of-stack array.
     /// - Returns: The number of elements.
+    /// - Throws: When parsing the root fails.
     func countOfCurrentArray() throws -> Int { try withCurrentArrayElements { $0.count } }
 
     /// Returns an element from the current top-of-stack array.
     /// - Parameter index: The position in the array to return.
     /// - Returns: The primitive value from the array.
+    /// - Throws: When parsing the root fails.
     func nestedElementInCurrentArray(atIndex index: Int) throws -> URIParsedValue {
         try withCurrentArrayElements { $0[index] }
     }
@@ -330,6 +336,7 @@ extension URIValueFromNodeDecoder {
     /// Returns an element from the current top-of-stack dictionary.
     /// - Parameter key: The key to find a value for.
     /// - Returns: The value for the key, or nil if not found.
+    /// - Throws: When parsing the root fails.
     func nestedElementInCurrentDictionary(forKey key: String) throws -> URIParsedValue? {
         try withCurrentDictionaryElements { dictionary in try primitiveValue(forKey: key, in: dictionary) }
     }
@@ -338,12 +345,14 @@ extension URIValueFromNodeDecoder {
     /// contains a value for the provided key.
     /// - Parameter key: The key for which to look for a value.
     /// - Returns: `true` if a value was found, `false` otherwise.
+    /// - Throws: When parsing the root fails.
     func containsElementInCurrentDictionary(forKey key: String) throws -> Bool {
         try withCurrentDictionaryElements { dictionary in dictionary[key[...]] != nil }
     }
 
     /// Returns a list of keys found in the current top-of-stack dictionary.
     /// - Returns: A list of keys from the dictionary.
+    /// - Throws: When parsing the root fails.
     func elementKeysInCurrentDictionary() throws -> [String] {
         try withCurrentDictionaryElements { dictionary in dictionary.keys.map(String.init) }
     }
