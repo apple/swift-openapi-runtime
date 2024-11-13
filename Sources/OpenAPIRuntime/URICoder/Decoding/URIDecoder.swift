@@ -15,7 +15,7 @@
 import Foundation
 
 /// A type that decodes a `Decodable` value from an URI-encoded string
-/// using the rules from RFC 6570, RFC 1866, and OpenAPI 3.0.3, depending on
+/// using the rules from RFC 6570, RFC 1866, and OpenAPI 3.0.4, depending on
 /// the configuration.
 ///
 /// [RFC 6570 - Form-style query expansion.](https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.8)
@@ -45,6 +45,13 @@ import Foundation
 /// | `{list\*}`       | `red,green,blue`                  |
 /// | `{keys}`         | `semi,%3B,dot,.,comma,%2C`        |
 /// | `{keys\*}`       | `semi=%3B,dot=.,comma=%2C`        |
+///
+/// [OpenAPI 3.0.4 - Deep object expansion.](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.4.md#style-examples)
+///
+/// | Example Template |   Expansion                                               |
+/// | ---------------- | ----------------------------------------------------------|
+/// | `{?keys\*}`      | `?keys%5Bsemi%5D=%3B&keys%5Bdot%5D=.&keys%5Bcomma%5D=%2C` |
+///
 struct URIDecoder: Sendable {
 
     /// The configuration instructing the decoder how to interpret the raw
@@ -60,10 +67,6 @@ extension URIDecoder {
 
     /// Attempt to decode an object from an URI string.
     ///
-    /// Under the hood, `URIDecoder` first parses the string into a
-    /// `URIParsedNode` using `URIParser`, and then uses
-    /// `URIValueFromNodeDecoder` to decode the `Decodable` value.
-    ///
     /// - Parameters:
     ///   - type: The type to decode.
     ///   - key: The key of the decoded value. Only used with certain styles
@@ -71,15 +74,16 @@ extension URIDecoder {
     ///   - data: The URI-encoded string.
     /// - Returns: The decoded value.
     /// - Throws: An error if decoding fails, for example, due to incompatible data or key.
-    func decode<T: Decodable>(_ type: T.Type = T.self, forKey key: String = "", from data: Substring) throws -> T {
-        try withDecoder(from: data, forKey: key) { decoder in try decoder.decodeRoot(type) }
+    func decode<T: Decodable>(
+        _ type: T.Type = T.self,
+        forKey key: String = "",
+        from data: Substring
+    ) throws -> T {
+        let decoder = URIValueFromNodeDecoder(data: data, rootKey: key[...], configuration: configuration)
+        return try decoder.decodeRoot(type)
     }
 
     /// Attempt to decode an object from an URI string, if present.
-    ///
-    /// Under the hood, `URIDecoder` first parses the string into a
-    /// `URIParsedNode` using `URIParser`, and then uses
-    /// `URIValueFromNodeDecoder` to decode the `Decodable` value.
     ///
     /// - Parameters:
     ///   - type: The type to decode.
@@ -90,22 +94,8 @@ extension URIDecoder {
     /// - Throws: An error if decoding fails, for example, due to incompatible data or key.
     func decodeIfPresent<T: Decodable>(_ type: T.Type = T.self, forKey key: String = "", from data: Substring) throws
         -> T?
-    { try withDecoder(from: data, forKey: key) { decoder in try decoder.decodeRootIfPresent(type) } }
-
-    /// Make multiple decode calls on the parsed URI.
-    ///
-    /// Use to avoid repeatedly reparsing the raw string.
-    /// - Parameters:
-    ///   - data: The URI-encoded string.
-    ///   - key: The root key to decode.
-    ///   - calls: The closure that contains 0 or more calls to
-    ///     the `decode` method on `URIDecoderImpl`.
-    /// - Returns: The result of the closure invocation.
-    /// - Throws: An error if parsing or decoding fails.
-    func withDecoder<R>(from data: Substring, forKey key: String, calls: (URIValueFromNodeDecoder) throws -> R) throws
-        -> R
     {
         let decoder = URIValueFromNodeDecoder(data: data, rootKey: key[...], configuration: configuration)
-        return try calls(decoder)
+        return try decoder.decodeRootIfPresent(type)
     }
 }

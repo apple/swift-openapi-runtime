@@ -128,7 +128,7 @@ extension URIEncodedNode {
         }
     }
 
-    /// Marks the node as an array, starting of empty.
+    /// Marks the node as an array, starting as empty.
     /// - Throws: If the node is already set to be anything else but an array.
     mutating func markAsArray() throws {
         switch self {

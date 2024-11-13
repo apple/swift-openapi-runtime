@@ -17,7 +17,7 @@ import Foundation
 /// A bag of configuration values used by the URI encoder and decoder.
 struct URICoderConfiguration {
 
-    /// A variable expansion style as described by RFC 6570 and OpenAPI 3.0.3.
+    /// A variable expansion style as described by RFC 6570 and OpenAPI 3.0.4.
     enum Style {
 
         /// A style for simple string variable expansion.
@@ -50,7 +50,7 @@ struct URICoderConfiguration {
     var style: Style
 
     /// A Boolean value indicating whether the key should be repeated with
-    /// each value, as described by RFC 6570 and OpenAPI 3.0.3.
+    /// each value, as described by RFC 6570 and OpenAPI 3.0.4.
     var explode: Bool
 
     /// The character used to escape the space character.

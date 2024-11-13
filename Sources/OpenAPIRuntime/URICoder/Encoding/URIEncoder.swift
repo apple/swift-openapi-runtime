@@ -15,7 +15,7 @@
 import Foundation
 
 /// A type that encodes an `Encodable` value to an URI-encoded string
-/// using the rules from RFC 6570, RFC 1866, and OpenAPI 3.0.3, depending on
+/// using the rules from RFC 6570, RFC 1866, and OpenAPI 3.0.4, depending on
 /// the configuration.
 ///
 /// [RFC 6570 - Form-style query expansion.](https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.8)
@@ -45,6 +45,13 @@ import Foundation
 /// | `{list\*}`       | `red,green,blue`                  |
 /// | `{keys}`         | `semi,%3B,dot,.,comma,%2C`        |
 /// | `{keys\*}`       | `semi=%3B,dot=.,comma=%2C`        |
+///
+/// [OpenAPI 3.0.4 - Deep object expansion.](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.4.md#style-examples)
+///
+/// | Example Template |   Expansion                                               |
+/// | ---------------- | ----------------------------------------------------------|
+/// | `{?keys\*}`      | `?keys%5Bsemi%5D=%3B&keys%5Bdot%5D=.&keys%5Bcomma%5D=%2C` |
+///
 struct URIEncoder: Sendable {
 
     /// The serializer used to turn `URIEncodedNode` values to a string.

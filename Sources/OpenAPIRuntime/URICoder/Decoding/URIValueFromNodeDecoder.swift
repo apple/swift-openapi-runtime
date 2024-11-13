@@ -14,38 +14,58 @@
 
 import Foundation
 
-/// A type that allows decoding `Decodable` values from `URIParser`'s output.
+/// A type that allows decoding `Decodable` values from a URI-encoded string.
 final class URIValueFromNodeDecoder {
 
-    private let data: Substring
-
-    private let configuration: URICoderConfiguration
-    let dateTranscoder: any DateTranscoder
-    private let parser: URIParser
-    struct ParsedState {
-        var primitive: Result<URIDecodedPrimitive?, any Error>?
-        var array: Result<URIDecodedArray, any Error>?
-        var dictionary: Result<URIDecodedDictionary, any Error>?
-    }
-    private var state: ParsedState
-    /// The key of the root value in the node.
+    /// The key of the root object.
     let rootKey: URIParsedKeyComponent
 
-    /// The stack of nested values within the root node.
-    private var codingStack: [CodingStackEntry]
+    /// The date transcoder used for decoding the `Date` type.
+    let dateTranscoder: any DateTranscoder
+
+    /// The coder configuration.
+    private let configuration: URICoderConfiguration
+
+    /// The URIParser used to parse the provided URI-encoded string into
+    /// an intermediate representation.
+    private let parser: URIParser
+
+    /// The cached parsing state of the decoder.
+    private struct ParsingCache {
+
+        /// The cached result of parsing the string as a primitive value.
+        var primitive: Result<URIDecodedPrimitive?, any Error>?
+
+        /// The cached result of parsing the string as an array.
+        var array: Result<URIDecodedArray, any Error>?
+
+        /// The cached result of parsing the string as a dictionary.
+        var dictionary: Result<URIDecodedDictionary, any Error>?
+    }
+
+    /// A cache holding the parsed intermediate representation.
+    private var cache: ParsingCache
+
+    /// The stack of nested keys within the root node.
+    ///
+    /// Represents the currently parsed container.
+    private var codingStack: [URICoderCodingKey]
 
     /// Creates a new decoder.
     /// - Parameters:
     ///   - data: The data to parse.
-    ///   - rootKey: The key of the root value in the node.
+    ///   - rootKey: The key of the root object.
     ///   - configuration: The configuration of the decoder.
-    init(data: Substring, rootKey: URIParsedKeyComponent, configuration: URICoderConfiguration) {
-        self.configuration = configuration
-        self.dateTranscoder = configuration.dateTranscoder
-        self.data = data
-        self.parser = .init(configuration: configuration, data: data)
-        self.state = .init()
+    init(
+        data: Substring,
+        rootKey: URIParsedKeyComponent,
+        configuration: URICoderConfiguration
+    ) {
         self.rootKey = rootKey
+        self.dateTranscoder = configuration.dateTranscoder
+        self.configuration = configuration
+        self.parser = .init(configuration: configuration, data: data)
+        self.cache = .init()
         self.codingStack = []
     }
 
@@ -68,9 +88,9 @@ final class URIValueFromNodeDecoder {
         return value
     }
 
-    /// Decodes the provided type from the root node.
+    /// Decodes the provided type from the root node, if it's present.
     /// - Parameter type: The type to decode from the decoder.
-    /// - Returns: The decoded value.
+    /// - Returns: The decoded value, or nil if not found.
     /// - Throws: When a decoding error occurs.
     func decodeRootIfPresent<T: Decodable>(_ type: T.Type = T.self) throws -> T? {
         switch configuration.style {
@@ -101,20 +121,11 @@ extension URIValueFromNodeDecoder {
         case reachedEndOfUnkeyedContainer
     }
 
-    /// An entry in the coding stack for `URIValueFromNodeDecoder`.
-    ///
-    /// This is used to keep track of where we are in the decode.
-    private struct CodingStackEntry {
-
-        /// The key at which the entry was found.
-        var key: URICoderCodingKey
-    }
-
     /// Pushes a new container on top of the current stack, nesting into the
     /// value at the provided key.
     /// - Parameter codingKey: The coding key for the value that is then put
     ///   at the top of the stack.
-    func push(_ codingKey: URICoderCodingKey) { codingStack.append(CodingStackEntry(key: codingKey)) }
+    func push(_ codingKey: URICoderCodingKey) { codingStack.append(codingKey) }
 
     /// Pops the top container from the stack and restores the previously top
     /// container to be the current top container.
@@ -130,9 +141,12 @@ extension URIValueFromNodeDecoder {
 
     // MARK: - withParsed methods
 
+    /// Use the root as a primitive value.
+    /// - Parameter work: The closure in which to use the value.
+    /// - Returns: Any value returned from the closure.
     private func withParsedRootAsPrimitive<R>(_ work: (URIDecodedPrimitive?) throws -> R) throws -> R {
         let value: URIDecodedPrimitive?
-        if let cached = state.primitive {
+        if let cached = cache.primitive {
             value = try cached.get()
         } else {
             let result: Result<URIDecodedPrimitive?, any Error>
@@ -143,14 +157,38 @@ extension URIValueFromNodeDecoder {
                 result = .failure(error)
                 throw error
             }
-            state.primitive = result
+            cache.primitive = result
         }
         return try work(value)
     }
 
+    /// Use the root as an array.
+    /// - Parameter work: The closure in which to use the value.
+    /// - Returns: Any value returned from the closure.
+    private func withParsedRootAsArray<R>(_ work: (URIDecodedArray) throws -> R) throws -> R {
+        let value: URIDecodedArray
+        if let cached = cache.array {
+            value = try cached.get()
+        } else {
+            let result: Result<URIDecodedArray, any Error>
+            do {
+                value = try parser.parseRootAsArray(rootKey: rootKey).map(\.value)
+                result = .success(value)
+            } catch {
+                result = .failure(error)
+                throw error
+            }
+            cache.array = result
+        }
+        return try work(value)
+    }
+
+    /// Use the root as a dictionary.
+    /// - Parameter work: The closure in which to use the value.
+    /// - Returns: Any value returned from the closure.
     private func withParsedRootAsDictionary<R>(_ work: (URIDecodedDictionary) throws -> R) throws -> R {
         let value: URIDecodedDictionary
-        if let cached = state.dictionary {
+        if let cached = cache.dictionary {
             value = try cached.get()
         } else {
             let result: Result<URIDecodedDictionary, any Error>
@@ -184,38 +222,30 @@ extension URIValueFromNodeDecoder {
                 result = .failure(error)
                 throw error
             }
-            state.dictionary = result
-        }
-        return try work(value)
-    }
-
-    private func withParsedRootAsArray<R>(_ work: (URIDecodedArray) throws -> R) throws -> R {
-        let value: URIDecodedArray
-        if let cached = state.array {
-            value = try cached.get()
-        } else {
-            let result: Result<URIDecodedArray, any Error>
-            do {
-                value = try parser.parseRootAsArray(rootKey: rootKey).map(\.value)
-                result = .success(value)
-            } catch {
-                result = .failure(error)
-                throw error
-            }
-            state.array = result
+            cache.dictionary = result
         }
         return try work(value)
     }
 
     // MARK: - decoding utilities
+
+    /// Returns a dictionary value.
+    /// - Parameters:
+    ///   - key: The key for which to return the value.
+    ///   - dictionary: The dictionary in which to find the value.
+    /// - Returns: The value in the dictionary, or nil if not found.
     func primitiveValue(forKey key: String, in dictionary: URIDecodedDictionary) throws -> URIParsedValue? {
         let values = dictionary[key[...], default: []]
         if values.isEmpty { return nil }
         if values.count > 1 { try throwMismatch("Dictionary value contains multiple values.") }
         return values[0]
     }
+
     // MARK: - withCurrent methods
 
+    /// Use the current top of the stack as a primitive value.
+    /// - Parameter work: The closure in which to use the value.
+    /// - Returns: Any value returned from the closure.
     private func withCurrentPrimitiveElement<R>(_ work: (URIDecodedPrimitive?) throws -> R) throws -> R {
         if !codingStack.isEmpty {
             // Nesting is involved.
@@ -224,7 +254,7 @@ extension URIValueFromNodeDecoder {
             // - primitive in a top level dictionary
             // - primitive in a nested array inside a top level dictionary
             if codingStack.count == 1 {
-                let key = codingStack[0].key
+                let key = codingStack[0]
                 if let intKey = key.intValue {
                     // Top level array.
                     return try withParsedRootAsArray { array in try work(array[intKey]) }
@@ -236,8 +266,8 @@ extension URIValueFromNodeDecoder {
                 }
             } else if codingStack.count == 2 {
                 // Nested array within a top level dictionary.
-                let dictionaryKey = codingStack[0].key.stringValue[...]
-                guard let nestedArrayKey = codingStack[1].key.intValue else {
+                let dictionaryKey = codingStack[0].stringValue[...]
+                guard let nestedArrayKey = codingStack[1].intValue else {
                     try throwMismatch("Nested coding key is not an integer, hinting at unsupported nesting.")
                 }
                 return try withParsedRootAsDictionary { dictionary in
@@ -252,8 +282,11 @@ extension URIValueFromNodeDecoder {
         }
     }
 
+    /// Use the current top of the stack as an array.
+    /// - Parameter work: The closure in which to use the value.
+    /// - Returns: Any value returned from the closure.
     private func withCurrentArrayElements<R>(_ work: (URIDecodedArray) throws -> R) throws -> R {
-        if let nestedArrayParentKey = codingStack.first?.key {
+        if let nestedArrayParentKey = codingStack.first {
             // Top level is dictionary, first level nesting is array.
             // Get all the elements that match this rootKey + nested key path.
             return try withParsedRootAsDictionary { dictionary in
@@ -265,6 +298,9 @@ extension URIValueFromNodeDecoder {
         }
     }
 
+    /// Use the current top of the stack as a dictionary.
+    /// - Parameter work: The closure in which to use the value.
+    /// - Returns: Any value returned from the closure.
     private func withCurrentDictionaryElements<R>(_ work: (URIDecodedDictionary) throws -> R) throws -> R {
         if !codingStack.isEmpty {
             try throwMismatch("Nesting a dictionary inside another container is not supported.")
@@ -276,19 +312,38 @@ extension URIValueFromNodeDecoder {
 
     // MARK: - metadata and data accessors
 
+    /// Returns the current top-of-stack as a primitive value.
+    /// - Returns: The primitive value, or nil if not found.
     func currentElementAsSingleValue() throws -> URIParsedValue? { try withCurrentPrimitiveElement { $0 } }
 
+    /// Returns the count of elements in the current top-of-stack array.
+    /// - Returns: The number of elements.
     func countOfCurrentArray() throws -> Int { try withCurrentArrayElements { $0.count } }
 
+    /// Returns an element from the current top-of-stack array.
+    /// - Parameter index: The position in the array to return.
+    /// - Returns: The primitive value from the array.
     func nestedElementInCurrentArray(atIndex index: Int) throws -> URIParsedValue {
         try withCurrentArrayElements { $0[index] }
     }
+
+    /// Returns an element from the current top-of-stack dictionary.
+    /// - Parameter key: The key to find a value for.
+    /// - Returns: The value for the key, or nil if not found.
     func nestedElementInCurrentDictionary(forKey key: String) throws -> URIParsedValue? {
         try withCurrentDictionaryElements { dictionary in try primitiveValue(forKey: key, in: dictionary) }
     }
+
+    /// Returns a Boolean value that represents whether the current top-of-stack dictionary
+    /// contains a value for the provided key.
+    /// - Parameter key: The key for which to look for a value.
+    /// - Returns: `true` if a value was found, `false` otherwise.
     func containsElementInCurrentDictionary(forKey key: String) throws -> Bool {
         try withCurrentDictionaryElements { dictionary in dictionary[key[...]] != nil }
     }
+
+    /// Returns a list of keys found in the current top-of-stack dictionary.
+    /// - Returns: A list of keys from the dictionary.
     func elementKeysInCurrentDictionary() throws -> [String] {
         try withCurrentDictionaryElements { dictionary in dictionary.keys.map(String.init) }
     }
@@ -296,7 +351,7 @@ extension URIValueFromNodeDecoder {
 
 extension URIValueFromNodeDecoder: Decoder {
 
-    var codingPath: [any CodingKey] { codingStack.map(\.key) }
+    var codingPath: [any CodingKey] { codingStack }
 
     var userInfo: [CodingUserInfoKey: Any] { [:] }
 

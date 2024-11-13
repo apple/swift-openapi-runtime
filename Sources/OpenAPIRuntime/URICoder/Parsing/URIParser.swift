@@ -17,15 +17,15 @@ import Foundation
 /// A type that can parse a primitive, array, and a dictionary from a URI-encoded string.
 struct URIParser: Sendable {
 
-    /// The configuration instructing the parser how to interpret the raw
-    /// string.
+    /// The configuration of the parser.
     private let configuration: URICoderConfiguration
-    /// The underlying raw string storage.
+
+    /// The string to parse.
     private let data: Raw
 
     /// Creates a new parser.
     /// - Parameters:
-    ///   - configuration: The configuration instructing the parser how to interpret the raw string.
+    ///   - configuration: The configuration of the parser.
     ///   - data: The string to parse.
     init(configuration: URICoderConfiguration, data: Substring) {
         self.configuration = configuration
@@ -49,7 +49,10 @@ enum ParsingError: Swift.Error, Hashable {
 // MARK: - Parser implementations
 
 extension URIParser {
-
+    
+    /// Parses the string as a primitive value.
+    /// - Parameter rootKey: The key of the root object, used to filter out unrelated values.
+    /// - Returns: The parsed primitive value, or nil if not found.
     func parseRootAsPrimitive(rootKey: URIParsedKeyComponent) throws -> URIParsedPair? {
         var data = data
         switch (configuration.style, configuration.explode) {
@@ -84,6 +87,9 @@ extension URIParser {
         }
     }
 
+    /// Parses the string as an array.
+    /// - Parameter rootKey: The key of the root object, used to filter out unrelated values.
+    /// - Returns: The parsed array.
     func parseRootAsArray(rootKey: URIParsedKeyComponent) throws -> URIParsedPairArray {
         var data = data
         switch (configuration.style, configuration.explode) {
@@ -160,6 +166,9 @@ extension URIParser {
         }
     }
 
+    /// Parses the string as a dictionary.
+    /// - Parameter rootKey: The key of the root object, used to filter out unrelated values.
+    /// - Returns: The parsed key/value pairs as an array.
     func parseRootAsDictionary(rootKey: URIParsedKeyComponent) throws -> URIParsedPairArray {
         var data = data
         switch (configuration.style, configuration.explode) {
@@ -195,7 +204,6 @@ extension URIParser {
                 case .foundFirst:
                     let unescapedKey = unescapeValue(firstValue)
                     if unescapedKey == rootKey {
-                        let parentKey = URIParsedKey([unescapedKey])
                         elementScan: while !data.isEmpty {
                             let (innerKeyResult, innerKeyValue) = data.parseUpToEitherCharacterOrEnd(
                                 first: arrayElementSeparator,
@@ -209,7 +217,7 @@ extension URIParser {
                                 )
                                 items.append(
                                     .init(
-                                        key: parentKey.appending(innerKeyValue),
+                                        key: URIParsedKey([unescapedKey, innerKeyValue]),
                                         value: unescapeValue(innerValueValue)
                                     )
                                 )
