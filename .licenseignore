@@ -8,3 +8,4 @@
 **.txt
 **Package.swift
 docker/*
+.editorconfig
