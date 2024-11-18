@@ -36,7 +36,7 @@ extension URISingleValueDecodingContainer {
         guard let value = try value else {
             throw DecodingError.valueNotFound(
                 T.self,
-                DecodingError.Context.init(
+                DecodingError.Context(
                     codingPath: codingPath,
                     debugDescription: "Value not found.",
                     underlyingError: nil
