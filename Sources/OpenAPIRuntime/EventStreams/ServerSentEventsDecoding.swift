@@ -29,8 +29,9 @@ where Upstream.Element == ArraySlice<UInt8> {
     private let upstream: Upstream
 
     /// A closure that determines whether the given byte chunk should be forwarded to the consumer.
-    /// - Parameter: A byte chunk.
-    /// - Returns: `true` if the byte chunk should be forwarded, `false` if this byte chunk is the terminating sequence.
+    ///
+    /// The closure should return `true` if the byte chunk should be forwarded and
+    /// `false` if this byte chunk is the terminating sequence.
     private let predicate: @Sendable (ArraySlice<UInt8>) -> Bool
 
     /// Creates a new sequence.
@@ -98,7 +99,7 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
     /// Returns another sequence that decodes each event's data as the provided type using the provided decoder.
     ///
     /// Use this method if the event's `data` field is not JSON, or if you don't want to parse it using `asDecodedServerSentEventsWithJSONData`.
-    /// - Parameter: A closure that determines whether the given byte chunk should be forwarded to the consumer.
+    /// - Parameter predicate: A closure that determines whether the given byte chunk should be forwarded to the consumer.
     /// - Returns: A sequence that provides the events.
     public func asDecodedServerSentEvents(
         while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool = { _ in true }
