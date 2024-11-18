@@ -26,6 +26,7 @@ struct URIParsedKey: Hashable {
 
     /// The individual string components.
     let components: [URIParsedKeyComponent]
+
     /// Creates a new parsed key.
     /// - Parameter components: The key components.
     init(_ components: [URIParsedKeyComponent]) { self.components = components }
