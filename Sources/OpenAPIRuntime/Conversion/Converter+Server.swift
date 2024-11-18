@@ -67,34 +67,10 @@ extension Converter {
             guard let parsedAcceptValue = OpenAPIMIMEType(acceptValue) else {
                 throw RuntimeError.invalidExpectedContentType(acceptValue)
             }
-            switch (parsedAcceptValue.kind, parsedSubstring.kind) {
-            case (.any, _):
-                // Accept: */* always matches
-                return
-            case (.anySubtype(type: let acceptType), let substring):
-                switch substring {
-                case .any:
-                    // */* as a concrete content type is NOT a match for an Accept header of foo/*
-                    break
-                case .anySubtype(type: let substringType):
-                    // Only match if the types match.
-                    if substringType.lowercased() == acceptType.lowercased() { return }
-                case .concrete(type: let substringType, _):
-                    if substringType.lowercased() == acceptType.lowercased() { return }
-                }
-            case (.concrete(type: let acceptType, subtype: let acceptSubtype), let substring):
-                if case let .concrete(substringType, substringSubtype) = substring {
-                    if acceptType.lowercased() == substringType.lowercased()
-                        && acceptSubtype.lowercased() == substringSubtype.lowercased()
-                    {
-                        return
-                    }
-                }
-            }
+            if parsedSubstring.satisfies(acceptValue: parsedAcceptValue) { return }
         }
         throw RuntimeError.unexpectedAcceptHeader(acceptHeader)
     }
-
     /// Retrieves and decodes a path parameter as a URI-encoded value of the specified type.
     ///
     /// - Parameters:
@@ -498,5 +474,29 @@ extension Converter {
                 )
             }
         )
+    }
+}
+
+fileprivate extension OpenAPIMIMEType {
+    /// Checks if the type satisfies the provided Accept header value.
+    /// - Parameter acceptValue: A parsed Accept header MIME type.
+    /// - Returns: `true` if it satisfies the Accept header, `false` otherwise.
+    func satisfies(acceptValue: OpenAPIMIMEType) -> Bool {
+        switch (acceptValue.kind, self.kind) {
+        case (.concrete, .any), (.concrete, .anySubtype), (.anySubtype, .any):
+            // The response content-type must be at least as specific as the accept header.
+            return false
+        case (.any, _):
+            // Accept: */* -- Any content-type satisfies the accept header.
+            return true
+        case (.anySubtype(let acceptType), .anySubtype(let substringType)),
+            (.anySubtype(let acceptType), .concrete(let substringType, _)):
+            // Accept: type/* -- The content-type should match the partially-specified accept header.
+            return acceptType.lowercased() == substringType.lowercased()
+        case (.concrete(let acceptType, let acceptSubtype), .concrete(let substringType, let substringSubtype)):
+            // Accept: type/subtype -- The content-type should match the concrete type.
+            return acceptType.lowercased() == substringType.lowercased()
+                && acceptSubtype.lowercased() == substringSubtype.lowercased()
+        }
     }
 }
