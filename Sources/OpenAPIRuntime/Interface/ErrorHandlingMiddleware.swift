@@ -25,7 +25,7 @@ import HTTPTypes
 /// ```swift
 /// extension MyAppError: HTTPResponseConvertible {
 ///    var httpStatus: HTTPResponse.Status {
-///    switch self {
+///        switch self {
 ///        case .invalidInputFormat:
 ///            .badRequest
 ///        case .authorizationError:
@@ -38,13 +38,25 @@ import HTTPTypes
 /// 2. Opt in to the ``ErrorHandlingMiddleware``  while registering the handler:
 ///
 /// ```swift
-/// let handler = try await RequestHandler()
+/// let handler = RequestHandler()
 /// try handler.registerHandlers(on: transport, middlewares: [ErrorHandlingMiddleware()])
 /// ```
 /// - Note: The placement of ``ErrorHandlingMiddleware`` in the middleware chain is important.
 /// It should be determined based on the specific needs of each application.
 /// Consider the order of execution and dependencies between middlewares.
 public struct ErrorHandlingMiddleware: ServerMiddleware {
+    
+    /// Creates an ErrorHandlingMiddleware.
+    public init() {}
+    
+    /// Intercepts an outgoing HTTP request and an incoming HTTP Response, and converts errors(if any) that confirms to ``HTTPResponseConvertible`` to an HTTP response.
+    /// - Parameters:
+    ///   - request: The HTTP request created during the operation.
+    ///   - body: The HTTP request body created during the operation.
+    ///   - metadata: Request metadata
+    ///   - operationID: The OpenAPI operation identifier.
+    ///   - next: A closure that calls the next middleware, or the transport.
+    /// - Returns: An HTTPResponse and an optional HTTPBody.
     public func intercept(
         _ request: HTTPTypes.HTTPRequest,
         body: OpenAPIRuntime.HTTPBody?,
@@ -66,14 +78,13 @@ public struct ErrorHandlingMiddleware: ServerMiddleware {
     }
 }
 
-/// Protocol used by ErrorHandling middleware to map an error to a HTTPResponse.
-/// Adopters who wish to convert their application error to a HTTPResponse should confirm their error(s) to this protocol.
+/// A protocol used by ``ErrorHandlingMiddleware`` to map an error to an ``HTTPResponse`` and ``HTTPBody``.
+/// Adopters who wish to convert their application error to an `HTTPResponse` and ``HTTPBody`` should conform the error type to this protocol.
 public protocol HTTPResponseConvertible {
 
-    /// HTTP status to return in the response.
+    /// An HTTP status to return in the response.
     var httpStatus: HTTPResponse.Status { get }
     /// The HTTP headers of the response.
-    ///
     /// This is optional as default values are provided in the extension.
     var httpHeaderFields: HTTPTypes.HTTPFields { get }
     /// The body of the HTTP response.
