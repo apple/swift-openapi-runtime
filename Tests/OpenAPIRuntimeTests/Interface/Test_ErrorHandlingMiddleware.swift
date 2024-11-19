@@ -43,7 +43,7 @@ final class Test_ErrorHandlingMiddlewareTests: XCTestCase {
         )
         XCTAssertEqual(response.status, .badGateway)
         XCTAssertEqual(response.headerFields, [.contentType: "application/json"])
-        XCTAssertEqual(responseBody, TEST_HTTP_BODY)
+        XCTAssertEqual(responseBody, testHTTPBody)
     }
 
     func testError_conformingToProtocolWithoutAllValues_convertedToResponse() async throws {
@@ -132,7 +132,7 @@ struct MockErrorMiddleware_Next: ServerMiddleware {
 struct ConvertibleError: Error, HTTPResponseConvertible {
     var httpStatus: HTTPTypes.HTTPResponse.Status = HTTPResponse.Status.badGateway
     var httpHeaderFields: HTTPFields = [.contentType: "application/json"]
-    var httpBody: OpenAPIRuntime.HTTPBody? = TEST_HTTP_BODY
+    var httpBody: OpenAPIRuntime.HTTPBody? = testHTTPBody
 }
 
 struct PartialConvertibleError: Error, HTTPResponseConvertible {
