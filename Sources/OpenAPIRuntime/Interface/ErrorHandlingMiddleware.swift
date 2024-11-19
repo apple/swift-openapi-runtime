@@ -14,7 +14,7 @@
 
 import HTTPTypes
 
-/// An opt-in error handling middleware that converts an error to a HTTP response.
+/// An opt-in error handling middleware that converts an error to an HTTP response.
 ///
 /// Inclusion of  ``ErrorHandlingMiddleware`` should be accompanied by conforming errors to the ``HTTPResponseConvertible``  protocol.
 /// Errors not conforming to ``HTTPResponseConvertible`` are converted to a response with the 500 status code.
