@@ -56,14 +56,21 @@ extension Converter {
                 // Drop everything after the optional semicolon (q, extensions, ...)
                 value.split(separator: ";")[0].trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
             }
-
         if acceptValues.isEmpty { return }
-        if acceptValues.contains("*/*") { return }
-        if acceptValues.contains("\(substring.split(separator: "/")[0].lowercased())/*") { return }
-        if acceptValues.contains(where: { $0.localizedCaseInsensitiveContains(substring) }) { return }
+        guard let parsedSubstring = OpenAPIMIMEType(substring) else {
+            throw RuntimeError.invalidAcceptSubstring(substring)
+        }
+        // Look for the first match.
+        for acceptValue in acceptValues {
+            // Fast path.
+            if acceptValue == substring { return }
+            guard let parsedAcceptValue = OpenAPIMIMEType(acceptValue) else {
+                throw RuntimeError.invalidExpectedContentType(acceptValue)
+            }
+            if parsedSubstring.satisfies(acceptValue: parsedAcceptValue) { return }
+        }
         throw RuntimeError.unexpectedAcceptHeader(acceptHeader)
     }
-
     /// Retrieves and decodes a path parameter as a URI-encoded value of the specified type.
     ///
     /// - Parameters:
@@ -467,5 +474,29 @@ extension Converter {
                 )
             }
         )
+    }
+}
+
+fileprivate extension OpenAPIMIMEType {
+    /// Checks if the type satisfies the provided Accept header value.
+    /// - Parameter acceptValue: A parsed Accept header MIME type.
+    /// - Returns: `true` if it satisfies the Accept header, `false` otherwise.
+    func satisfies(acceptValue: OpenAPIMIMEType) -> Bool {
+        switch (acceptValue.kind, self.kind) {
+        case (.concrete, .any), (.concrete, .anySubtype), (.anySubtype, .any):
+            // The response content-type must be at least as specific as the accept header.
+            return false
+        case (.any, _):
+            // Accept: */* -- Any content-type satisfies the accept header.
+            return true
+        case (.anySubtype(let acceptType), .anySubtype(let substringType)),
+            (.anySubtype(let acceptType), .concrete(let substringType, _)):
+            // Accept: type/* -- The content-type should match the partially-specified accept header.
+            return acceptType.lowercased() == substringType.lowercased()
+        case (.concrete(let acceptType, let acceptSubtype), .concrete(let substringType, let substringSubtype)):
+            // Accept: type/subtype -- The content-type should match the concrete type.
+            return acceptType.lowercased() == substringType.lowercased()
+                && acceptSubtype.lowercased() == substringSubtype.lowercased()
+        }
     }
 }

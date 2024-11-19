@@ -39,18 +39,20 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             .accept: "text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8"
         ]
         let multiple: HTTPFields = [.accept: "text/plain, application/json"]
+        let params: HTTPFields = [.accept: "application/json; foo=bar"]
         let cases: [(HTTPFields, String, Bool)] = [
             // No Accept header, any string validates successfully
             (emptyHeaders, "foobar", true),
 
-            // Accept: */*, any string validates successfully
-            (wildcard, "foobar", true),
+            // Accept: */*, any MIME type validates successfully
+            (wildcard, "foobaz/bar", true),
 
             // Accept: text/*, so text/plain succeeds, application/json fails
             (partialWildcard, "text/plain", true), (partialWildcard, "application/json", false),
 
             // Accept: text/plain, text/plain succeeds, application/json fails
-            (short, "text/plain", true), (short, "application/json", false),
+            (short, "text/plain", true), (short, "application/json", false), (short, "application/*", false),
+            (short, "*/*", false),
 
             // A bunch of acceptable content types
             (long, "text/html", true), (long, "application/xhtml+xml", true), (long, "application/xml", true),
@@ -58,6 +60,10 @@ final class Test_ServerConverterExtensions: Test_Runtime {
 
             // Multiple values
             (multiple, "text/plain", true), (multiple, "application/json", true), (multiple, "application/xml", false),
+
+            // Params
+            (params, "application/json; foo=bar", true), (params, "application/json; charset=utf-8; foo=bar", true),
+            (params, "application/json", true), (params, "text/plain", false),
         ]
         for (headers, contentType, success) in cases {
             if success {
