@@ -24,6 +24,11 @@ struct URISingleValueDecodingContainer {
 extension URISingleValueDecodingContainer {
 
     /// The underlying value as a single value.
+    ///
+    /// Can be nil if the underlying URI is valid, just doesn't contain any value.
+    ///
+    /// For example, an empty string input into an exploded form decoder (expecting pairs in the form `key=value`)
+    /// would result in a nil returned value.
     var value: URIParsedValue? { get throws { try decoder.currentElementAsSingleValue() } }
 
     /// Returns the value found in the underlying node converted to

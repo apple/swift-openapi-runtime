@@ -539,8 +539,8 @@ final class Test_URIParser: Test_Runtime {
         struct Input {
             var rootKey: URIParsedKeyComponent
             var primitive: RootInput<URIParsedPair?>
-            var array: RootInput<URIParsedPairArray>
-            var dictionary: RootInput<URIParsedPairArray>
+            var array: RootInput<[URIParsedPair]>
+            var dictionary: RootInput<[URIParsedPair]>
         }
         struct Variants {
             var formExplode: Input

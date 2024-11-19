@@ -94,15 +94,9 @@ extension URIKeyedDecodingContainer {
 
 extension URIKeyedDecodingContainer: KeyedDecodingContainerProtocol {
 
-    var allKeys: [Key] {
-        do { return try decoder.elementKeysInCurrentDictionary().compactMap { .init(stringValue: $0) } } catch {
-            return []
-        }
-    }
+    var allKeys: [Key] { decoder.elementKeysInCurrentDictionary().compactMap { .init(stringValue: $0) } }
 
-    func contains(_ key: Key) -> Bool {
-        do { return try decoder.containsElementInCurrentDictionary(forKey: key.stringValue) } catch { return false }
-    }
+    func contains(_ key: Key) -> Bool { decoder.containsElementInCurrentDictionary(forKey: key.stringValue) }
 
     var codingPath: [any CodingKey] { decoder.codingPath }
 

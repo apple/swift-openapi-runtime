@@ -20,11 +20,14 @@ struct URIUnkeyedDecodingContainer {
     let decoder: URIValueFromNodeDecoder
 
     /// The index of the next item to be decoded.
-    private var index: URIParsedValueArray.Index = 0
+    private(set) var currentIndex: Int
 
     /// Creates a new unkeyed container ready to decode the first key.
     /// - Parameter decoder: The underlying decoder.
-    init(decoder: URIValueFromNodeDecoder) { self.decoder = decoder }
+    init(decoder: URIValueFromNodeDecoder) {
+        self.decoder = decoder
+        self.currentIndex = 0
+    }
 }
 
 extension URIUnkeyedDecodingContainer {
@@ -36,7 +39,7 @@ extension URIUnkeyedDecodingContainer {
     /// - Throws: An error if the container ran out of items.
     private mutating func _decodingNext<R>(in work: () throws -> R) throws -> R {
         guard !isAtEnd else { throw URIValueFromNodeDecoder.GeneralError.reachedEndOfUnkeyedContainer }
-        defer { index += 1 }
+        defer { currentIndex += 1 }
         return try work()
     }
 
@@ -45,7 +48,7 @@ extension URIUnkeyedDecodingContainer {
     /// - Returns: The next value found.
     /// - Throws: An error if the container ran out of items.
     private mutating func _decodeNext() throws -> URIParsedValue {
-        try _decodingNext { [decoder, index] in try decoder.nestedElementInCurrentArray(atIndex: index) }
+        try _decodingNext { [decoder, currentIndex] in try decoder.nestedElementInCurrentArray(atIndex: currentIndex) }
     }
 
     /// Returns the next value converted to the provided type.
@@ -103,9 +106,7 @@ extension URIUnkeyedDecodingContainer: UnkeyedDecodingContainer {
 
     var count: Int? { try? decoder.countOfCurrentArray() }
 
-    var isAtEnd: Bool { index == count }
-
-    var currentIndex: Int { index }
+    var isAtEnd: Bool { currentIndex == count }
 
     var codingPath: [any CodingKey] { decoder.codingPath }
 

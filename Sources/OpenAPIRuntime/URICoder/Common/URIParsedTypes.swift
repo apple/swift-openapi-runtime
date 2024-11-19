@@ -38,9 +38,6 @@ struct URIParsedKey: Hashable {
 /// A primitive value produced by `URIParser`.
 typealias URIParsedValue = String.SubSequence
 
-/// An array of primitive values produced by `URIParser`.
-typealias URIParsedValueArray = [URIParsedValue]
-
 /// A key-value produced by `URIParser`.
 struct URIParsedPair: Equatable {
 
@@ -54,9 +51,6 @@ struct URIParsedPair: Equatable {
     /// In `foo=bar`, `bar` is the value.
     var value: URIParsedValue
 }
-
-/// An array of key-value pairs produced by `URIParser`.
-typealias URIParsedPairArray = [URIParsedPair]
 
 // MARK: - Extensions
 

@@ -34,13 +34,13 @@ final class URIValueFromNodeDecoder {
     private struct ParsingCache {
 
         /// The cached result of parsing the string as a primitive value.
-        var primitive: Result<URIDecodedPrimitive?, any Error>?
+        var primitive: Result<URIParsedValue?, any Error>?
 
         /// The cached result of parsing the string as an array.
-        var array: Result<URIDecodedArray, any Error>?
+        var array: Result<[URIParsedValue], any Error>?
 
         /// The cached result of parsing the string as a dictionary.
-        var dictionary: Result<URIDecodedDictionary, any Error>?
+        var dictionary: Result<[URIParsedKeyComponent: [URIParsedValue]], any Error>?
     }
 
     /// A cache holding the parsed intermediate representation.
@@ -95,10 +95,10 @@ final class URIValueFromNodeDecoder {
             break
         case .form:
             // Try to parse as an array, check the number of elements.
-            if try withParsedRootAsArray({ $0.count == 0 }) { return nil }
+            if try parsedRootAsArray().count == 0 { return nil }
         case .deepObject:
             // Try to parse as a dictionary, check the number of elements.
-            if try withParsedRootAsDictionary({ $0.count == 0 }) { return nil }
+            if try parsedRootAsDictionary().count == 0 { return nil }
         }
         return try decodeRoot(type)
     }
@@ -137,61 +137,59 @@ extension URIValueFromNodeDecoder {
 
     // MARK: - withParsed methods
 
-    /// Use the root as a primitive value.
-    /// - Parameter work: The closure in which to use the value.
-    /// - Returns: Any value returned from the closure.
-    /// - Throws: When parsing the root fails.
-    private func withParsedRootAsPrimitive<R>(_ work: (URIDecodedPrimitive?) throws -> R) throws -> R {
-        let value: URIDecodedPrimitive?
-        if let cached = cache.primitive {
+    /// Parse the root parsed as a specific type, with automatic caching.
+    /// - Parameters:
+    ///   - valueKeyPath: A key path to the parsing cache for storing the cached value.
+    ///   - parsingClosure: Gets the value from the parser.
+    /// - Returns: The parsed value.
+    /// - Throws: If the parsing closure fails.
+    private func cachedRoot<ValueType>(
+        as valueKeyPath: WritableKeyPath<ParsingCache, Result<ValueType, any Error>?>,
+        parse parsingClosure: (URIParser) throws -> ValueType
+    ) throws -> ValueType {
+        let value: ValueType
+        if let cached = cache[keyPath: valueKeyPath] {
             value = try cached.get()
         } else {
-            let result: Result<URIDecodedPrimitive?, any Error>
+            let result: Result<ValueType, any Error>
             do {
-                value = try parser.parseRootAsPrimitive(rootKey: rootKey)?.value
+                value = try parsingClosure(parser)
                 result = .success(value)
             } catch {
                 result = .failure(error)
                 throw error
             }
-            cache.primitive = result
+            cache[keyPath: valueKeyPath] = result
         }
-        return try work(value)
+        return value
     }
 
-    /// Use the root as an array.
-    /// - Parameter work: The closure in which to use the value.
-    /// - Returns: Any value returned from the closure.
+    /// Parse the root as a primitive value.
+    ///
+    /// Can be nil if the underlying URI is valid, just doesn't contain any value.
+    ///
+    /// For example, an empty string input into an exploded form decoder (expecting pairs in the form `key=value`)
+    /// would result in a nil returned value.
+    /// - Returns: The parsed value.
     /// - Throws: When parsing the root fails.
-    private func withParsedRootAsArray<R>(_ work: (URIDecodedArray) throws -> R) throws -> R {
-        let value: URIDecodedArray
-        if let cached = cache.array {
-            value = try cached.get()
-        } else {
-            let result: Result<URIDecodedArray, any Error>
-            do {
-                value = try parser.parseRootAsArray(rootKey: rootKey).map(\.value)
-                result = .success(value)
-            } catch {
-                result = .failure(error)
-                throw error
-            }
-            cache.array = result
-        }
-        return try work(value)
+    private func parsedRootAsPrimitive() throws -> URIParsedValue? {
+        try cachedRoot(as: \.primitive, parse: { try $0.parseRootAsPrimitive(rootKey: rootKey)?.value })
     }
 
-    /// Use the root as a dictionary.
-    /// - Parameter work: The closure in which to use the value.
-    /// - Returns: Any value returned from the closure.
+    /// Parse the root as an array.
+    /// - Returns: The parsed value.
     /// - Throws: When parsing the root fails.
-    private func withParsedRootAsDictionary<R>(_ work: (URIDecodedDictionary) throws -> R) throws -> R {
-        let value: URIDecodedDictionary
-        if let cached = cache.dictionary {
-            value = try cached.get()
-        } else {
-            let result: Result<URIDecodedDictionary, any Error>
-            do {
+    private func parsedRootAsArray() throws -> [URIParsedValue] {
+        try cachedRoot(as: \.array, parse: { try $0.parseRootAsArray(rootKey: rootKey).map(\.value) })
+    }
+
+    /// Parse the root as a dictionary.
+    /// - Returns: The parsed value.
+    /// - Throws: When parsing the root fails.
+    private func parsedRootAsDictionary() throws -> [URIParsedKeyComponent: [URIParsedValue]] {
+        try cachedRoot(
+            as: \.dictionary,
+            parse: { parser in
                 func normalizedDictionaryKey(_ key: URIParsedKey) throws -> Substring {
                     func validateComponentCount(_ count: Int) throws {
                         guard key.components.count == count else {
@@ -210,20 +208,13 @@ extension URIValueFromNodeDecoder {
                     case (.deepObject, false): try throwMismatch("Decoding deepObject + unexplode is not supported.")
                     }
                 }
-
                 let tuples = try parser.parseRootAsDictionary(rootKey: rootKey)
                 let normalizedTuples: [(Substring, [URIParsedValue])] = try tuples.map { pair in
                     try (normalizedDictionaryKey(pair.key), [pair.value])
                 }
-                value = Dictionary(normalizedTuples, uniquingKeysWith: +)
-                result = .success(value)
-            } catch {
-                result = .failure(error)
-                throw error
+                return Dictionary(normalizedTuples, uniquingKeysWith: +)
             }
-            cache.dictionary = result
-        }
-        return try work(value)
+        )
     }
 
     // MARK: - decoding utilities
@@ -234,7 +225,9 @@ extension URIValueFromNodeDecoder {
     ///   - dictionary: The dictionary in which to find the value.
     /// - Returns: The value in the dictionary, or nil if not found.
     /// - Throws: When multiple values are found for the key.
-    func primitiveValue(forKey key: String, in dictionary: URIDecodedDictionary) throws -> URIParsedValue? {
+    func primitiveValue(forKey key: String, in dictionary: [URIParsedKeyComponent: [URIParsedValue]]) throws
+        -> URIParsedValue?
+    {
         let values = dictionary[key[...], default: []]
         if values.isEmpty { return nil }
         if values.count > 1 { try throwMismatch("Dictionary value contains multiple values.") }
@@ -244,10 +237,15 @@ extension URIValueFromNodeDecoder {
     // MARK: - withCurrent methods
 
     /// Use the current top of the stack as a primitive value.
+    ///
+    /// Can be nil if the underlying URI is valid, just doesn't contain any value.
+    ///
+    /// For example, an empty string input into an exploded form decoder (expecting pairs in the form `key=value`)
+    /// would result in a nil returned value.
     /// - Parameter work: The closure in which to use the value.
     /// - Returns: Any value returned from the closure.
     /// - Throws: When parsing the root fails.
-    private func withCurrentPrimitiveElement<R>(_ work: (URIDecodedPrimitive?) throws -> R) throws -> R {
+    private func withCurrentPrimitiveElement<R>(_ work: (URIParsedValue?) throws -> R) throws -> R {
         if !codingStack.isEmpty {
             // Nesting is involved.
             // There are exactly three scenarios we support:
@@ -258,12 +256,10 @@ extension URIValueFromNodeDecoder {
                 let key = codingStack[0]
                 if let intKey = key.intValue {
                     // Top level array.
-                    return try withParsedRootAsArray { array in try work(array[intKey]) }
+                    return try work(parsedRootAsArray()[intKey])
                 } else {
                     // Top level dictionary.
-                    return try withParsedRootAsDictionary { dictionary in
-                        try work(primitiveValue(forKey: key.stringValue, in: dictionary))
-                    }
+                    return try work(primitiveValue(forKey: key.stringValue, in: parsedRootAsDictionary()))
                 }
             } else if codingStack.count == 2 {
                 // Nested array within a top level dictionary.
@@ -271,15 +267,13 @@ extension URIValueFromNodeDecoder {
                 guard let nestedArrayKey = codingStack[1].intValue else {
                     try throwMismatch("Nested coding key is not an integer, hinting at unsupported nesting.")
                 }
-                return try withParsedRootAsDictionary { dictionary in
-                    try work(dictionary[dictionaryKey, default: []][nestedArrayKey])
-                }
+                return try work(parsedRootAsDictionary()[dictionaryKey, default: []][nestedArrayKey])
             } else {
                 try throwMismatch("Arbitrary nesting of containers is not supported.")
             }
         } else {
             // Top level primitive.
-            return try withParsedRootAsPrimitive { try work($0) }
+            return try work(parsedRootAsPrimitive())
         }
     }
 
@@ -287,16 +281,14 @@ extension URIValueFromNodeDecoder {
     /// - Parameter work: The closure in which to use the value.
     /// - Returns: Any value returned from the closure.
     /// - Throws: When parsing the root fails.
-    private func withCurrentArrayElements<R>(_ work: (URIDecodedArray) throws -> R) throws -> R {
+    private func withCurrentArrayElements<R>(_ work: ([URIParsedValue]) throws -> R) throws -> R {
         if let nestedArrayParentKey = codingStack.first {
             // Top level is dictionary, first level nesting is array.
             // Get all the elements that match this rootKey + nested key path.
-            return try withParsedRootAsDictionary { dictionary in
-                try work(dictionary[nestedArrayParentKey.stringValue[...]] ?? [])
-            }
+            return try work(parsedRootAsDictionary()[nestedArrayParentKey.stringValue[...]] ?? [])
         } else {
             // Top level array.
-            return try withParsedRootAsArray { try work($0) }
+            return try work(parsedRootAsArray())
         }
     }
 
@@ -304,18 +296,25 @@ extension URIValueFromNodeDecoder {
     /// - Parameter work: The closure in which to use the value.
     /// - Returns: Any value returned from the closure.
     /// - Throws: When parsing the root fails or if there is unsupported extra nesting of containers.
-    private func withCurrentDictionaryElements<R>(_ work: (URIDecodedDictionary) throws -> R) throws -> R {
+    private func withCurrentDictionaryElements<R>(_ work: ([URIParsedKeyComponent: [URIParsedValue]]) throws -> R)
+        throws -> R
+    {
         if !codingStack.isEmpty {
             try throwMismatch("Nesting a dictionary inside another container is not supported.")
         } else {
             // Top level dictionary.
-            return try withParsedRootAsDictionary { try work($0) }
+            return try work(parsedRootAsDictionary())
         }
     }
 
     // MARK: - metadata and data accessors
 
     /// Returns the current top-of-stack as a primitive value.
+    ///
+    /// Can be nil if the underlying URI is valid, just doesn't contain any value.
+    ///
+    /// For example, an empty string input into an exploded form decoder (expecting pairs in the form `key=value`)
+    /// would result in a nil returned value.
     /// - Returns: The primitive value, or nil if not found.
     /// - Throws: When parsing the root fails.
     func currentElementAsSingleValue() throws -> URIParsedValue? { try withCurrentPrimitiveElement { $0 } }
@@ -345,16 +344,19 @@ extension URIValueFromNodeDecoder {
     /// contains a value for the provided key.
     /// - Parameter key: The key for which to look for a value.
     /// - Returns: `true` if a value was found, `false` otherwise.
-    /// - Throws: When parsing the root fails.
-    func containsElementInCurrentDictionary(forKey key: String) throws -> Bool {
-        try withCurrentDictionaryElements { dictionary in dictionary[key[...]] != nil }
+    func containsElementInCurrentDictionary(forKey key: String) -> Bool {
+        do { return try withCurrentDictionaryElements { dictionary in dictionary[key[...]] != nil } } catch {
+            return false
+        }
     }
 
     /// Returns a list of keys found in the current top-of-stack dictionary.
     /// - Returns: A list of keys from the dictionary.
     /// - Throws: When parsing the root fails.
-    func elementKeysInCurrentDictionary() throws -> [String] {
-        try withCurrentDictionaryElements { dictionary in dictionary.keys.map(String.init) }
+    func elementKeysInCurrentDictionary() -> [String] {
+        do { return try withCurrentDictionaryElements { dictionary in dictionary.keys.map(String.init) } } catch {
+            return []
+        }
     }
 }
 

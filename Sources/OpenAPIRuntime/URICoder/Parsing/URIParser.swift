@@ -50,6 +50,11 @@ enum ParsingError: Swift.Error, Hashable {
 
 extension URIParser {
     /// Parses the string as a primitive value.
+    ///
+    /// Can be nil if the underlying URI is valid, just doesn't contain any value.
+    ///
+    /// For example, an empty string input into an exploded form parser (expecting pairs in the form `key=value`)
+    /// would result in a nil returned value.
     /// - Parameter rootKey: The key of the root object, used to filter out unrelated values.
     /// - Returns: The parsed primitive value, or nil if not found.
     /// - Throws: When parsing the root fails.
@@ -91,13 +96,13 @@ extension URIParser {
     /// - Parameter rootKey: The key of the root object, used to filter out unrelated values.
     /// - Returns: The parsed array.
     /// - Throws: When parsing the root fails.
-    func parseRootAsArray(rootKey: URIParsedKeyComponent) throws -> URIParsedPairArray {
+    func parseRootAsArray(rootKey: URIParsedKeyComponent) throws -> [URIParsedPair] {
         var data = data
         switch (configuration.style, configuration.explode) {
         case (.form, true):
             let keyValueSeparator: Character = "="
             let pairSeparator: Character = "&"
-            var items: URIParsedPairArray = []
+            var items: [URIParsedPair] = []
             while !data.isEmpty {
                 let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
                     first: keyValueSeparator,
@@ -122,7 +127,7 @@ extension URIParser {
             let keyValueSeparator: Character = "="
             let pairSeparator: Character = "&"
             let arrayElementSeparator: Character = ","
-            var items: URIParsedPairArray = []
+            var items: [URIParsedPair] = []
             while !data.isEmpty {
                 let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
                     first: keyValueSeparator,
@@ -154,7 +159,7 @@ extension URIParser {
             return items
         case (.simple, _):
             let pairSeparator: Character = ","
-            var items: URIParsedPairArray = []
+            var items: [URIParsedPair] = []
             while !data.isEmpty {
                 let value = data.parseUpToCharacterOrEnd(pairSeparator)
                 items.append(.init(key: .empty, value: unescapeValue(value)))
@@ -171,13 +176,13 @@ extension URIParser {
     /// - Parameter rootKey: The key of the root object, used to filter out unrelated values.
     /// - Returns: The parsed key/value pairs as an array.
     /// - Throws: When parsing the root fails.
-    func parseRootAsDictionary(rootKey: URIParsedKeyComponent) throws -> URIParsedPairArray {
+    func parseRootAsDictionary(rootKey: URIParsedKeyComponent) throws -> [URIParsedPair] {
         var data = data
         switch (configuration.style, configuration.explode) {
         case (.form, true):
             let keyValueSeparator: Character = "="
             let pairSeparator: Character = "&"
-            var items: URIParsedPairArray = []
+            var items: [URIParsedPair] = []
             while !data.isEmpty {
                 let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
                     first: keyValueSeparator,
@@ -196,7 +201,7 @@ extension URIParser {
             let keyValueSeparator: Character = "="
             let pairSeparator: Character = "&"
             let arrayElementSeparator: Character = ","
-            var items: URIParsedPairArray = []
+            var items: [URIParsedPair] = []
             while !data.isEmpty {
                 let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
                     first: keyValueSeparator,
@@ -241,7 +246,7 @@ extension URIParser {
         case (.simple, true):
             let keyValueSeparator: Character = "="
             let pairSeparator: Character = ","
-            var items: URIParsedPairArray = []
+            var items: [URIParsedPair] = []
             while !data.isEmpty {
                 let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
                     first: keyValueSeparator,
@@ -261,7 +266,7 @@ extension URIParser {
             return items
         case (.simple, false):
             let pairSeparator: Character = ","
-            var items: URIParsedPairArray = []
+            var items: [URIParsedPair] = []
             while !data.isEmpty {
                 let rawKey = data.parseUpToCharacterOrEnd(pairSeparator)
                 let value: URIParsedValue
@@ -275,7 +280,7 @@ extension URIParser {
             let pairSeparator: Character = "&"
             let nestedKeyStart: Character = "["
             let nestedKeyEnd: Character = "]"
-            var items: URIParsedPairArray = []
+            var items: [URIParsedPair] = []
             while !data.isEmpty {
                 let (firstResult, firstValue) = data.parseUpToEitherCharacterOrEnd(
                     first: keyValueSeparator,

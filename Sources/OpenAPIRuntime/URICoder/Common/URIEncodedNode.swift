@@ -73,6 +73,10 @@ extension URIEncodedNode {
         /// The encoder appended to a node that wasn't an array.
         case appendingToNonArrayContainer
 
+        /// The encoder is trying to mark a container as array, but it's already
+        /// marked as a container of another type.
+        case markingExistingNonArrayContainerAsArray
+
         /// The encoder inserted a value for key into a node that wasn't
         /// a dictionary.
         case insertingChildValueIntoNonContainer
@@ -136,7 +140,7 @@ extension URIEncodedNode {
             // Already an array.
             break
         case .unset: self = .array([])
-        default: throw InsertionError.appendingToNonArrayContainer
+        default: throw InsertionError.markingExistingNonArrayContainerAsArray
         }
     }
 
