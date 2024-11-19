@@ -32,7 +32,8 @@ final class Test_ErrorHandlingMiddlewareTests: XCTestCase {
         )
         XCTAssertEqual(response.0.status, .ok)
     }
-    func testError_confirmingToProtocol_convertedToResponse() async throws {
+
+    func testError_conformingToProtocol_convertedToResponse() async throws {
         let (response, responseBody) = try await Test_ErrorHandlingMiddlewareTests.errorHandlingMiddleware.intercept(
             Test_ErrorHandlingMiddlewareTests.mockRequest,
             body: Test_ErrorHandlingMiddlewareTests.mockBody,
@@ -45,7 +46,7 @@ final class Test_ErrorHandlingMiddlewareTests: XCTestCase {
         XCTAssertEqual(responseBody, TEST_HTTP_BODY)
     }
 
-    func testError_confirmingToProtocolWithoutAllValues_convertedToResponse() async throws {
+    func testError_conformingToProtocolWithoutAllValues_convertedToResponse() async throws {
         let (response, responseBody) = try await Test_ErrorHandlingMiddlewareTests.errorHandlingMiddleware.intercept(
             Test_ErrorHandlingMiddlewareTests.mockRequest,
             body: Test_ErrorHandlingMiddlewareTests.mockBody,
@@ -57,7 +58,8 @@ final class Test_ErrorHandlingMiddlewareTests: XCTestCase {
         XCTAssertEqual(response.headerFields, [:])
         XCTAssertEqual(responseBody, nil)
     }
-    func testError_notConfirmingToProtocol_returns500() async throws {
+
+    func testError_notConformingToProtocol_returns500() async throws {
         let (response, responseBody) = try await Test_ErrorHandlingMiddlewareTests.errorHandlingMiddleware.intercept(
             Test_ErrorHandlingMiddlewareTests.mockRequest,
             body: Test_ErrorHandlingMiddlewareTests.mockBody,
@@ -69,6 +71,7 @@ final class Test_ErrorHandlingMiddlewareTests: XCTestCase {
         XCTAssertEqual(response.headerFields, [:])
         XCTAssertEqual(responseBody, nil)
     }
+
     private func getNextMiddleware(failurePhase: MockErrorMiddleware_Next.FailurePhase) -> @Sendable (
         HTTPTypes.HTTPRequest, OpenAPIRuntime.HTTPBody?, OpenAPIRuntime.ServerRequestMetadata
     ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
