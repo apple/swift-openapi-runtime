@@ -57,8 +57,8 @@ public struct ErrorHandlingMiddleware: ServerMiddleware {
         next: @Sendable (HTTPTypes.HTTPRequest, OpenAPIRuntime.HTTPBody?, OpenAPIRuntime.ServerRequestMetadata)
             async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?)
     ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
-        do { return try await next(request, body, metadata) } catch let error as ServerError {
-            if let appError = error.underlyingError as? (any HTTPResponseConvertible) {
+        do { return try await next(request, body, metadata) } catch {
+            if let serverError = error as? ServerError, let appError = serverError.underlyingError as? (any HTTPResponseConvertible) {
                 return (
                     HTTPResponse(status: appError.httpStatus, headerFields: appError.httpHeaderFields),
                     appError.httpBody
