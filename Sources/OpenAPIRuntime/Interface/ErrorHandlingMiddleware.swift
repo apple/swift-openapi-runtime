@@ -44,10 +44,8 @@ import HTTPTypes
 /// ```
 /// - Note: The placement of ``ErrorHandlingMiddleware`` in the middleware chain is important. It should be determined based on the specific needs of each application. Consider the order of execution and dependencies between middlewares.
 public struct ErrorHandlingMiddleware: ServerMiddleware {
-    
     /// Creates a new middleware.
     public init() {}
-    
     // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
     public func intercept(
         _ request: HTTPTypes.HTTPRequest,
@@ -58,7 +56,9 @@ public struct ErrorHandlingMiddleware: ServerMiddleware {
             async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?)
     ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
         do { return try await next(request, body, metadata) } catch {
-            if let serverError = error as? ServerError, let appError = serverError.underlyingError as? (any HTTPResponseConvertible) {
+            if let serverError = error as? ServerError,
+                let appError = serverError.underlyingError as? (any HTTPResponseConvertible)
+            {
                 return (
                     HTTPResponse(status: appError.httpStatus, headerFields: appError.httpHeaderFields),
                     appError.httpBody
