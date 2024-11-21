@@ -14,7 +14,7 @@
 
 /// The serialization style used by a parameter.
 ///
-/// Details: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#fixed-fields-10
+/// Details: https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.4.md#fixed-fields-10
 @_spi(Generated) public enum ParameterStyle: Sendable {
 
     /// The form style.
@@ -26,9 +26,10 @@
     ///
     /// Details: https://datatracker.ietf.org/doc/html/rfc6570#section-3.2.2
     case simple
+
     /// The deepObject style.
     ///
-    /// Details: https://spec.openapis.org/oas/v3.1.0.html#style-values
+    /// Details: https://spec.openapis.org/oas/v3.0.4.html#style-values
     case deepObject
 }
 

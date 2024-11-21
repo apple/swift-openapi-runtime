@@ -97,7 +97,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "",
                 formDataExplode: "root=",
                 formDataUnexplode: "root=",
-                deepObjectExplode: .custom("root=", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
+                deepObjectExplode: .custom("", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
 
@@ -112,10 +112,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "Hello%20World%21",
                 formDataExplode: "root=Hello+World%21",
                 formDataUnexplode: "root=Hello+World%21",
-                deepObjectExplode: .custom(
-                    "root=Hello%20World%21",
-                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
-                )
+                deepObjectExplode: .custom("", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
 
@@ -130,7 +127,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "red",
                 formDataExplode: "root=red",
                 formDataUnexplode: "root=red",
-                deepObjectExplode: .custom("root=red", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
+                deepObjectExplode: .custom("", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
 
@@ -145,7 +142,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "1234",
                 formDataExplode: "root=1234",
                 formDataUnexplode: "root=1234",
-                deepObjectExplode: .custom("root=1234", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
+                deepObjectExplode: .custom("", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
 
@@ -160,7 +157,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "12.34",
                 formDataExplode: "root=12.34",
                 formDataUnexplode: "root=12.34",
-                deepObjectExplode: .custom("root=12.34", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
+                deepObjectExplode: .custom("", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
 
@@ -175,7 +172,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "true",
                 formDataExplode: "root=true",
                 formDataUnexplode: "root=true",
-                deepObjectExplode: .custom("root=true", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
+                deepObjectExplode: .custom("", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
 
@@ -190,10 +187,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "2023-08-25T07%3A34%3A59Z",
                 formDataExplode: "root=2023-08-25T07%3A34%3A59Z",
                 formDataUnexplode: "root=2023-08-25T07%3A34%3A59Z",
-                deepObjectExplode: .custom(
-                    "root=2023-08-25T07%3A34%3A59Z",
-                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
-                )
+                deepObjectExplode: .custom("", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
 
@@ -208,7 +202,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "a,b,c",
                 formDataExplode: "list=a&list=b&list=c",
                 formDataUnexplode: "list=a,b,c",
-                deepObjectExplode: .custom("list=a&list=b&list=c", expectedError: .deepObjectsArrayNotSupported)
+                deepObjectExplode: .custom("", expectedError: .deepObjectsArrayNotSupported)
             )
         )
 
@@ -223,10 +217,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "2023-08-25T07%3A34%3A59Z,2023-08-25T07%3A35%3A01Z",
                 formDataExplode: "list=2023-08-25T07%3A34%3A59Z&list=2023-08-25T07%3A35%3A01Z",
                 formDataUnexplode: "list=2023-08-25T07%3A34%3A59Z,2023-08-25T07%3A35%3A01Z",
-                deepObjectExplode: .custom(
-                    "list=2023-08-25T07%3A34%3A59Z&list=2023-08-25T07%3A35%3A01Z",
-                    expectedError: .deepObjectsArrayNotSupported
-                )
+                deepObjectExplode: .custom("", expectedError: .deepObjectsArrayNotSupported)
             )
         )
 
@@ -237,8 +228,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             .init(
                 formExplode: "",
                 formUnexplode: "",
-                simpleExplode: .custom("", value: [""]),
-                simpleUnexplode: .custom("", value: [""]),
+                simpleExplode: "",
+                simpleUnexplode: "",
                 formDataExplode: "",
                 formDataUnexplode: "",
                 deepObjectExplode: .custom("", expectedError: .deepObjectsArrayNotSupported)
@@ -256,10 +247,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "red,green,blue",
                 formDataExplode: "list=red&list=green&list=blue",
                 formDataUnexplode: "list=red,green,blue",
-                deepObjectExplode: .custom(
-                    "list=red&list=green&list=blue",
-                    expectedError: .deepObjectsArrayNotSupported
-                )
+                deepObjectExplode: .custom("", expectedError: .deepObjectsArrayNotSupported)
             )
         )
 
@@ -291,10 +279,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "2023-01-18T10%3A04%3A11Z",
                 formDataExplode: "root=2023-01-18T10%3A04%3A11Z",
                 formDataUnexplode: "root=2023-01-18T10%3A04%3A11Z",
-                deepObjectExplode: .custom(
-                    "root=2023-01-18T10%3A04%3A11Z",
-                    expectedError: .deepObjectsWithPrimitiveValuesNotSupported
-                )
+                deepObjectExplode: .custom("", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
         try _test(
@@ -307,7 +292,7 @@ final class Test_URICodingRoundtrip: Test_Runtime {
                 simpleUnexplode: "green",
                 formDataExplode: "root=green",
                 formDataUnexplode: "root=green",
-                deepObjectExplode: .custom("root=green", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
+                deepObjectExplode: .custom("", expectedError: .deepObjectsWithPrimitiveValuesNotSupported)
             )
         )
         try _test(
@@ -362,8 +347,8 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             .init(
                 formExplode: "",
                 formUnexplode: "",
-                simpleExplode: .custom("", value: ["": ""]),
-                simpleUnexplode: .custom("", value: ["": ""]),
+                simpleExplode: "",
+                simpleUnexplode: "",
                 formDataExplode: "",
                 formDataUnexplode: "",
                 deepObjectExplode: ""

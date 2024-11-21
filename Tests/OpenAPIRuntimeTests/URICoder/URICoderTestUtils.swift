@@ -59,10 +59,19 @@ extension URICoderConfiguration {
         spaceEscapingCharacter: .plus,
         dateTranscoder: defaultDateTranscoder
     )
+
     static let deepObjectExplode: Self = .init(
         style: .deepObject,
         explode: true,
         spaceEscapingCharacter: .percentEncoded,
         dateTranscoder: defaultDateTranscoder
     )
+}
+
+extension URIParsedKey: ExpressibleByStringLiteral {
+
+    /// Creates an instance initialized to the given string value.
+    ///
+    /// - Parameter value: The value of the new instance.
+    public init(stringLiteral value: StringLiteralType) { self.init(value.split(separator: "/").map { $0[...] }) }
 }

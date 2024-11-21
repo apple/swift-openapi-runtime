@@ -73,6 +73,10 @@ extension URIEncodedNode {
         /// The encoder appended to a node that wasn't an array.
         case appendingToNonArrayContainer
 
+        /// The encoder is trying to mark a container as array, but it's already
+        /// marked as a container of another type.
+        case markingExistingNonArrayContainerAsArray
+
         /// The encoder inserted a value for key into a node that wasn't
         /// a dictionary.
         case insertingChildValueIntoNonContainer
@@ -125,6 +129,18 @@ extension URIEncodedNode {
                 self = .dictionary([key.stringValue: childValue])
             }
         default: throw InsertionError.insertingChildValueIntoNonContainer
+        }
+    }
+
+    /// Marks the node as an array, starting as empty.
+    /// - Throws: If the node is already set to be anything else but an array.
+    mutating func markAsArray() throws {
+        switch self {
+        case .array:
+            // Already an array.
+            break
+        case .unset: self = .array([])
+        default: throw InsertionError.markingExistingNonArrayContainerAsArray
         }
     }
 
