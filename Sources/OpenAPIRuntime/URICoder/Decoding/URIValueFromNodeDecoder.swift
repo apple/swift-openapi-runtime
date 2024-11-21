@@ -345,18 +345,14 @@ extension URIValueFromNodeDecoder {
     /// - Parameter key: The key for which to look for a value.
     /// - Returns: `true` if a value was found, `false` otherwise.
     func containsElementInCurrentDictionary(forKey key: String) -> Bool {
-        do { return try withCurrentDictionaryElements { dictionary in dictionary[key[...]] != nil } } catch {
-            return false
-        }
+        (try? withCurrentDictionaryElements({ dictionary in dictionary[key[...]] != nil })) ?? false
     }
 
     /// Returns a list of keys found in the current top-of-stack dictionary.
     /// - Returns: A list of keys from the dictionary.
     /// - Throws: When parsing the root fails.
     func elementKeysInCurrentDictionary() -> [String] {
-        do { return try withCurrentDictionaryElements { dictionary in dictionary.keys.map(String.init) } } catch {
-            return []
-        }
+        (try? withCurrentDictionaryElements { dictionary in dictionary.keys.map(String.init) }) ?? []
     }
 }
 
