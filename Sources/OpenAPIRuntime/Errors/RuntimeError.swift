@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 import protocol Foundation.LocalizedError
 import struct Foundation.Data
-
+import HTTPTypes
 /// Error thrown by generated code.
 internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, PrettyStringConvertible {
 
@@ -140,4 +140,44 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 /// - Throws: An error indicating an unexpected response body content.
 @_spi(Generated) public func throwUnexpectedResponseBody(expectedContent: String, body: any Sendable) throws -> Never {
     throw RuntimeError.unexpectedResponseBody(expectedContent: expectedContent, body: body)
+}
+
+/// HTTP Response status definition for ``RuntimeError``. 
+extension RuntimeError: HTTPResponseConvertible {
+    public var httpStatus: HTTPTypes.HTTPResponse.Status {
+        switch self {
+        case .invalidServerURL,
+                .invalidServerVariableValue:
+            .notFound
+        case .invalidExpectedContentType,
+                .missingCoderForCustomContentType,
+                .unexpectedContentTypeHeader:
+            .unsupportedMediaType
+        case .unexpectedAcceptHeader(_):
+            .notAcceptable
+        case .missingOrMalformedContentDispositionName:
+            .unprocessableContent
+        case .failedToDecodeStringConvertibleValue,
+                .invalidAcceptSubstring,
+                .invalidBase64String,
+                .invalidHeaderFieldName,
+                .malformedAcceptHeader,
+                .missingMultipartBoundaryContentTypeParameter,
+                .missingRequiredHeaderField,
+                .missingRequiredMultipartFormDataContentType,
+                .missingRequiredQueryParameter,
+                .missingRequiredPathParameter,
+                .missingRequiredRequestBody,
+                .pathUnset,
+                .unsupportedParameterStyle:
+            .badRequest
+        case .handlerFailed,
+                .middlewareFailed,
+                .missingRequiredResponseBody,
+                .transportFailed,
+                .unexpectedResponseStatus,
+                .unexpectedResponseBody:
+            .internalServerError
+        }
+    }
 }
