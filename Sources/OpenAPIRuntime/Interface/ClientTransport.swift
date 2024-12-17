@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import HTTPTypes
-import struct Foundation.URL
+public import HTTPTypes
+public import struct Foundation.URL
 
 /// A type that performs HTTP operations.
 ///

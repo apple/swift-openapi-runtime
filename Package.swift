@@ -16,9 +16,13 @@ import PackageDescription
 
 // General Swift-settings for all targets.
 let swiftSettings: [SwiftSetting] = [
-    // https://github.com/apple/swift-evolution/blob/main/proposals/0335-existential-any.md
-    // Require `any` for existential types.
-    .enableUpcomingFeature("ExistentialAny")
+    // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0335-existential-any.md
+    .enableUpcomingFeature("ExistentialAny"),
+    // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0409-access-level-on-imports.md
+    .enableUpcomingFeature("InternalImportsByDefault"),
+    .enableExperimentalFeature("AccessLevelOnImport"),
+    // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0444-member-import-visibility.md
+    .enableUpcomingFeature("MemberImportVisibility"),
 ]
 
 let package = Package(

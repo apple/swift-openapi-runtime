@@ -12,9 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
-import class Foundation.NSLock
-import protocol Foundation.LocalizedError
-import struct Foundation.Data  // only for convenience initializers
+public import class Foundation.NSLock
+public import protocol Foundation.LocalizedError
+public import struct Foundation.Data  // only for convenience initializers
 
 /// A body of an HTTP request or HTTP response.
 ///

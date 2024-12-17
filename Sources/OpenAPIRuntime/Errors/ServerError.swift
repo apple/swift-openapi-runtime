@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import HTTPTypes
-import protocol Foundation.LocalizedError
+public import HTTPTypes
+public import protocol Foundation.LocalizedError
 
 /// An error thrown by a server handling an OpenAPI operation.
 public struct ServerError: Error {

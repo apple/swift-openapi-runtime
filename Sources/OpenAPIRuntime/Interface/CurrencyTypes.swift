@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import HTTPTypes
+public import HTTPTypes
 
 /// A container for request metadata already parsed and validated
 /// by the server transport.

@@ -259,7 +259,7 @@ struct MockCustomCoder: CustomCoder {
 ///   - rhs: The expected absolute string representation.
 ///   - file: The file name to include in the failure message (default is the source file where this function is called).
 ///   - line: The line number to include in the failure message (default is the line where this function is called).
-public func XCTAssertEqualURLString(_ lhs: URL?, _ rhs: String, file: StaticString = #filePath, line: UInt = #line) {
+func XCTAssertEqualURLString(_ lhs: URL?, _ rhs: String, file: StaticString = #filePath, line: UInt = #line) {
     guard let lhs else {
         XCTFail("URL is nil")
         return
@@ -384,7 +384,7 @@ public func XCTAssertEqualStringifiedData<S: Sequence>(
 ///   - file: The file name to include in the failure message (default is the source file where this function is called).
 ///   - line: The line number to include in the failure message (default is the line where this function is called).
 /// - Throws: If either of the autoclosures throws an error, the function will rethrow that error.
-public func XCTAssertEqualStringifiedData(
+func XCTAssertEqualStringifiedData(
     _ expression1: @autoclosure () throws -> HTTPBody?,
     _ expression2: @autoclosure () throws -> String,
     _ message: @autoclosure () -> String = "",
@@ -474,7 +474,7 @@ public func XCTAssertEqualAsyncData<C: Collection, AS: AsyncSequence>(
 }
 
 /// Asserts that the data matches the expected value.
-public func XCTAssertEqualData<C: Collection>(
+func XCTAssertEqualData<C: Collection>(
     _ expression1: @autoclosure () throws -> HTTPBody?,
     _ expression2: @autoclosure () throws -> C,
     _ message: @autoclosure () -> String = "Data doesn't match.",

@@ -13,9 +13,9 @@
 //===----------------------------------------------------------------------===//
 
 #if canImport(Darwin)
-import class Foundation.JSONEncoder
+public import class Foundation.JSONEncoder
 #else
-@preconcurrency import class Foundation.JSONEncoder
+@preconcurrency public import class Foundation.JSONEncoder
 #endif
 
 /// A sequence that serializes Server-sent Events.

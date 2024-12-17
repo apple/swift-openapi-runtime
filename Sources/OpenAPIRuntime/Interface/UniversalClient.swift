@@ -11,11 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import HTTPTypes
+public import HTTPTypes
 #if canImport(Darwin)
-import struct Foundation.URL
+public import struct Foundation.URL
 #else
-@preconcurrency import struct Foundation.URL
+@preconcurrency public import struct Foundation.URL
 #endif
 
 /// OpenAPI document-agnostic HTTP client used by OpenAPI document-specific,

@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import Foundation
-import HTTPTypes
+public import HTTPTypes
 
 extension Converter {
 
