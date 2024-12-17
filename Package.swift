@@ -21,8 +21,6 @@ let swiftSettings: [SwiftSetting] = [
     // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0409-access-level-on-imports.md
     .enableUpcomingFeature("InternalImportsByDefault"),
     .enableExperimentalFeature("AccessLevelOnImport"),
-    // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0444-member-import-visibility.md
-    .enableUpcomingFeature("MemberImportVisibility"),
 ]
 
 let package = Package(
