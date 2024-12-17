@@ -15,13 +15,17 @@
 import PackageDescription
 
 // General Swift-settings for all targets.
-let swiftSettings: [SwiftSetting] = [
+var swiftSettings: [SwiftSetting] = [
     // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0335-existential-any.md
-    .enableUpcomingFeature("ExistentialAny"),
+    .enableUpcomingFeature("ExistentialAny")
+]
+#if compiler(>=6.0)
+swiftSettings.append(contentsOf: [
     // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0409-access-level-on-imports.md
     .enableUpcomingFeature("InternalImportsByDefault"),
     .enableExperimentalFeature("AccessLevelOnImport"),
-]
+])
+#endif
 
 let package = Package(
     name: "swift-openapi-runtime",
