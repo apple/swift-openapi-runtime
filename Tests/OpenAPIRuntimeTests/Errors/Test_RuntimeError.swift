@@ -19,7 +19,7 @@ import XCTest
 struct MockRuntimeErrorHandler: Sendable {
     var failWithError: (any Error)? = nil
     func greet(_ input: String) async throws -> String {
-        if failWithError != nil { throw failWithError! }
+        if let failWithError { throw failWithError }
         guard input == "hello" else { throw TestError() }
         return "bye"
     }

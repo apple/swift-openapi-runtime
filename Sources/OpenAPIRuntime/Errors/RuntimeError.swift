@@ -142,41 +142,24 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     throw RuntimeError.unexpectedResponseBody(expectedContent: expectedContent, body: body)
 }
 
-/// HTTP Response status definition for ``RuntimeError``. 
+/// HTTP Response status definition for ``RuntimeError``.
 extension RuntimeError: HTTPResponseConvertible {
+    /// HTTP Status code corresponding to each error case
     public var httpStatus: HTTPTypes.HTTPResponse.Status {
         switch self {
-        case .invalidServerURL,
-                .invalidServerVariableValue:
-            .notFound
-        case .invalidExpectedContentType,
-                .missingCoderForCustomContentType,
-                .unexpectedContentTypeHeader:
-            .unsupportedMediaType
-        case .unexpectedAcceptHeader(_):
-            .notAcceptable
-        case .missingOrMalformedContentDispositionName:
-            .unprocessableContent
-        case .failedToDecodeStringConvertibleValue,
-                .invalidAcceptSubstring,
-                .invalidBase64String,
-                .invalidHeaderFieldName,
-                .malformedAcceptHeader,
-                .missingMultipartBoundaryContentTypeParameter,
-                .missingRequiredHeaderField,
-                .missingRequiredMultipartFormDataContentType,
-                .missingRequiredQueryParameter,
-                .missingRequiredPathParameter,
-                .missingRequiredRequestBody,
-                .pathUnset,
-                .unsupportedParameterStyle:
+        case .invalidServerURL, .invalidServerVariableValue: .notFound
+        case .invalidExpectedContentType, .unexpectedContentTypeHeader: .unsupportedMediaType
+        case .missingCoderForCustomContentType: .unprocessableContent
+        case .unexpectedAcceptHeader: .notAcceptable
+        case .failedToDecodeStringConvertibleValue, .invalidAcceptSubstring, .invalidBase64String,
+            .invalidHeaderFieldName, .malformedAcceptHeader, .missingMultipartBoundaryContentTypeParameter,
+            .missingOrMalformedContentDispositionName, .missingRequiredHeaderField,
+            .missingRequiredMultipartFormDataContentType, .missingRequiredQueryParameter, .missingRequiredPathParameter,
+            .missingRequiredRequestBody, .unsupportedParameterStyle:
             .badRequest
-        case .handlerFailed,
-                .middlewareFailed,
-                .missingRequiredResponseBody,
-                .transportFailed,
-                .unexpectedResponseStatus,
-                .unexpectedResponseBody:
+        case .pathUnset: .notFound
+        case .handlerFailed, .middlewareFailed, .missingRequiredResponseBody, .transportFailed,
+            .unexpectedResponseStatus, .unexpectedResponseBody:
             .internalServerError
         }
     }
