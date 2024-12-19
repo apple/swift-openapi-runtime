@@ -29,11 +29,11 @@ struct MockRuntimeErrorHandler: Sendable {
 }
 
 final class Test_RuntimeError: XCTestCase {
-    
     func testRuntimeError_withUnderlyingErrorNotConfirming_returns500() async throws {
-        
-        let server = UniversalServer(handler: MockRuntimeErrorHandler(failWithError: RuntimeError.transportFailed(TestError())),
-                                     middlewares: [ErrorHandlingMiddleware()])
+        let server = UniversalServer(
+            handler: MockRuntimeErrorHandler(failWithError: RuntimeError.transportFailed(TestError())),
+            middlewares: [ErrorHandlingMiddleware()]
+        )
         let response = try await server.handle(
             request: .init(soar_path: "/", method: .post),
             requestBody: MockHandler.requestBody,
@@ -50,9 +50,10 @@ final class Test_RuntimeError: XCTestCase {
     }
 
     func testRuntimeError_withUnderlyingErrorConfirming_returnsCorrectStatusCode() async throws {
-        
-        let server = UniversalServer(handler: MockRuntimeErrorHandler(failWithError: TestErrorConvertible.testError("Test Error")),
-                                     middlewares: [ErrorHandlingMiddleware()])
+        let server = UniversalServer(
+            handler: MockRuntimeErrorHandler(failWithError: TestErrorConvertible.testError("Test Error")),
+            middlewares: [ErrorHandlingMiddleware()]
+        )
         let response = try await server.handle(
             request: .init(soar_path: "/", method: .post),
             requestBody: MockHandler.requestBody,
@@ -71,11 +72,6 @@ final class Test_RuntimeError: XCTestCase {
 
 enum TestErrorConvertible: Error, HTTPResponseConvertible {
     case testError(String)
-    
     /// HTTP status code for error cases
-    public var httpStatus: HTTPTypes.HTTPResponse.Status {
-        .badGateway
-    }
+    public var httpStatus: HTTPTypes.HTTPResponse.Status { .badGateway }
 }
-
-
