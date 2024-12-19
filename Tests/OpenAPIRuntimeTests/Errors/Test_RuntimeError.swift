@@ -29,7 +29,7 @@ struct MockRuntimeErrorHandler: Sendable {
 }
 
 final class Test_RuntimeError: XCTestCase {
-    func testRuntimeError_withUnderlyingErrorNotConfirming_returns500() async throws {
+    func testRuntimeError_withUnderlyingErrorNotConforming_returns500() async throws {
         let server = UniversalServer(
             handler: MockRuntimeErrorHandler(failWithError: RuntimeError.transportFailed(TestError())),
             middlewares: [ErrorHandlingMiddleware()]
@@ -49,7 +49,7 @@ final class Test_RuntimeError: XCTestCase {
         XCTAssertEqual(response.0.status, .internalServerError)
     }
 
-    func testRuntimeError_withUnderlyingErrorConfirming_returnsCorrectStatusCode() async throws {
+    func testRuntimeError_withUnderlyingErrorConforming_returnsCorrectStatusCode() async throws {
         let server = UniversalServer(
             handler: MockRuntimeErrorHandler(failWithError: TestErrorConvertible.testError("Test Error")),
             middlewares: [ErrorHandlingMiddleware()]

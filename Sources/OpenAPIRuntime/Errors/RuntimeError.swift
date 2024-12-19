@@ -14,6 +14,7 @@
 import protocol Foundation.LocalizedError
 import struct Foundation.Data
 import HTTPTypes
+
 /// Error thrown by generated code.
 internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, PrettyStringConvertible {
 
@@ -147,7 +148,7 @@ extension RuntimeError: HTTPResponseConvertible {
     /// HTTP Status code corresponding to each error case
     public var httpStatus: HTTPTypes.HTTPResponse.Status {
         switch self {
-        case .invalidServerURL, .invalidServerVariableValue: .notFound
+        case .invalidServerURL, .invalidServerVariableValue, .pathUnset: .notFound
         case .invalidExpectedContentType, .unexpectedContentTypeHeader: .unsupportedMediaType
         case .missingCoderForCustomContentType: .unprocessableContent
         case .unexpectedAcceptHeader: .notAcceptable
@@ -157,7 +158,6 @@ extension RuntimeError: HTTPResponseConvertible {
             .missingRequiredMultipartFormDataContentType, .missingRequiredQueryParameter, .missingRequiredPathParameter,
             .missingRequiredRequestBody, .unsupportedParameterStyle:
             .badRequest
-        case .pathUnset: .notFound
         case .handlerFailed, .middlewareFailed, .missingRequiredResponseBody, .transportFailed,
             .unexpectedResponseStatus, .unexpectedResponseBody:
             .internalServerError
