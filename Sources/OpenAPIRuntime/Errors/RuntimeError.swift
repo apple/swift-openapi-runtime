@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 import protocol Foundation.LocalizedError
 import struct Foundation.Data
+import HTTPTypes
 
 /// Error thrown by generated code.
 internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, PrettyStringConvertible {
@@ -140,4 +141,26 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
 /// - Throws: An error indicating an unexpected response body content.
 @_spi(Generated) public func throwUnexpectedResponseBody(expectedContent: String, body: any Sendable) throws -> Never {
     throw RuntimeError.unexpectedResponseBody(expectedContent: expectedContent, body: body)
+}
+
+/// HTTP Response status definition for ``RuntimeError``.
+extension RuntimeError: HTTPResponseConvertible {
+    /// HTTP Status code corresponding to each error case
+    public var httpStatus: HTTPTypes.HTTPResponse.Status {
+        switch self {
+        case .invalidServerURL, .invalidServerVariableValue, .pathUnset: .notFound
+        case .invalidExpectedContentType, .unexpectedContentTypeHeader: .unsupportedMediaType
+        case .missingCoderForCustomContentType: .unprocessableContent
+        case .unexpectedAcceptHeader: .notAcceptable
+        case .failedToDecodeStringConvertibleValue, .invalidAcceptSubstring, .invalidBase64String,
+            .invalidHeaderFieldName, .malformedAcceptHeader, .missingMultipartBoundaryContentTypeParameter,
+            .missingOrMalformedContentDispositionName, .missingRequiredHeaderField,
+            .missingRequiredMultipartFormDataContentType, .missingRequiredQueryParameter, .missingRequiredPathParameter,
+            .missingRequiredRequestBody, .unsupportedParameterStyle:
+            .badRequest
+        case .handlerFailed, .middlewareFailed, .missingRequiredResponseBody, .transportFailed,
+            .unexpectedResponseStatus, .unexpectedResponseBody:
+            .internalServerError
+        }
+    }
 }
