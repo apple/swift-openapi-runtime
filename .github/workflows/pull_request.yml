@@ -27,3 +27,4 @@ jobs:
     with:
       name: "Integration test"
       matrix_linux_command: "apt-get update -yq && apt-get install -yq jq && ./scripts/run-integration-test.sh"
+      matrix_linux_nightly_main_enabled: false
