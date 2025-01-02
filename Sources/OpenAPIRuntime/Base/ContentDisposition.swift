@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+import Foundation
 
 /// A parsed representation of the `content-disposition` header described by RFC 6266 containing only
 /// the features relevant to OpenAPI multipart bodies.

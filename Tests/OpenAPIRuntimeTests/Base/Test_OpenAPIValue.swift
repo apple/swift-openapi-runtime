@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-#if canImport(Foundation)
-@preconcurrency import Foundation
+import Foundation
+#if canImport(CoreFoundation)
 import CoreFoundation
 #endif
 @_spi(Generated) @testable import OpenAPIRuntime

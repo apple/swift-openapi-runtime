@@ -14,6 +14,7 @@
 import XCTest
 @_spi(Generated) @testable import OpenAPIRuntime
 import Foundation
+import HTTPTypes
 
 final class Test_MultipartValidationSequence: Test_Runtime {
     func test() async throws {
