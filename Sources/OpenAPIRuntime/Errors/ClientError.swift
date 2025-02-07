@@ -110,7 +110,7 @@ public struct ClientError: Error {
 
     fileprivate var underlyingErrorDescription: String {
         guard let prettyError = underlyingError as? (any PrettyStringConvertible) else {
-            return underlyingError.localizedDescription
+            return "\(underlyingError)"
         }
         return prettyError.prettyDescription
     }
