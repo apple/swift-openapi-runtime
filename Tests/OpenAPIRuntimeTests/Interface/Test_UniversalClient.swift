@@ -122,11 +122,13 @@ final class Test_UniversalClient: Test_Runtime {
     func testErrorPropagation_customErrorMapper() async throws {
         do {
             let client = UniversalClient(
-                transport: MockClientTransport.failing,
-                errorMapper: { clientError in
-                    // Don't care about the extra context, just wants the underlyingError
-                    clientError.underlyingError
-                }
+                configuration: .init(
+                    clientErrorMapper: { clientError in
+                        // Don't care about the extra context, just wants the underlyingError
+                        clientError.underlyingError
+                    }
+                ),
+                transport: MockClientTransport.failing
             )
             try await client.send(
                 input: "input",

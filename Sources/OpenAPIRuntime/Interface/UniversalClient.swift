@@ -61,15 +61,14 @@ import struct Foundation.URL
         serverURL: URL = .defaultOpenAPIServerURL,
         configuration: Configuration = .init(),
         transport: any ClientTransport,
-        middlewares: [any ClientMiddleware] = [],
-        errorMapper: (@Sendable (ClientError) -> any Error)? = nil
+        middlewares: [any ClientMiddleware] = []
     ) {
         self.init(
             serverURL: serverURL,
             converter: Converter(configuration: configuration),
             transport: transport,
             middlewares: middlewares,
-            errorMapper: errorMapper
+            errorMapper: configuration.clientErrorMapper
         )
     }
 

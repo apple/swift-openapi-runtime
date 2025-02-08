@@ -40,12 +40,22 @@ import struct Foundation.URLComponents
     /// The middlewares to be invoked before the handler receives the request.
     public var middlewares: [any ServerMiddleware]
 
+    /// An error mapping closure to allow customizing the error thrown by the server handler.
+    public var errorMapper: (@Sendable (ServerError) -> any Error)?
+
     /// Internal initializer that takes an initialized converter.
-    internal init(serverURL: URL, converter: Converter, handler: APIHandler, middlewares: [any ServerMiddleware]) {
+    internal init(
+        serverURL: URL,
+        converter: Converter,
+        handler: APIHandler,
+        middlewares: [any ServerMiddleware],
+        errorMapper: (@Sendable (ServerError) -> any Error)?
+    ) {
         self.serverURL = serverURL
         self.converter = converter
         self.handler = handler
         self.middlewares = middlewares
+        self.errorMapper = errorMapper
     }
 
     /// Creates a new server with the specified parameters.
@@ -59,7 +69,8 @@ import struct Foundation.URLComponents
             serverURL: serverURL,
             converter: Converter(configuration: configuration),
             handler: handler,
-            middlewares: middlewares
+            middlewares: middlewares,
+            errorMapper: configuration.serverErrorMapper
         )
     }
 
@@ -169,7 +180,15 @@ import struct Foundation.URLComponents
                 }
             }
         }
-        return try await next(request, requestBody, metadata)
+        do {
+            return try await next(request, requestBody, metadata)
+        } catch {
+            if let errorMapper, let serverError = error as? ServerError {
+                throw errorMapper(serverError)
+            } else {
+                throw error
+            }
+        }
     }
 
     /// Returns the path with the server URL's path prefix prepended.
