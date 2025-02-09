@@ -122,12 +122,10 @@ final class Test_UniversalClient: Test_Runtime {
     func testErrorPropagation_customErrorMapper() async throws {
         do {
             let client = UniversalClient(
-                configuration: .init(
-                    clientErrorMapper: { clientError in
-                        // Don't care about the extra context, just wants the underlyingError
-                        clientError.underlyingError
-                    }
-                ),
+                configuration: .init(clientErrorMapper: { clientError in
+                    // Don't care about the extra context, just wants the underlyingError
+                    clientError.underlyingError
+                }),
                 transport: MockClientTransport.failing
             )
             try await client.send(
@@ -136,9 +134,7 @@ final class Test_UniversalClient: Test_Runtime {
                 serializer: { input in (HTTPRequest(soar_path: "/", method: .post), MockClientTransport.requestBody) },
                 deserializer: { response, body in fatalError() }
             )
-        } catch {
-            XCTAssertTrue(error is TestError, "Threw an unexpected error: \(type(of: error))")
-        }
+        } catch { XCTAssertTrue(error is TestError, "Threw an unexpected error: \(type(of: error))") }
     }
 
     func testErrorPropagation_middlewareOnResponse() async throws {

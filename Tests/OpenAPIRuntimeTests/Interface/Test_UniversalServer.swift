@@ -133,12 +133,10 @@ final class Test_UniversalServer: Test_Runtime {
         do {
             let server = UniversalServer(
                 handler: MockHandler(shouldFail: true),
-                configuration: .init(
-                    serverErrorMapper: { serverError in
-                        // Don't care about the extra context, just wants the underlyingError
-                        serverError.underlyingError
-                    }
-                )
+                configuration: .init(serverErrorMapper: { serverError in
+                    // Don't care about the extra context, just wants the underlyingError
+                    serverError.underlyingError
+                })
             )
             _ = try await server.handle(
                 request: .init(soar_path: "/", method: .post),
@@ -152,9 +150,7 @@ final class Test_UniversalServer: Test_Runtime {
                 },
                 serializer: { output, _ in fatalError() }
             )
-        } catch {
-            XCTAssertTrue(error is TestError, "Threw an unexpected error: \(type(of: error))")
-        }
+        } catch { XCTAssertTrue(error is TestError, "Threw an unexpected error: \(type(of: error))") }
     }
 
     func testErrorPropagation_serializer() async throws {

@@ -180,9 +180,7 @@ import struct Foundation.URLComponents
                 }
             }
         }
-        do {
-            return try await next(request, requestBody, metadata)
-        } catch {
+        do { return try await next(request, requestBody, metadata) } catch {
             if let errorMapper, let serverError = error as? ServerError {
                 throw errorMapper(serverError)
             } else {

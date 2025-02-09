@@ -67,8 +67,12 @@ extension Configuration {
     ///   - jsonEncodingOptions: The options for the underlying JSON encoder.
     ///   - multipartBoundaryGenerator: The generator to use when creating mutlipart bodies.
     ///   - xmlCoder: Custom XML coder for encoding and decoding xml bodies. Only required when using XML body payloads.
-    @available(*, deprecated, renamed: "init(dateTranscoder:jsonEncodingOptions:multipartBoundaryGenerator:xmlCoder:clientErrorMapper:serverErrorMapper:)")
-    @_disfavoredOverload public init(
+    @available(
+        *,
+        deprecated,
+        renamed:
+            "init(dateTranscoder:jsonEncodingOptions:multipartBoundaryGenerator:xmlCoder:clientErrorMapper:serverErrorMapper:)"
+    ) @_disfavoredOverload public init(
         dateTranscoder: any DateTranscoder = .iso8601,
         jsonEncodingOptions: JSONEncodingOptions = [.sortedKeys, .prettyPrinted],
         multipartBoundaryGenerator: any MultipartBoundaryGenerator = .random,

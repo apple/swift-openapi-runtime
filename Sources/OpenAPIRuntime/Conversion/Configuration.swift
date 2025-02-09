@@ -166,7 +166,8 @@ public struct Configuration: Sendable {
     ///   - jsonEncodingOptions: The options for the underlying JSON encoder.
     ///   - multipartBoundaryGenerator: The generator to use when creating mutlipart bodies.
     ///   - xmlCoder: Custom XML coder for encoding and decoding xml bodies. Only required when using XML body payloads.
-    ///   - errorMapper: An error mapping closure to allow customizing the final error thrown.
+    ///   - clientErrorMapper: An error mapping closure to allow customizing the error thrown by the client.
+    ///   - serverErrorMapper: An error mapping closure to allow customizing the error thrown by the server.
     public init(
         dateTranscoder: any DateTranscoder = .iso8601,
         jsonEncodingOptions: JSONEncodingOptions = [.sortedKeys, .prettyPrinted],
