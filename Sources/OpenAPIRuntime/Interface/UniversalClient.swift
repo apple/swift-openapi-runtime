@@ -38,17 +38,22 @@ import struct Foundation.URL
     /// The middlewares to be invoked before the transport.
     public var middlewares: [any ClientMiddleware]
 
+    /// An error mapping closure to allow customizing the error thrown by the client.
+    public var errorMapper: (@Sendable (ClientError) -> any Error)?
+
     /// Internal initializer that takes an initialized `Converter`.
     internal init(
         serverURL: URL,
         converter: Converter,
         transport: any ClientTransport,
-        middlewares: [any ClientMiddleware]
+        middlewares: [any ClientMiddleware],
+        errorMapper: (@Sendable (ClientError) -> any Error)?
     ) {
         self.serverURL = serverURL
         self.converter = converter
         self.transport = transport
         self.middlewares = middlewares
+        self.errorMapper = errorMapper
     }
 
     /// Creates a new client.
@@ -62,7 +67,8 @@ import struct Foundation.URL
             serverURL: serverURL,
             converter: Converter(configuration: configuration),
             transport: transport,
-            middlewares: middlewares
+            middlewares: middlewares,
+            errorMapper: configuration.clientErrorMapper
         )
     }
 
@@ -135,57 +141,65 @@ import struct Foundation.URL
                 underlyingError: underlyingError
             )
         }
-        let (request, requestBody): (HTTPRequest, HTTPBody?) = try await wrappingErrors {
-            try serializer(input)
-        } mapError: { error in
-            makeError(error: error)
-        }
-        var next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?) = {
-            (_request, _body, _url) in
-            try await wrappingErrors {
-                try await transport.send(_request, body: _body, baseURL: _url, operationID: operationID)
+        do {
+            let (request, requestBody): (HTTPRequest, HTTPBody?) = try await wrappingErrors {
+                try serializer(input)
             } mapError: { error in
-                makeError(
-                    request: request,
-                    requestBody: requestBody,
-                    baseURL: baseURL,
-                    error: RuntimeError.transportFailed(error)
-                )
+                makeError(error: error)
             }
-        }
-        for middleware in middlewares.reversed() {
-            let tmp = next
-            next = { (_request, _body, _url) in
+            var next: @Sendable (HTTPRequest, HTTPBody?, URL) async throws -> (HTTPResponse, HTTPBody?) = {
+                (_request, _body, _url) in
                 try await wrappingErrors {
-                    try await middleware.intercept(
-                        _request,
-                        body: _body,
-                        baseURL: _url,
-                        operationID: operationID,
-                        next: tmp
-                    )
+                    try await transport.send(_request, body: _body, baseURL: _url, operationID: operationID)
                 } mapError: { error in
                     makeError(
                         request: request,
                         requestBody: requestBody,
                         baseURL: baseURL,
-                        error: RuntimeError.middlewareFailed(middlewareType: type(of: middleware), error)
+                        error: RuntimeError.transportFailed(error)
                     )
                 }
             }
-        }
-        let (response, responseBody): (HTTPResponse, HTTPBody?) = try await next(request, requestBody, baseURL)
-        return try await wrappingErrors {
-            try await deserializer(response, responseBody)
-        } mapError: { error in
-            makeError(
-                request: request,
-                requestBody: requestBody,
-                baseURL: baseURL,
-                response: response,
-                responseBody: responseBody,
-                error: error
-            )
+            for middleware in middlewares.reversed() {
+                let tmp = next
+                next = { (_request, _body, _url) in
+                    try await wrappingErrors {
+                        try await middleware.intercept(
+                            _request,
+                            body: _body,
+                            baseURL: _url,
+                            operationID: operationID,
+                            next: tmp
+                        )
+                    } mapError: { error in
+                        makeError(
+                            request: request,
+                            requestBody: requestBody,
+                            baseURL: baseURL,
+                            error: RuntimeError.middlewareFailed(middlewareType: type(of: middleware), error)
+                        )
+                    }
+                }
+            }
+            let (response, responseBody): (HTTPResponse, HTTPBody?) = try await next(request, requestBody, baseURL)
+            return try await wrappingErrors {
+                try await deserializer(response, responseBody)
+            } mapError: { error in
+                makeError(
+                    request: request,
+                    requestBody: requestBody,
+                    baseURL: baseURL,
+                    response: response,
+                    responseBody: responseBody,
+                    error: error
+                )
+            }
+        } catch {
+            if let errorMapper, let clientError = error as? ClientError {
+                throw errorMapper(clientError)
+            } else {
+                throw error
+            }
         }
     }
 }
