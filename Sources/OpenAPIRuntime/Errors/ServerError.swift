@@ -82,9 +82,7 @@ public struct ServerError: Error {
     // MARK: Private
 
     fileprivate var underlyingErrorDescription: String {
-        guard let prettyError = underlyingError as? (any PrettyStringConvertible) else {
-            return underlyingError.localizedDescription
-        }
+        guard let prettyError = underlyingError as? (any PrettyStringConvertible) else { return "\(underlyingError)" }
         return prettyError.prettyDescription
     }
 }
@@ -106,5 +104,7 @@ extension ServerError: LocalizedError {
     /// This computed property provides a localized human-readable description of the server error, which is suitable for displaying to users.
     ///
     /// - Returns: A localized string describing the server error.
-    public var errorDescription: String? { description }
+    public var errorDescription: String? {
+        "Server encountered an error handling the operation \"\(operationID)\", caused by \"\(causeDescription)\", underlying error: \(underlyingError.localizedDescription)."
+    }
 }

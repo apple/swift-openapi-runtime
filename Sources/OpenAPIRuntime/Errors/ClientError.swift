@@ -109,9 +109,7 @@ public struct ClientError: Error {
     // MARK: Private
 
     fileprivate var underlyingErrorDescription: String {
-        guard let prettyError = underlyingError as? (any PrettyStringConvertible) else {
-            return underlyingError.localizedDescription
-        }
+        guard let prettyError = underlyingError as? (any PrettyStringConvertible) else { return "\(underlyingError)" }
         return prettyError.prettyDescription
     }
 }
@@ -133,5 +131,7 @@ extension ClientError: LocalizedError {
     /// This computed property provides a localized human-readable description of the client error, which is suitable for displaying to users.
     ///
     /// - Returns: A localized string describing the client error.
-    public var errorDescription: String? { description }
+    public var errorDescription: String? {
+        "Client encountered an error invoking the operation \"\(operationID)\", caused by \"\(causeDescription)\", underlying error: \(underlyingError.localizedDescription)."
+    }
 }

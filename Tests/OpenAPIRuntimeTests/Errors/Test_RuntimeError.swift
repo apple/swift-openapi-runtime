@@ -68,6 +68,12 @@ final class Test_RuntimeError: XCTestCase {
         )
         XCTAssertEqual(response.0.status, .badGateway)
     }
+
+    func testDescriptions() async throws {
+        let error: any Error = RuntimeError.transportFailed(PrintableError())
+        XCTAssertEqual("\(error)", "Transport threw an error.")
+        XCTAssertEqual(error.localizedDescription, "Transport threw an error.")
+    }
 }
 
 enum TestErrorConvertible: Error, HTTPResponseConvertible {

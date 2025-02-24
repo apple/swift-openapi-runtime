@@ -114,12 +114,18 @@ struct MultiError: Swift.Error, LocalizedError, CustomStringConvertible {
     var description: String {
         let combinedDescription =
             errors.map { error in
-                guard let error = error as? (any PrettyStringConvertible) else { return error.localizedDescription }
+                guard let error = error as? (any PrettyStringConvertible) else { return "\(error)" }
                 return error.prettyDescription
             }
             .enumerated().map { ($0.offset + 1, $0.element) }.map { "Error \($0.0): [\($0.1)]" }.joined(separator: ", ")
         return "MultiError (contains \(errors.count) error\(errors.count == 1 ? "" : "s")): \(combinedDescription)"
     }
 
-    var errorDescription: String? { description }
+    var errorDescription: String? {
+        if let first = errors.first {
+            return "Mutliple errors encountered, first one: \(first.localizedDescription)."
+        } else {
+            return "No errors"
+        }
+    }
 }
