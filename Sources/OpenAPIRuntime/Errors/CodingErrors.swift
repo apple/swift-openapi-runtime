@@ -21,7 +21,7 @@ extension DecodingError: PrettyStringConvertible {
         case .keyNotFound(let key, let context): output = "keyNotFound \(key) - \(context.prettyDescription)"
         case .typeMismatch(let type, let context): output = "typeMismatch \(type) - \(context.prettyDescription)"
         case .valueNotFound(let type, let context): output = "valueNotFound \(type) - \(context.prettyDescription)"
-        @unknown default: output = "unknown: \(localizedDescription)"
+        @unknown default: output = "unknown: \(self)"
         }
         return "DecodingError: \(output)"
     }
@@ -30,7 +30,7 @@ extension DecodingError: PrettyStringConvertible {
 extension DecodingError.Context: PrettyStringConvertible {
     var prettyDescription: String {
         let path = codingPath.map(\.description).joined(separator: "/")
-        return "at \(path): \(debugDescription) (underlying error: \(underlyingError?.localizedDescription ?? "<nil>"))"
+        return "at \(path): \(debugDescription) (underlying error: \(underlyingError.map { "\($0)" } ?? "<nil>"))"
     }
 }
 
@@ -39,7 +39,7 @@ extension EncodingError: PrettyStringConvertible {
         let output: String
         switch self {
         case .invalidValue(let value, let context): output = "invalidValue \(value) - \(context.prettyDescription)"
-        @unknown default: output = "unknown: \(localizedDescription)"
+        @unknown default: output = "unknown: \(self)"
         }
         return "EncodingError: \(output)"
     }
@@ -48,6 +48,6 @@ extension EncodingError: PrettyStringConvertible {
 extension EncodingError.Context: PrettyStringConvertible {
     var prettyDescription: String {
         let path = codingPath.map(\.description).joined(separator: "/")
-        return "at \(path): \(debugDescription) (underlying error: \(underlyingError?.localizedDescription ?? "<nil>"))"
+        return "at \(path): \(debugDescription) (underlying error: \(underlyingError.map { "\($0)" } ?? "<nil>"))"
     }
 }
