@@ -23,41 +23,27 @@ let swiftSettings: [SwiftSetting] = [
 
 let package = Package(
     name: "swift-openapi-runtime",
-    platforms: [
-        .macOS(.v10_15), .macCatalyst(.v13), .iOS(.v13), .tvOS(.v13), .watchOS(.v6), .visionOS(.v1)
-    ],
-    products: [
-        .library(
-            name: "OpenAPIRuntime",
-            targets: ["OpenAPIRuntime"]
-        )
-    ],
-    dependencies: [
-        .package(url: "https://github.com/apple/swift-http-types", from: "1.0.0"),
-    ],
+    platforms: [.macOS(.v10_15), .macCatalyst(.v13), .iOS(.v13), .tvOS(.v13), .watchOS(.v6), .visionOS(.v1)],
+    products: [.library(name: "OpenAPIRuntime", targets: ["OpenAPIRuntime"])],
+    dependencies: [.package(url: "https://github.com/apple/swift-http-types", from: "1.0.0")],
     targets: [
         .target(
             name: "OpenAPIRuntime",
-            dependencies: [
-                .product(name: "HTTPTypes", package: "swift-http-types")
-            ],
+            dependencies: [.product(name: "HTTPTypes", package: "swift-http-types")],
             swiftSettings: swiftSettings
-        ),
-        .testTarget(
-            name: "OpenAPIRuntimeTests",
-            dependencies: ["OpenAPIRuntime"],
-            swiftSettings: swiftSettings
-        ),
+        ), .testTarget(name: "OpenAPIRuntimeTests", dependencies: ["OpenAPIRuntime"], swiftSettings: swiftSettings),
     ]
 )
 
 // ---    STANDARD CROSS-REPO SETTINGS DO NOT EDIT   --- //
 for target in package.targets {
-    if target.type != .plugin {
+    switch target.type {
+    case .regular, .test, .executable:
         var settings = target.swiftSettings ?? []
         // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0444-member-import-visibility.md
         settings.append(.enableUpcomingFeature("MemberImportVisibility"))
         target.swiftSettings = settings
+    case .macro, .plugin, .system, .binary: ()  // not applicable
+    @unknown default: ()  // we don't know what to do here, do nothing
     }
-}
-// --- END: STANDARD CROSS-REPO SETTINGS DO NOT EDIT --- //
+}// --- END: STANDARD CROSS-REPO SETTINGS DO NOT EDIT --- //
