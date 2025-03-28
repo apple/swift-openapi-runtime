@@ -28,3 +28,9 @@ jobs:
     name: Static SDK
     # Workaround https://github.com/nektos/act/issues/1875
     uses: apple/swift-nio/.github/workflows/static_sdk.yml@main
+
+  macos-tests:
+    name: macOS tests
+    uses: apple/swift-nio/.github/workflows/macos_tests.yml@main
+    with:
+      build_scheme: swift-openapi-runtime
