@@ -197,7 +197,7 @@ public protocol ServerTransport {
 ///                 print("<<<: \(response.status.code)")
 ///                 return (response, responseBody)
 ///             } catch {
-///                 print("!!!: \(error.localizedDescription)")
+///                 print("!!!: \(error)")
 ///                 throw error
 ///             }
 ///         }

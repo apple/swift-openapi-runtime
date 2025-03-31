@@ -121,6 +121,10 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
             return "Unexpected response body, expected content type: \(expectedContentType), body: \(body)"
         }
     }
+
+    // MARK: - LocalizedError
+
+    var errorDescription: String? { description }
 }
 
 /// Throws an error to indicate an unexpected HTTP response status.

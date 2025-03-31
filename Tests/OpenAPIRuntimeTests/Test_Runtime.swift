@@ -210,6 +210,11 @@ extension ArraySlice<UInt8> {
 
 struct TestError: Error, Equatable {}
 
+struct PrintableError: Error, CustomStringConvertible, LocalizedError {
+    var description: String { "Just description" }
+    var errorDescription: String? { "Just errorDescription" }
+}
+
 struct MockMiddleware: ClientMiddleware, ServerMiddleware {
     enum FailurePhase {
         case never
@@ -345,7 +350,7 @@ struct PrintingMiddleware: ClientMiddleware {
             print("Received: \(response.status)")
             return (response, responseBody)
         } catch {
-            print("Failed with error: \(error.localizedDescription)")
+            print("Failed with error: \(error)")
             throw error
         }
     }
@@ -373,7 +378,7 @@ public func XCTAssertEqualStringifiedData<S: Sequence>(
         }
         let actualString = String(decoding: Array(value1), as: UTF8.self)
         XCTAssertEqual(actualString, try expression2(), file: file, line: line)
-    } catch { XCTFail(error.localizedDescription, file: file, line: line) }
+    } catch { XCTFail("\(error)", file: file, line: line) }
 }
 
 /// Asserts that the string representation of binary data in an HTTP body is equal to an expected string.
@@ -454,7 +459,7 @@ public func XCTAssertEqualData<C1: Collection, C2: Collection>(
             file: file,
             line: line
         )
-    } catch { XCTFail(error.localizedDescription, file: file, line: line) }
+    } catch { XCTFail("\(error)", file: file, line: line) }
 }
 
 /// Asserts that the data matches the expected value.
