@@ -19,7 +19,9 @@ import class Foundation.NSNull
 @preconcurrency import class Foundation.NSNull
 #endif
 import class Foundation.NSNumber
+#if canImport(CoreFoundation)
 import CoreFoundation
+#endif
 #endif
 
 /// A container for a value represented by JSON Schema.
@@ -141,10 +143,12 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             try container.encodeNil()
             return
         }
+        #if canImport(CoreFoundation)
         if let nsNumber = value as? NSNumber {
             try encode(nsNumber, to: &container)
             return
         }
+        #endif
         #endif
         switch value {
         case let value as Bool: try container.encode(value)
@@ -162,6 +166,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             )
         }
     }
+    #if canImport(CoreFoundation)
     /// Encodes the provided NSNumber based on its internal representation.
     /// - Parameters:
     ///   - value: The NSNumber that boxes one of possibly many different types of values.
@@ -198,6 +203,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             }
         }
     }
+    #endif
 
     // MARK: Equatable
 

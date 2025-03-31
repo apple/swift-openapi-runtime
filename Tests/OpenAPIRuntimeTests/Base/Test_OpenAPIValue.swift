@@ -78,6 +78,7 @@ final class Test_OpenAPIValue: Test_Runtime {
         try _testPrettyEncoded(container, expectedJSON: expectedString)
     }
 
+    #if canImport(CoreFoundation)
     func testEncodingNSNumber() throws {
         func assertEncodedCF(
             _ value: CFNumber,
@@ -128,6 +129,7 @@ final class Test_OpenAPIValue: Test_Runtime {
         XCTAssertThrowsError(try assertEncodedCF(kCFNumberNegativeInfinity, as: "-"))
         XCTAssertThrowsError(try assertEncodedCF(kCFNumberPositiveInfinity, as: "-"))
     }
+    #endif
     #endif
     func testEncoding_container_failure() throws {
         struct Foobar: Equatable {}
