@@ -41,6 +41,7 @@ jobs:
         env:
           MATRIX_LINUX_SETUP_COMMAND: apt-get update -y && apt-get install -yq jq
           MATRIX_LINUX_COMMAND: ./scripts/run-integration-test.sh
+          MATRIX_LINUX_NIGHTLY_MAIN_ENABLED: false
 
   integration-test:
     name: Integration test
@@ -49,7 +50,6 @@ jobs:
     with:
       name: "Integration test"
       matrix_string: '${{ needs.construct-integration-test-matrix.outputs.integration-test-matrix }}'
-      matrix_linux_nightly_main_enabled: false
 
   static-sdk:
     name: Static SDK
