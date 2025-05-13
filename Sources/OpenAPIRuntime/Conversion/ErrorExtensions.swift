@@ -123,7 +123,7 @@ struct MultiError: Swift.Error, LocalizedError, CustomStringConvertible {
 
     var errorDescription: String? {
         if let first = errors.first {
-            return "Mutliple errors encountered, first one: \(first.localizedDescription)."
+            return "Multiple errors encountered, first one: \(first.localizedDescription)."
         } else {
             return "No errors"
         }
