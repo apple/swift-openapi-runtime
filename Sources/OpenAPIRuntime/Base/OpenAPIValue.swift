@@ -114,10 +114,20 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             self.init(validatedValue: item)
         } else if let item = try? container.decode(String.self) {
             self.init(validatedValue: item)
-        } else if let item = try? container.decode([OpenAPIValueContainer].self) {
-            self.init(validatedValue: item.map(\.value))
-        } else if let item = try? container.decode([String: OpenAPIValueContainer].self) {
-            self.init(validatedValue: item.mapValues(\.value))
+        } else if var container = try? decoder.unkeyedContainer() {
+            var items: [(any Sendable)?] = []
+            if let count = container.count { items.reserveCapacity(count) }
+            while !container.isAtEnd {
+                let item = try container.decode(OpenAPIValueContainer.self)
+                items.append(item.value)
+            }
+            self.init(validatedValue: items)
+        } else if let container = try? decoder.container(keyedBy: StringKey.self) {
+            let keyValuePairs = try container.allKeys.map { key -> (String, (any Sendable)?) in
+                let item = try container.decode(OpenAPIValueContainer.self, forKey: key)
+                return (key.stringValue, item.value)
+            }
+            self.init(validatedValue: Dictionary(uniqueKeysWithValues: keyValuePairs))
         } else {
             throw DecodingError.dataCorruptedError(
                 in: container,
@@ -133,36 +143,53 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
     /// - Parameter encoder: The encoder to which the value should be encoded.
     /// - Throws: An error if the encoding process encounters issues or if the value is invalid.
     public func encode(to encoder: any Encoder) throws {
-        var container = encoder.singleValueContainer()
         guard let value = value else {
+            var container = encoder.singleValueContainer()
             try container.encodeNil()
             return
         }
         #if canImport(Foundation)
         if value is NSNull {
+            var container = encoder.singleValueContainer()
             try container.encodeNil()
             return
         }
         #if canImport(CoreFoundation)
         if let nsNumber = value as? NSNumber {
+            var container = encoder.singleValueContainer()
             try encode(nsNumber, to: &container)
             return
         }
         #endif
         #endif
         switch value {
-        case let value as Bool: try container.encode(value)
-        case let value as Int: try container.encode(value)
-        case let value as Double: try container.encode(value)
-        case let value as String: try container.encode(value)
+        case let value as Bool:
+            var container = encoder.singleValueContainer()
+            try container.encode(value)
+        case let value as Int:
+            var container = encoder.singleValueContainer()
+            try container.encode(value)
+        case let value as Double:
+            var container = encoder.singleValueContainer()
+            try container.encode(value)
+        case let value as String:
+            var container = encoder.singleValueContainer()
+            try container.encode(value)
         case let value as [(any Sendable)?]:
-            try container.encode(value.map(OpenAPIValueContainer.init(validatedValue:)))
+            var container = encoder.unkeyedContainer()
+            for item in value {
+                let containerItem = OpenAPIValueContainer(validatedValue: item)
+                try container.encode(containerItem)
+            }
         case let value as [String: (any Sendable)?]:
-            try container.encode(value.mapValues(OpenAPIValueContainer.init(validatedValue:)))
+            var container = encoder.container(keyedBy: StringKey.self)
+            for (itemKey, itemValue) in value {
+                try container.encode(OpenAPIValueContainer(validatedValue: itemValue), forKey: StringKey(itemKey))
+            }
         default:
             throw EncodingError.invalidValue(
                 value,
-                .init(codingPath: container.codingPath, debugDescription: "OpenAPIValueContainer cannot be encoded")
+                .init(codingPath: encoder.codingPath, debugDescription: "OpenAPIValueContainer cannot be encoded")
             )
         }
     }
@@ -357,36 +384,29 @@ public struct OpenAPIObjectContainer: Codable, Hashable, Sendable {
 
     // MARK: Decodable
 
-    /// Creates an `OpenAPIValueContainer` by decoding it from a single-value container in a given decoder.
-    ///
-    /// - Parameter decoder: The decoder used to decode the container.
-    /// - Throws: An error if the decoding process encounters an issue or if the data does not match the expected format.
+    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
     public init(from decoder: any Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let item = try container.decode([String: OpenAPIValueContainer].self)
-        self.init(validatedValue: item.mapValues(\.value))
+        let container = try decoder.container(keyedBy: StringKey.self)
+        let keyValuePairs = try container.allKeys.map { key -> (String, (any Sendable)?) in
+            let item = try container.decode(OpenAPIValueContainer.self, forKey: key)
+            return (key.stringValue, item.value)
+        }
+        self.init(validatedValue: Dictionary(uniqueKeysWithValues: keyValuePairs))
     }
 
     // MARK: Encodable
 
-    /// Encodes the `OpenAPIValueContainer` into a format that can be stored or transmitted via the given encoder.
-    ///
-    /// - Parameter encoder: The encoder used to perform the encoding.
-    /// - Throws: An error if the encoding process encounters an issue or if the data does not match the expected format.
+    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
     public func encode(to encoder: any Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encode(value.mapValues(OpenAPIValueContainer.init(validatedValue:)))
+        var container = encoder.container(keyedBy: StringKey.self)
+        for (itemKey, itemValue) in value {
+            try container.encode(OpenAPIValueContainer(validatedValue: itemValue), forKey: StringKey(itemKey))
+        }
     }
 
     // MARK: Equatable
 
-    /// Compares two `OpenAPIObjectContainer` instances for equality by comparing their inner key-value dictionaries.
-    ///
-    /// - Parameters:
-    ///   - lhs: The left-hand side `OpenAPIObjectContainer` to compare.
-    ///   - rhs: The right-hand side `OpenAPIObjectContainer` to compare.
-    ///
-    /// - Returns: `true` if the `OpenAPIObjectContainer` instances are equal, `false` otherwise.
+    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
     public static func == (lhs: OpenAPIObjectContainer, rhs: OpenAPIObjectContainer) -> Bool {
         let lv = lhs.value
         let rv = rhs.value
@@ -401,9 +421,7 @@ public struct OpenAPIObjectContainer: Codable, Hashable, Sendable {
 
     // MARK: Hashable
 
-    /// Hashes the `OpenAPIObjectContainer` instance into the provided `Hasher`.
-    ///
-    /// - Parameter hasher: The `Hasher` into which the hash value is combined.
+    // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
     public func hash(into hasher: inout Hasher) {
         for (key, itemValue) in value {
             hasher.combine(key)
@@ -474,9 +492,14 @@ public struct OpenAPIArrayContainer: Codable, Hashable, Sendable {
     /// - Parameter decoder: The decoder to use for decoding the array of values.
     /// - Throws: An error if the decoding process fails or if the decoded values cannot be validated.
     public init(from decoder: any Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let item = try container.decode([OpenAPIValueContainer].self)
-        self.init(validatedValue: item.map(\.value))
+        var container = try decoder.unkeyedContainer()
+        var items: [(any Sendable)?] = []
+        if let count = container.count { items.reserveCapacity(count) }
+        while !container.isAtEnd {
+            let item = try container.decode(OpenAPIValueContainer.self)
+            items.append(item.value)
+        }
+        self.init(validatedValue: items)
     }
 
     // MARK: Encodable
@@ -486,8 +509,11 @@ public struct OpenAPIArrayContainer: Codable, Hashable, Sendable {
     /// - Parameter encoder: The encoder to use for encoding the array of values.
     /// - Throws: An error if the encoding process fails.
     public func encode(to encoder: any Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encode(value.map(OpenAPIValueContainer.init(validatedValue:)))
+        var container = encoder.unkeyedContainer()
+        for item in value {
+            let containerItem = OpenAPIValueContainer(validatedValue: item)
+            try container.encode(containerItem)
+        }
     }
 
     // MARK: Equatable

@@ -216,6 +216,82 @@ final class Test_OpenAPIValue: Test_Runtime {
         XCTAssertEqual(value["keyMore"] as? [Bool], [true])
     }
 
+    func testEncoding_anyOfObjects_success() throws {
+        let values1: [String: (any Sendable)?] = ["key": "value"]
+        let values2: [String: (any Sendable)?] = ["keyMore": [true]]
+        let container = MyAnyOf2(
+            value1: try OpenAPIObjectContainer(unvalidatedValue: values1),
+            value2: try OpenAPIObjectContainer(unvalidatedValue: values2)
+        )
+        let expectedString = #"""
+            {
+              "key" : "value",
+              "keyMore" : [
+                true
+              ]
+            }
+            """#
+        try _testPrettyEncoded(container, expectedJSON: expectedString)
+    }
+
+    func testDecoding_anyOfObjects_success() throws {
+        let json = #"""
+            {
+              "key" : "value",
+              "keyMore" : [
+                true
+              ]
+            }
+            """#
+        let container: MyAnyOf2<OpenAPIObjectContainer, OpenAPIObjectContainer> = try _getDecoded(json: json)
+        let value1 = container.value1?.value
+        XCTAssertEqual(value1?.count, 2)
+        XCTAssertEqual(value1?["key"] as? String, "value")
+        XCTAssertEqual(value1?["keyMore"] as? [Bool], [true])
+        let value2 = container.value2?.value
+        XCTAssertEqual(value2?.count, 2)
+        XCTAssertEqual(value2?["key"] as? String, "value")
+        XCTAssertEqual(value2?["keyMore"] as? [Bool], [true])
+    }
+
+    func testEncoding_anyOfValues_success() throws {
+        let values1: [String: (any Sendable)?] = ["key": "value"]
+        let values2: [String: (any Sendable)?] = ["keyMore": [true]]
+        let container = MyAnyOf2(
+            value1: try OpenAPIValueContainer(unvalidatedValue: values1),
+            value2: try OpenAPIValueContainer(unvalidatedValue: values2)
+        )
+        let expectedString = #"""
+            {
+              "key" : "value",
+              "keyMore" : [
+                true
+              ]
+            }
+            """#
+        try _testPrettyEncoded(container, expectedJSON: expectedString)
+    }
+
+    func testDecoding_anyOfValues_success() throws {
+        let json = #"""
+            {
+              "key" : "value",
+              "keyMore" : [
+                true
+              ]
+            }
+            """#
+        let container: MyAnyOf2<OpenAPIValueContainer, OpenAPIValueContainer> = try _getDecoded(json: json)
+        let value1 = try XCTUnwrap(container.value1?.value as? [String: (any Sendable)?])
+        XCTAssertEqual(value1.count, 2)
+        XCTAssertEqual(value1["key"] as? String, "value")
+        XCTAssertEqual(value1["keyMore"] as? [Bool], [true])
+        let value2 = try XCTUnwrap(container.value2?.value as? [String: (any Sendable)?])
+        XCTAssertEqual(value2.count, 2)
+        XCTAssertEqual(value2["key"] as? String, "value")
+        XCTAssertEqual(value2["keyMore"] as? [Bool], [true])
+    }
+
     func testEncoding_array_success() throws {
         let values: [(any Sendable)?] = ["one", ["two": 2]]
         let container = try OpenAPIArrayContainer(unvalidatedValue: values)
@@ -243,6 +319,40 @@ final class Test_OpenAPIValue: Test_Runtime {
         let value = container.value
         XCTAssertEqual(value.count, 2)
         XCTAssertEqual(value[0] as? String, "one")
+        XCTAssertEqual(value[1] as? [String: Int], ["two": 2])
+    }
+
+    func testEncoding_arrayOfObjects_success() throws {
+        let values: [(any Sendable)?] = [["one": 1], ["two": 2]]
+        let container = try OpenAPIArrayContainer(unvalidatedValue: values)
+        let expectedString = #"""
+            [
+              {
+                "one" : 1
+              },
+              {
+                "two" : 2
+              }
+            ]
+            """#
+        try _testPrettyEncoded(container, expectedJSON: expectedString)
+    }
+
+    func testDecoding_arrayOfObjects_success() throws {
+        let json = #"""
+            [
+              {
+                "one" : 1
+              },
+              {
+                "two" : 2
+              }
+            ]
+            """#
+        let container: OpenAPIArrayContainer = try _getDecoded(json: json)
+        let value = container.value
+        XCTAssertEqual(value.count, 2)
+        XCTAssertEqual(value[0] as? [String: Int], ["one": 1])
         XCTAssertEqual(value[1] as? [String: Int], ["two": 2])
     }
 
@@ -332,5 +442,31 @@ final class Test_OpenAPIValue: Test_Runtime {
             try JSONDecoder().decode(Base64EncodedData.self, from: JSONEncoder().encode(encodedData)),
             encodedData
         )
+    }
+}
+
+struct MyAnyOf2<Value1: Codable & Hashable & Sendable, Value2: Codable & Hashable & Sendable>: Codable, Hashable,
+    Sendable
+{
+    var value1: Value1?
+    var value2: Value2?
+    init(value1: Value1? = nil, value2: Value2? = nil) {
+        self.value1 = value1
+        self.value2 = value2
+    }
+    public init(from decoder: any Decoder) throws {
+        var errors: [any Error] = []
+        do { self.value1 = try .init(from: decoder) } catch { errors.append(error) }
+        do { self.value2 = try .init(from: decoder) } catch { errors.append(error) }
+        try Swift.DecodingError.verifyAtLeastOneSchemaIsNotNil(
+            [self.value1, self.value2],
+            type: Self.self,
+            codingPath: decoder.codingPath,
+            errors: errors
+        )
+    }
+    public func encode(to encoder: any Encoder) throws {
+        try self.value1?.encode(to: encoder)
+        try self.value2?.encode(to: encoder)
     }
 }
