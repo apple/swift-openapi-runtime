@@ -105,30 +105,7 @@ import struct Foundation.URLComponents
         @Sendable func makeError(input: OperationInput? = nil, output: OperationOutput? = nil, error: any Error)
             -> any Error
         {
-            if var error = error as? ServerError {
-                error.operationInput = error.operationInput ?? input
-                error.operationOutput = error.operationOutput ?? output
-                return error
-            }
-            let causeDescription: String
-            let underlyingError: any Error
-            if let runtimeError = error as? RuntimeError {
-                causeDescription = runtimeError.prettyDescription
-                underlyingError = runtimeError.underlyingError ?? error
-            } else {
-                causeDescription = "Unknown"
-                underlyingError = error
-            }
-            return ServerError(
-                operationID: operationID,
-                request: request,
-                requestBody: requestBody,
-                requestMetadata: metadata,
-                operationInput: input,
-                operationOutput: output,
-                causeDescription: causeDescription,
-                underlyingError: underlyingError
-            )
+            return error
         }
         var next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?) =
             { _request, _requestBody, _metadata in
@@ -142,7 +119,7 @@ import struct Foundation.URLComponents
                     return try await wrappingErrors {
                         try await method(input)
                     } mapError: { error in
-                        makeError(input: input, error: RuntimeError.handlerFailed(error))
+                        makeError(input: input, error: error)
                     }
                 } mapError: { error in
                     makeError(input: input, error: error)
@@ -165,7 +142,7 @@ import struct Foundation.URLComponents
                         next: tmp
                     )
                 } mapError: { error in
-                    makeError(error: RuntimeError.middlewareFailed(middlewareType: type(of: middleware), error))
+                    makeError(error: error)
                 }
             }
         }
