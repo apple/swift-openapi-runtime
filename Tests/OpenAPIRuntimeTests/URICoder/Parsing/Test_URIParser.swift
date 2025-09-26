@@ -524,11 +524,6 @@ final class Test_URIParser: Test_Runtime {
             }
             var result: ExpectedResult
 
-            init(string: String, result: ExpectedResult) {
-                self.string = string
-                self.result = result
-            }
-
             static func assert(_ string: String, equals value: RootType) -> Self {
                 .init(string: string, result: .success(value))
             }

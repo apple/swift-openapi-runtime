@@ -91,8 +91,8 @@ import struct Foundation.URLComponents
         metadata: ServerRequestMetadata,
         forOperation operationID: String,
         using handlerMethod: @Sendable @escaping (APIHandler) -> ((OperationInput) async throws -> OperationOutput),
-        deserializer: @Sendable @escaping (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws ->
-            OperationInput,
+        deserializer:
+            @Sendable @escaping (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> OperationInput,
         serializer: @Sendable @escaping (OperationOutput, HTTPRequest) throws -> (HTTPResponse, HTTPBody?)
     ) async throws -> (HTTPResponse, HTTPBody?) where OperationInput: Sendable, OperationOutput: Sendable {
         @Sendable func wrappingErrors<R>(work: () async throws -> R, mapError: (any Error) -> any Error) async throws

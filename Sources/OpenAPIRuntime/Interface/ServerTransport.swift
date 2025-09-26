@@ -114,9 +114,10 @@ public protocol ServerTransport {
     /// - Important: The `path` can have mixed components, such
     ///   as `/file/{name}.zip`.
     func register(
-        _ handler: @Sendable @escaping (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (
-            HTTPResponse, HTTPBody?
-        ),
+        _ handler:
+            @Sendable @escaping (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (
+                HTTPResponse, HTTPBody?
+            ),
         method: HTTPRequest.Method,
         path: String
     ) throws

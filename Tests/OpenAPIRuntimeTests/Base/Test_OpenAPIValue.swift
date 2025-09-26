@@ -454,7 +454,7 @@ struct MyAnyOf2<Value1: Codable & Hashable & Sendable, Value2: Codable & Hashabl
         self.value1 = value1
         self.value2 = value2
     }
-    public init(from decoder: any Decoder) throws {
+    init(from decoder: any Decoder) throws {
         var errors: [any Error] = []
         do { self.value1 = try .init(from: decoder) } catch { errors.append(error) }
         do { self.value2 = try .init(from: decoder) } catch { errors.append(error) }
@@ -465,7 +465,7 @@ struct MyAnyOf2<Value1: Codable & Hashable & Sendable, Value2: Codable & Hashabl
             errors: errors
         )
     }
-    public func encode(to encoder: any Encoder) throws {
+    func encode(to encoder: any Encoder) throws {
         try self.value1?.encode(to: encoder)
         try self.value2?.encode(to: encoder)
     }
