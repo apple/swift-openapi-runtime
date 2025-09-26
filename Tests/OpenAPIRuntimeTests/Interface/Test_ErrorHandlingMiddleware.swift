@@ -72,9 +72,10 @@ final class Test_ErrorHandlingMiddlewareTests: XCTestCase {
         XCTAssertEqual(responseBody, nil)
     }
 
-    private func getNextMiddleware(failurePhase: MockErrorMiddleware_Next.FailurePhase) -> @Sendable (
-        HTTPTypes.HTTPRequest, OpenAPIRuntime.HTTPBody?, OpenAPIRuntime.ServerRequestMetadata
-    ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
+    private func getNextMiddleware(failurePhase: MockErrorMiddleware_Next.FailurePhase)
+        -> @Sendable (HTTPTypes.HTTPRequest, OpenAPIRuntime.HTTPBody?, OpenAPIRuntime.ServerRequestMetadata)
+        async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?)
+    {
         let mockNext:
             @Sendable (HTTPTypes.HTTPRequest, OpenAPIRuntime.HTTPBody?, OpenAPIRuntime.ServerRequestMetadata)
                 async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) = { request, body, metadata in
