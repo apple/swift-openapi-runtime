@@ -112,12 +112,22 @@ import struct Foundation.URLComponents
             }
             let causeDescription: String
             let underlyingError: any Error
+            let httpStatus: HTTPResponse.Status
+            let httpHeaderFields: HTTPTypes.HTTPFields
+            let httpBody: OpenAPIRuntime.HTTPBody?
             if let runtimeError = error as? RuntimeError {
                 causeDescription = runtimeError.prettyDescription
                 underlyingError = runtimeError.underlyingError ?? error
+                httpStatus = runtimeError.httpStatus
+                httpHeaderFields = runtimeError.httpHeaderFields
+                httpBody = runtimeError.httpBody
+
             } else {
                 causeDescription = "Unknown"
                 underlyingError = error
+                httpStatus = .internalServerError
+                httpHeaderFields = [:]
+                httpBody = nil
             }
             return ServerError(
                 operationID: operationID,
@@ -127,13 +137,20 @@ import struct Foundation.URLComponents
                 operationInput: input,
                 operationOutput: output,
                 causeDescription: causeDescription,
-                underlyingError: underlyingError
+                underlyingError: underlyingError,
+                httpStatus: httpStatus,
+                httpHeaderFields: httpHeaderFields,
+                httpBody: httpBody
             )
         }
         var next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?) =
             { _request, _requestBody, _metadata in
                 let input: OperationInput = try await wrappingErrors {
-                    try await deserializer(_request, _requestBody, _metadata)
+                    do {
+                        return try await deserializer(_request, _requestBody, _metadata)
+                    } catch let decodingError as DecodingError {
+                        throw RuntimeError.failedToParseRequest(decodingError)
+                    }
                 } mapError: { error in
                     makeError(error: error)
                 }

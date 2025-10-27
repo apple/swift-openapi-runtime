@@ -16,7 +16,7 @@ import HTTPTypes
 import protocol Foundation.LocalizedError
 
 /// An error thrown by a server handling an OpenAPI operation.
-public struct ServerError: Error {
+public struct ServerError: Error, HTTPResponseConvertible {
 
     /// Identifier of the operation that threw the error.
     public var operationID: String
@@ -47,6 +47,15 @@ public struct ServerError: Error {
     /// The underlying error that caused the operation to fail.
     public var underlyingError: any Error
 
+    /// An HTTP status to return in the response.
+    public var httpStatus: HTTPResponse.Status
+
+    /// The HTTP header fields of the response.
+    public var httpHeaderFields: HTTPTypes.HTTPFields
+
+    /// The body of the HTTP response.
+    public var httpBody: OpenAPIRuntime.HTTPBody?
+
     /// Creates a new error.
     /// - Parameters:
     ///   - operationID: The OpenAPI operation identifier.
@@ -59,6 +68,9 @@ public struct ServerError: Error {
     ///     the underlying error to be thrown.
     ///   - underlyingError: The underlying error that caused the operation
     ///     to fail.
+    ///   - httpStatus: An HTTP status to return in the response.
+    ///   - httpHeaderFields: The HTTP header fields of the response.
+    ///   - httpBody: The body of the HTTP response.
     public init(
         operationID: String,
         request: HTTPRequest,
@@ -67,7 +79,10 @@ public struct ServerError: Error {
         operationInput: (any Sendable)? = nil,
         operationOutput: (any Sendable)? = nil,
         causeDescription: String,
-        underlyingError: any Error
+        underlyingError: any Error,
+        httpStatus: HTTPResponse.Status,
+        httpHeaderFields: HTTPTypes.HTTPFields,
+        httpBody: OpenAPIRuntime.HTTPBody?
     ) {
         self.operationID = operationID
         self.request = request
@@ -77,6 +92,9 @@ public struct ServerError: Error {
         self.operationOutput = operationOutput
         self.causeDescription = causeDescription
         self.underlyingError = underlyingError
+        self.httpStatus = httpStatus
+        self.httpHeaderFields = httpHeaderFields
+        self.httpBody = httpBody
     }
 
     // MARK: Private

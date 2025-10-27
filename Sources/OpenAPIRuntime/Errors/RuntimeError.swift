@@ -54,6 +54,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     // Body
     case missingRequiredRequestBody
     case missingRequiredResponseBody
+    case failedToParseRequest(DecodingError)
 
     // Multipart
     case missingRequiredMultipartFormDataContentType
@@ -72,6 +73,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     var underlyingError: (any Error)? {
         switch self {
         case .transportFailed(let error), .handlerFailed(let error), .middlewareFailed(_, let error): return error
+        case .failedToParseRequest(let decodingError): return decodingError
         default: return nil
         }
     }
@@ -119,6 +121,8 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
             return "Unexpected response, expected status code: \(expectedStatus), response: \(response)"
         case .unexpectedResponseBody(let expectedContentType, let body):
             return "Unexpected response body, expected content type: \(expectedContentType), body: \(body)"
+        case .failedToParseRequest(let decodingError):
+            return "An error occurred while attempting to parse the request: \(decodingError.prettyDescription)."
         }
     }
 
@@ -160,7 +164,7 @@ extension RuntimeError: HTTPResponseConvertible {
             .invalidHeaderFieldName, .malformedAcceptHeader, .missingMultipartBoundaryContentTypeParameter,
             .missingOrMalformedContentDispositionName, .missingRequiredHeaderField,
             .missingRequiredMultipartFormDataContentType, .missingRequiredQueryParameter, .missingRequiredPathParameter,
-            .missingRequiredRequestBody, .unsupportedParameterStyle:
+            .missingRequiredRequestBody, .unsupportedParameterStyle, .failedToParseRequest:
             .badRequest
         case .handlerFailed, .middlewareFailed, .missingRequiredResponseBody, .transportFailed,
             .unexpectedResponseStatus, .unexpectedResponseBody:
