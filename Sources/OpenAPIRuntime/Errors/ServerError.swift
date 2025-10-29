@@ -68,6 +68,43 @@ public struct ServerError: Error, HTTPResponseConvertible {
     ///     the underlying error to be thrown.
     ///   - underlyingError: The underlying error that caused the operation
     ///     to fail.
+    public init(
+        operationID: String,
+        request: HTTPRequest,
+        requestBody: HTTPBody?,
+        requestMetadata: ServerRequestMetadata,
+        operationInput: (any Sendable)? = nil,
+        operationOutput: (any Sendable)? = nil,
+        causeDescription: String,
+        underlyingError: any Error
+    ) {
+        self.init(
+            operationID: operationID,
+            request: request,
+            requestBody: requestBody,
+            requestMetadata: requestMetadata,
+            operationInput: operationInput,
+            operationOutput: operationOutput,
+            causeDescription: causeDescription,
+            underlyingError: underlyingError,
+            httpStatus: .internalServerError,
+            httpHeaderFields: [:],
+            httpBody: nil
+        )
+    }
+
+    /// Creates a new error.
+    /// - Parameters:
+    ///   - operationID: The OpenAPI operation identifier.
+    ///   - request: The HTTP request provided to the server.
+    ///   - requestBody: The HTTP request body provided to the server.
+    ///   - requestMetadata: The request metadata extracted by the server.
+    ///   - operationInput: An operation-specific Input value.
+    ///   - operationOutput: An operation-specific Output value.
+    ///   - causeDescription: A user-facing description of what caused
+    ///     the underlying error to be thrown.
+    ///   - underlyingError: The underlying error that caused the operation
+    ///     to fail.
     ///   - httpStatus: An HTTP status to return in the response.
     ///   - httpHeaderFields: The HTTP header fields of the response.
     ///   - httpBody: The body of the HTTP response.
