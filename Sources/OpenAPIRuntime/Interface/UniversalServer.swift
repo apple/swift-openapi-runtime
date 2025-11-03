@@ -153,11 +153,9 @@ import struct Foundation.URLComponents
         var next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?) =
             { _request, _requestBody, _metadata in
                 let input: OperationInput = try await wrappingErrors {
-                    do {
-                        return try await deserializer(_request, _requestBody, _metadata)
-                    } catch let decodingError as DecodingError {
-                        throw RuntimeError.failedToParseRequest(decodingError)
-                    }
+                    do { return try await deserializer(_request, _requestBody, _metadata) } catch let decodingError
+                        as DecodingError
+                    { throw RuntimeError.failedToParseRequest(decodingError) }
                 } mapError: { error in
                     makeError(error: error)
                 }

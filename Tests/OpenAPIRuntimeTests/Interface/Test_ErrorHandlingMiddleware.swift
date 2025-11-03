@@ -122,7 +122,7 @@ struct MockErrorMiddleware_Next: ServerMiddleware {
                 requestBody: body,
                 requestMetadata: metadata,
                 causeDescription: "",
-                underlyingError: underlyingError,
+                underlyingError: underlyingError
             )
         }
         let (response, responseBody) = try await next(request, body, metadata)

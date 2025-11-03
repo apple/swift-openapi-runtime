@@ -102,7 +102,9 @@ final class Test_UniversalServer: Test_Runtime {
     }
 
     func testErrorPropagation_deserializerWithDecodingError() async throws {
-        let decodingError = DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Invalid request body."))
+        let decodingError = DecodingError.dataCorrupted(
+            .init(codingPath: [], debugDescription: "Invalid request body.")
+        )
         do {
             let server = UniversalServer(handler: MockHandler())
             _ = try await server.handle(
