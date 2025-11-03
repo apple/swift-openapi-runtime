@@ -78,6 +78,19 @@ public struct ServerError: Error, HTTPResponseConvertible {
         causeDescription: String,
         underlyingError: any Error
     ) {
+        let httpStatus: HTTPResponse.Status
+        let httpHeaderFields: HTTPTypes.HTTPFields
+        let httpBody: OpenAPIRuntime.HTTPBody?
+        if let httpConvertibleError = underlyingError as? (any HTTPResponseConvertible) {
+            httpStatus = httpConvertibleError.httpStatus
+            httpHeaderFields = httpConvertibleError.httpHeaderFields
+            httpBody = httpConvertibleError.httpBody
+        } else {
+            httpStatus = .internalServerError
+            httpHeaderFields = [:]
+            httpBody = nil
+        }
+
         self.init(
             operationID: operationID,
             request: request,
@@ -87,9 +100,9 @@ public struct ServerError: Error, HTTPResponseConvertible {
             operationOutput: operationOutput,
             causeDescription: causeDescription,
             underlyingError: underlyingError,
-            httpStatus: .internalServerError,
-            httpHeaderFields: [:],
-            httpBody: nil
+            httpStatus: httpStatus,
+            httpHeaderFields: httpHeaderFields,
+            httpBody: httpBody
         )
     }
 

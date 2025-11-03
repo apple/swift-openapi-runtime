@@ -112,19 +112,26 @@ import struct Foundation.URLComponents
             }
             let causeDescription: String
             let underlyingError: any Error
-            let httpStatus: HTTPResponse.Status
-            let httpHeaderFields: HTTPTypes.HTTPFields
-            let httpBody: OpenAPIRuntime.HTTPBody?
             if let runtimeError = error as? RuntimeError {
                 causeDescription = runtimeError.prettyDescription
                 underlyingError = runtimeError.underlyingError ?? error
-                httpStatus = runtimeError.httpStatus
-                httpHeaderFields = runtimeError.httpHeaderFields
-                httpBody = runtimeError.httpBody
-
             } else {
                 causeDescription = "Unknown"
                 underlyingError = error
+            }
+
+            let httpStatus: HTTPResponse.Status
+            let httpHeaderFields: HTTPTypes.HTTPFields
+            let httpBody: OpenAPIRuntime.HTTPBody?
+            if let httpConvertibleError = underlyingError as? (any HTTPResponseConvertible) {
+                httpStatus = httpConvertibleError.httpStatus
+                httpHeaderFields = httpConvertibleError.httpHeaderFields
+                httpBody = httpConvertibleError.httpBody
+            } else if let httpConvertibleError = error as? (any HTTPResponseConvertible) {
+                httpStatus = httpConvertibleError.httpStatus
+                httpHeaderFields = httpConvertibleError.httpHeaderFields
+                httpBody = httpConvertibleError.httpBody
+            } else {
                 httpStatus = .internalServerError
                 httpHeaderFields = [:]
                 httpBody = nil
