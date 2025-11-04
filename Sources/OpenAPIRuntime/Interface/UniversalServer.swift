@@ -119,6 +119,23 @@ import struct Foundation.URLComponents
                 causeDescription = "Unknown"
                 underlyingError = error
             }
+
+            let httpStatus: HTTPResponse.Status
+            let httpHeaderFields: HTTPTypes.HTTPFields
+            let httpBody: OpenAPIRuntime.HTTPBody?
+            if let httpConvertibleError = underlyingError as? (any HTTPResponseConvertible) {
+                httpStatus = httpConvertibleError.httpStatus
+                httpHeaderFields = httpConvertibleError.httpHeaderFields
+                httpBody = httpConvertibleError.httpBody
+            } else if let httpConvertibleError = error as? (any HTTPResponseConvertible) {
+                httpStatus = httpConvertibleError.httpStatus
+                httpHeaderFields = httpConvertibleError.httpHeaderFields
+                httpBody = httpConvertibleError.httpBody
+            } else {
+                httpStatus = .internalServerError
+                httpHeaderFields = [:]
+                httpBody = nil
+            }
             return ServerError(
                 operationID: operationID,
                 request: request,
@@ -127,13 +144,18 @@ import struct Foundation.URLComponents
                 operationInput: input,
                 operationOutput: output,
                 causeDescription: causeDescription,
-                underlyingError: underlyingError
+                underlyingError: underlyingError,
+                httpStatus: httpStatus,
+                httpHeaderFields: httpHeaderFields,
+                httpBody: httpBody
             )
         }
         var next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?) =
             { _request, _requestBody, _metadata in
                 let input: OperationInput = try await wrappingErrors {
-                    try await deserializer(_request, _requestBody, _metadata)
+                    do { return try await deserializer(_request, _requestBody, _metadata) } catch let decodingError
+                        as DecodingError
+                    { throw RuntimeError.failedToParseRequest(decodingError) }
                 } mapError: { error in
                     makeError(error: error)
                 }

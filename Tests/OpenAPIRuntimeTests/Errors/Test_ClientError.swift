@@ -25,7 +25,10 @@ final class Test_ServerError: XCTestCase {
             requestBody: nil,
             requestMetadata: .init(),
             causeDescription: upstreamError.prettyDescription,
-            underlyingError: upstreamError.underlyingError ?? upstreamError
+            underlyingError: upstreamError.underlyingError ?? upstreamError,
+            httpStatus: .internalServerError,
+            httpHeaderFields: [:],
+            httpBody: nil
         )
         XCTAssertEqual(
             "\(error)",

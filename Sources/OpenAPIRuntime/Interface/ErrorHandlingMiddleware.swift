@@ -57,12 +57,10 @@ public struct ErrorHandlingMiddleware: ServerMiddleware {
             async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?)
     ) async throws -> (HTTPTypes.HTTPResponse, OpenAPIRuntime.HTTPBody?) {
         do { return try await next(request, body, metadata) } catch {
-            if let serverError = error as? ServerError,
-                let appError = serverError.underlyingError as? (any HTTPResponseConvertible)
-            {
+            if let serverError = error as? ServerError {
                 return (
-                    HTTPResponse(status: appError.httpStatus, headerFields: appError.httpHeaderFields),
-                    appError.httpBody
+                    HTTPResponse(status: serverError.httpStatus, headerFields: serverError.httpHeaderFields),
+                    serverError.httpBody
                 )
             } else {
                 return (HTTPResponse(status: .internalServerError), nil)

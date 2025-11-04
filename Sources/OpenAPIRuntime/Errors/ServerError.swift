@@ -16,7 +16,7 @@ import HTTPTypes
 import protocol Foundation.LocalizedError
 
 /// An error thrown by a server handling an OpenAPI operation.
-public struct ServerError: Error {
+public struct ServerError: Error, HTTPResponseConvertible {
 
     /// Identifier of the operation that threw the error.
     public var operationID: String
@@ -47,6 +47,15 @@ public struct ServerError: Error {
     /// The underlying error that caused the operation to fail.
     public var underlyingError: any Error
 
+    /// An HTTP status to return in the response.
+    public var httpStatus: HTTPResponse.Status
+
+    /// The HTTP header fields of the response.
+    public var httpHeaderFields: HTTPTypes.HTTPFields
+
+    /// The body of the HTTP response.
+    public var httpBody: OpenAPIRuntime.HTTPBody?
+
     /// Creates a new error.
     /// - Parameters:
     ///   - operationID: The OpenAPI operation identifier.
@@ -69,6 +78,62 @@ public struct ServerError: Error {
         causeDescription: String,
         underlyingError: any Error
     ) {
+        let httpStatus: HTTPResponse.Status
+        let httpHeaderFields: HTTPTypes.HTTPFields
+        let httpBody: OpenAPIRuntime.HTTPBody?
+        if let httpConvertibleError = underlyingError as? (any HTTPResponseConvertible) {
+            httpStatus = httpConvertibleError.httpStatus
+            httpHeaderFields = httpConvertibleError.httpHeaderFields
+            httpBody = httpConvertibleError.httpBody
+        } else {
+            httpStatus = .internalServerError
+            httpHeaderFields = [:]
+            httpBody = nil
+        }
+
+        self.init(
+            operationID: operationID,
+            request: request,
+            requestBody: requestBody,
+            requestMetadata: requestMetadata,
+            operationInput: operationInput,
+            operationOutput: operationOutput,
+            causeDescription: causeDescription,
+            underlyingError: underlyingError,
+            httpStatus: httpStatus,
+            httpHeaderFields: httpHeaderFields,
+            httpBody: httpBody
+        )
+    }
+
+    /// Creates a new error.
+    /// - Parameters:
+    ///   - operationID: The OpenAPI operation identifier.
+    ///   - request: The HTTP request provided to the server.
+    ///   - requestBody: The HTTP request body provided to the server.
+    ///   - requestMetadata: The request metadata extracted by the server.
+    ///   - operationInput: An operation-specific Input value.
+    ///   - operationOutput: An operation-specific Output value.
+    ///   - causeDescription: A user-facing description of what caused
+    ///     the underlying error to be thrown.
+    ///   - underlyingError: The underlying error that caused the operation
+    ///     to fail.
+    ///   - httpStatus: An HTTP status to return in the response.
+    ///   - httpHeaderFields: The HTTP header fields of the response.
+    ///   - httpBody: The body of the HTTP response.
+    public init(
+        operationID: String,
+        request: HTTPRequest,
+        requestBody: HTTPBody?,
+        requestMetadata: ServerRequestMetadata,
+        operationInput: (any Sendable)? = nil,
+        operationOutput: (any Sendable)? = nil,
+        causeDescription: String,
+        underlyingError: any Error,
+        httpStatus: HTTPResponse.Status,
+        httpHeaderFields: HTTPTypes.HTTPFields,
+        httpBody: OpenAPIRuntime.HTTPBody?
+    ) {
         self.operationID = operationID
         self.request = request
         self.requestBody = requestBody
@@ -77,6 +142,9 @@ public struct ServerError: Error {
         self.operationOutput = operationOutput
         self.causeDescription = causeDescription
         self.underlyingError = underlyingError
+        self.httpStatus = httpStatus
+        self.httpHeaderFields = httpHeaderFields
+        self.httpBody = httpBody
     }
 
     // MARK: Private
