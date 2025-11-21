@@ -98,6 +98,7 @@ import struct Foundation.URL
             }
         }
         let baseURL = serverURL
+        let errorHandler = converter.configuration.clientErrorHandler
         @Sendable func makeError(
             request: HTTPRequest? = nil,
             requestBody: HTTPBody? = nil,
@@ -112,6 +113,7 @@ import struct Foundation.URL
                 error.baseURL = error.baseURL ?? baseURL
                 error.response = error.response ?? response
                 error.responseBody = error.responseBody ?? responseBody
+                errorHandler?.handleClientError(error)
                 return error
             }
             let causeDescription: String
@@ -123,7 +125,7 @@ import struct Foundation.URL
                 causeDescription = "Unknown"
                 underlyingError = error
             }
-            return ClientError(
+            let clientError = ClientError(
                 operationID: operationID,
                 operationInput: input,
                 request: request,
@@ -134,6 +136,8 @@ import struct Foundation.URL
                 causeDescription: causeDescription,
                 underlyingError: underlyingError
             )
+            errorHandler?.handleClientError(clientError)
+            return clientError
         }
         let (request, requestBody): (HTTPRequest, HTTPBody?) = try await wrappingErrors {
             try serializer(input)
