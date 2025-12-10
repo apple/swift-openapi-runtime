@@ -152,6 +152,20 @@ public struct Configuration: Sendable {
     /// Custom XML coder for encoding and decoding xml bodies.
     public var xmlCoder: (any CustomCoder)?
 
+    /// The handler for client-side errors.
+    ///
+    /// This handler is invoked after a client error has been wrapped in a ``ClientError``.
+    /// Use this to add logging, monitoring, or analytics for client-side errors.
+    /// If `nil`, errors are thrown without additional handling.
+    public var clientErrorHandler: (any ClientErrorHandler)?
+
+    /// The handler for server-side errors.
+    ///
+    /// This handler is invoked after a server error has been wrapped in a ``ServerError``.
+    /// Use this to add logging, monitoring, or analytics for server-side errors.
+    /// If `nil`, errors are thrown without additional handling.
+    public var serverErrorHandler: (any ServerErrorHandler)?
+
     /// Creates a new configuration with the specified values.
     ///
     /// - Parameters:
@@ -160,15 +174,21 @@ public struct Configuration: Sendable {
     ///   - jsonEncodingOptions: The options for the underlying JSON encoder.
     ///   - multipartBoundaryGenerator: The generator to use when creating mutlipart bodies.
     ///   - xmlCoder: Custom XML coder for encoding and decoding xml bodies. Only required when using XML body payloads.
+    ///   - clientErrorHandler: Optional handler for observing client-side errors. Defaults to `nil`.
+    ///   - serverErrorHandler: Optional handler for observing server-side errors. Defaults to `nil`.
     public init(
         dateTranscoder: any DateTranscoder = .iso8601,
         jsonEncodingOptions: JSONEncodingOptions = [.sortedKeys, .prettyPrinted],
         multipartBoundaryGenerator: any MultipartBoundaryGenerator = .random,
-        xmlCoder: (any CustomCoder)? = nil
+        xmlCoder: (any CustomCoder)? = nil,
+        clientErrorHandler: (any ClientErrorHandler)? = nil,
+        serverErrorHandler: (any ServerErrorHandler)? = nil
     ) {
         self.dateTranscoder = dateTranscoder
         self.jsonEncodingOptions = jsonEncodingOptions
         self.multipartBoundaryGenerator = multipartBoundaryGenerator
         self.xmlCoder = xmlCoder
+        self.clientErrorHandler = clientErrorHandler
+        self.serverErrorHandler = serverErrorHandler
     }
 }
