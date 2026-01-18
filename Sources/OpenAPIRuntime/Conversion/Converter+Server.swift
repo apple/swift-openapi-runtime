@@ -44,6 +44,9 @@ extension Converter {
     ///   - substring: Expected content type, for example "application/json".
     ///   - headerFields: Header fields in which to look for "Accept".
     ///   Also supports wildcars, such as "application/\*" and "\*/\*".
+    ///   Additionally, supports matching structured syntax suffixes (RFC 6839),
+    ///   for example `Accept: application/json` is treated as compatible with
+    ///   `Content-Type: application/problem+json`.
     /// - Throws: An error if the "Accept" header is present but incompatible with the provided content type,
     ///  or if there are issues parsing the header.
     public func validateAcceptIfPresent(_ substring: String, in headerFields: HTTPFields) throws {
@@ -495,8 +498,41 @@ fileprivate extension OpenAPIMIMEType {
             return acceptType.lowercased() == substringType.lowercased()
         case (.concrete(let acceptType, let acceptSubtype), .concrete(let substringType, let substringSubtype)):
             // Accept: type/subtype -- The content-type should match the concrete type.
-            return acceptType.lowercased() == substringType.lowercased()
-                && acceptSubtype.lowercased() == substringSubtype.lowercased()
+            let acceptTypeLowercased = acceptType.lowercased()
+            let substringTypeLowercased = substringType.lowercased()
+            guard acceptTypeLowercased == substringTypeLowercased else { return false }
+
+            let acceptSubtypeLowercased = acceptSubtype.lowercased()
+            let substringSubtypeLowercased = substringSubtype.lowercased()
+
+            // Exact match.
+            if acceptSubtypeLowercased == substringSubtypeLowercased { return true }
+
+            // RFC 6839 structured syntax suffix matching (e.g. application/problem+json).
+            if let structuredSyntaxSuffix = structuredSyntaxSuffix(of: substringSubtypeLowercased),
+                structuredSyntaxSuffix == acceptSubtypeLowercased
+            { return true }
+
+            // Accept: application/*+json matching (and treating it as also matching application/json).
+            if let structuredSyntaxWildcardSuffix = structuredSyntaxWildcardSuffix(of: acceptSubtypeLowercased) {
+                return substringSubtypeLowercased == structuredSyntaxWildcardSuffix
+                    || structuredSyntaxSuffix(of: substringSubtypeLowercased) == structuredSyntaxWildcardSuffix
+            }
+            return false
         }
+    }
+
+    private func structuredSyntaxSuffix(of subtype: String) -> String? {
+        guard let plusIndex = subtype.lastIndex(of: "+") else { return nil }
+        let suffixStart = subtype.index(after: plusIndex)
+        guard suffixStart < subtype.endIndex else { return nil }
+        return String(subtype[suffixStart...])
+    }
+
+    private func structuredSyntaxWildcardSuffix(of acceptSubtype: String) -> String? {
+        guard acceptSubtype.hasPrefix("*+") else { return nil }
+        let suffixStart = acceptSubtype.index(acceptSubtype.startIndex, offsetBy: 2)
+        guard suffixStart < acceptSubtype.endIndex else { return nil }
+        return String(acceptSubtype[suffixStart...])
     }
 }
