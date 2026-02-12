@@ -18,19 +18,7 @@ import PackageDescription
 let swiftSettings: [SwiftSetting] = [
     // https://github.com/apple/swift-evolution/blob/main/proposals/0335-existential-any.md
     // Require `any` for existential types.
-    .enableUpcomingFeature("ExistentialAny"),
-
-    // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0444-member-import-visibility.md
-    .enableUpcomingFeature("MemberImportVisibility"),
-
-    // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0409-access-level-on-imports.md
-    .enableUpcomingFeature("InternalImportsByDefault"),
-
-    // https://docs.swift.org/compiler/documentation/diagnostics/nonisolated-nonsending-by-default/
-    .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
-
-    // Ensure all public types are explicitly annotated as Sendable or not Sendable.
-    .unsafeFlags(["-Xfrontend", "-require-explicit-sendable"]),
+    .enableUpcomingFeature("ExistentialAny")
 ]
 
 let package = Package(

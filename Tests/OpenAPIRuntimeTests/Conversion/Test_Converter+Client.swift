@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import XCTest
+public import XCTest
 @_spi(Generated) import OpenAPIRuntime
 import HTTPTypes
 

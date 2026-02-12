@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import Foundation
+public import Foundation
 
 extension URL {
     /// Returns the default server URL of "/".

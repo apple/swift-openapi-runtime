@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import XCTest
-@_spi(Generated) @testable import OpenAPIRuntime
+public import XCTest
+@_spi(Generated) @testable public import OpenAPIRuntime
 import HTTPTypes
 
 class Test_Runtime: XCTestCase {

@@ -11,7 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import Foundation
+public import Foundation
 import HTTPTypes
 
 // MARK: - Functionality to be removed in the future

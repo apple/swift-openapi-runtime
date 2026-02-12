@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Foundation
+public import Foundation
 
 extension URL {
     /// Returns a validated server URL created from the URL template, or

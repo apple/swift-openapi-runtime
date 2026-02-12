@@ -13,12 +13,12 @@
 //===----------------------------------------------------------------------===//
 
 #if canImport(Darwin)
-import class Foundation.JSONDecoder
+public import class Foundation.JSONDecoder
 #else
-@preconcurrency import class Foundation.JSONDecoder
+@preconcurrency public import class Foundation.JSONDecoder
 #endif
-import protocol Foundation.LocalizedError
-import struct Foundation.Data
+public import protocol Foundation.LocalizedError
+public import struct Foundation.Data
 
 /// A sequence that parses arbitrary byte chunks into lines using the JSON Sequence format.
 public struct JSONSequenceDeserializationSequence<Upstream: AsyncSequence & Sendable>: Sendable

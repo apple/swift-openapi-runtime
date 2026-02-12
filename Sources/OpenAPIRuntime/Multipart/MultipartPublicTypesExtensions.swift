@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 import Foundation
-import HTTPTypes
+public import HTTPTypes
 
 // MARK: - Extensions
 
