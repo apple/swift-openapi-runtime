@@ -15,11 +15,19 @@
 import PackageDescription
 
 // General Swift-settings for all targets.
-let swiftSettings: [SwiftSetting] = [
+var swiftSettings: [SwiftSetting] = [
     // https://github.com/apple/swift-evolution/blob/main/proposals/0335-existential-any.md
     // Require `any` for existential types.
     .enableUpcomingFeature("ExistentialAny")
 ]
+
+#if compiler(>=6.2)
+swiftSettings.append(
+    // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0461-async-function-isolation.md
+    .enableUpcomingFeature("NonisolatedNonsendingByDefault")
+)
+#endif
+
 
 let package = Package(
     name: "swift-openapi-runtime",
