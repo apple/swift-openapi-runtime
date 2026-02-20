@@ -46,6 +46,9 @@
     }
 }
 
+@available(*, unavailable)
+extension CopyOnWriteBox.Storage: Sendable {}
+
 extension CopyOnWriteBox: Encodable where Wrapped: Encodable {
 
     /// Encodes this value into the given encoder.

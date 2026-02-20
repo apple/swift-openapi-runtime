@@ -11,11 +11,16 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 import Benchmark
 import OpenAPIRuntime
-import Foundation
 
-let benchmarks = {
+let benchmarks: @Sendable () -> Void = {
     let defaultMetrics: [BenchmarkMetric] = [.mallocCountTotal, .cpuTotal]
 
     Benchmark(

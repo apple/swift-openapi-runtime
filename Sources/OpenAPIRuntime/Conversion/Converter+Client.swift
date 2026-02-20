@@ -11,8 +11,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 import Foundation
-import HTTPTypes
+public import HTTPTypes
 
 extension Converter {
 

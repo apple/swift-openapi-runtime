@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 import Foundation
 
 /// A generator of a new boundary string used by multipart messages to separate parts.

@@ -11,9 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 import XCTest
 @_spi(Generated) @testable import OpenAPIRuntime
-import Foundation
 
 final class Test_JSONSequenceEncoding: Test_Runtime {
     func testSerialized() async throws {

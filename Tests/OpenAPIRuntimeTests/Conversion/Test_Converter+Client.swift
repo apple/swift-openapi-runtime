@@ -275,7 +275,7 @@ final class Test_ClientConverterExtensions: Test_Runtime {
 ///   - message: An optional custom message to display upon test failure.
 ///   - file: The file name to include in the failure message (default is the source file where this function is called).
 ///   - line: The line number to include in the failure message (default is the line where this function is called).
-public func XCTAssertEqualStringifiedData(
+func XCTAssertEqualStringifiedData(
     _ expression1: @autoclosure () throws -> Data,
     _ expression2: @autoclosure () throws -> String,
     _ message: @autoclosure () -> String = "",

@@ -12,12 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if canImport(Darwin)
-import class Foundation.JSONDecoder
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
 #else
-@preconcurrency import class Foundation.JSONDecoder
+public import Foundation
 #endif
-import struct Foundation.Data
 
 /// A sequence that parses arbitrary byte chunks into events using the Server-sent Events format.
 ///
@@ -93,6 +92,9 @@ extension ServerSentEventsDeserializationSequence: AsyncSequence {
         Iterator(upstream: upstream.makeAsyncIterator(), while: predicate)
     }
 }
+
+@available(*, unavailable)
+extension ServerSentEventsDeserializationSequence.Iterator: Sendable {}
 
 extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
 
@@ -345,6 +347,9 @@ extension ServerSentEventsLineDeserializationSequence: AsyncSequence {
         Iterator(upstream: upstream.makeAsyncIterator())
     }
 }
+
+@available(*, unavailable)
+extension ServerSentEventsLineDeserializationSequence.Iterator: Sendable {}
 
 extension ServerSentEventsLineDeserializationSequence.Iterator {
 

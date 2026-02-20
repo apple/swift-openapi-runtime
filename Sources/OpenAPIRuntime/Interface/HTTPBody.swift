@@ -12,9 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import class Foundation.NSLock
-import protocol Foundation.LocalizedError
-import struct Foundation.Data  // only for convenience initializers
+public import Foundation
 
 /// A body of an HTTP request or HTTP response.
 ///
@@ -562,3 +560,6 @@ extension HTTPBody {
         public mutating func next() async throws -> Element? { try await produceNext() }
     }
 }
+
+@available(*, unavailable)
+extension HTTPBody.Iterator: Sendable {}

@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A type that allows decoding `Decodable` values from a URI-encoded string.
 final class URIValueFromNodeDecoder {

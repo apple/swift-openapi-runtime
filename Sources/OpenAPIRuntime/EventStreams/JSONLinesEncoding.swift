@@ -12,10 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if canImport(Darwin)
-import class Foundation.JSONEncoder
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
 #else
-@preconcurrency import class Foundation.JSONEncoder
+public import Foundation
 #endif
 
 /// A sequence that serializes lines by concatenating them using the JSON Lines format.
@@ -68,6 +68,9 @@ extension JSONLinesSerializationSequence: AsyncSequence {
         Iterator(upstream: upstream.makeAsyncIterator())
     }
 }
+
+@available(*, unavailable)
+extension JSONLinesSerializationSequence.Iterator: Sendable {}
 
 extension AsyncSequence where Element: Encodable & Sendable, Self: Sendable {
 

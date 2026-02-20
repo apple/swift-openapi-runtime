@@ -12,8 +12,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-import HTTPTypes
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
+import HTTPTypes
 
 /// A container for multipart body requirements.
 struct MultipartBodyRequirements: Sendable, Hashable {
