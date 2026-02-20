@@ -11,9 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 import XCTest
 @_spi(Generated) @testable import OpenAPIRuntime
-import Foundation
 import HTTPTypes
 
 final class Test_MultipartBytesToFramesSequence: Test_Runtime {
@@ -22,8 +27,7 @@ final class Test_MultipartBytesToFramesSequence: Test_Runtime {
             "--__abcd__", #"Content-Disposition: form-data; name="name""#, "", "24", "--__abcd__",
             #"Content-Disposition: form-data; name="info""#, "", "{}", "--__abcd__--",
         ])
-        var iterator = chunk.makeIterator()
-        let upstream = AsyncStream { iterator.next().map { ArraySlice([$0]) } }
+        let upstream = chunk.async.map { ArraySlice([$0]) }
         let sequence = MultipartBytesToFramesSequence(upstream: upstream, boundary: "__abcd__")
         var frames: [MultipartFrame] = []
         for try await frame in sequence { frames.append(frame) }

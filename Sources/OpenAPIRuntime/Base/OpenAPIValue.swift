@@ -12,16 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if canImport(Foundation)
-#if canImport(Darwin)
-import class Foundation.NSNull
-#else
-@preconcurrency import class Foundation.NSNull
-#endif
-import class Foundation.NSNumber
+// Full Foundation needed for NSNull
+import Foundation
 #if canImport(CoreFoundation)
 import CoreFoundation
-#endif
 #endif
 
 /// A container for a value represented by JSON Schema.

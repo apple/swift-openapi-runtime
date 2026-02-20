@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A type that encodes an `Encodable` value to an URI-encoded string
 /// using the rules from RFC 6570, RFC 1866, and OpenAPI 3.0.4, depending on

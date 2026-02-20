@@ -12,13 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import HTTPTypes
-#if canImport(Darwin)
-import struct Foundation.URL
-#else
-@preconcurrency import struct Foundation.URL
-#endif
-import protocol Foundation.LocalizedError
+public import Foundation
+public import HTTPTypes
 
 /// An error thrown by a client performing an OpenAPI operation.
 ///

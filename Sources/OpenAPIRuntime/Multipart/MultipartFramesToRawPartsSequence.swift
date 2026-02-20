@@ -12,8 +12,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-import HTTPTypes
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
+import HTTPTypes
 
 /// A sequence that parses raw multipart parts from multipart frames.
 struct MultipartFramesToRawPartsSequence<Upstream: AsyncSequence & Sendable>: Sendable
@@ -348,7 +352,9 @@ extension MultipartFramesToRawPartsSequence {
                 if #available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, macCatalyst 18.0, visionOS 2.0, *) {
                     frame = try await upstream.next(isolation: self)
                 } else {
-                    frame = try await upstream.next()
+                    nonisolated(unsafe) var unsafeUpstream = upstream
+                    frame = try await unsafeUpstream.next()
+                    upstream = unsafeUpstream
                 }
                 #else
                 frame = try await upstream.next()
@@ -380,7 +386,9 @@ extension MultipartFramesToRawPartsSequence {
                 if #available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, macCatalyst 18.0, visionOS 2.0, *) {
                     frame = try await upstream.next(isolation: self)
                 } else {
-                    frame = try await upstream.next()
+                    nonisolated(unsafe) var unsafeUpstream = upstream
+                    frame = try await unsafeUpstream.next()
+                    upstream = unsafeUpstream
                 }
                 #else
                 frame = try await upstream.next()

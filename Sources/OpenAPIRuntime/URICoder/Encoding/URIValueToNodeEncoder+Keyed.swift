@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A keyed container used by `URIValueToNodeEncoder`.
 struct URIKeyedEncodingContainer<Key: CodingKey> {

@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 import Foundation
-import HTTPTypes
+public import HTTPTypes
 
 /// A raw multipart part containing the header fields and the body stream.
 public struct MultipartRawPart: Sendable, Hashable {
@@ -358,3 +358,5 @@ extension MultipartBody {
         public mutating func next() async throws -> Element? { try await produceNext() }
     }
 }
+
+@available(*, unavailable) extension MultipartBody.Iterator: Sendable {}

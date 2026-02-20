@@ -11,24 +11,29 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 import XCTest
 @_spi(Generated) @testable import OpenAPIRuntime
-import Foundation
 import HTTPTypes
 
 final class Test_MultipartRawPartsToFramesSequence: Test_Runtime {
     func test() async throws {
-        var secondPartChunks = "{}".utf8.makeIterator()
+        let secondPartChunks = "{}".utf8.async
         let secondPartBody = HTTPBody(
-            AsyncStream(unfolding: { secondPartChunks.next().map { ArraySlice([$0]) } }),
-            length: .unknown
+            secondPartChunks.map { ArraySlice([$0]) },
+            length: .unknown,
+            iterationBehavior: .multiple
         )
         let parts: [MultipartRawPart] = [
             .init(headerFields: [.contentDisposition: #"form-data; name="name""#], body: "24"),
             .init(headerFields: [.contentDisposition: #"form-data; name="info""#], body: secondPartBody),
         ]
-        var upstreamIterator = parts.makeIterator()
-        let upstream = AsyncStream { upstreamIterator.next() }
+        let upstream = parts.async
         let sequence = MultipartRawPartsToFramesSequence(upstream: upstream)
 
         var frames: [MultipartFrame] = []
@@ -44,18 +49,18 @@ final class Test_MultipartRawPartsToFramesSequence: Test_Runtime {
 
 final class Test_MultipartRawPartsToFramesSequenceSerializer: Test_Runtime {
     func test() async throws {
-        var secondPartChunks = "{}".utf8.makeIterator()
+        let secondPartChunks = "{}".utf8.async
         let secondPartBody = HTTPBody(
-            AsyncStream(unfolding: { secondPartChunks.next().map { ArraySlice([$0]) } }),
-            length: .unknown
+            secondPartChunks.map { ArraySlice([$0]) },
+            length: .unknown,
+            iterationBehavior: .multiple
         )
         let parts: [MultipartRawPart] = [
             .init(headerFields: [.contentDisposition: #"form-data; name="name""#], body: "24"),
             .init(headerFields: [.contentDisposition: #"form-data; name="info""#], body: secondPartBody),
         ]
-        var upstreamIterator = parts.makeIterator()
-        let upstream = AsyncStream { upstreamIterator.next() }
-        var serializer = MultipartRawPartsToFramesSequence<AsyncStream<MultipartRawPart>>
+        let upstream = parts.async
+        var serializer = MultipartRawPartsToFramesSequence<AsyncSyncSequence<[MultipartRawPart]>>
             .Serializer(upstream: upstream.makeAsyncIterator())
         var frames: [MultipartFrame] = []
         while let frame = try await serializer.next() { frames.append(frame) }

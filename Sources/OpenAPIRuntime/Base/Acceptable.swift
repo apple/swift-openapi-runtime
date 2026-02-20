@@ -11,6 +11,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+// Full Foundation needed for String(format:)
 import Foundation
 
 /// The protocol that all generated `AcceptableContentType` enums conform to.

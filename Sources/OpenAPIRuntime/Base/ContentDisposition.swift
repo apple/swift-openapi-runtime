@@ -11,6 +11,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+// Full Foundation needed for String.trimmingCharacters
 import Foundation
 
 /// A parsed representation of the `content-disposition` header described by RFC 6266 containing only
@@ -105,9 +107,10 @@ extension ContentDisposition: RawRepresentable {
         var components = rawValue.split(separator: ";").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         guard !components.isEmpty else { return nil }
         self.dispositionType = DispositionType(rawValue: components.removeFirst())
-        let parameterTuples: [(ParameterName, String)] = components.compactMap { component in
+        let parameterTuples: [(ParameterName, String)] = components.compactMap {
+            (component: String) -> (ParameterName, String)? in
             let parameterComponents = component.split(separator: "=", maxSplits: 1)
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .map { $0.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) }
             guard parameterComponents.count == 2 else { return nil }
             let valueWithoutQuotes = parameterComponents[1].trimmingCharacters(in: ["\""])
             return (.init(rawValue: parameterComponents[0]), valueWithoutQuotes)

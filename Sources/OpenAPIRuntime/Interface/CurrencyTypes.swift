@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-import HTTPTypes
 import Foundation
+public import HTTPTypes
 
 /// A container for request metadata already parsed and validated
 /// by the server transport.

@@ -50,6 +50,8 @@ public enum IterationBehavior: Sendable {
     public mutating func next() async throws -> Element? { try await produceNext() }
 }
 
+@available(*, unavailable) extension AnyIterator: Sendable {}
+
 /// A type-erased async sequence that wraps input sequences.
 @usableFromInline struct AnySequence<Element: Sendable>: AsyncSequence, Sendable {
 
@@ -101,6 +103,8 @@ where Upstream.Element: Sendable {
     @usableFromInline func makeAsyncIterator() -> AsyncIterator { Iterator(iterator: sequence.makeIterator()) }
 }
 
+@available(*, unavailable) extension WrappedSyncSequence.Iterator: Sendable {}
+
 /// An empty async sequence.
 @usableFromInline struct EmptySequence<Element: Sendable>: AsyncSequence, Sendable {
 
@@ -118,3 +122,5 @@ where Upstream.Element: Sendable {
 
     @usableFromInline func makeAsyncIterator() -> AsyncIterator { EmptyIterator() }
 }
+
+@available(*, unavailable) extension EmptySequence.EmptyIterator: Sendable {}

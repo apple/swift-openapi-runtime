@@ -11,7 +11,9 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import Foundation
+
+// Full Foundation needed for NSLock
+public import Foundation
 
 /// A type that allows customization of Date encoding and decoding.
 ///

@@ -11,9 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 import XCTest
 @_spi(Generated) @testable import OpenAPIRuntime
-import Foundation
 import HTTPTypes
 
 final class Test_MultipartFramesToRawPartsSequence: Test_Runtime {
@@ -23,8 +28,7 @@ final class Test_MultipartFramesToRawPartsSequence: Test_Runtime {
             .bodyChunk(chunkFromString("4")), .headerFields([.contentDisposition: #"form-data; name="info""#]),
             .bodyChunk(chunkFromString("{")), .bodyChunk(chunkFromString("}")),
         ]
-        var upstreamIterator = frames.makeIterator()
-        let upstream = AsyncStream { upstreamIterator.next() }
+        let upstream = frames.async
         let sequence = MultipartFramesToRawPartsSequence(upstream: upstream)
         var iterator = sequence.makeAsyncIterator()
         guard let part1 = try await iterator.next() else {
@@ -52,9 +56,8 @@ final class Test_MultipartFramesToRawPartsSequenceIterator: Test_Runtime {
             .bodyChunk(chunkFromString("4")), .headerFields([.contentDisposition: #"form-data; name="info""#]),
             .bodyChunk(chunkFromString("{")), .bodyChunk(chunkFromString("}")),
         ]
-        var upstreamSyncIterator = frames.makeIterator()
-        let upstream = AsyncStream { upstreamSyncIterator.next() }
-        let sharedIterator = MultipartFramesToRawPartsSequence<AsyncStream<MultipartFrame>>
+        let upstream = frames.async
+        let sharedIterator = MultipartFramesToRawPartsSequence<AsyncSyncSequence<[MultipartFrame]>>
             .SharedIterator(makeUpstreamIterator: { upstream.makeAsyncIterator() })
         let bodyClosure: @Sendable () async throws -> ArraySlice<UInt8>? = {
             try await sharedIterator.nextFromBodySubsequence()
