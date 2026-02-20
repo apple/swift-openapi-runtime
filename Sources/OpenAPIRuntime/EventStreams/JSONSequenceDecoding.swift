@@ -99,7 +99,7 @@ extension AsyncSequence where Element == ArraySlice<UInt8> {
     ///   - eventType: The type to decode the JSON event into.
     ///   - decoder: The JSON decoder to use.
     /// - Returns: A sequence that provides the decoded JSON events.
-    public func asDecodedJSONSequence<Event: Decodable & _OpenAPIRuntimeSendableMetatype>(
+    @preconcurrency public func asDecodedJSONSequence<Event: Decodable & _OpenAPIRuntimeSendableMetatype>(
         of eventType: Event.Type = Event.self,
         decoder: JSONDecoder = .init()
     ) -> AsyncThrowingMapSequence<JSONSequenceDeserializationSequence<Self>, Event> {

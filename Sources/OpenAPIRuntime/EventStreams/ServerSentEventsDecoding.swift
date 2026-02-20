@@ -115,7 +115,8 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
     ///   - decoder: The JSON decoder to use.
     ///   - predicate: A closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
     /// - Returns: A sequence that provides the events with the decoded JSON data.
-    public func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable>(
+    @preconcurrency
+    public func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable & _OpenAPIRuntimeSendableMetatype>(
         of dataType: JSONDataType.Type = JSONDataType.self,
         decoder: JSONDecoder = .init(),
         while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool = { _ in true }
