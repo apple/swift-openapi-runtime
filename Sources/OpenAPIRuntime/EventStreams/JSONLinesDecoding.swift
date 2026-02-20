@@ -71,8 +71,7 @@ extension JSONLinesDeserializationSequence: AsyncSequence {
     }
 }
 
-@available(*, unavailable)
-extension JSONLinesDeserializationSequence.Iterator: Sendable {}
+@available(*, unavailable) extension JSONLinesDeserializationSequence.Iterator: Sendable {}
 
 extension AsyncSequence where Element == ArraySlice<UInt8> {
 

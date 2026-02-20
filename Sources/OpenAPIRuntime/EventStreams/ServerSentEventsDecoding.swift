@@ -93,8 +93,7 @@ extension ServerSentEventsDeserializationSequence: AsyncSequence {
     }
 }
 
-@available(*, unavailable)
-extension ServerSentEventsDeserializationSequence.Iterator: Sendable {}
+@available(*, unavailable) extension ServerSentEventsDeserializationSequence.Iterator: Sendable {}
 
 extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
 
@@ -348,8 +347,7 @@ extension ServerSentEventsLineDeserializationSequence: AsyncSequence {
     }
 }
 
-@available(*, unavailable)
-extension ServerSentEventsLineDeserializationSequence.Iterator: Sendable {}
+@available(*, unavailable) extension ServerSentEventsLineDeserializationSequence.Iterator: Sendable {}
 
 extension ServerSentEventsLineDeserializationSequence.Iterator {
 

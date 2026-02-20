@@ -13,7 +13,9 @@
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6.2)
+// swift-format-ignore: AllPublicDeclarationsHaveDocumentation
 public typealias _OpenAPIRuntimeSendableMetatype = SendableMetatype
 #else
+// swift-format-ignore: AllPublicDeclarationsHaveDocumentation
 public typealias _OpenAPIRuntimeSendableMetatype = Any
 #endif

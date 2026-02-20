@@ -69,8 +69,7 @@ extension JSONLinesSerializationSequence: AsyncSequence {
     }
 }
 
-@available(*, unavailable)
-extension JSONLinesSerializationSequence.Iterator: Sendable {}
+@available(*, unavailable) extension JSONLinesSerializationSequence.Iterator: Sendable {}
 
 extension AsyncSequence where Element: Encodable & Sendable, Self: Sendable {
 

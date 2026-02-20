@@ -24,12 +24,10 @@
 //===----------------------------------------------------------------------===//
 
 extension Sequence {
-  /// An asynchronous sequence containing the same elements as this sequence,
-  /// but on which operations, such as `map` and `filter`, are
-  /// implemented asynchronously.
-  var async: AsyncSyncSequence<Self> {
-    AsyncSyncSequence(self)
-  }
+    /// An asynchronous sequence containing the same elements as this sequence,
+    /// but on which operations, such as `map` and `filter`, are
+    /// implemented asynchronously.
+    var async: AsyncSyncSequence<Self> { AsyncSyncSequence(self) }
 }
 
 /// An asynchronous sequence composed from a synchronous sequence.
@@ -41,36 +39,29 @@ extension Sequence {
 /// This functions similarly to `LazySequence` by accessing elements sequentially
 /// in the iterator's `next()` method.
 struct AsyncSyncSequence<Base: Sequence>: AsyncSequence {
-  typealias Element = Base.Element
+    typealias Element = Base.Element
 
-  struct Iterator: AsyncIteratorProtocol {
-    var iterator: Base.Iterator?
+    struct Iterator: AsyncIteratorProtocol {
+        var iterator: Base.Iterator?
 
-    init(_ iterator: Base.Iterator) {
-      self.iterator = iterator
+        init(_ iterator: Base.Iterator) { self.iterator = iterator }
+
+        mutating func next() async -> Base.Element? {
+            guard !Task.isCancelled, let value = iterator?.next() else {
+                iterator = nil
+                return nil
+            }
+            return value
+        }
     }
 
-    mutating func next() async -> Base.Element? {
-      guard !Task.isCancelled, let value = iterator?.next() else {
-        iterator = nil
-        return nil
-      }
-      return value
-    }
-  }
+    let base: Base
 
-  let base: Base
+    init(_ base: Base) { self.base = base }
 
-  init(_ base: Base) {
-    self.base = base
-  }
-
-  func makeAsyncIterator() -> Iterator {
-    Iterator(base.makeIterator())
-  }
+    func makeAsyncIterator() -> Iterator { Iterator(base.makeIterator()) }
 }
 
 extension AsyncSyncSequence: Sendable where Base: Sendable {}
 
-@available(*, unavailable)
-extension AsyncSyncSequence.Iterator: Sendable {}
+@available(*, unavailable) extension AsyncSyncSequence.Iterator: Sendable {}

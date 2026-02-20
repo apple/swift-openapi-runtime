@@ -359,5 +359,4 @@ extension MultipartBody {
     }
 }
 
-@available(*, unavailable)
-extension MultipartBody.Iterator: Sendable {}
+@available(*, unavailable) extension MultipartBody.Iterator: Sendable {}

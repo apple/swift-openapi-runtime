@@ -65,8 +65,7 @@ extension ServerSentEventsSerializationSequence: AsyncSequence {
     }
 }
 
-@available(*, unavailable)
-extension ServerSentEventsSerializationSequence.Iterator: Sendable {}
+@available(*, unavailable) extension ServerSentEventsSerializationSequence.Iterator: Sendable {}
 
 extension AsyncSequence {
 

@@ -90,8 +90,7 @@ extension JSONSequenceDeserializationSequence: AsyncSequence {
     }
 }
 
-@available(*, unavailable)
-extension JSONSequenceDeserializationSequence.Iterator: Sendable {}
+@available(*, unavailable) extension JSONSequenceDeserializationSequence.Iterator: Sendable {}
 
 extension AsyncSequence where Element == ArraySlice<UInt8> {
 

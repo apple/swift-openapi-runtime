@@ -561,5 +561,4 @@ extension HTTPBody {
     }
 }
 
-@available(*, unavailable)
-extension HTTPBody.Iterator: Sendable {}
+@available(*, unavailable) extension HTTPBody.Iterator: Sendable {}

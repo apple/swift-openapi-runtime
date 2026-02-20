@@ -107,7 +107,8 @@ extension ContentDisposition: RawRepresentable {
         var components = rawValue.split(separator: ";").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         guard !components.isEmpty else { return nil }
         self.dispositionType = DispositionType(rawValue: components.removeFirst())
-        let parameterTuples: [(ParameterName, String)] = components.compactMap { (component: String) -> (ParameterName, String)? in
+        let parameterTuples: [(ParameterName, String)] = components.compactMap {
+            (component: String) -> (ParameterName, String)? in
             let parameterComponents = component.split(separator: "=", maxSplits: 1)
                 .map { $0.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines) }
             guard parameterComponents.count == 2 else { return nil }
