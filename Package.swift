@@ -64,10 +64,5 @@ for target in package.targets {
     // https://github.com/swiftlang/swift-evolution/blob/main/proposals/0409-access-level-on-imports.md
     settings.append(.enableUpcomingFeature("InternalImportsByDefault"))
 
-    #if compiler(>=6.2)
-    // Ensure all public types are explicitly annotated as Sendable or not Sendable.
-    settings.append(.unsafeFlags(["-Xfrontend", "-require-explicit-sendable"]))
-    #endif
-
     target.swiftSettings = settings
 }
