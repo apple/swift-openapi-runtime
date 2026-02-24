@@ -2,7 +2,7 @@
 //
 // This source file is part of the SwiftOpenAPIGenerator open source project
 //
-// Copyright (c) 2023 Apple Inc. and the SwiftOpenAPIGenerator project authors
+// Copyright (c) 2026 Apple Inc. and the SwiftOpenAPIGenerator project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -12,11 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-import Foundation
-
-extension String {
-
-    /// Returns the string with leading and trailing whitespace (such as spaces
-    /// and newlines) removed.
-    var trimmingLeadingAndTrailingSpaces: Self { trimmingCharacters(in: .whitespacesAndNewlines) }
-}
+#if compiler(>=6.2)
+// swift-format-ignore: AllPublicDeclarationsHaveDocumentation
+public typealias _OpenAPIRuntimeSendableMetatype = SendableMetatype
+#else
+// swift-format-ignore: AllPublicDeclarationsHaveDocumentation
+public typealias _OpenAPIRuntimeSendableMetatype = Any
+#endif

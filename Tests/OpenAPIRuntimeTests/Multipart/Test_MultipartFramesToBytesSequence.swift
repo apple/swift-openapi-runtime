@@ -11,9 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 import XCTest
 @_spi(Generated) @testable import OpenAPIRuntime
-import Foundation
 import HTTPTypes
 
 final class Test_MultipartFramesToBytesSequence: Test_Runtime {
@@ -23,8 +28,7 @@ final class Test_MultipartFramesToBytesSequence: Test_Runtime {
             .bodyChunk(chunkFromString("4")), .headerFields([.contentDisposition: #"form-data; name="info""#]),
             .bodyChunk(chunkFromString("{")), .bodyChunk(chunkFromString("}")),
         ]
-        var iterator = frames.makeIterator()
-        let upstream = AsyncStream { iterator.next() }
+        let upstream = frames.async
         let sequence = MultipartFramesToBytesSequence(upstream: upstream, boundary: "__abcd__")
         var bytes: ArraySlice<UInt8> = []
         for try await chunk in sequence { bytes.append(contentsOf: chunk) }

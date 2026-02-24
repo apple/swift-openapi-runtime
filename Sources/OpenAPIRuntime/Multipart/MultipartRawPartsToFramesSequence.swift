@@ -12,8 +12,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-import HTTPTypes
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
+import HTTPTypes
 
 /// A sequence that serializes raw multipart parts into multipart frames.
 struct MultipartRawPartsToFramesSequence<Upstream: AsyncSequence & Sendable>: Sendable

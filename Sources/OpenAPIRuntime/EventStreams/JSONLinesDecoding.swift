@@ -12,12 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if canImport(Darwin)
-import class Foundation.JSONDecoder
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
 #else
-@preconcurrency import class Foundation.JSONDecoder
+public import Foundation
 #endif
-import struct Foundation.Data
 
 /// A sequence that parses arbitrary byte chunks into lines using the JSON Lines format.
 public struct JSONLinesDeserializationSequence<Upstream: AsyncSequence & Sendable>: Sendable
@@ -72,6 +71,8 @@ extension JSONLinesDeserializationSequence: AsyncSequence {
     }
 }
 
+@available(*, unavailable) extension JSONLinesDeserializationSequence.Iterator: Sendable {}
+
 extension AsyncSequence where Element == ArraySlice<UInt8> {
 
     /// Returns another sequence that decodes each JSON Lines event as the provided type using the provided decoder.
@@ -79,7 +80,14 @@ extension AsyncSequence where Element == ArraySlice<UInt8> {
     ///   - eventType: The type to decode the JSON event into.
     ///   - decoder: The JSON decoder to use.
     /// - Returns: A sequence that provides the decoded JSON events.
-    public func asDecodedJSONLines<Event: Decodable>(
+    #if compiler(>=6.2)
+    @abi(
+        func asDecodedJSONLines<Event: Decodable>(of eventType: Event.Type, decoder: JSONDecoder)
+            -> AsyncThrowingMapSequence<JSONLinesDeserializationSequence<Self>, Event>
+    )
+    #endif
+    @preconcurrency
+    public func asDecodedJSONLines<Event: Decodable & _OpenAPIRuntimeSendableMetatype>(
         of eventType: Event.Type = Event.self,
         decoder: JSONDecoder = .init()
     ) -> AsyncThrowingMapSequence<JSONLinesDeserializationSequence<Self>, Event> {

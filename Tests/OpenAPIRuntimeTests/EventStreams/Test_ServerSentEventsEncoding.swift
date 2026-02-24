@@ -11,9 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 import XCTest
 @_spi(Generated) @testable import OpenAPIRuntime
-import Foundation
 
 final class Test_ServerSentEventsEncoding: Test_Runtime {
     func _test(input: [ServerSentEvent], output: String, file: StaticString = #filePath, line: UInt = #line)

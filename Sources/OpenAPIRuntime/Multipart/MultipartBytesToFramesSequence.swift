@@ -12,8 +12,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-import HTTPTypes
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
+import HTTPTypes
 
 /// A sequence that parses multipart frames from bytes.
 struct MultipartBytesToFramesSequence<Upstream: AsyncSequence & Sendable>: Sendable

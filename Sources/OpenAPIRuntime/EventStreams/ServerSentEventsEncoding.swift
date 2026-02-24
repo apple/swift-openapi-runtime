@@ -12,11 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if canImport(Darwin)
-import class Foundation.JSONEncoder
-#else
-@preconcurrency import class Foundation.JSONEncoder
-#endif
+public import Foundation
 
 /// A sequence that serializes Server-sent Events.
 public struct ServerSentEventsSerializationSequence<Upstream: AsyncSequence & Sendable>: Sendable
@@ -68,6 +64,8 @@ extension ServerSentEventsSerializationSequence: AsyncSequence {
         Iterator(upstream: upstream.makeAsyncIterator())
     }
 }
+
+@available(*, unavailable) extension ServerSentEventsSerializationSequence.Iterator: Sendable {}
 
 extension AsyncSequence {
 
