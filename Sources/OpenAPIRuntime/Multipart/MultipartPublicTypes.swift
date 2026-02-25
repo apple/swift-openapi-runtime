@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 public import HTTPTypes
 
 /// A raw multipart part containing the header fields and the body stream.
@@ -179,11 +183,7 @@ public final class MultipartBody<Part: Sendable>: @unchecked Sendable {
     private let sequence: AnySequence<Part>
 
     /// A lock for shared mutable state.
-    private let lock: NSLock = {
-        let lock = NSLock()
-        lock.name = "com.apple.swift-openapi-generator.runtime.multipart-body"
-        return lock
-    }()
+    private let lock = Lock()
 
     /// A flag indicating whether an iterator has already been created.
     private var locked_iteratorCreated: Bool = false
