@@ -173,6 +173,6 @@ extension ServerError: LocalizedError {
     ///
     /// - Returns: A localized string describing the server error.
     public var errorDescription: String? {
-        "Server encountered an error handling the operation \"\(operationID)\", caused by \"\(causeDescription)\", underlying error: \(underlyingError.localizedDescription)."
+        "Server encountered an error handling the operation \"\(operationID)\", caused by \"\(causeDescription)\", underlying error: \(underlyingError)."
     }
 }
