@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
+#else
 public import Foundation
+#endif
 
 /// A body of an HTTP request or HTTP response.
 ///
@@ -140,11 +144,7 @@ public final class HTTPBody: @unchecked Sendable {
     private let sequence: AnySequence<ByteChunk>
 
     /// A lock for shared mutable state.
-    private let lock: NSLock = {
-        let lock = NSLock()
-        lock.name = "com.apple.swift-openapi-generator.runtime.body"
-        return lock
-    }()
+    private let lock = Lock()
 
     /// A flag indicating whether an iterator has already been created.
     private var locked_iteratorCreated: Bool = false
