@@ -12,7 +12,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-// Full Foundation needed for NSLock
 public import Foundation
 
 /// A type that allows customization of Date encoding and decoding.
@@ -30,7 +29,7 @@ public protocol DateTranscoder: Sendable {
 public struct ISO8601DateTranscoder: DateTranscoder, @unchecked Sendable {
 
     /// The lock protecting the formatter.
-    private let lock: NSLock
+    private let lock: Lock
 
     /// The underlying date formatter.
     private let locked_formatter: ISO8601DateFormatter
@@ -41,8 +40,7 @@ public struct ISO8601DateTranscoder: DateTranscoder, @unchecked Sendable {
     public init(options: ISO8601DateFormatter.Options? = nil) {
         let formatter = ISO8601DateFormatter()
         if let options { formatter.formatOptions = options }
-        lock = NSLock()
-        lock.name = "com.apple.swift-openapi-generator.runtime.ISO8601DateTranscoder"
+        lock = Lock()
         locked_formatter = formatter
     }
 
