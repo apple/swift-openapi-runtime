@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+import Foundation
 import HTTPTypes
 @_spi(Generated) @testable import OpenAPIRuntime
 import XCTest
@@ -31,7 +32,7 @@ final class Test_ClientError: XCTestCase {
         )
         XCTAssertEqual(
             error.localizedDescription,
-            "Client encountered an error invoking the operation \"op\", caused by \"Transport threw an error.\", underlying error: Just errorDescription."
+            "Client encountered an error invoking the operation \"op\", caused by \"Transport threw an error.\", underlying error: Just description."
         )
     }
 }

@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+import Foundation
 import HTTPTypes
 @_spi(Generated) @testable import OpenAPIRuntime
 import XCTest

@@ -12,6 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+import Foundation
 import HTTPTypes
 @_spi(Generated) @testable import OpenAPIRuntime
 import XCTest
@@ -36,7 +37,7 @@ final class Test_ServerError: XCTestCase {
         )
         XCTAssertEqual(
             error.localizedDescription,
-            "Server encountered an error handling the operation \"op\", caused by \"User handler threw an error.\", underlying error: Just errorDescription."
+            "Server encountered an error handling the operation \"op\", caused by \"User handler threw an error.\", underlying error: Just description."
         )
     }
 }

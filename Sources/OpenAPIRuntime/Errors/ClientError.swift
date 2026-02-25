@@ -127,6 +127,6 @@ extension ClientError: LocalizedError {
     ///
     /// - Returns: A localized string describing the client error.
     public var errorDescription: String? {
-        "Client encountered an error invoking the operation \"\(operationID)\", caused by \"\(causeDescription)\", underlying error: \(underlyingError.localizedDescription)."
+        "Client encountered an error invoking the operation \"\(operationID)\", caused by \"\(causeDescription)\", underlying error: \(underlyingError)."
     }
 }
