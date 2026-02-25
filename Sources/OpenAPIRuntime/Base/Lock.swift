@@ -56,14 +56,11 @@ import wasi_pthread
 /// `SRWLOCK` type.
 package final class Lock {
     #if os(Windows)
-    fileprivate let mutex: UnsafeMutablePointer<SRWLOCK> =
-        UnsafeMutablePointer.allocate(capacity: 1)
+    fileprivate let mutex: UnsafeMutablePointer<SRWLOCK> = UnsafeMutablePointer.allocate(capacity: 1)
     #elseif os(FreeBSD) || os(OpenBSD)
-    fileprivate let mutex: UnsafeMutablePointer<pthread_mutex_t?> =
-        UnsafeMutablePointer.allocate(capacity: 1)
+    fileprivate let mutex: UnsafeMutablePointer<pthread_mutex_t?> = UnsafeMutablePointer.allocate(capacity: 1)
     #elseif (compiler(<6.1) && !os(WASI)) || (compiler(>=6.1) && _runtime(_multithreaded))
-    fileprivate let mutex: UnsafeMutablePointer<pthread_mutex_t> =
-        UnsafeMutablePointer.allocate(capacity: 1)
+    fileprivate let mutex: UnsafeMutablePointer<pthread_mutex_t> = UnsafeMutablePointer.allocate(capacity: 1)
     #endif
 
     /// Create a new lock.
@@ -141,20 +138,14 @@ package final class Lock {
     ///
     /// - Parameter body: The block to execute while holding the lock.
     /// - Returns: The value returned by the block.
-    @inlinable
-    package func withLock<T>(_ body: () throws -> T) rethrows -> T {
+    @inlinable package func withLock<T>(_ body: () throws -> T) rethrows -> T {
         self.lock()
-        defer {
-            self.unlock()
-        }
+        defer { self.unlock() }
         return try body()
     }
 
     // specialise Void return (for performance)
-    @inlinable
-    package func withLockVoid(_ body: () throws -> Void) rethrows {
-        try self.withLock(body)
-    }
+    @inlinable package func withLockVoid(_ body: () throws -> Void) rethrows { try self.withLock(body) }
 }
 
 /// A utility function that runs the body code only in debug builds, without
@@ -162,8 +153,7 @@ package final class Lock {
 ///
 /// This is currently the only way to do this in Swift: see
 /// https://forums.swift.org/t/support-debug-only-code/11037 for a discussion.
-@inlinable
-internal func debugOnly(_ body: () -> Void) {
+@inlinable internal func debugOnly(_ body: () -> Void) {
     assert(
         {
             body()
@@ -173,4 +163,3 @@ internal func debugOnly(_ body: () -> Void) {
 }
 
 extension Lock: @unchecked Sendable {}
-
