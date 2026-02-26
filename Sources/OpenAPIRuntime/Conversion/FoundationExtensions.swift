@@ -12,11 +12,23 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
-extension String {
-
+extension StringProtocol {
     /// Returns the string with leading and trailing whitespace (such as spaces
     /// and newlines) removed.
-    var trimmingLeadingAndTrailingSpaces: Self { trimmingCharacters(in: .whitespacesAndNewlines) }
+    var trimmingLeadingAndTrailingSpaces: String { self.trimming { $0.isWhitespace } }
+
+    /// Returns a new string by removing leading and trailing characters
+    /// that satisfy the given predicate.
+    func trimming(while predicate: (Character) -> Bool) -> String {
+        guard let start = self.firstIndex(where: { !predicate($0) }) else { return "" }
+        let end = self.lastIndex(where: { !predicate($0) })!
+
+        return String(self[start...end])
+    }
 }
