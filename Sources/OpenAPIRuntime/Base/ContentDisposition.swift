@@ -13,7 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 #if canImport(FoundationEssentials)
-import FoundationModels
+import FoundationEssentials
 #else
 import Foundation
 #endif
