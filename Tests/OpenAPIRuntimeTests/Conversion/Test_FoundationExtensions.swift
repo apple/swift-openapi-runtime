@@ -38,7 +38,6 @@ final class Test_FoundationExtensions: Test_Runtime {
     }
 
     func testGenericTrimming() {
-        // Testing the "Generic" power of the function
         let numericString = "0001234500"
         let result = numericString.trimming(while: { $0 == "0" })
         XCTAssertEqual(result, "12345")
