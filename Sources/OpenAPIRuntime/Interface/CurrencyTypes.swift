@@ -71,8 +71,8 @@ extension ServerRequestMetadata: CustomStringConvertible {
 
 extension HTTPFields: PrettyStringConvertible {
     var prettyDescription: String {
-        sorted(by: { $0.name.canonicalName < $1.name.canonicalName })
-            .map { "\($0.name.canonicalName): \($0.value)" }.joined(separator: "; ")
+        sorted(by: { $0.name.canonicalName < $1.name.canonicalName }).map { "\($0.name.canonicalName): \($0.value)" }
+            .joined(separator: "; ")
     }
 }
 

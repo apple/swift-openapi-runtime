@@ -249,9 +249,7 @@ extension URISerializer {
         forKey key: String
     ) throws {
         guard !dictionary.isEmpty else { return }
-        let sortedDictionary = dictionary.sorted { a, b in
-            a.key.lowercased() < b.key.lowercased()
-        }
+        let sortedDictionary = dictionary.sorted { a, b in a.key.lowercased() < b.key.lowercased() }
 
         let keyAndValueSeparator: String
         let pairSeparator: String
