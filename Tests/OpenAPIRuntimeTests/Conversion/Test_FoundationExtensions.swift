@@ -144,8 +144,6 @@ final class Test_FoundationExtensions: Test_Runtime {
         for input in testCases {
             let foundationResult = input.removingPercentEncoding
             let customResult = input.removingPercentEncoding()
-
-            // 3. Compare
             XCTAssertEqual(
                 customResult,
                 foundationResult,
