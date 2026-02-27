@@ -34,29 +34,36 @@ extension StringProtocol {
 
     /// Returns a new string in which all occurrences of a target
     /// string are replaced by another given string.
-    func replacingOccurrences<Replacement: StringProtocol>(
-        of target: String,
+    @inlinable func replacingOccurrences<Target: StringProtocol, Replacement: StringProtocol>(
+        of target: Target,
         with replacement: Replacement,
         maxReplacements: Int = .max
     ) -> String {
         guard !target.isEmpty, maxReplacements > 0 else { return String(self) }
         var result = ""
         result.reserveCapacity(self.count)
-        var searchStart = self.startIndex
+        var currentIndex = self.startIndex
+        let end = self.endIndex
         var replacements = 0
-        while
-            replacements < maxReplacements,
-            let foundRange = self.range(of: target, range: searchStart..<self.endIndex)
-        {
-            result.append(contentsOf: self[searchStart..<foundRange.lowerBound])
-            result.append(contentsOf: replacement)
-            searchStart = foundRange.upperBound
-            replacements += 1
+
+        // Keeps track of the last un-appended chunk
+        var chunkStartIndex = currentIndex
+        while replacements < maxReplacements, currentIndex < end {
+            let remainder = self[currentIndex...]
+            if remainder.starts(with: target) {
+                result.append(contentsOf: self[chunkStartIndex..<currentIndex])
+                result.append(contentsOf: replacement)
+                currentIndex = self.index(currentIndex, offsetBy: target.count)
+                chunkStartIndex = currentIndex
+                replacements += 1
+            } else {
+                currentIndex = self.index(after: currentIndex)
+            }
         }
-        result.append(contentsOf: self[searchStart..<self.endIndex])
+        // Append any remaining characters after the final match
+        if chunkStartIndex < end { result.append(contentsOf: self[chunkStartIndex...]) }
         return result
     }
-
 
     /// Returns a new string created by replacing all characters in the string
     /// not unreserved or spaces with percent encoded characters.
