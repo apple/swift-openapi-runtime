@@ -122,8 +122,6 @@ final class Test_FoundationExtensions: Test_Runtime {
         }
     }
 
-    // MARK: - Removing Encoding Tests
-
     func testRemovingPercentEncoding() {
         let testCases = [
             "HelloWorld",  // Nothing to decode

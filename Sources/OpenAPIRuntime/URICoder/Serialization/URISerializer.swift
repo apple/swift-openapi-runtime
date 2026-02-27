@@ -93,7 +93,7 @@ extension URISerializer {
         // The space character needs to be encoded based on the config,
         // so first allow it to be unescaped, and then we'll do a second
         // pass and only encode the space based on the config.
-        let partiallyEncoded = unsafeString.addingPercentEncodingAllowingUnreservedAndSpace() ?? ""
+        let partiallyEncoded = unsafeString.addingPercentEncodingAllowingUnreservedAndSpace()
         let fullyEncoded = partiallyEncoded.replacingOccurrences(
             of: " ",
             with: configuration.spaceEscapingCharacter.rawValue

@@ -34,50 +34,35 @@ extension StringProtocol {
 
     /// Returns a new string in which all occurrences of a target
     /// string are replaced by another given string.
-    @inlinable func replacingOccurrences<Target: StringProtocol, Replacement: StringProtocol>(
-        of target: Target,
+    func replacingOccurrences<Replacement: StringProtocol>(
+        of target: String,
         with replacement: Replacement,
         maxReplacements: Int = .max
     ) -> String {
         guard !target.isEmpty, maxReplacements > 0 else { return String(self) }
-
         var result = ""
         result.reserveCapacity(self.count)
-
-        var currentIndex = self.startIndex
-        let end = self.endIndex
-        var replacementsCount = 0
-
-        // Keeps track of the last un-appended chunk
-        var chunkStartIndex = currentIndex
-
-        while currentIndex < end {
-            if replacementsCount == maxReplacements { break }
-
-            let remainder = self[currentIndex...]
-
-            if remainder.starts(with: target) {
-                result.append(contentsOf: self[chunkStartIndex..<currentIndex])
-                result.append(contentsOf: replacement)
-
-                currentIndex = self.index(currentIndex, offsetBy: target.count)
-                chunkStartIndex = currentIndex
-
-                replacementsCount += 1
-            } else {
-                currentIndex = self.index(after: currentIndex)
-            }
+        var searchStart = self.startIndex
+        var replacements = 0
+        while
+            replacements < maxReplacements,
+            let foundRange = self.range(of: target, range: searchStart..<self.endIndex)
+        {
+            result.append(contentsOf: self[searchStart..<foundRange.lowerBound])
+            result.append(contentsOf: replacement)
+            searchStart = foundRange.upperBound
+            replacements += 1
         }
-
-        // Append any remaining characters after the final match
-        if chunkStartIndex < end { result.append(contentsOf: self[chunkStartIndex...]) }
-
+        result.append(contentsOf: self[searchStart..<self.endIndex])
         return result
     }
 
+
     /// Returns a new string created by replacing all characters in the string
     /// not unreserved or spaces with percent encoded characters.
-    func addingPercentEncodingAllowingUnreservedAndSpace() -> String? {
+    func addingPercentEncodingAllowingUnreservedAndSpace() -> String {
+        guard !self.isEmpty else { return String(self) }
+
         let percent = UInt8(ascii: "%")
         let space = UInt8(ascii: " ")
         let utf8Buffer = self.utf8
@@ -140,7 +125,7 @@ extension StringProtocol {
     }
 }
 
-@inline(__always) private func asciiToHex(_ ascii: UInt8) -> UInt8? {
+private func asciiToHex(_ ascii: UInt8) -> UInt8? {
     switch ascii {
     case UInt8(ascii: "0")...UInt8(ascii: "9"): return ascii - UInt8(ascii: "0")
     case UInt8(ascii: "A")...UInt8(ascii: "F"): return ascii - UInt8(ascii: "A") + 10
@@ -149,7 +134,7 @@ extension StringProtocol {
     }
 }
 
-@inline(__always) private func hexToAscii(_ hex: UInt8) -> UInt8 {
+private func hexToAscii(_ hex: UInt8) -> UInt8 {
     switch hex {
     case 0x0: return UInt8(ascii: "0")
     case 0x1: return UInt8(ascii: "1")
