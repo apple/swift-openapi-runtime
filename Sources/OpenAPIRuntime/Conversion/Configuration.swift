@@ -12,7 +12,13 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if FullFoundationSupport || canImport(Darwin)
 public import Foundation
+#elseif canImport(FoundationEssentials)
+public import FoundationEssentials
+#else
+public import Foundation
+#endif
 
 /// A type that allows customization of Date encoding and decoding.
 ///
@@ -25,6 +31,7 @@ public protocol DateTranscoder: Sendable {
     func decode(_: String) throws -> Date
 }
 
+#if FullFoundationSupport || canImport(Darwin)
 /// A transcoder for dates encoded as an ISO-8601 string (in RFC 3339 format).
 public struct ISO8601DateTranscoder: DateTranscoder, @unchecked Sendable {
 
@@ -73,6 +80,41 @@ extension DateTranscoder where Self == ISO8601DateTranscoder {
         ISO8601DateTranscoder(options: [.withInternetDateTime, .withFractionalSeconds])
     }
 }
+
+#else
+/// A transcoder for dates encoded as an ISO-8601 string (in RFC 3339 format).
+public struct ISO8601DateTranscoder: DateTranscoder, @unchecked Sendable {
+
+    /// The style to use for formatting
+    private let formatStyle: Date.ISO8601FormatStyle
+
+    /// Creates a new transcoder with the provided options.
+    /// - Parameter formatStyle: The format style to use
+    public init(formatStyle: Date.ISO8601FormatStyle) {
+        self.formatStyle = formatStyle
+    }
+
+    /// Creates and returns an ISO 8601 formatted string representation of the specified date.
+    public func encode(_ date: Date) throws -> String {
+        return self.formatStyle.format(date)
+    }
+
+    /// Creates and returns a date object from the specified ISO 8601 formatted string representation.
+    public func decode(_ dateString: String) throws -> Date {
+        try self.formatStyle.parse(dateString)
+    }
+}
+
+extension DateTranscoder where Self == ISO8601DateTranscoder {
+    /// A transcoder that transcodes dates as ISO-8601–formatted string (in RFC 3339 format).
+    public static var iso8601: Self { ISO8601DateTranscoder(formatStyle: Date.ISO8601FormatStyle()) }
+
+    /// A transcoder that transcodes dates as ISO-8601–formatted string (in RFC 3339 format) with fractional seconds.
+    public static var iso8601WithFractionalSeconds: Self {
+        ISO8601DateTranscoder(formatStyle: Date.ISO8601FormatStyle(includingFractionalSeconds: true))
+    }
+}
+#endif
 
 extension JSONEncoder.DateEncodingStrategy {
     /// Encode the `Date` as a custom value encoded using the given ``DateTranscoder``.

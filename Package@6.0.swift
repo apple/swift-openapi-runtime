@@ -1,4 +1,4 @@
-// swift-tools-version: 6.1
+// swift-tools-version: 6.0
 //===----------------------------------------------------------------------===//
 //
 // This source file is part of the SwiftOpenAPIGenerator open source project
@@ -18,7 +18,10 @@ import PackageDescription
 let swiftSettings: [SwiftSetting] = [
     // https://github.com/apple/swift-evolution/blob/main/proposals/0335-existential-any.md
     // Require `any` for existential types.
-    .enableUpcomingFeature("ExistentialAny")
+    .enableUpcomingFeature("ExistentialAny"),
+
+    // Used to fake the trait on Swift 6.0
+    .define("FullFoundationSupport")
 ]
 
 let package = Package(
@@ -31,10 +34,6 @@ let package = Package(
             name: "OpenAPIRuntime",
             targets: ["OpenAPIRuntime"]
         )
-    ],
-    traits: [
-        .trait(name: "FullFoundationSupport"),
-        .default(enabledTraits: ["FullFoundationSupport"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-http-types", from: "1.0.0"),
