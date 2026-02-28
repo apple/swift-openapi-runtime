@@ -46,6 +46,8 @@ extension Converter {
             // either.
             return options[0]
         }
+        let receivedTypeLowercased = receivedType.lowercased()
+        let receivedSubtypeLowercased = receivedSubtype.lowercased()
         let evaluatedOptions = try options.map { stringOption in
             guard let parsedOption = OpenAPIMIMEType(stringOption) else {
                 throw RuntimeError.invalidExpectedContentType(stringOption)
@@ -56,10 +58,29 @@ extension Converter {
                 receivedParameters: received.parameters,
                 against: parsedOption
             )
-            return (contentType: stringOption, match: match)
+            let isExactSubtypeMatch: Bool
+            if case let .concrete(type: optionType, subtype: optionSubtype) = parsedOption.kind {
+                isExactSubtypeMatch =
+                    optionType.lowercased() == receivedTypeLowercased
+                    && optionSubtype.lowercased() == receivedSubtypeLowercased
+            } else {
+                isExactSubtypeMatch = false
+            }
+            return (contentType: stringOption, match: match, isExactSubtypeMatch: isExactSubtypeMatch)
+        }
+        func rankingTuple(
+            _ option: (contentType: String, match: OpenAPIMIMEType.Match, isExactSubtypeMatch: Bool)
+        ) -> (Int, Int, Int) {
+            switch option.match {
+            case .incompatible: return (0, 0, 0)
+            case .wildcard: return (1, 0, 0)
+            case .subtypeWildcard: return (2, 0, 0)
+            case .typeAndSubtype(let matchedParameterCount):
+                return (3, option.isExactSubtypeMatch ? 1 : 0, matchedParameterCount)
+            }
         }
         // The force unwrap is safe, we only get here if the array is not empty.
-        let bestOption = evaluatedOptions.max { a, b in a.match.score < b.match.score }!
+        let bestOption = evaluatedOptions.max { a, b in rankingTuple(a) < rankingTuple(b) }!
         let bestContentType = bestOption.contentType
         if case .incompatible = bestOption.match {
             throw RuntimeError.unexpectedContentTypeHeader(

@@ -509,30 +509,16 @@ fileprivate extension OpenAPIMIMEType {
             if acceptSubtypeLowercased == substringSubtypeLowercased { return true }
 
             // RFC 6839 structured syntax suffix matching (e.g. application/problem+json).
-            if let structuredSyntaxSuffix = structuredSyntaxSuffix(of: substringSubtypeLowercased),
+            if let structuredSyntaxSuffix = Self.structuredSyntaxSuffix(of: substringSubtypeLowercased),
                 structuredSyntaxSuffix == acceptSubtypeLowercased
             { return true }
 
             // Accept: application/*+json matching (and treating it as also matching application/json).
-            if let structuredSyntaxWildcardSuffix = structuredSyntaxWildcardSuffix(of: acceptSubtypeLowercased) {
+            if let structuredSyntaxWildcardSuffix = Self.structuredSyntaxWildcardSuffix(of: acceptSubtypeLowercased) {
                 return substringSubtypeLowercased == structuredSyntaxWildcardSuffix
-                    || structuredSyntaxSuffix(of: substringSubtypeLowercased) == structuredSyntaxWildcardSuffix
+                    || Self.structuredSyntaxSuffix(of: substringSubtypeLowercased) == structuredSyntaxWildcardSuffix
             }
             return false
         }
-    }
-
-    private func structuredSyntaxSuffix(of subtype: String) -> String? {
-        guard let plusIndex = subtype.lastIndex(of: "+") else { return nil }
-        let suffixStart = subtype.index(after: plusIndex)
-        guard suffixStart < subtype.endIndex else { return nil }
-        return String(subtype[suffixStart...])
-    }
-
-    private func structuredSyntaxWildcardSuffix(of acceptSubtype: String) -> String? {
-        guard acceptSubtype.hasPrefix("*+") else { return nil }
-        let suffixStart = acceptSubtype.index(acceptSubtype.startIndex, offsetBy: 2)
-        guard suffixStart < acceptSubtype.endIndex else { return nil }
-        return String(acceptSubtype[suffixStart...])
     }
 }
