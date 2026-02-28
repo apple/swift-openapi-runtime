@@ -65,7 +65,9 @@ extension StringProtocol {
         guard let lastPossibleStart = self.index(end, offsetBy: -targetCount, limitedBy: current) else { return nil }
 
         while current <= lastPossibleStart {
-            if self[current...].starts(with: aString) { return current..<self.index(current, offsetBy: targetCount) }
+            let windowEnd = self.index(current, offsetBy: targetCount)
+
+            if self[current..<windowEnd] == aString { return current..<windowEnd }
             current = self.index(after: current)
         }
         return nil
