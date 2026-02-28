@@ -149,4 +149,48 @@ final class Test_FoundationExtensions: Test_Runtime {
             )
         }
     }
+
+    func testStringRangeOf() {
+        // Tuple format: (Input, Target, Optional bounds for the search rangess
+        let testCases: [(input: String, target: String, bounds: (start: Int, end: Int)?)] = [
+            ("Hello World", "World", nil),  // Standard match, full string
+            ("Hello World", "Hello", nil),  // Standard match at the start
+            ("banana", "na", nil),  // Multiple occurrences, full string
+            ("banana", "na", (0, 4)),  // Bounded search: "bana" (should find first "na")
+            ("banana", "na", (3, 6)),  // Bounded search: "ana" (should find second "na")
+            ("banana", "na", (0, 3)),  // Bounded search: "ban" (should return nil, "na" cut off)
+            ("aaaa", "aa", nil),  // Overlapping occurrences
+            ("Case Sensitive", "case", nil),  // Case mismatch
+            ("Missing text", "xyz", nil),  // Target not in string
+            ("👨‍👩‍👧‍👦 Family", "Family", nil),  // Emoji / Grapheme clusters
+            ("Café menu", "é", (0, 5)),  // Accented characters within bounds "Café "
+            ("exact match", "exact match", nil),  // Target equals entire string
+            ("Short", "Longer target string", nil),  // Target is longer than the input
+            ("Empty target test", "", nil),  // Empty target string
+            ("", "Target in empty string", nil),  // Empty input string
+            ("", "", nil),  // Both empty
+        ]
+
+        for testCase in testCases {
+            var searchRange: Range<String.Index>? = nil
+            if let bounds = testCase.bounds {
+                let start = testCase.input.index(testCase.input.startIndex, offsetBy: bounds.start)
+                let end = testCase.input.index(testCase.input.startIndex, offsetBy: bounds.end)
+                searchRange = start..<end
+            }
+
+            let foundationResult = testCase.input.range(of: testCase.target, options: [], range: searchRange)
+            let customResult = testCase.input.range(of: testCase.target, range: searchRange)
+
+            XCTAssertEqual(
+                customResult,
+                foundationResult,
+                """
+                Mismatch for input: '\(testCase.input)' \
+                searching for '\(testCase.target)' \
+                with bounds \(String(describing: testCase.bounds))
+                """
+            )
+        }
+    }
 }

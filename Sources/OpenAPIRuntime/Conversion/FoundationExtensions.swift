@@ -34,35 +34,41 @@ extension StringProtocol {
 
     /// Returns a new string in which all occurrences of a target
     /// string are replaced by another given string.
-    @inlinable func replacingOccurrences<Target: StringProtocol, Replacement: StringProtocol>(
-        of target: Target,
+    @inlinable func replacingOccurrences<Replacement: StringProtocol>(
+        of target: String,
         with replacement: Replacement,
         maxReplacements: Int = .max
     ) -> String {
         guard !target.isEmpty, maxReplacements > 0 else { return String(self) }
         var result = ""
         result.reserveCapacity(self.count)
-        var currentIndex = self.startIndex
-        let end = self.endIndex
+        var searchStart = self.startIndex
         var replacements = 0
-
-        // Keeps track of the last un-appended chunk
-        var chunkStartIndex = currentIndex
-        while replacements < maxReplacements, currentIndex < end {
-            let remainder = self[currentIndex...]
-            if remainder.starts(with: target) {
-                result.append(contentsOf: self[chunkStartIndex..<currentIndex])
-                result.append(contentsOf: replacement)
-                currentIndex = self.index(currentIndex, offsetBy: target.count)
-                chunkStartIndex = currentIndex
-                replacements += 1
-            } else {
-                currentIndex = self.index(after: currentIndex)
-            }
+        while replacements < maxReplacements,
+            let foundRange = self.range(of: target, range: searchStart..<self.endIndex)
+        {
+            result.append(contentsOf: self[searchStart..<foundRange.lowerBound])
+            result.append(contentsOf: replacement)
+            searchStart = foundRange.upperBound
+            replacements += 1
         }
-        // Append any remaining characters after the final match
-        if chunkStartIndex < end { result.append(contentsOf: self[chunkStartIndex...]) }
+        result.append(contentsOf: self[searchStart..<self.endIndex])
         return result
+    }
+
+    @inlinable func range(of aString: String, range searchRange: Range<Self.Index>? = nil) -> Range<Self.Index>? {
+        guard !aString.isEmpty else { return nil }
+
+        var current = searchRange?.lowerBound ?? self.startIndex
+        let end = searchRange?.upperBound ?? self.endIndex
+        let targetCount = aString.count
+        guard let lastPossibleStart = self.index(end, offsetBy: -targetCount, limitedBy: current) else { return nil }
+
+        while current <= lastPossibleStart {
+            if self[current...].starts(with: aString) { return current..<self.index(current, offsetBy: targetCount) }
+            current = self.index(after: current)
+        }
+        return nil
     }
 
     /// Returns a new string created by replacing all characters in the string
