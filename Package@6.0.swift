@@ -21,7 +21,7 @@ let swiftSettings: [SwiftSetting] = [
     .enableUpcomingFeature("ExistentialAny"),
 
     // Used to fake the trait on Swift 6.0
-    .define("FullFoundationSupport")
+    .define("FullFoundation")
 ]
 
 let package = Package(

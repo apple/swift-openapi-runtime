@@ -33,8 +33,8 @@ let package = Package(
         )
     ],
     traits: [
-        .trait(name: "FullFoundationSupport"),
-        .default(enabledTraits: ["FullFoundationSupport"])
+        .trait(name: "FullFoundation"),
+        .default(enabledTraits: ["FullFoundation"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-http-types", from: "1.0.0"),

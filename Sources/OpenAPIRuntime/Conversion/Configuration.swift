@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if FullFoundationSupport || canImport(Darwin)
+#if FullFoundation || canImport(Darwin)
 public import Foundation
 #elseif canImport(FoundationEssentials)
 public import FoundationEssentials
@@ -34,7 +34,7 @@ public protocol DateTranscoder: Sendable {
 /// A transcoder for dates encoded as an ISO-8601 string (in RFC 3339 format).
 public struct ISO8601DateTranscoder: DateTranscoder, @unchecked Sendable {
 
-    #if FullFoundationSupport || canImport(Darwin)
+    #if FullFoundation || canImport(Darwin)
     /// The lock protecting the formatter.
     private let lock: Lock
 
@@ -61,7 +61,7 @@ public struct ISO8601DateTranscoder: DateTranscoder, @unchecked Sendable {
 
     /// Creates and returns an ISO 8601 formatted string representation of the specified date.
     public func encode(_ date: Date) throws -> String {
-        #if FullFoundationSupport || canImport(Darwin)
+        #if FullFoundation || canImport(Darwin)
         lock.lock()
         defer { lock.unlock() }
         return locked_formatter.string(from: date)
@@ -72,7 +72,7 @@ public struct ISO8601DateTranscoder: DateTranscoder, @unchecked Sendable {
 
     /// Creates and returns a date object from the specified ISO 8601 formatted string representation.
     public func decode(_ dateString: String) throws -> Date {
-        #if FullFoundationSupport || canImport(Darwin)
+        #if FullFoundation || canImport(Darwin)
         lock.lock()
         defer { lock.unlock() }
         guard let date = locked_formatter.date(from: dateString) else {
@@ -90,7 +90,7 @@ public struct ISO8601DateTranscoder: DateTranscoder, @unchecked Sendable {
 extension DateTranscoder where Self == ISO8601DateTranscoder {
     /// A transcoder that transcodes dates as ISO-8601–formatted string (in RFC 3339 format).
     public static var iso8601: Self {
-        #if FullFoundationSupport || canImport(Darwin)
+        #if FullFoundation || canImport(Darwin)
         ISO8601DateTranscoder()
         #else
         ISO8601DateTranscoder(formatStyle: Date.ISO8601FormatStyle())
@@ -99,7 +99,7 @@ extension DateTranscoder where Self == ISO8601DateTranscoder {
 
     /// A transcoder that transcodes dates as ISO-8601–formatted string (in RFC 3339 format) with fractional seconds.
     public static var iso8601WithFractionalSeconds: Self {
-        #if FullFoundationSupport || canImport(Darwin)
+        #if FullFoundation || canImport(Darwin)
         ISO8601DateTranscoder(options: [.withInternetDateTime, .withFractionalSeconds])
         #else
         ISO8601DateTranscoder(formatStyle: Date.ISO8601FormatStyle(includingFractionalSeconds: true))

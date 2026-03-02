@@ -27,7 +27,7 @@ final class Test_OpenAPIValue: Test_Runtime {
         _ = OpenAPIValueContainer(1)
         _ = OpenAPIValueContainer(4.5)
 
-        #if FullFoundationSupport && canImport(Foundation)
+        #if FullFoundation && canImport(Foundation)
         XCTAssertEqual(try OpenAPIValueContainer(unvalidatedValue: NSNull()).value as? NSNull, NSNull())
         #endif
 
@@ -69,7 +69,7 @@ final class Test_OpenAPIValue: Test_Runtime {
             """#
         try _testPrettyEncoded(container, expectedJSON: expectedString)
     }
-    #if FullFoundationSupport && canImport(Foundation)
+    #if FullFoundation && canImport(Foundation)
     func testEncodingNSNull() throws {
         let value = NSNull()
         let container = try OpenAPIValueContainer(unvalidatedValue: value)

@@ -12,13 +12,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if canImport(FoundationEssentials) && !FullFoundationSupport
+#if canImport(FoundationEssentials) && !FullFoundation
 import FoundationEssentials
 #else
 import Foundation
 #endif
 
-#if FullFoundationSupport && canImport(CoreFoundation)
+#if FullFoundation && canImport(CoreFoundation)
 import CoreFoundation
 #endif
 
@@ -72,7 +72,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
     /// - Throws: When the value is not supported.
     static func tryCast(_ value: (any Sendable)?) throws -> (any Sendable)? {
         guard let value = value else { return nil }
-        #if FullFoundationSupport
+        #if FullFoundation
         if value is NSNull { return value }
         #endif
         if let array = value as? [(any Sendable)?] { return try array.map(tryCast(_:)) }
@@ -146,7 +146,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             try container.encodeNil()
             return
         }
-        #if FullFoundationSupport
+        #if FullFoundation
         if value is NSNull {
             var container = encoder.singleValueContainer()
             try container.encodeNil()
@@ -191,7 +191,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             )
         }
     }
-    #if FullFoundationSupport && canImport(CoreFoundation)
+    #if FullFoundation && canImport(CoreFoundation)
     /// Encodes the provided NSNumber based on its internal representation.
     /// - Parameters:
     ///   - value: The NSNumber that boxes one of possibly many different types of values.

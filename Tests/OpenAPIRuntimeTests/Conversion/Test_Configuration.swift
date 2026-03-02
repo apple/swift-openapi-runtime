@@ -34,7 +34,7 @@ final class Test_Configuration: Test_Runtime {
 
         // There is a small accuracy difference in the Foundation ISO8601DateFormatter
         // and the new Foundation .formatted() APIs, so the below tests take that into account
-        #if FullFoundationSupport || canImport(Darwin)
+        #if FullFoundation || canImport(Darwin)
         XCTAssertEqual(try transcoder.encode(testDateWithFractionalSeconds), testDateWithFractionalSecondsString)
         XCTAssertEqual(testDateWithFractionalSeconds, try transcoder.decode(testDateWithFractionalSecondsString))
         #else
