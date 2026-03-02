@@ -63,9 +63,7 @@ extension QualityValue: RawRepresentable {
     }
 
     /// The raw string representation of the `QualityValue`.
-    public var rawValue: String {
-        self.doubleValue.toFixed(precision: 3)
-    }
+    public var rawValue: String { self.doubleValue.toFixed(precision: 3) }
 }
 
 extension QualityValue: ExpressibleByIntegerLiteral {
