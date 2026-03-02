@@ -96,7 +96,7 @@ jobs:
       - id: generate-matrix
         run: echo "linkage-test-matrix=$(curl -s https://raw.githubusercontent.com/apple/swift-nio/main/scripts/generate_matrix.sh | bash)" >> "$GITHUB_OUTPUT"
         env:
-          MATRIX_LINUX_SETUP_COMMAND: apt-get update -y && apt-get install -yq jq && git config --global --add safe.directory /${GITHUB_WORKSPACE}/.git && git config --global --add safe.directory ${GITHUB_WORKSPACE}
+          MATRIX_LINUX_SETUP_COMMAND: apt-get update -y && apt-get install -yq jq && git config --global --add safe.directory /swift-openapi-runtime
           MATRIX_LINUX_COMMAND: ./scripts/run-linkage-test.sh
           MATRIX_LINUX_5_10_ENABLED: false
           MATRIX_LINUX_6_0_ENABLED: false
