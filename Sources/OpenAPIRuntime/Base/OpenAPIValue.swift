@@ -18,7 +18,7 @@ import FoundationEssentials
 import Foundation
 #endif
 
-#if FullFoundation && canImport(CoreFoundation)
+#if FullFoundation || canImport(Darwin)
 import CoreFoundation
 #endif
 
@@ -191,7 +191,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             )
         }
     }
-    #if FullFoundation && canImport(Darwin)
+    #if FullFoundation || canImport(Darwin)
     /// Encodes the provided NSNumber based on its internal representation.
     /// - Parameters:
     ///   - value: The NSNumber that boxes one of possibly many different types of values.
