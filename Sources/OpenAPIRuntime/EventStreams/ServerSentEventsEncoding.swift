@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
+#else
 public import Foundation
+#endif
 
 /// A sequence that serializes Server-sent Events.
 public struct ServerSentEventsSerializationSequence<Upstream: AsyncSequence & Sendable>: Sendable
