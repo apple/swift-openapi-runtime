@@ -6,6 +6,11 @@
 .github/
 **.md
 **.txt
-**Package.swift
+Package.swift
+**/Package.swift
+Package@swift-*.swift
+**/Package@swift-*.swift
+Package@-*.swift
+**/Package@-*.swift
 docker/*
 .editorconfig
