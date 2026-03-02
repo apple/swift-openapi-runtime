@@ -46,4 +46,26 @@ final class Test_FoundationExtensions: Test_Runtime {
         let puncResult = punctuationString.trimming(while: { $0.isPunctuation })
         XCTAssertEqual(puncResult, "Hello")
     }
+
+    func testDoubleToFixed() {
+        let testCases: [Double] = [
+            0.5,  // Standard: expect 0.500
+            1.23456,  // Rounding down: expect 1.235
+            1.23444,  // Rounding down: expect 1.234
+            0.0,  // Zero: expect 0.000
+            -0.5,  // Negative: expect -0.500
+            1000.1,  // Large: expect 1000.100
+            0.9999,  // Rounding up to integer: expect 1.000
+            0.0001,  // Very small: expect 0.000
+            Double.pi,  // Transcendental: expect 3.142,
+            Double.nan, Double.infinity, -Double.infinity,
+        ]
+
+        for value in testCases {
+            let custom = value.toFixed(precision: 3)
+            let reference = String(format: "%.3f", value)
+
+            XCTAssertEqual(custom, reference, "Failure for value: \(value)")
+        }
+    }
 }

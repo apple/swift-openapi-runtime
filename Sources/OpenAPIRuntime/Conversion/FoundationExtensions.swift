@@ -18,6 +18,23 @@ import FoundationEssentials
 import Foundation
 #endif
 
+#if canImport(Darwin)
+import Darwin
+#elseif os(Windows)
+import ucrt
+import WinSDK
+#elseif canImport(Glibc)
+import Glibc
+#elseif canImport(Android)
+import Android
+#elseif canImport(Musl)
+import Musl
+#elseif canImport(Bionic)
+import Bionic
+#elseif canImport(WASILibc)
+import WASILibc
+#endif
+
 extension StringProtocol {
     /// Returns the string with leading and trailing whitespace (such as spaces
     /// and newlines) removed.
@@ -30,5 +47,26 @@ extension StringProtocol {
         let end = self.lastIndex(where: { !predicate($0) })!
 
         return String(self[start...end])
+    }
+}
+
+extension Double {
+    func toFixed(precision: Int) -> String {
+        guard self.isFinite else { return String(describing: self) }
+
+        let isNegative = self < 0
+        let absValue = abs(self)
+
+        let multiplier: Double = pow(10, Double(precision))
+        let roundedValue = (absValue * multiplier).rounded() / multiplier
+
+        let integerPart = UInt64(roundedValue)
+        let fractionalPartDouble = (roundedValue - Double(integerPart)) * multiplier
+        let fractionalPart = UInt64(fractionalPartDouble.rounded())
+
+        var fractionalString = String(fractionalPart)
+        while fractionalString.count < precision { fractionalString = "0" + fractionalString }
+
+        return "\(isNegative ? "-" : "")\(integerPart).\(fractionalString)"
     }
 }
