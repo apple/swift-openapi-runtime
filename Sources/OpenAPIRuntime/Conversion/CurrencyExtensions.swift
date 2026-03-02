@@ -386,12 +386,12 @@ extension Converter {
 
         guard let queryStart else {
             // No existing query substring, add the question mark.
-            request.path = path.appendingString("?\(escapedUriSnippet)\(fragment)")
+            request.path = path + "?\(escapedUriSnippet)\(fragment)"
             return
         }
 
         let query = pathAndAll[pathAndAll.index(after: queryStart)..<fragmentStart]
-        request.path = path.appendingString("?\(query)&\(escapedUriSnippet)\(fragment)")
+        request.path = path + "?\(query)&\(escapedUriSnippet)\(fragment)"
     }
 
     /// Returns the decoded value for the provided name of a query parameter.

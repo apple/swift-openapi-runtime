@@ -76,6 +76,6 @@ public struct RandomMultipartBoundaryGenerator: MultipartBoundaryGenerator {
     public func makeBoundary() -> String {
         var randomSuffix = [UInt8](repeating: 0, count: randomNumberSuffixLength)
         for i in randomSuffix.startIndex..<randomSuffix.endIndex { randomSuffix[i] = values.randomElement()! }
-        return boundaryPrefix.appendingString(String(decoding: randomSuffix, as: UTF8.self))
+        return boundaryPrefix + String(decoding: randomSuffix, as: UTF8.self)
     }
 }
