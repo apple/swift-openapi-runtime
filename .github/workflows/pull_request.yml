@@ -91,14 +91,14 @@ jobs:
     name: Construct linkage matrix
     runs-on: ubuntu-latest
     outputs:
-      integration-test-matrix: '${{ steps.generate-matrix.outputs.integration-test-matrix }}'
+      linkage-test-matrix: '${{ steps.generate-matrix.outputs.linkage-test-matrix }}'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
           persist-credentials: false
       - id: generate-matrix
-        run: echo "integration-test-matrix=$(curl -s https://raw.githubusercontent.com/apple/swift-nio/main/scripts/generate_matrix.sh | bash)" >> "$GITHUB_OUTPUT"
+        run: echo "linkage-test-matrix=$(curl -s https://raw.githubusercontent.com/apple/swift-nio/main/scripts/generate_matrix.sh | bash)" >> "$GITHUB_OUTPUT"
         env:
           MATRIX_LINUX_SETUP_COMMAND: apt-get update -y && apt-get install -yq jq && git config --global --add safe.directory /${GITHUB_WORKSPACE}/.git && git config --global --add safe.directory ${GITHUB_WORKSPACE}
           MATRIX_LINUX_COMMAND: ./scripts/run-linkage-test.sh
@@ -114,4 +114,4 @@ jobs:
     uses: apple/swift-nio/.github/workflows/swift_test_matrix.yml@main
     with:
       name: "Linkage test"
-      matrix_string: '${{ needs.construct-linkage-test-matrix.outputs.integration-test-matrix }}'
+      matrix_string: '${{ needs.construct-linkage-test-matrix.outputs.linkage-test-matrix }}'
