@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A type that can parse a primitive, array, and a dictionary from a URI-encoded string.
 struct URIParser: Sendable {
@@ -337,7 +341,7 @@ extension URIParser {
     ) -> Raw {
         // The inverse of URISerializer.computeSafeString.
         let partiallyDecoded = escapedValue.replacingOccurrences(of: spaceEscapingCharacter.rawValue, with: " ")
-        return (partiallyDecoded.removingPercentEncoding ?? "")[...]
+        return (partiallyDecoded.removingPercentEncoding() ?? "")[...]
     }
 }
 
