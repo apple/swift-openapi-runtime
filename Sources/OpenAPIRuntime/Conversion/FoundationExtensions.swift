@@ -57,7 +57,7 @@ extension Double {
         let isNegative = self < 0
         let absValue = abs(self)
 
-        let multiplier: Double = pow(10, 3)
+        let multiplier: Double = pow(10, precision)
         let roundedValue = (absValue * multiplier).rounded() / multiplier
 
         let integerPart = UInt64(roundedValue)
