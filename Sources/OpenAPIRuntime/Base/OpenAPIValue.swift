@@ -146,7 +146,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             try container.encodeNil()
             return
         }
-        #if FullFoundation
+        #if FullFoundation || canImport(Darwin)
         if value is NSNull {
             var container = encoder.singleValueContainer()
             try container.encodeNil()
