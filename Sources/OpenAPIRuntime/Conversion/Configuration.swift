@@ -56,7 +56,7 @@ public struct ISO8601DateTranscoder: DateTranscoder, @unchecked Sendable {
 
     /// Creates a new transcoder with the provided options.
     /// - Parameter formatStyle: The format style to use
-    public init(formatStyle: Date.ISO8601FormatStyle) { self.formatStyle = formatStyle }
+    internal init(formatStyle: Date.ISO8601FormatStyle) { self.formatStyle = formatStyle }
     #endif
 
     /// Creates and returns an ISO 8601 formatted string representation of the specified date.
