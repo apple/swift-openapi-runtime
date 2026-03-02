@@ -61,13 +61,16 @@ extension StringProtocol {
 
         var current = searchRange?.lowerBound ?? self.startIndex
         let end = searchRange?.upperBound ?? self.endIndex
-        let targetCount = aString.count
-        guard let lastPossibleStart = self.index(end, offsetBy: -targetCount, limitedBy: current) else { return nil }
 
-        while current <= lastPossibleStart {
-            let windowEnd = self.index(current, offsetBy: targetCount)
+        while current < end {
+            let searchSlice = self[current..<end]
 
-            if self[current..<windowEnd] == aString { return current..<windowEnd }
+            if searchSlice.hasPrefix(aString) {
+                // We found the match, so lets iterate the index until we have a full match.
+                var foundEnd = current
+                while self[current..<foundEnd] != aString { foundEnd = self.index(after: foundEnd) }
+                return current..<foundEnd
+            }
             current = self.index(after: current)
         }
         return nil
