@@ -31,8 +31,23 @@ final class Test_Configuration: Test_Runtime {
 
     func testDateTranscoder_iso8601WithFractionalSeconds() throws {
         let transcoder: any DateTranscoder = .iso8601WithFractionalSeconds
+
+        // There is a small accuracy difference in the Foundation ISO8601DateFormatter
+        // and the new Foundation .formatted() APIs, so the below tests take that into account
+        #if FullFoundationSupport || canImport(Darwin)
         XCTAssertEqual(try transcoder.encode(testDateWithFractionalSeconds), testDateWithFractionalSecondsString)
         XCTAssertEqual(testDateWithFractionalSeconds, try transcoder.decode(testDateWithFractionalSecondsString))
+        #else
+        XCTAssertEqual(
+            try transcoder.encode(testDateWithFractionalSeconds),
+            testDateWithFractionalSecondsStringNewFoundationAPIs
+        )
+        XCTAssertEqual(
+            testDateWithFractionalSeconds.timeIntervalSince1970,
+            try transcoder.decode(testDateWithFractionalSecondsString).timeIntervalSince1970,
+            accuracy: 0.00001
+        )
+        #endif
     }
 
     func _testJSON(configuration: Configuration, expected: String) async throws {

@@ -47,6 +47,9 @@ class Test_Runtime: XCTestCase {
 
     var testDateWithFractionalSecondsString: String { "2023-01-18T10:04:11.123Z" }
 
+    /// The new .formatted() APIs returned .122 instead of .123 for the above Date
+    var testDateWithFractionalSecondsStringNewFoundationAPIs: String { "2023-01-18T10:04:11.122Z" }
+
     var testDateEscapedString: String { "2023-01-18T10%3A04%3A11Z" }
 
     var testDateStringData: Data { Data(testDateString.utf8) }

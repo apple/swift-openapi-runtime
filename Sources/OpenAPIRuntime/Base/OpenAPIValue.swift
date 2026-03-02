@@ -72,7 +72,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
     /// - Throws: When the value is not supported.
     static func tryCast(_ value: (any Sendable)?) throws -> (any Sendable)? {
         guard let value = value else { return nil }
-        #if FullFoundationSupport && canImport(Foundation)
+        #if FullFoundationSupport
         if value is NSNull { return value }
         #endif
         if let array = value as? [(any Sendable)?] { return try array.map(tryCast(_:)) }
@@ -146,7 +146,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             try container.encodeNil()
             return
         }
-        #if FullFoundationSupport && canImport(Foundation)
+        #if FullFoundationSupport
         if value is NSNull {
             var container = encoder.singleValueContainer()
             try container.encodeNil()
