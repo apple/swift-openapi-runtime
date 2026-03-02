@@ -36,6 +36,8 @@ import WASILibc
 #endif
 
 extension StringProtocol {
+    @inlinable func appendingString(_ other: some StringProtocol) -> String { String(self) + other }
+
     /// Returns the string with leading and trailing whitespace (such as spaces
     /// and newlines) removed.
     var trimmingLeadingAndTrailingSpaces: String { self.trimming { $0.isWhitespace } }
