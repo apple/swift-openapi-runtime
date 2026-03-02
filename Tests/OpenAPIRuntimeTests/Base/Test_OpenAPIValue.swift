@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 import XCTest
 import Foundation
 #if canImport(CoreFoundation)
@@ -26,7 +27,7 @@ final class Test_OpenAPIValue: Test_Runtime {
         _ = OpenAPIValueContainer(1)
         _ = OpenAPIValueContainer(4.5)
 
-        #if canImport(Foundation)
+        #if FullFoundation || canImport(Darwin)
         XCTAssertEqual(try OpenAPIValueContainer(unvalidatedValue: NSNull()).value as? NSNull, NSNull())
         #endif
 
@@ -68,7 +69,7 @@ final class Test_OpenAPIValue: Test_Runtime {
             """#
         try _testPrettyEncoded(container, expectedJSON: expectedString)
     }
-    #if canImport(Foundation)
+    #if FullFoundation || canImport(Darwin)
     func testEncodingNSNull() throws {
         let value = NSNull()
         let container = try OpenAPIValueContainer(unvalidatedValue: value)

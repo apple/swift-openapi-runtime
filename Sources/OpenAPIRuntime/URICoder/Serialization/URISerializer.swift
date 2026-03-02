@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A type that serializes a `URIEncodedNode` to a URI-encoded string.
 struct URISerializer {
@@ -44,22 +48,6 @@ struct URISerializer {
         try serializeTopLevelNode(value, forKey: key)
         return data
     }
-}
-
-extension CharacterSet {
-
-    /// A character set of unreserved symbols only from RFC 6570 (excludes
-    /// alphanumeric characters).
-    fileprivate static let unreservedSymbols: CharacterSet = .init(charactersIn: "-._~")
-
-    /// A character set of unreserved characters from RFC 6570.
-    fileprivate static let unreserved: CharacterSet = .alphanumerics.union(unreservedSymbols)
-
-    /// A character set with only the space character.
-    fileprivate static let space: CharacterSet = .init(charactersIn: " ")
-
-    /// A character set of unreserved characters and a space.
-    fileprivate static let unreservedAndSpace: CharacterSet = .unreserved.union(space)
 }
 
 extension URISerializer {
@@ -105,7 +93,7 @@ extension URISerializer {
         // The space character needs to be encoded based on the config,
         // so first allow it to be unescaped, and then we'll do a second
         // pass and only encode the space based on the config.
-        let partiallyEncoded = unsafeString.addingPercentEncoding(withAllowedCharacters: .unreservedAndSpace) ?? ""
+        let partiallyEncoded = unsafeString.addingPercentEncodingAllowingUnreservedAndSpace()
         let fullyEncoded = partiallyEncoded.replacingOccurrences(
             of: " ",
             with: configuration.spaceEscapingCharacter.rawValue

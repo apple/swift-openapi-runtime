@@ -1,4 +1,5 @@
 **Package.swift
+**Package@swift-*.swift
 Sources/OpenAPIRuntime/EventStreams/JSONLinesDecoding.swift
 Sources/OpenAPIRuntime/EventStreams/JSONSequenceDecoding.swift
 Sources/OpenAPIRuntime/EventStreams/ServerSentEventsDecoding.swift
