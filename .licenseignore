@@ -7,5 +7,6 @@
 **.md
 **.txt
 **Package.swift
+**/Package@-*.swift
 docker/*
 .editorconfig
