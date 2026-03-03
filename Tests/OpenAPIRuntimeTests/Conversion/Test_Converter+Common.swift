@@ -82,6 +82,17 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         try testCase(received: "application/json; charset=utf-8; version=1", options: ["*/*"], expected: "*/*")
 
         try testCase(received: "image/png", options: ["image/*", "*/*"], expected: "image/*")
+        try testCase(received: "application/problem+json", options: ["application/json"], expected: "application/json")
+        try testCase(
+            received: "application/problem+json",
+            options: ["application/json", "application/problem+json"],
+            expected: "application/problem+json"
+        )
+        try testCase(
+            received: "application/problem+json; charset=utf-8; version=1",
+            options: ["application/json", "application/json; charset=utf-8"],
+            expected: "application/json; charset=utf-8"
+        )
         XCTAssertThrowsError(
             try testCase(received: "text/csv", options: ["text/html", "application/json"], expected: "-")
         ) { error in
@@ -104,6 +115,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         }
         try testCase(received: nil, match: "application/json")
         try testCase(received: "application/json", match: "application/json")
+        try testCase(received: "application/problem+json", match: "application/json")
         try testCase(received: "application/json", match: "application/*")
         try testCase(received: "application/json", match: "*/*")
     }

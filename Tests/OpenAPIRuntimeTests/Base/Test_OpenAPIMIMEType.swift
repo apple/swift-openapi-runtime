@@ -103,6 +103,7 @@ final class Test_OpenAPIMIMEType: Test_Runtime {
         let jsonWith2Params = OpenAPIMIMEType("application/json; charset=utf-8; version=1")!
         let jsonWith1Param = OpenAPIMIMEType("application/json; charset=utf-8")!
         let json = OpenAPIMIMEType("application/json")!
+        let anyJsonStructuredSyntax = OpenAPIMIMEType("application/*+json")!
         let fullWildcard = OpenAPIMIMEType("*/*")!
         let subtypeWildcard = OpenAPIMIMEType("application/*")!
 
@@ -130,5 +131,34 @@ final class Test_OpenAPIMIMEType: Test_Runtime {
         testJSONWith2Params(against: json, expected: .typeAndSubtype(matchedParameterCount: 0))
         testJSONWith2Params(against: subtypeWildcard, expected: .subtypeWildcard)
         testJSONWith2Params(against: fullWildcard, expected: .wildcard)
+
+        testCase(
+            receivedType: "application",
+            receivedSubtype: "problem+json",
+            receivedParameters: [:],
+            against: json,
+            expected: .typeAndSubtype(matchedParameterCount: 0)
+        )
+        testCase(
+            receivedType: "application",
+            receivedSubtype: "json",
+            receivedParameters: [:],
+            against: anyJsonStructuredSyntax,
+            expected: .typeAndSubtype(matchedParameterCount: 0)
+        )
+        testCase(
+            receivedType: "application",
+            receivedSubtype: "problem+json",
+            receivedParameters: [:],
+            against: anyJsonStructuredSyntax,
+            expected: .typeAndSubtype(matchedParameterCount: 0)
+        )
+        testCase(
+            receivedType: "application",
+            receivedSubtype: "problem+xml",
+            receivedParameters: [:],
+            against: json,
+            expected: .incompatible(.subtype)
+        )
     }
 }
