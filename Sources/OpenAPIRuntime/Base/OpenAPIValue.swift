@@ -191,7 +191,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             )
         }
     }
-    #if FullFoundation || canImport(Darwin)
+    #if canImport(CoreFoundation) && (FullFoundation || canImport(Darwin))
     /// Encodes the provided NSNumber based on its internal representation.
     /// - Parameters:
     ///   - value: The NSNumber that boxes one of possibly many different types of values.
