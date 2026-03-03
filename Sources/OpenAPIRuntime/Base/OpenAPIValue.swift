@@ -18,7 +18,7 @@ import FoundationEssentials
 import Foundation
 #endif
 
-#if FullFoundation || canImport(Darwin)
+#if canImport(CoreFoundation) && (FullFoundation || canImport(Darwin))
 import CoreFoundation
 #endif
 
