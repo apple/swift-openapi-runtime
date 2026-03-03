@@ -99,6 +99,7 @@ public import HTTPTypes
             }
         }
         let baseURL = serverURL
+        let errorHandler = converter.configuration.clientErrorHandler
         @Sendable func makeError(
             request: HTTPRequest? = nil,
             requestBody: HTTPBody? = nil,
@@ -113,6 +114,7 @@ public import HTTPTypes
                 error.baseURL = error.baseURL ?? baseURL
                 error.response = error.response ?? response
                 error.responseBody = error.responseBody ?? responseBody
+                errorHandler?.handleClientError(error)
                 return error
             }
             let causeDescription: String
@@ -124,7 +126,7 @@ public import HTTPTypes
                 causeDescription = "Unknown"
                 underlyingError = error
             }
-            return ClientError(
+            let clientError = ClientError(
                 operationID: operationID,
                 operationInput: input,
                 request: request,
@@ -135,6 +137,8 @@ public import HTTPTypes
                 causeDescription: causeDescription,
                 underlyingError: underlyingError
             )
+            errorHandler?.handleClientError(clientError)
+            return clientError
         }
         let (request, requestBody): (HTTPRequest, HTTPBody?) = try await wrappingErrors {
             try serializer(input)
