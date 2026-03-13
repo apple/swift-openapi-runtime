@@ -35,6 +35,8 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let wildcard: HTTPFields = [.accept: "*/*"]
         let partialWildcard: HTTPFields = [.accept: "text/*"]
         let short: HTTPFields = [.accept: "text/plain"]
+        let json: HTTPFields = [.accept: "application/json"]
+        let anyJsonStructuredSyntax: HTTPFields = [.accept: "application/*+json"]
         let long: HTTPFields = [
             .accept: "text/html, application/xhtml+xml, application/xml;q=0.9, image/webp, */*;q=0.8"
         ]
@@ -53,6 +55,11 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             // Accept: text/plain, text/plain succeeds, application/json fails
             (short, "text/plain", true), (short, "application/json", false), (short, "application/*", false),
             (short, "*/*", false),
+
+            // RFC 6839 structured syntax suffix matching (common with RFC 7807 Problem Details):
+            // If response is application/problem+json, treat Accept: application/json as compatible.
+            (json, "application/problem+json", true),
+            (anyJsonStructuredSyntax, "application/problem+json", true),
 
             // A bunch of acceptable content types
             (long, "text/html", true), (long, "application/xhtml+xml", true), (long, "application/xml", true),
