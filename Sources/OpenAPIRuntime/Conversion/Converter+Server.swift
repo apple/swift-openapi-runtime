@@ -504,21 +504,7 @@ fileprivate extension OpenAPIMIMEType {
 
             let acceptSubtypeLowercased = acceptSubtype.lowercased()
             let substringSubtypeLowercased = substringSubtype.lowercased()
-
-            // Exact match.
-            if acceptSubtypeLowercased == substringSubtypeLowercased { return true }
-
-            // RFC 6839 structured syntax suffix matching (e.g. application/problem+json).
-            if let structuredSyntaxSuffix = Self.structuredSyntaxSuffix(of: substringSubtypeLowercased),
-                structuredSyntaxSuffix == acceptSubtypeLowercased
-            { return true }
-
-            // Accept: application/*+json matching (and treating it as also matching application/json).
-            if let structuredSyntaxWildcardSuffix = Self.structuredSyntaxWildcardSuffix(of: acceptSubtypeLowercased) {
-                return substringSubtypeLowercased == structuredSyntaxWildcardSuffix
-                    || Self.structuredSyntaxSuffix(of: substringSubtypeLowercased) == structuredSyntaxWildcardSuffix
-            }
-            return false
+            return Self.subtypesMatch(acceptSubtypeLowercased, substringSubtypeLowercased)
         }
     }
 }

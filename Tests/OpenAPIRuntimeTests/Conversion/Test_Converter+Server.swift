@@ -59,7 +59,10 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             // RFC 6839 structured syntax suffix matching (common with RFC 7807 Problem Details):
             // If response is application/problem+json, treat Accept: application/json as compatible.
             (json, "application/problem+json", true),
+            (json, "application/json", true),
+            (anyJsonStructuredSyntax, "application/json", true),
             (anyJsonStructuredSyntax, "application/problem+json", true),
+            (json, "text/foo+json", false),
 
             // A bunch of acceptable content types
             (long, "text/html", true), (long, "application/xhtml+xml", true), (long, "application/xml", true),

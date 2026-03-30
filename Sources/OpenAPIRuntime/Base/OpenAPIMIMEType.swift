@@ -216,21 +216,8 @@ extension OpenAPIMIMEType {
 
             let receivedSubtypeLowercased = receivedSubtype.lowercased()
             let expectedSubtypeLowercased = expectedSubtype.lowercased()
-            let isExactSubtypeMatch = receivedSubtypeLowercased == expectedSubtypeLowercased
-            if !isExactSubtypeMatch {
-                let isStructuredSyntaxSuffixMatch =
-                    Self.structuredSyntaxSuffix(of: receivedSubtypeLowercased) == expectedSubtypeLowercased
-                let isStructuredSyntaxWildcardMatch: Bool
-                if let structuredSyntaxWildcardSuffix = Self.structuredSyntaxWildcardSuffix(of: expectedSubtypeLowercased) {
-                    isStructuredSyntaxWildcardMatch =
-                        receivedSubtypeLowercased == structuredSyntaxWildcardSuffix
-                        || Self.structuredSyntaxSuffix(of: receivedSubtypeLowercased) == structuredSyntaxWildcardSuffix
-                } else {
-                    isStructuredSyntaxWildcardMatch = false
-                }
-                guard isStructuredSyntaxSuffixMatch || isStructuredSyntaxWildcardMatch else {
-                    return .incompatible(.subtype)
-                }
+            guard Self.subtypesMatch(receivedSubtypeLowercased, expectedSubtypeLowercased) else {
+                return .incompatible(.subtype)
             }
 
             // A full concrete match, so also check parameters.
@@ -279,5 +266,26 @@ extension OpenAPIMIMEType {
         let suffixStart = subtype.index(subtype.startIndex, offsetBy: 2)
         guard suffixStart < subtype.endIndex else { return nil }
         return String(subtype[suffixStart...])
+    }
+
+    /// Returns whether two lowercased subtypes are compatible.
+    /// Supports exact matches, same-type structured syntax suffix matches
+    /// in either direction, and wildcard structured syntax suffixes.
+    static func subtypesMatch(_ lhs: String, _ rhs: String) -> Bool {
+        if lhs == rhs { return true }
+
+        if let lhsStructuredSyntaxWildcardSuffix = Self.structuredSyntaxWildcardSuffix(of: lhs) {
+            return rhs == lhsStructuredSyntaxWildcardSuffix
+                || Self.structuredSyntaxSuffix(of: rhs) == lhsStructuredSyntaxWildcardSuffix
+        }
+        if let rhsStructuredSyntaxWildcardSuffix = Self.structuredSyntaxWildcardSuffix(of: rhs) {
+            return lhs == rhsStructuredSyntaxWildcardSuffix
+                || Self.structuredSyntaxSuffix(of: lhs) == rhsStructuredSyntaxWildcardSuffix
+        }
+
+        let lhsStructuredSyntaxSuffix = Self.structuredSyntaxSuffix(of: lhs)
+        let rhsStructuredSyntaxSuffix = Self.structuredSyntaxSuffix(of: rhs)
+        return lhsStructuredSyntaxSuffix == rhs || rhsStructuredSyntaxSuffix == lhs
+            || (lhsStructuredSyntaxSuffix != nil && lhsStructuredSyntaxSuffix == rhsStructuredSyntaxSuffix)
     }
 }

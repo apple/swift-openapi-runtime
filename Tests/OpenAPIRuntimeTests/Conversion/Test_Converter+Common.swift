@@ -83,6 +83,7 @@ final class Test_CommonConverterExtensions: Test_Runtime {
 
         try testCase(received: "image/png", options: ["image/*", "*/*"], expected: "image/*")
         try testCase(received: "application/problem+json", options: ["application/json"], expected: "application/json")
+        try testCase(received: "application/json", options: ["application/problem+json"], expected: "application/problem+json")
         try testCase(
             received: "application/problem+json",
             options: ["application/json", "application/problem+json"],
@@ -116,8 +117,10 @@ final class Test_CommonConverterExtensions: Test_Runtime {
         try testCase(received: nil, match: "application/json")
         try testCase(received: "application/json", match: "application/json")
         try testCase(received: "application/problem+json", match: "application/json")
+        try testCase(received: "application/json", match: "application/problem+json")
         try testCase(received: "application/json", match: "application/*")
         try testCase(received: "application/json", match: "*/*")
+        XCTAssertThrowsError(try testCase(received: "text/foo+json", match: "application/json"))
     }
 
     func testExtractContentDispositionNameAndFilename() throws {
