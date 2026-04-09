@@ -11,7 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import Foundation
+
+#if FullFoundation || canImport(Darwin)
+public import Foundation
+#elseif canImport(FoundationEssentials)
+public import FoundationEssentials
+#else
+public import Foundation
+#endif
 
 /// A type that allows customization of Date encoding and decoding.
 ///
@@ -27,8 +34,9 @@ public protocol DateTranscoder: Sendable {
 /// A transcoder for dates encoded as an ISO-8601 string (in RFC 3339 format).
 public struct ISO8601DateTranscoder: DateTranscoder, @unchecked Sendable {
 
+    #if FullFoundation || canImport(Darwin)
     /// The lock protecting the formatter.
-    private let lock: NSLock
+    private let lock: Lock
 
     /// The underlying date formatter.
     private let locked_formatter: ISO8601DateFormatter
@@ -39,20 +47,32 @@ public struct ISO8601DateTranscoder: DateTranscoder, @unchecked Sendable {
     public init(options: ISO8601DateFormatter.Options? = nil) {
         let formatter = ISO8601DateFormatter()
         if let options { formatter.formatOptions = options }
-        lock = NSLock()
-        lock.name = "com.apple.swift-openapi-generator.runtime.ISO8601DateTranscoder"
+        lock = Lock()
         locked_formatter = formatter
     }
+    #else
+    /// The style to use for formatting
+    private let formatStyle: Date.ISO8601FormatStyle
+
+    /// Creates a new transcoder with the provided options.
+    /// - Parameter formatStyle: The format style to use
+    internal init(formatStyle: Date.ISO8601FormatStyle) { self.formatStyle = formatStyle }
+    #endif
 
     /// Creates and returns an ISO 8601 formatted string representation of the specified date.
     public func encode(_ date: Date) throws -> String {
+        #if FullFoundation || canImport(Darwin)
         lock.lock()
         defer { lock.unlock() }
         return locked_formatter.string(from: date)
+        #else
+        return self.formatStyle.format(date)
+        #endif
     }
 
     /// Creates and returns a date object from the specified ISO 8601 formatted string representation.
     public func decode(_ dateString: String) throws -> Date {
+        #if FullFoundation || canImport(Darwin)
         lock.lock()
         defer { lock.unlock() }
         guard let date = locked_formatter.date(from: dateString) else {
@@ -61,16 +81,29 @@ public struct ISO8601DateTranscoder: DateTranscoder, @unchecked Sendable {
             )
         }
         return date
+        #else
+        try self.formatStyle.parse(dateString)
+        #endif
     }
 }
 
 extension DateTranscoder where Self == ISO8601DateTranscoder {
     /// A transcoder that transcodes dates as ISO-8601–formatted string (in RFC 3339 format).
-    public static var iso8601: Self { ISO8601DateTranscoder() }
+    public static var iso8601: Self {
+        #if FullFoundation || canImport(Darwin)
+        ISO8601DateTranscoder()
+        #else
+        ISO8601DateTranscoder(formatStyle: Date.ISO8601FormatStyle())
+        #endif
+    }
 
     /// A transcoder that transcodes dates as ISO-8601–formatted string (in RFC 3339 format) with fractional seconds.
     public static var iso8601WithFractionalSeconds: Self {
+        #if FullFoundation || canImport(Darwin)
         ISO8601DateTranscoder(options: [.withInternetDateTime, .withFractionalSeconds])
+        #else
+        ISO8601DateTranscoder(formatStyle: Date.ISO8601FormatStyle(includingFractionalSeconds: true))
+        #endif
     }
 }
 

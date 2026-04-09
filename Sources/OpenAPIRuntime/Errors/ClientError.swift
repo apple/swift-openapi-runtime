@@ -12,13 +12,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-import HTTPTypes
-#if canImport(Darwin)
-import struct Foundation.URL
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
 #else
-@preconcurrency import struct Foundation.URL
+public import Foundation
 #endif
-import protocol Foundation.LocalizedError
+public import HTTPTypes
 
 /// An error thrown by a client performing an OpenAPI operation.
 ///
@@ -132,6 +131,6 @@ extension ClientError: LocalizedError {
     ///
     /// - Returns: A localized string describing the client error.
     public var errorDescription: String? {
-        "Client encountered an error invoking the operation \"\(operationID)\", caused by \"\(causeDescription)\", underlying error: \(underlyingError.localizedDescription)."
+        "Client encountered an error invoking the operation \"\(operationID)\", caused by \"\(causeDescription)\", underlying error: \(underlyingError)."
     }
 }

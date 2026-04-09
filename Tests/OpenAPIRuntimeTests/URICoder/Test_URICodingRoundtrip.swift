@@ -11,12 +11,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import XCTest
-#if canImport(Darwin) || swift(>=5.9.1)
-import struct Foundation.Date
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
 #else
-@preconcurrency import struct Foundation.Date
+import Foundation
 #endif
+import XCTest
 @_spi(Generated) @testable import OpenAPIRuntime
 
 final class Test_URICodingRoundtrip: Test_Runtime {

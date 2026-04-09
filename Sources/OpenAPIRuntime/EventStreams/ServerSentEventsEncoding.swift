@@ -12,10 +12,10 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if canImport(Darwin)
-import class Foundation.JSONEncoder
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
 #else
-@preconcurrency import class Foundation.JSONEncoder
+public import Foundation
 #endif
 
 /// A sequence that serializes Server-sent Events.
@@ -68,6 +68,8 @@ extension ServerSentEventsSerializationSequence: AsyncSequence {
         Iterator(upstream: upstream.makeAsyncIterator())
     }
 }
+
+@available(*, unavailable) extension ServerSentEventsSerializationSequence.Iterator: Sendable {}
 
 extension AsyncSequence {
 

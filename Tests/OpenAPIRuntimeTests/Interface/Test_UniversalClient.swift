@@ -11,9 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 import XCTest
 import HTTPTypes
-import Foundation
 @_spi(Generated) @testable import OpenAPIRuntime
 
 struct MockClientTransport: ClientTransport {
@@ -54,7 +59,7 @@ final class Test_UniversalClient: Test_Runtime {
                 input: "input",
                 forOperation: "op",
                 serializer: { input in throw TestError() },
-                deserializer: { response, body in fatalError() }
+                deserializer: { response, body in throw TestError() }
             )
         } catch {
             let clientError = try XCTUnwrap(error as? ClientError)
@@ -80,7 +85,7 @@ final class Test_UniversalClient: Test_Runtime {
                 input: "input",
                 forOperation: "op",
                 serializer: { input in (HTTPRequest(soar_path: "/", method: .post), MockClientTransport.requestBody) },
-                deserializer: { response, body in fatalError() }
+                deserializer: { response, body in throw TestError() }
             )
         } catch {
             let clientError = try XCTUnwrap(error as? ClientError)
@@ -103,7 +108,7 @@ final class Test_UniversalClient: Test_Runtime {
                 input: "input",
                 forOperation: "op",
                 serializer: { input in (HTTPRequest(soar_path: "/", method: .post), MockClientTransport.requestBody) },
-                deserializer: { response, body in fatalError() }
+                deserializer: { response, body in throw TestError() }
             )
         } catch {
             let clientError = try XCTUnwrap(error as? ClientError)
@@ -129,7 +134,7 @@ final class Test_UniversalClient: Test_Runtime {
                 input: "input",
                 forOperation: "op",
                 serializer: { input in (HTTPRequest(soar_path: "/", method: .post), MockClientTransport.requestBody) },
-                deserializer: { response, body in fatalError() }
+                deserializer: { response, body in throw TestError() }
             )
         } catch {
             let clientError = try XCTUnwrap(error as? ClientError)

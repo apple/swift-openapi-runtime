@@ -11,8 +11,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
-import HTTPTypes
+#endif
+public import HTTPTypes
 
 extension Converter {
 
@@ -54,7 +59,7 @@ extension Converter {
         let acceptValues = acceptHeader.split(separator: ",")
             .map { value in
                 // Drop everything after the optional semicolon (q, extensions, ...)
-                value.split(separator: ";")[0].trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                value.split(separator: ";")[0].trimmingLeadingAndTrailingSpaces.lowercased()
             }
         if acceptValues.isEmpty { return }
         guard let parsedSubstring = OpenAPIMIMEType(substring) else {

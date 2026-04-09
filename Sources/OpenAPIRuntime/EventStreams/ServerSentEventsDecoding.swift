@@ -12,12 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if canImport(Darwin)
-import class Foundation.JSONDecoder
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
 #else
-@preconcurrency import class Foundation.JSONDecoder
+public import Foundation
 #endif
-import struct Foundation.Data
 
 /// A sequence that parses arbitrary byte chunks into events using the Server-sent Events format.
 ///
@@ -94,6 +93,8 @@ extension ServerSentEventsDeserializationSequence: AsyncSequence {
     }
 }
 
+@available(*, unavailable) extension ServerSentEventsDeserializationSequence.Iterator: Sendable {}
+
 extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
 
     /// Returns another sequence that decodes each event's data as the provided type using the provided decoder.
@@ -114,7 +115,20 @@ extension AsyncSequence where Element == ArraySlice<UInt8>, Self: Sendable {
     ///   - decoder: The JSON decoder to use.
     ///   - predicate: A closure that determines whether the given byte sequence is the terminating byte sequence defined by the API.
     /// - Returns: A sequence that provides the events with the decoded JSON data.
-    public func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable>(
+    #if compiler(>=6.2)
+    @abi(
+        func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable>(
+            of eventType: JSONDataType.Type,
+            decoder: JSONDecoder,
+            while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool
+        ) -> AsyncThrowingMapSequence<
+            ServerSentEventsDeserializationSequence<ServerSentEventsLineDeserializationSequence<Self>>,
+            ServerSentEventWithJSONData<JSONDataType>
+        >
+    )
+    #endif
+    @preconcurrency
+    public func asDecodedServerSentEventsWithJSONData<JSONDataType: Decodable & _OpenAPIRuntimeSendableMetatype>(
         of dataType: JSONDataType.Type = JSONDataType.self,
         decoder: JSONDecoder = .init(),
         while predicate: @escaping @Sendable (ArraySlice<UInt8>) -> Bool = { _ in true }
@@ -345,6 +359,8 @@ extension ServerSentEventsLineDeserializationSequence: AsyncSequence {
         Iterator(upstream: upstream.makeAsyncIterator())
     }
 }
+
+@available(*, unavailable) extension ServerSentEventsLineDeserializationSequence.Iterator: Sendable {}
 
 extension ServerSentEventsLineDeserializationSequence.Iterator {
 

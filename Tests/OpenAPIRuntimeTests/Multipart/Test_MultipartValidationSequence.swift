@@ -11,9 +11,14 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 import XCTest
 @_spi(Generated) @testable import OpenAPIRuntime
-import Foundation
 import HTTPTypes
 
 final class Test_MultipartValidationSequence: Test_Runtime {
@@ -24,8 +29,7 @@ final class Test_MultipartValidationSequence: Test_Runtime {
             .init(headerFields: [.contentDisposition: #"form-data; name="name""#], body: firstBody),
             .init(headerFields: [.contentDisposition: #"form-data; name="info""#], body: secondBody),
         ]
-        var upstreamIterator = parts.makeIterator()
-        let upstream = AsyncStream { upstreamIterator.next() }
+        let upstream = parts.async
         let sequence = MultipartValidationSequence(
             upstream: upstream,
             requirements: .init(

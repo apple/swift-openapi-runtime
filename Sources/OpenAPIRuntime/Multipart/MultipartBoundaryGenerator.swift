@@ -11,7 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A generator of a new boundary string used by multipart messages to separate parts.
 public protocol MultipartBoundaryGenerator: Sendable {
@@ -71,6 +76,6 @@ public struct RandomMultipartBoundaryGenerator: MultipartBoundaryGenerator {
     public func makeBoundary() -> String {
         var randomSuffix = [UInt8](repeating: 0, count: randomNumberSuffixLength)
         for i in randomSuffix.startIndex..<randomSuffix.endIndex { randomSuffix[i] = values.randomElement()! }
-        return boundaryPrefix.appending(String(decoding: randomSuffix, as: UTF8.self))
+        return boundaryPrefix + String(decoding: randomSuffix, as: UTF8.self)
     }
 }

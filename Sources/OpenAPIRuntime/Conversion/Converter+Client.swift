@@ -11,8 +11,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
-import HTTPTypes
+#endif
+public import HTTPTypes
 
 extension Converter {
 
@@ -46,8 +51,9 @@ extension Converter {
         )
         for parameter in parameters {
             let value = try encoder.encode(parameter, forKey: "")
-            if let range = renderedString.range(of: "{}") {
-                renderedString = renderedString.replacingOccurrences(of: "{}", with: value, range: range)
+            if renderedString.contains("{}") {
+                // Only replacing one at a time
+                renderedString = renderedString.replacingOccurrences(of: "{}", with: value, maxReplacements: 1)
             }
         }
         return renderedString

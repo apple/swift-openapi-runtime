@@ -11,7 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// A parsed representation of the `content-disposition` header described by RFC 6266 containing only
 /// the features relevant to OpenAPI multipart bodies.
@@ -102,14 +107,15 @@ extension ContentDisposition: RawRepresentable {
     /// https://datatracker.ietf.org/doc/html/rfc6266#section-4.1
     /// - Parameter rawValue: The raw value to use for the new instance.
     init?(rawValue: String) {
-        var components = rawValue.split(separator: ";").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        var components = rawValue.split(separator: ";").map { $0.trimmingLeadingAndTrailingSpaces }
         guard !components.isEmpty else { return nil }
         self.dispositionType = DispositionType(rawValue: components.removeFirst())
-        let parameterTuples: [(ParameterName, String)] = components.compactMap { component in
+        let parameterTuples: [(ParameterName, String)] = components.compactMap {
+            (component: String) -> (ParameterName, String)? in
             let parameterComponents = component.split(separator: "=", maxSplits: 1)
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .map { $0.trimmingLeadingAndTrailingSpaces }
             guard parameterComponents.count == 2 else { return nil }
-            let valueWithoutQuotes = parameterComponents[1].trimmingCharacters(in: ["\""])
+            let valueWithoutQuotes = parameterComponents[1].trimming(while: { $0 == "\"" })
             return (.init(rawValue: parameterComponents[0]), valueWithoutQuotes)
         }
         self.parameters = Dictionary(parameterTuples, uniquingKeysWith: { a, b in a })

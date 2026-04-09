@@ -11,8 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-import protocol Foundation.LocalizedError
-import struct Foundation.Data
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 import HTTPTypes
 
 /// Error thrown by generated code.

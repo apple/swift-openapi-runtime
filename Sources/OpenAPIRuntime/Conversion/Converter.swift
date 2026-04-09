@@ -11,12 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if canImport(Darwin)
-import class Foundation.JSONEncoder
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
 #else
-@preconcurrency import class Foundation.JSONEncoder
+import Foundation
 #endif
-import class Foundation.JSONDecoder
 
 /// Converter between generated and HTTP currency types.
 @_spi(Generated) public struct Converter: Sendable {

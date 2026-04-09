@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-import HTTPTypes
+public import HTTPTypes
 
 /// An opt-in error handling middleware that converts an error to an HTTP response.
 ///

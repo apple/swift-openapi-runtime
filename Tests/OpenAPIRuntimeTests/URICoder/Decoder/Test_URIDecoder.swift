@@ -170,7 +170,7 @@ extension Test_URIDecoder {
         _ value: T,
         forKey key: String,
         from inputs: Inputs,
-        file: StaticString = #file,
+        file: StaticString = #filePath,
         line: UInt = #line
     ) {
         func _run(name: String, configuration: URICoderConfiguration, sourceString: Substring) {

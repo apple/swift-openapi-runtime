@@ -12,8 +12,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-import HTTPTypes
-import protocol Foundation.LocalizedError
+#if canImport(FoundationEssentials)
+public import FoundationEssentials
+#else
+public import Foundation
+#endif
+public import HTTPTypes
 
 /// An error thrown by a server handling an OpenAPI operation.
 public struct ServerError: Error, HTTPResponseConvertible {
@@ -173,6 +177,6 @@ extension ServerError: LocalizedError {
     ///
     /// - Returns: A localized string describing the server error.
     public var errorDescription: String? {
-        "Server encountered an error handling the operation \"\(operationID)\", caused by \"\(causeDescription)\", underlying error: \(underlyingError.localizedDescription)."
+        "Server encountered an error handling the operation \"\(operationID)\", caused by \"\(causeDescription)\", underlying error: \(underlyingError)."
     }
 }

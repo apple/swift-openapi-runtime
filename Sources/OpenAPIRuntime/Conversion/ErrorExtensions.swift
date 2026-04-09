@@ -11,7 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 extension DecodingError {
 
@@ -123,7 +128,7 @@ struct MultiError: Swift.Error, LocalizedError, CustomStringConvertible {
 
     var errorDescription: String? {
         if let first = errors.first {
-            return "Multiple errors encountered, first one: \(first.localizedDescription)."
+            return "Multiple errors encountered, first one: \(first)."
         } else {
             return "No errors"
         }

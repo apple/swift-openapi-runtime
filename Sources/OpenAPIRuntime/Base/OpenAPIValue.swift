@@ -12,16 +12,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if canImport(Foundation)
-#if canImport(Darwin)
-import class Foundation.NSNull
+#if canImport(FoundationEssentials) && !FullFoundation
+import FoundationEssentials
 #else
-@preconcurrency import class Foundation.NSNull
+import Foundation
 #endif
-import class Foundation.NSNumber
-#if canImport(CoreFoundation)
+
+#if canImport(CoreFoundation) && (FullFoundation || canImport(Darwin))
 import CoreFoundation
-#endif
 #endif
 
 /// A container for a value represented by JSON Schema.
@@ -74,7 +72,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
     /// - Throws: When the value is not supported.
     static func tryCast(_ value: (any Sendable)?) throws -> (any Sendable)? {
         guard let value = value else { return nil }
-        #if canImport(Foundation)
+        #if FullFoundation || canImport(Darwin)
         if value is NSNull { return value }
         #endif
         if let array = value as? [(any Sendable)?] { return try array.map(tryCast(_:)) }
@@ -148,7 +146,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             try container.encodeNil()
             return
         }
-        #if canImport(Foundation)
+        #if FullFoundation || canImport(Darwin)
         if value is NSNull {
             var container = encoder.singleValueContainer()
             try container.encodeNil()
@@ -193,7 +191,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
             )
         }
     }
-    #if canImport(CoreFoundation)
+    #if canImport(CoreFoundation) && (FullFoundation || canImport(Darwin))
     /// Encodes the provided NSNumber based on its internal representation.
     /// - Parameters:
     ///   - value: The NSNumber that boxes one of possibly many different types of values.

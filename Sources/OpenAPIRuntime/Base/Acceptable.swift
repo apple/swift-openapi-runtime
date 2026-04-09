@@ -11,7 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// The protocol that all generated `AcceptableContentType` enums conform to.
 public protocol AcceptableProtocol: RawRepresentable, Sendable, Hashable, CaseIterable where RawValue == String {}
@@ -58,7 +63,7 @@ extension QualityValue: RawRepresentable {
     }
 
     /// The raw string representation of the `QualityValue`.
-    public var rawValue: String { String(format: "%0.3f", doubleValue) }
+    public var rawValue: String { self.doubleValue.toFixed(precision: 3) }
 }
 
 extension QualityValue: ExpressibleByIntegerLiteral {
