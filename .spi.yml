@@ -1,5 +1,8 @@
 version: 1
 builder:
   configs:
-    - documentation_targets:
+    - swift_version: '6.3'
+      documentation_targets:
         - OpenAPIRuntime
+      custom_documentation_parameters:
+        - '--experimental-transform-for-static-hosting-with-content'
