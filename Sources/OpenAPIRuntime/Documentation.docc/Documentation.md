@@ -78,6 +78,7 @@ You can also publish your transport or middleware as a Swift package to allow ot
 - ``ClientError``
 - ``ServerError``
 - ``UndocumentedPayload``
+- ``HTTPResponseConvertible``
 
 ### HTTP Currency Types
 - ``HTTPBody``
@@ -90,6 +91,10 @@ You can also publish your transport or middleware as a Swift package to allow ot
 - ``OpenAPIValueContainer``
 - ``OpenAPIObjectContainer``
 - ``OpenAPIArrayContainer``
+
+### Additional middlewares
+- ``ErrorHandlingMiddleware``
+- ``QuerySpaceNormalizingMiddleware``
 
 [0]: https://github.com/apple/swift-openapi-generator
 [1]: https://swiftpackageindex.com/apple/swift-openapi-generator/documentation
