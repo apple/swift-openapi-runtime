@@ -444,6 +444,17 @@ final class Test_OpenAPIValue: Test_Runtime {
             encodedData
         )
     }
+
+    func testHashing_objectOrderIndependence_success() throws {
+        let container1 = try OpenAPIObjectContainer(
+            unvalidatedValue: ["foo": 0, "bar": 1]
+        )
+        let container2 = try OpenAPIObjectContainer(
+            unvalidatedValue: ["bar": 1, "foo": 0]
+        )
+        XCTAssertEqual(container1, container2)
+        XCTAssertEqual(container1.hashValue, container2.hashValue)
+    }
 }
 
 struct MyAnyOf2<Value1: Codable & Hashable & Sendable, Value2: Codable & Hashable & Sendable>: Codable, Hashable,

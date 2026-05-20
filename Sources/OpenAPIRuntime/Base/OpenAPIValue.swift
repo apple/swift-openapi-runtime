@@ -421,10 +421,16 @@ public struct OpenAPIObjectContainer: Codable, Hashable, Sendable {
 
     // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
     public func hash(into hasher: inout Hasher) {
+        var commutativeHash = 0
         for (key, itemValue) in value {
-            hasher.combine(key)
-            hasher.combine(OpenAPIValueContainer(validatedValue: itemValue))
+            // Note that we use a copy of our own hasher here. This makes hash values
+            // dependent on its state, eliminating static collision patterns.
+            var elementHasher = hasher
+            elementHasher.combine(key)
+            elementHasher.combine(OpenAPIValueContainer(validatedValue: itemValue))
+            commutativeHash ^= elementHasher.finalize()
         }
+        hasher.combine(commutativeHash)
     }
 }
 
