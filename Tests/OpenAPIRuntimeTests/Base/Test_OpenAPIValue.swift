@@ -43,6 +43,77 @@ final class Test_OpenAPIValue: Test_Runtime {
         _ = try OpenAPIArrayContainer(unvalidatedValue: ["hello", ["nestedHello", 2] as [any Sendable]])
     }
 
+    func testSetValueValidating_valueContainer_acceptsSupportedValues() throws {
+        var container = try OpenAPIValueContainer()
+        try container.setValue(validating: "hello")
+        XCTAssertEqual(container.value as? String, "hello")
+        try container.setValue(validating: 42)
+        XCTAssertEqual(container.value as? Int, 42)
+        try container.setValue(validating: ["nested": 1] as [String: any Sendable])
+        let dict = try XCTUnwrap(container.value as? [String: Int])
+        XCTAssertEqual(dict, ["nested": 1])
+    }
+
+    func testSetValueValidating_valueContainer_rejectsUnsupportedValue() throws {
+        struct Foobar: Sendable {}
+        var container = try OpenAPIValueContainer(unvalidatedValue: "seed")
+        XCTAssertThrowsError(try container.setValue(validating: Foobar())) { error in
+            guard case .invalidValue = error as? EncodingError else {
+                XCTFail("Unexpected error: \(error)")
+                return
+            }
+        }
+        XCTAssertEqual(container.value as? String, "seed", "value must be unchanged after a failed setValue(validating:)")
+    }
+
+    func testSetValueValidating_objectContainer_acceptsSupportedValues() throws {
+        var container = OpenAPIObjectContainer()
+        try container.setValue(validating: ["a": 1, "b": "two"])
+        XCTAssertEqual(container.value["a"] as? Int, 1)
+        XCTAssertEqual(container.value["b"] as? String, "two")
+    }
+
+    func testSetValueValidating_objectContainer_rejectsUnsupportedValue() throws {
+        struct Foobar: Sendable {}
+        var container = try OpenAPIObjectContainer(unvalidatedValue: ["seed": "ok"])
+        XCTAssertThrowsError(try container.setValue(validating: ["bad": Foobar()])) { error in
+            guard case .invalidValue = error as? EncodingError else {
+                XCTFail("Unexpected error: \(error)")
+                return
+            }
+        }
+        XCTAssertEqual(
+            container.value["seed"] as? String,
+            "ok",
+            "value must be unchanged after a failed setValue(validating:)"
+        )
+    }
+
+    func testSetValueValidating_arrayContainer_acceptsSupportedValues() throws {
+        var container = OpenAPIArrayContainer()
+        try container.setValue(validating: [1, "two", true])
+        XCTAssertEqual(container.value.count, 3)
+        XCTAssertEqual(container.value[0] as? Int, 1)
+        XCTAssertEqual(container.value[1] as? String, "two")
+        XCTAssertEqual(container.value[2] as? Bool, true)
+    }
+
+    func testSetValueValidating_arrayContainer_rejectsUnsupportedValue() throws {
+        struct Foobar: Sendable {}
+        var container = try OpenAPIArrayContainer(unvalidatedValue: ["seed"])
+        XCTAssertThrowsError(try container.setValue(validating: [Foobar()])) { error in
+            guard case .invalidValue = error as? EncodingError else {
+                XCTFail("Unexpected error: \(error)")
+                return
+            }
+        }
+        XCTAssertEqual(
+            container.value.first as? String,
+            "seed",
+            "value must be unchanged after a failed setValue(validating:)"
+        )
+    }
+
     func testEncoding_container_success() throws {
         let values: [(any Sendable)?] = [
             nil, "Hello", ["key": "value", "anotherKey": [1, "two"] as [any Sendable]] as [String: any Sendable],
