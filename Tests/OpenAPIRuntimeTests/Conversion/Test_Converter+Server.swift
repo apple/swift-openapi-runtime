@@ -69,14 +69,12 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             // Params
             (params, "application/json; foo=bar", true), (params, "application/json; charset=utf-8; foo=bar", true),
             (params, "application/json", true), (params, "text/plain", false),
-            
-            // Rejects malformed expected content type
-            (wildcard, "txet", false),
-            
             // Rejects malformed headers
             (semicolon, "application/json", false), (semicolons, "application/json", false),
             (spacedSemicolon, "application/json", false), (leadingSemicolon, "application/json", false),
             (garbage, "application/json", false),
+            // Rejects malformed expected content type
+            (wildcard, "txet", false),
         ]
         for (headers, contentType, success) in cases {
             if success {
