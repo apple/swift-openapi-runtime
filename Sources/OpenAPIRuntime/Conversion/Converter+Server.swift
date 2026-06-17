@@ -56,10 +56,13 @@ extension Converter {
         guard let acceptHeader = headerFields[.accept] else { return }
 
         // Split with commas to get the individual values
-        let acceptValues = acceptHeader.split(separator: ",")
-            .map { value in
-                // Drop everything after the optional semicolon (q, extensions, ...)
-                value.split(separator: ";")[0].trimmingLeadingAndTrailingSpaces.lowercased()
+        let acceptValues = try acceptHeader.split(separator: ",")
+            .map { value -> String in
+                // Drop everything after the optional semicolon (q, extensions, ...), reject malformed.
+                guard let mediaRange = value.split(separator: ";").first else {
+                    throw RuntimeError.malformedAcceptHeader(String(value))
+                }
+                return mediaRange.trimmingLeadingAndTrailingSpaces.lowercased()
             }
         if acceptValues.isEmpty { return }
         guard let parsedSubstring = OpenAPIMIMEType(substring) else {
