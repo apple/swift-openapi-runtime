@@ -38,7 +38,7 @@ jobs:
       integration-test-matrix: '${{ steps.generate-matrix.outputs.integration-test-matrix }}'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
       - id: generate-matrix
@@ -90,7 +90,7 @@ jobs:
       linkage-test-matrix: '${{ steps.generate-matrix.outputs.linkage-test-matrix }}'
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
       - id: generate-matrix
