@@ -68,6 +68,24 @@ final class Test_ContentDisposition: Test_Runtime {
 
         // Empty
         _test(input: "", parsed: nil, output: nil)
+
+        // A filename value that contains a quote and a semicolon must be a part
+        // of the quoted-string value, not be parsed as the start of another parameter.
+        _test(
+            input: #"form-data; filename="He said \"hi\"; then left.txt"; name="report""#,
+            parsed: ContentDisposition(
+                dispositionType: .formData,
+                parameters: [.name: "report", .filename: #"He said "hi"; then left.txt"#]
+            ),
+            output: #"form-data; filename="He said \"hi\"; then left.txt"; name="report""#
+        )
+
+        // A semicolon embedded in a quoted parameter value must stay as part of the value.
+        _test(
+            input: #"form-data; name="foo; bar""#,
+            parsed: ContentDisposition(dispositionType: .formData, parameters: [.name: "foo; bar"]),
+            output: #"form-data; name="foo; bar""#
+        )
     }
     func testAccessors() {
         var value = ContentDisposition(dispositionType: .formData, parameters: [.name: "Foo"])

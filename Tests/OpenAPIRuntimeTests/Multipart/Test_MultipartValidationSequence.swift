@@ -271,6 +271,30 @@ final class Test_MultipartValidationSequenceStateMachine: Test_Runtime {
         XCTAssertEqual(stateMachine.next(parts[0]), .emitError(.receivedMultipleValuesForSingleValuePart("name")))
     }
 
+    func testFilenameContainingQuoteAndSemicolon() throws {
+        // A filename value that contains a quote and a semicolon must be a part
+        // of the quoted-string value, not be parsed as the start of another parameter.
+        let parts: [MultipartRawPart] = [
+            .init(
+                headerFields: [
+                    .contentDisposition: #"form-data; filename="He said \"hi\"; then left.txt"; name="report""#
+                ],
+                body: "file bytes"
+            )
+        ]
+        XCTAssertEqual(parts[0].filename, #"He said "hi"; then left.txt"#)
+        XCTAssertEqual(parts[0].name, "report")
+        var stateMachine = newStateMachine(
+            allowsUnknownParts: false,
+            requiredExactlyOncePartNames: ["report"],
+            requiredAtLeastOncePartNames: [],
+            atMostOncePartNames: [],
+            zeroOrMoreTimesPartNames: []
+        )
+        XCTAssertEqual(stateMachine.next(parts[0]), .emitPart(parts[0]))
+        XCTAssertEqual(stateMachine.state.remainingExactlyOncePartNames, [])
+    }
+
     func testMissingRequiredAtMostOnce() throws {
         let parts: [MultipartRawPart] = [
             .init(headerFields: [.contentDisposition: #"form-data; name="name""#], body: "24")
