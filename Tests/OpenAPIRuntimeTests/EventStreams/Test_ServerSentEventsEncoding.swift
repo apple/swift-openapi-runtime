@@ -77,6 +77,20 @@ final class Test_ServerSentEventsEncoding: Test_Runtime {
                 """#
         )
     }
+    func testIdAndEventStripNewlines() async throws {
+        // The id and event fields must not contain newlines, as they would otherwise be
+        // misinterpreted as the start of another field.
+        try await _test(
+            input: [.init(id: "123\r\n456", event: "custom\nEvent\r", data: "hello")],
+            output: #"""
+                id: 123456
+                event: customEvent
+                data: hello
+
+
+                """#
+        )
+    }
     func _testJSONData<JSONType: Encodable & Hashable & Sendable>(
         input: [ServerSentEventWithJSONData<JSONType>],
         output: String,
