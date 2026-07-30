@@ -167,8 +167,14 @@ extension ServerSentEventsSerializationSequence.Iterator {
                         buffer.append(contentsOf: value.utf8)
                         buffer.append(ASCII.lf)
                     }
-                    if let id = value.id { encodeField(name: "id", value: id) }
-                    if let event = value.event { encodeField(name: "event", value: event) }
+                    // `id` and `event` values must not contain any newline characters, as they're used to
+                    // delimit fields and events, so strip any that are present.
+                    func removingNewlines(_ value: some StringProtocol) -> String {
+                        value.replacingOccurrences(of: "\r\n", with: "").replacingOccurrences(of: "\r", with: "")
+                            .replacingOccurrences(of: "\n", with: "")
+                    }
+                    if let id = value.id { encodeField(name: "id", value: removingNewlines(id)) }
+                    if let event = value.event { encodeField(name: "event", value: removingNewlines(event)) }
                     if let retry = value.retry { encodeField(name: "retry", value: String(retry)) }
                     if let data = value.data {
                         // Normalize the data section by replacing CRLF and CR with just LF.
