@@ -167,7 +167,7 @@ extension ServerSentEventsSerializationSequence.Iterator {
                         buffer.append(contentsOf: value.utf8)
                         buffer.append(ASCII.lf)
                     }
-                    // Field values must not contain any newline characters, as they're used to
+                    // `id` and `event` values must not contain any newline characters, as they're used to
                     // delimit fields and events, so strip any that are present.
                     func removingNewlines(_ value: some StringProtocol) -> String {
                         value.replacingOccurrences(of: "\r\n", with: "").replacingOccurrences(of: "\r", with: "")
