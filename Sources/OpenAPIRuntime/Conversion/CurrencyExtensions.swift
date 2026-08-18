@@ -18,7 +18,7 @@ import FoundationEssentials
 import Foundation
 #endif
 import HTTPTypes
-import MultipartKit
+@_spi(StreamingMultipartPart) import MultipartKit
 
 extension ParameterStyle {
 

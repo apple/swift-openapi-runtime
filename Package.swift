@@ -31,7 +31,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-http-types", from: "1.0.0"),
-        .package(url: "https://github.com/vapor/multipart-kit.git", branch: "stream-multipart-part"),
+        .package(url: "https://github.com/vapor/multipart-kit.git", from: "5.0.0-beta.2"),
     ],
     targets: [
         .target(
