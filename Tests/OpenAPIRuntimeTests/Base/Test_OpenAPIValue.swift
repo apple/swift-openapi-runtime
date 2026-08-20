@@ -446,23 +446,15 @@ final class Test_OpenAPIValue: Test_Runtime {
     }
 
     func testHashing_objectOrderIndependence_success() throws {
-        let container1 = try OpenAPIObjectContainer(
-            unvalidatedValue: ["foo": 0, "bar": 1]
-        )
-        let container2 = try OpenAPIObjectContainer(
-            unvalidatedValue: ["bar": 1, "foo": 0]
-        )
+        let container1 = try OpenAPIObjectContainer(unvalidatedValue: ["foo": 0, "bar": 1])
+        let container2 = try OpenAPIObjectContainer(unvalidatedValue: ["bar": 1, "foo": 0])
         XCTAssertEqual(container1, container2)
         XCTAssertEqual(container1.hashValue, container2.hashValue)
     }
 
     func testHashing_containerOrderIndependence_success() throws {
-        let container1 = try OpenAPIValueContainer(
-            unvalidatedValue: ["foo": 0, "bar": 1]
-        )
-        let container2 = try OpenAPIValueContainer(
-            unvalidatedValue: ["bar": 1, "foo": 0]
-        )
+        let container1 = try OpenAPIValueContainer(unvalidatedValue: ["foo": 0, "bar": 1])
+        let container2 = try OpenAPIValueContainer(unvalidatedValue: ["bar": 1, "foo": 0])
         XCTAssertEqual(container1, container2)
         XCTAssertEqual(container1.hashValue, container2.hashValue)
     }
