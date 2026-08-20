@@ -281,9 +281,9 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
         case let value as [(any Sendable)?]:
             for item in value { hasher.combine(OpenAPIValueContainer(validatedValue: item)) }
         case let value as [String: (any Sendable)?]:
-            for (key, itemValue) in value {
+            for key in value.keys.sorted() {
                 hasher.combine(key)
-                hasher.combine(OpenAPIValueContainer(validatedValue: itemValue))
+                hasher.combine(OpenAPIValueContainer(validatedValue: value[key]))
             }
         default: break
         }
@@ -421,9 +421,9 @@ public struct OpenAPIObjectContainer: Codable, Hashable, Sendable {
 
     // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
     public func hash(into hasher: inout Hasher) {
-        for (key, itemValue) in value {
+        for key in value.keys.sorted() {
             hasher.combine(key)
-            hasher.combine(OpenAPIValueContainer(validatedValue: itemValue))
+            hasher.combine(OpenAPIValueContainer(validatedValue: value[key]))
         }
     }
 }
