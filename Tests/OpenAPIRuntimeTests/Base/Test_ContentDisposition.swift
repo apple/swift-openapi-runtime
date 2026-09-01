@@ -86,6 +86,12 @@ final class Test_ContentDisposition: Test_Runtime {
             parsed: ContentDisposition(dispositionType: .formData, parameters: [.name: "foo; bar"]),
             output: #"form-data; name="foo; bar""#
         )
+
+        // An unterminated quoted string must fail to parse, not silently swallow the rest of the header.
+        _test(input: #"form-data; name="foo"#, parsed: nil, output: nil)
+
+        // A trailing unescaped backslash inside a quoted string must fail to parse.
+        _test(input: #"form-data; name="foo\"#, parsed: nil, output: nil)
     }
     func testAccessors() {
         var value = ContentDisposition(dispositionType: .formData, parameters: [.name: "Foo"])

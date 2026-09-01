@@ -103,25 +103,32 @@ struct ContentDisposition: Hashable {
 extension ContentDisposition: RawRepresentable {
 
     /// Splits a value into top-level components on `;`, without splitting inside a quoted value.
+    ///
+    /// Returns an empty array if the value has an unterminated quoted string, or a trailing
+    /// unescaped backslash inside a quoted string.
     private static func splitIntoTopLevelComponents(_ rawValue: String) -> [String] {
         var components: [String] = []
         var current = ""
         var isInsideQuotedString = false
-        var iterator = rawValue.makeIterator()
-        while let character = iterator.next() {
+        var isExpectingEscapedCharacter = false
+        for character in rawValue {
             switch character {
+            case _ where isExpectingEscapedCharacter:
+                current.append(character)
+                isExpectingEscapedCharacter = false
             case #"\"# where isInsideQuotedString:
                 current.append(character)
-                if let escaped = iterator.next() { current.append(escaped) }
+                isExpectingEscapedCharacter = true
             case #"""#:
-                isInsideQuotedString.toggle()
                 current.append(character)
+                isInsideQuotedString.toggle()
             case ";" where !isInsideQuotedString:
                 if !current.isEmpty { components.append(current) }
                 current = ""
             default: current.append(character)
             }
         }
+        guard !isInsideQuotedString, !isExpectingEscapedCharacter else { return [] }
         if !current.isEmpty { components.append(current) }
         return components.map { $0.trimmingLeadingAndTrailingSpaces }
     }
