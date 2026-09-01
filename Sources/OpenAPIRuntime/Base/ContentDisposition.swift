@@ -110,10 +110,10 @@ extension ContentDisposition: RawRepresentable {
         var iterator = rawValue.makeIterator()
         while let character = iterator.next() {
             switch character {
-            case "\\" where isInsideQuotedString:
+            case #"\"# where isInsideQuotedString:
                 current.append(character)
                 if let escaped = iterator.next() { current.append(escaped) }
-            case "\"":
+            case #"""#:
                 isInsideQuotedString.toggle()
                 current.append(character)
             case ";" where !isInsideQuotedString:
@@ -128,9 +128,9 @@ extension ContentDisposition: RawRepresentable {
 
     /// Removes surrounding quotes and resolves backslash-escaped characters in a parameter value.
     private static func unquote(_ value: String) -> String {
-        guard value.count >= 2, value.first == "\"", value.last == "\"" else { return value }
-        return value.dropFirst().dropLast().replacingOccurrences(of: "\\\"", with: "\"")
-            .replacingOccurrences(of: "\\\\", with: "\\")
+        guard value.count >= 2, value.first == #"""#, value.last == #"""# else { return value }
+        return value.dropFirst().dropLast().replacingOccurrences(of: #"\""#, with: #"""#)
+            .replacingOccurrences(of: #"\\"#, with: #"\"#)
     }
 
     /// Wraps a parameter value in quotes, escaping backslashes and double quotes.
