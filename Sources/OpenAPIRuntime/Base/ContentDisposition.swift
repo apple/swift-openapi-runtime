@@ -104,8 +104,7 @@ extension ContentDisposition: RawRepresentable {
 
     /// Splits a value into top-level components on `;`, without splitting inside a quoted value.
     ///
-    /// Returns an empty array if the value has an unterminated quoted string, or a trailing
-    /// unescaped backslash inside a quoted string.
+    /// Returns an empty array if the value has an unterminated quoted string.
     private static func splitIntoTopLevelComponents(_ rawValue: String) -> [String] {
         var components: [String] = []
         var current = ""
@@ -128,7 +127,7 @@ extension ContentDisposition: RawRepresentable {
             default: current.append(character)
             }
         }
-        guard !isInsideQuotedString, !isExpectingEscapedCharacter else { return [] }
+        guard !isInsideQuotedString else { return [] }
         if !current.isEmpty { components.append(current) }
         return components.map { $0.trimmingLeadingAndTrailingSpaces }
     }
