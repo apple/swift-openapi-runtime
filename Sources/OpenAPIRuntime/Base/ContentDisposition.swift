@@ -135,7 +135,8 @@ extension ContentDisposition: RawRepresentable {
 
     /// Wraps a parameter value in quotes, escaping backslashes and double quotes.
     private static func quote(_ value: String) -> String {
-        #"""# + value.replacingOccurrences(of: #"\"#, with: #"\\"#).replacingOccurrences(of: #"""#, with: #"\""#) + #"""#
+        #"""# + value.replacingOccurrences(of: #"\"#, with: #"\\"#).replacingOccurrences(of: #"""#, with: #"\""#)
+            + #"""#
     }
 
     /// Creates a new instance with the specified raw value.
