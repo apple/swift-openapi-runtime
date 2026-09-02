@@ -45,13 +45,32 @@ import CoreFoundation
 /// Define the structure of your types in the OpenAPI document instead.
 public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
 
+    private var _value: (any Sendable)?
+
     /// The underlying dynamic value.
-    public var value: (any Sendable)?
+    public var value: (any Sendable)? {
+        get { _value }
+        @available(
+            *,
+            deprecated,
+            message: "Setting `value` directly does not validate the contents. Use `setValue(validating:)` instead."
+        )
+        set { _value = newValue }
+    }
+
+    /// Replaces the contained value with the given value after validating that
+    /// it consists of supported types.
+    /// - Parameter newValue: A value of a JSON-compatible type, such as
+    /// `String`, `[Any]`, and `[String: Any]`.
+    /// - Throws: When the value is not supported.
+    public mutating func setValue(validating newValue: (any Sendable)?) throws {
+        self._value = try Self.tryCast(newValue)
+    }
 
     /// Creates a new container with the given validated value.
     /// - Parameter value: A value of a JSON-compatible type, such as `String`,
     /// `[Any]`, and `[String: Any]`.
-    init(validatedValue value: (any Sendable)?) { self.value = value }
+    init(validatedValue value: (any Sendable)?) { self._value = value }
 
     /// Creates a new container with the given unvalidated value.
     ///
@@ -349,12 +368,30 @@ extension OpenAPIValueContainer: ExpressibleByFloatLiteral {
 /// Define the structure of your types in the OpenAPI document instead.
 public struct OpenAPIObjectContainer: Codable, Hashable, Sendable {
 
+    private var _value: [String: (any Sendable)?]
+
     /// The underlying dynamic dictionary value.
-    public var value: [String: (any Sendable)?]
+    public var value: [String: (any Sendable)?] {
+        get { _value }
+        @available(
+            *,
+            deprecated,
+            message: "Setting `value` directly does not validate the contents. Use `setValue(validating:)` instead."
+        )
+        set { _value = newValue }
+    }
+
+    /// Replaces the contained dictionary with the given dictionary after
+    /// validating that all of its values consist of supported types.
+    /// - Parameter newValue: A dictionary with values of JSON-compatible types.
+    /// - Throws: When the value is not supported.
+    public mutating func setValue(validating newValue: [String: (any Sendable)?]) throws {
+        self._value = try Self.tryCast(newValue)
+    }
 
     /// Creates a new container with the given validated dictionary.
     /// - Parameter value: A dictionary value.
-    init(validatedValue value: [String: (any Sendable)?]) { self.value = value }
+    init(validatedValue value: [String: (any Sendable)?]) { self._value = value }
 
     /// Creates a new empty container.
     public init() { self.init(validatedValue: [:]) }
@@ -452,12 +489,30 @@ public struct OpenAPIObjectContainer: Codable, Hashable, Sendable {
 /// Define the structure of your types in the OpenAPI document instead.
 public struct OpenAPIArrayContainer: Codable, Hashable, Sendable {
 
+    private var _value: [(any Sendable)?]
+
     /// The underlying dynamic array value.
-    public var value: [(any Sendable)?]
+    public var value: [(any Sendable)?] {
+        get { _value }
+        @available(
+            *,
+            deprecated,
+            message: "Setting `value` directly does not validate the contents. Use `setValue(validating:)` instead."
+        )
+        set { _value = newValue }
+    }
+
+    /// Replaces the contained array with the given array after validating that
+    /// all of its elements consist of supported types.
+    /// - Parameter newValue: An array with values of JSON-compatible types.
+    /// - Throws: When the value is not supported.
+    public mutating func setValue(validating newValue: [(any Sendable)?]) throws {
+        self._value = try Self.tryCast(newValue)
+    }
 
     /// Creates a new container with the given validated array.
     /// - Parameter value: An array value.
-    init(validatedValue value: [(any Sendable)?]) { self.value = value }
+    init(validatedValue value: [(any Sendable)?]) { self._value = value }
 
     /// Creates a new empty container.
     public init() { self.init(validatedValue: []) }
