@@ -102,12 +102,57 @@ struct ContentDisposition: Hashable {
 
 extension ContentDisposition: RawRepresentable {
 
+    /// Splits a value into top-level components on `;`, without splitting inside a quoted value.
+    ///
+    /// Returns an empty array if the value has an unterminated quoted string.
+    private static func splitIntoTopLevelComponents(_ rawValue: String) -> [String] {
+        var components: [String] = []
+        var current = ""
+        var isInsideQuotedString = false
+        var isExpectingEscapedCharacter = false
+        for character in rawValue {
+            if isExpectingEscapedCharacter {
+                current.append(character)
+                isExpectingEscapedCharacter = false
+                continue
+            }
+            switch character {
+            case #"\"# where isInsideQuotedString:
+                current.append(character)
+                isExpectingEscapedCharacter = true
+            case #"""#:
+                current.append(character)
+                isInsideQuotedString.toggle()
+            case ";" where !isInsideQuotedString:
+                if !current.isEmpty { components.append(current) }
+                current = ""
+            default: current.append(character)
+            }
+        }
+        guard !isInsideQuotedString else { return [] }
+        if !current.isEmpty { components.append(current) }
+        return components.map { $0.trimmingLeadingAndTrailingSpaces }
+    }
+
+    /// Removes surrounding quotes and resolves backslash-escaped characters in a parameter value.
+    private static func unquote(_ value: String) -> String {
+        guard value.count >= 2, value.first == #"""#, value.last == #"""# else { return value }
+        return value.dropFirst().dropLast().replacingOccurrences(of: #"\""#, with: #"""#)
+            .replacingOccurrences(of: #"\\"#, with: #"\"#)
+    }
+
+    /// Wraps a parameter value in quotes, escaping backslashes and double quotes.
+    private static func quote(_ value: String) -> String {
+        #"""# + value.replacingOccurrences(of: #"\"#, with: #"\\"#).replacingOccurrences(of: #"""#, with: #"\""#)
+            + #"""#
+    }
+
     /// Creates a new instance with the specified raw value.
     ///
     /// https://datatracker.ietf.org/doc/html/rfc6266#section-4.1
     /// - Parameter rawValue: The raw value to use for the new instance.
     init?(rawValue: String) {
-        var components = rawValue.split(separator: ";").map { $0.trimmingLeadingAndTrailingSpaces }
+        var components = Self.splitIntoTopLevelComponents(rawValue)
         guard !components.isEmpty else { return nil }
         self.dispositionType = DispositionType(rawValue: components.removeFirst())
         let parameterTuples: [(ParameterName, String)] = components.compactMap {
@@ -115,8 +160,8 @@ extension ContentDisposition: RawRepresentable {
             let parameterComponents = component.split(separator: "=", maxSplits: 1)
                 .map { $0.trimmingLeadingAndTrailingSpaces }
             guard parameterComponents.count == 2 else { return nil }
-            let valueWithoutQuotes = parameterComponents[1].trimming(while: { $0 == "\"" })
-            return (.init(rawValue: parameterComponents[0]), valueWithoutQuotes)
+            let value = Self.unquote(parameterComponents[1])
+            return (.init(rawValue: parameterComponents[0]), value)
         }
         self.parameters = Dictionary(parameterTuples, uniquingKeysWith: { a, b in a })
     }
@@ -127,7 +172,7 @@ extension ContentDisposition: RawRepresentable {
         string.append(dispositionType.rawValue)
         if !parameters.isEmpty {
             for (key, value) in parameters.sorted(by: { $0.key.rawValue < $1.key.rawValue }) {
-                string.append("; \(key.rawValue)=\"\(value)\"")
+                string.append("; \(key.rawValue)=\(Self.quote(value))")
             }
         }
         return string
