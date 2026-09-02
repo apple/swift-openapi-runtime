@@ -111,10 +111,12 @@ extension ContentDisposition: RawRepresentable {
         var isInsideQuotedString = false
         var isExpectingEscapedCharacter = false
         for character in rawValue {
-            switch character {
-            case _ where isExpectingEscapedCharacter:
+            if isExpectingEscapedCharacter {
                 current.append(character)
                 isExpectingEscapedCharacter = false
+                continue
+            }
+            switch character {
             case #"\"# where isInsideQuotedString:
                 current.append(character)
                 isExpectingEscapedCharacter = true
