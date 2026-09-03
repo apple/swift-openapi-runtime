@@ -101,12 +101,14 @@ public import HTTPTypes
                 throw mapError(error)
             }
         }
+        let errorHandler = converter.configuration.serverErrorHandler
         @Sendable func makeError(input: OperationInput? = nil, output: OperationOutput? = nil, error: any Error)
             -> any Error
         {
             if var error = error as? ServerError {
                 error.operationInput = error.operationInput ?? input
                 error.operationOutput = error.operationOutput ?? output
+                errorHandler?.handleServerError(error)
                 return error
             }
             let causeDescription: String
@@ -135,7 +137,7 @@ public import HTTPTypes
                 httpHeaderFields = [:]
                 httpBody = nil
             }
-            return ServerError(
+            let serverError = ServerError(
                 operationID: operationID,
                 request: request,
                 requestBody: requestBody,
@@ -148,6 +150,8 @@ public import HTTPTypes
                 httpHeaderFields: httpHeaderFields,
                 httpBody: httpBody
             )
+            errorHandler?.handleServerError(serverError)
+            return serverError
         }
         var next: @Sendable (HTTPRequest, HTTPBody?, ServerRequestMetadata) async throws -> (HTTPResponse, HTTPBody?) =
             { _request, _requestBody, _metadata in
