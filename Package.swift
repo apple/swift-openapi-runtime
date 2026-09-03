@@ -17,20 +17,26 @@ import PackageDescription
 let package = Package(
     name: "swift-openapi-runtime",
     platforms: [
-        .macOS(.v10_15), .macCatalyst(.v13), .iOS(.v13), .tvOS(.v13), .watchOS(.v6), .visionOS(.v1)
+        .macOS(.v13), .macCatalyst(.v13), .iOS(.v13), .tvOS(.v13), .watchOS(.v6), .visionOS(.v1)
     ],
     products: [
         .library(
             name: "OpenAPIRuntime",
             targets: ["OpenAPIRuntime"]
+        ),
+        .library(
+            name: "OpenAPIFetchRuntime",
+            targets: ["OpenAPIFetchRuntime"]
         )
     ],
     traits: [
         .trait(name: "FullFoundation"),
+        .trait(name: "JavaScriptFetch"),
         .default(enabledTraits: ["FullFoundation"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-http-types", from: "1.0.0"),
+        .package(url: "https://github.com/swiftwasm/JavaScriptKit", .upToNextMinor(from: "0.50.2")),
     ],
     targets: [
         .target(
@@ -42,6 +48,19 @@ let package = Package(
         .testTarget(
             name: "OpenAPIRuntimeTests",
             dependencies: ["OpenAPIRuntime"]
+        ),
+        .target(
+            name: "OpenAPIFetchRuntime",
+            dependencies: [
+                .product(
+                    name: "JavaScriptKit",
+                    package: "JavaScriptKit",
+                    condition: .when(traits: ["JavaScriptFetch"])
+                ),
+            ],
+            swiftSettings: [
+                .enableExperimentalFeature("Extern"),
+            ]
         ),
     ]
 )
