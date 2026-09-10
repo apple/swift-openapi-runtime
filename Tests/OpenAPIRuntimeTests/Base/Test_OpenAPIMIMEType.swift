@@ -131,4 +131,19 @@ final class Test_OpenAPIMIMEType: Test_Runtime {
         testJSONWith2Params(against: subtypeWildcard, expected: .subtypeWildcard)
         testJSONWith2Params(against: fullWildcard, expected: .wildcard)
     }
+
+    func testRequiredBoundaryRejectsBoundaryOverRFC2046Limit() throws {
+        // RFC 2046 section 5.1.1 limits a multipart boundary to at most 70 characters.
+        let atLimit = String(repeating: "a", count: 70)
+        let mimeAtLimit: OpenAPIMIMEType? = OpenAPIMIMEType("multipart/form-data; boundary=\(atLimit)")
+        XCTAssertEqual(try mimeAtLimit.requiredBoundary(), atLimit)
+
+        let overLimit = String(repeating: "a", count: 71)
+        let mimeOverLimit: OpenAPIMIMEType? = OpenAPIMIMEType("multipart/form-data; boundary=\(overLimit)")
+        XCTAssertThrowsError(try mimeOverLimit.requiredBoundary()) { error in
+            guard case RuntimeError.multipartBoundaryTooLong = error else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+        }
+    }
 }

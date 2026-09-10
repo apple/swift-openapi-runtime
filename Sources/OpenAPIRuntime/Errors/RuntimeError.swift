@@ -63,6 +63,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     // Multipart
     case missingRequiredMultipartFormDataContentType
     case missingMultipartBoundaryContentTypeParameter
+    case multipartBoundaryTooLong
 
     // Transport/Handler
     case transportFailed(any Error)
@@ -118,6 +119,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
         case .missingRequiredMultipartFormDataContentType: return "Expected a 'multipart/form-data' content type."
         case .missingMultipartBoundaryContentTypeParameter:
             return "Missing 'boundary' parameter in the 'multipart/form-data' content type."
+        case .multipartBoundaryTooLong: return "Multipart boundary is too long; RFC 2046 allows at most 70 bytes."
         case .transportFailed: return "Transport threw an error."
         case .middlewareFailed(middlewareType: let type, _): return "Middleware of type '\(type)' threw an error."
         case .handlerFailed: return "User handler threw an error."
@@ -166,7 +168,7 @@ extension RuntimeError: HTTPResponseConvertible {
         case .unexpectedAcceptHeader: .notAcceptable
         case .failedToDecodeStringConvertibleValue, .invalidAcceptSubstring, .invalidBase64String,
             .invalidHeaderFieldName, .malformedAcceptHeader, .missingMultipartBoundaryContentTypeParameter,
-            .missingOrMalformedContentDispositionName, .missingRequiredHeaderField,
+            .multipartBoundaryTooLong, .missingOrMalformedContentDispositionName, .missingRequiredHeaderField,
             .missingRequiredMultipartFormDataContentType, .missingRequiredQueryParameter, .missingRequiredPathParameter,
             .missingRequiredRequestBody, .unsupportedParameterStyle, .failedToParseRequest:
             .badRequest

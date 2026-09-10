@@ -25,6 +25,8 @@
         guard let boundary = self.parameters["boundary"] else {
             throw RuntimeError.missingMultipartBoundaryContentTypeParameter
         }
+        // RFC 2046 section 5.1.1 limits the boundary to at most 70 characters.
+        guard boundary.utf8.count <= 70 else { throw RuntimeError.multipartBoundaryTooLong }
         return boundary
     }
 }
