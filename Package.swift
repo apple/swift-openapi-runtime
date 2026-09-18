@@ -27,21 +27,32 @@ let package = Package(
     ],
     traits: [
         .trait(name: "FullFoundation"),
-        .default(enabledTraits: ["FullFoundation"])
+        .trait(name: "OTelSemanticConventions"),
+        .trait(name: "Logging", enabledTraits: ["OTelSemanticConventions"]),
+        .default(enabledTraits: ["FullFoundation", "Logging"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-http-types", from: "1.0.0"),
+        // 1.14.0 is the first release with the task-local `Logger.current`.
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.14.0"),
+        // 1.34.0 is the earliest release; it already defines every attribute the middlewares log.
+        .package(url: "https://github.com/swift-otel/swift-otel-semantic-conventions.git", from: "1.34.0"),
     ],
     targets: [
         .target(
             name: "OpenAPIRuntime",
             dependencies: [
-                .product(name: "HTTPTypes", package: "swift-http-types")
+                .product(name: "HTTPTypes", package: "swift-http-types"),
+                .product(name: "Logging", package: "swift-log", condition: .when(traits: ["Logging"])),
+                .product(name: "OTelSemanticConventions", package: "swift-otel-semantic-conventions", condition: .when(traits: ["OTelSemanticConventions"])),
             ]
         ),
         .testTarget(
             name: "OpenAPIRuntimeTests",
-            dependencies: ["OpenAPIRuntime"]
+            dependencies: [
+                "OpenAPIRuntime",
+                .product(name: "Logging", package: "swift-log"),
+            ]
         ),
     ]
 )
