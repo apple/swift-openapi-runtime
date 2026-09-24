@@ -31,12 +31,14 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-http-types", from: "1.0.0"),
+        .package(url: "https://github.com/vapor/multipart-kit.git", from: "5.0.0-beta.2"),
     ],
     targets: [
         .target(
             name: "OpenAPIRuntime",
             dependencies: [
-                .product(name: "HTTPTypes", package: "swift-http-types")
+                .product(name: "HTTPTypes", package: "swift-http-types"),
+                .product(name: "MultipartKit", package: "multipart-kit"),
             ]
         ),
         .testTarget(

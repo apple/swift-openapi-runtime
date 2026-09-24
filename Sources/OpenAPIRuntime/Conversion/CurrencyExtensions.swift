@@ -18,6 +18,7 @@ import FoundationEssentials
 import Foundation
 #endif
 import HTTPTypes
+@_spi(StreamingMultipartPart) import MultipartKit
 
 extension ParameterStyle {
 
@@ -233,9 +234,14 @@ extension Converter {
             return untypedPart
         }
         let validated = MultipartValidationSequence(upstream: untyped, requirements: requirements)
-        let frames = MultipartRawPartsToFramesSequence(upstream: validated)
-        let bytes = MultipartFramesToBytesSequence(upstream: frames, boundary: boundary)
-        return HTTPBody(bytes, length: .unknown, iterationBehavior: multipart.iterationBehavior)
+        let parts = validated.map { StreamingMultipartPart(headerFields: $0.headerFields, body: $0.body) }
+        let sections = StreamingMultipartSectionAsyncSequence(parts: parts)
+        let writer = StreamingMultipartWriterAsyncSequence(
+            backingSequence: sections,
+            boundary: boundary,
+            outboundBody: ArraySlice<UInt8>.self
+        )
+        return HTTPBody(writer, length: .unknown, iterationBehavior: multipart.iterationBehavior)
     }
 
     /// Returns a parsed multipart body.
@@ -251,8 +257,21 @@ extension Converter {
         requirements: MultipartBodyRequirements,
         transform: @escaping @Sendable (MultipartRawPart) async throws -> Part
     ) -> MultipartBody<Part> {
-        let frames = MultipartBytesToFramesSequence(upstream: bytes, boundary: boundary)
-        let raw = MultipartFramesToRawPartsSequence(upstream: frames)
+        let sections = StreamingMultipartParserAsyncSequence(boundary: boundary, buffer: bytes)
+        let parts = StreamingMultipartPartAsyncSequence(backingSequence: sections)
+        let raw = parts.map { part in
+            let length: HTTPBody.Length
+            if let contentLength = part.headerFields[.contentLength], let byteCount = Int64(contentLength) {
+                length = .known(byteCount)
+            } else {
+                length = .unknown
+            }
+            // The body is a view over the shared parser iterator, so it can only be iterated once.
+            return MultipartRawPart(
+                headerFields: part.headerFields,
+                body: HTTPBody(part.body, length: length, iterationBehavior: .single)
+            )
+        }
         let validated = MultipartValidationSequence(upstream: raw, requirements: requirements)
         let typed = validated.map(transform)
         return .init(typed, iterationBehavior: bytes.iterationBehavior)
