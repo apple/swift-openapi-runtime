@@ -95,6 +95,8 @@ You can also publish your transport or middleware as a Swift package to allow ot
 ### Additional middlewares
 - ``ErrorHandlingMiddleware``
 - ``QuerySpaceNormalizingMiddleware``
+- ``ClientOTelLoggingMiddleware``
+- ``ServerOTelLoggingMiddleware``
 
 [0]: https://github.com/apple/swift-openapi-generator
 [1]: https://swiftpackageindex.com/apple/swift-openapi-generator/documentation
