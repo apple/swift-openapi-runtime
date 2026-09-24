@@ -74,14 +74,78 @@ extension ServerRequestMetadata: CustomStringConvertible {
 }
 
 extension HTTPFields: PrettyStringConvertible {
+    private static var sensitiveHeaderNames: Set<String> {
+        [
+            "authorization",
+            "proxy-authorization",
+            "cookie",
+            "set-cookie",
+            "x-api-key",
+            "api-key",
+            "x-auth-token",
+            "x-csrf-token",
+            "x-xsrf-token",
+        ]
+    }
+
+    private static func shouldRedactHeader(named name: String) -> Bool {
+        let lowercasedName = name.lowercased()
+        return sensitiveHeaderNames.contains(lowercasedName) || lowercasedName.contains("token")
+            || lowercasedName.contains("secret")
+    }
+
     var prettyDescription: String {
-        sorted(by: { $0.name.canonicalName < $1.name.canonicalName }).map { "\($0.name.canonicalName): \($0.value)" }
-            .joined(separator: "; ")
+        sorted(by: { $0.name.canonicalName < $1.name.canonicalName }).map {
+            let name = $0.name.canonicalName
+            let value = Self.shouldRedactHeader(named: name) ? "<redacted>" : $0.value
+            return "\(name): \(value)"
+        }.joined(separator: "; ")
     }
 }
 
 extension HTTPRequest: PrettyStringConvertible {
-    var prettyDescription: String { "\(method.rawValue) \(path ?? "<nil>") [\(headerFields.prettyDescription)]" }
+    private static var sensitiveQueryItemNames: Set<String> {
+        [
+            "access_token",
+            "api_key",
+            "apikey",
+            "auth",
+            "authorization",
+            "code",
+            "id_token",
+            "password",
+            "refresh_token",
+            "secret",
+            "token",
+        ]
+    }
+
+    private static func shouldRedactQueryItem(named name: String) -> Bool {
+        let lowercasedName = name.lowercased()
+        return sensitiveQueryItemNames.contains(lowercasedName) || lowercasedName.contains("token")
+            || lowercasedName.contains("secret")
+    }
+
+    private static func redactedPath(_ path: String?) -> String {
+        guard let path else { return "<nil>" }
+        guard let queryStart = path.firstIndex(of: "?") else { return path }
+
+        let prefix = path[..<queryStart]
+        let queryAndFragment = path[path.index(after: queryStart)...]
+        let fragmentStart = queryAndFragment.firstIndex(of: "#")
+        let query = fragmentStart.map { queryAndFragment[..<$0] } ?? queryAndFragment[...]
+        let fragment = fragmentStart.map { queryAndFragment[$0...] } ?? ""
+
+        let redactedQuery = query.split(separator: "&", omittingEmptySubsequences: false).map { item -> String in
+            let parts = item.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+            guard let name = parts.first, shouldRedactQueryItem(named: String(name)) else { return String(item) }
+            return "\(name)=<redacted>"
+        }.joined(separator: "&")
+
+        return "\(prefix)?\(redactedQuery)\(fragment)"
+    }
+
+    var prettyDescription: String { "\(method.rawValue) \(Self.redactedPath(path)) [\(headerFields.prettyDescription)]" }
 }
 
 extension HTTPResponse: PrettyStringConvertible {
