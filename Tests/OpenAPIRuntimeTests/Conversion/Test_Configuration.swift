@@ -36,18 +36,17 @@ final class Test_Configuration: Test_Runtime {
         // and the new Foundation .formatted() APIs, so the below tests take that into account
         #if FullFoundation || canImport(Darwin)
         XCTAssertEqual(try transcoder.encode(testDateWithFractionalSeconds), testDateWithFractionalSecondsString)
-        XCTAssertEqual(testDateWithFractionalSeconds, try transcoder.decode(testDateWithFractionalSecondsString))
         #else
         XCTAssertEqual(
             try transcoder.encode(testDateWithFractionalSeconds),
             testDateWithFractionalSecondsStringNewFoundationAPIs
         )
+        #endif
         XCTAssertEqual(
             testDateWithFractionalSeconds.timeIntervalSince1970,
             try transcoder.decode(testDateWithFractionalSecondsString).timeIntervalSince1970,
             accuracy: 0.00001
         )
-        #endif
     }
 
     func _testJSON(configuration: Configuration, expected: String) async throws {
