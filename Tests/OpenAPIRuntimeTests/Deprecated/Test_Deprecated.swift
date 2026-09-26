@@ -16,4 +16,26 @@ import XCTest
 
 final class Test_Deprecated: Test_Runtime {
     // Tests for deprecated code goes here.
+
+    func testDeprecatedValueSetter_valueContainer() throws {
+        var container = try OpenAPIValueContainer()
+        container.value = "hello"
+        XCTAssertEqual(container.value as? String, "hello")
+    }
+
+    func testDeprecatedValueSetter_objectContainer() {
+        var container = OpenAPIObjectContainer()
+        container.value = ["hello": "world"]
+        XCTAssertEqual(container.value["hello"] as? String, "world")
+        container.value["key"] = 123
+        XCTAssertEqual(container.value["key"] as? Int, 123)
+    }
+
+    func testDeprecatedValueSetter_arrayContainer() {
+        var container = OpenAPIArrayContainer()
+        container.value = ["hello", 123]
+        XCTAssertEqual(container.value.count, 2)
+        XCTAssertEqual(container.value[0] as? String, "hello")
+        XCTAssertEqual(container.value[1] as? Int, 123)
+    }
 }
