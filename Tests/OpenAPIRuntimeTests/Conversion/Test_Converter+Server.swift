@@ -12,7 +12,7 @@
 //
 //===----------------------------------------------------------------------===//
 import XCTest
-@_spi(Generated) import OpenAPIRuntime
+@_spi(Generated) @testable import OpenAPIRuntime
 import HTTPTypes
 
 final class Test_ServerConverterExtensions: Test_Runtime {
@@ -270,6 +270,63 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             as: [Date].self
         )
         XCTAssertEqual(value, [testDate, testDate])
+    }
+
+    func test_getRequiredQueryItemAsJSON_arrayOfObjects() throws {
+        struct Filter: Decodable, Equatable {
+            let id: Int
+            let name: String
+        }
+        let query: Substring = "existing=1&filters=%5B%7B%22id%22%3A1%2C%22name%22%3A%22a%2Fb%22%7D%5D"
+        let value = try converter.getRequiredQueryItemAsJSON(
+            in: query,
+            style: .form,
+            explode: true,
+            name: "filters",
+            as: [Filter].self
+        )
+        XCTAssertEqual(value, [Filter(id: 1, name: "a/b")])
+    }
+
+    func test_getOptionalQueryItemAsJSON_absent() throws {
+        let value = try converter.getOptionalQueryItemAsJSON(
+            in: "existing=1",
+            style: nil,
+            explode: nil,
+            name: "filters",
+            as: [String].self
+        )
+        XCTAssertNil(value)
+    }
+
+    func test_getRequiredQueryItemAsJSON_absent() throws {
+        XCTAssertThrowsError(
+            try converter.getRequiredQueryItemAsJSON(
+                in: "existing=1",
+                style: nil,
+                explode: nil,
+                name: "filters",
+                as: [String].self
+            )
+        ) { error in
+            guard case RuntimeError.missingRequiredQueryParameter("filters") = error else {
+                return XCTFail("Unexpected error: \(error)")
+            }
+        }
+    }
+
+    func test_getOptionalQueryItemAsJSON_malformed() throws {
+        XCTAssertThrowsError(
+            try converter.getOptionalQueryItemAsJSON(
+                in: "filters=%7Bbad%7D",
+                style: nil,
+                explode: nil,
+                name: "filters",
+                as: [String: String].self
+            )
+        ) { error in
+            guard case DecodingError.dataCorrupted = error else { return XCTFail("Unexpected error: \(error)") }
+        }
     }
 
     //    | server | get | request body | JSON | optional | getOptionalRequestBodyAsJSON |
