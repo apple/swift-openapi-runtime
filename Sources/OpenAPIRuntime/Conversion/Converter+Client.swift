@@ -88,6 +88,31 @@ extension Converter {
         )
     }
 
+    /// Sets a query item as one JSON-encoded value.
+    /// - Parameters:
+    ///   - request: The HTTP request to which the query item is added.
+    ///   - style: The parameter style supplied by generated code.
+    ///   - explode: The explode value supplied by generated code.
+    ///   - name: The name of the query item.
+    ///   - value: The value to encode, or `nil` to omit the query item.
+    /// - Throws: An error if the value cannot be encoded or added to the request.
+    public func setQueryItemAsJSON<T: Encodable>(
+        in request: inout HTTPRequest,
+        style: ParameterStyle?,
+        explode: Bool?,
+        name: String,
+        value: T?
+    ) throws {
+        try setEscapedQueryItem(
+            in: &request,
+            style: style,
+            explode: explode,
+            name: name,
+            value: value,
+            convert: { value, _, _ in try convertQueryItemCodableToJSON(value, name: name) }
+        )
+    }
+
     /// Sets an optional request body as JSON in the specified header fields and returns an `HTTPBody`.
     ///
     /// - Parameters:
