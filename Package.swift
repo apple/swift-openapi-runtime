@@ -30,7 +30,7 @@ let package = Package(
         .default(enabledTraits: ["FullFoundation"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-http-types", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-http-types", from: "1.7.0"),
     ],
     targets: [
         .target(
