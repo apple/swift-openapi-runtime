@@ -126,9 +126,7 @@ final class Test_URIDecoder: Test_Runtime {
     }
 
     func testDecoding_dictionaryOfEnumsWithNumericKey() throws {
-        enum Color: String, Decodable, Equatable {
-            case red
-        }
+        enum Color: String, Decodable, Equatable { case red }
         _test(
             ["7": Color.red],
             forKey: "keys",
