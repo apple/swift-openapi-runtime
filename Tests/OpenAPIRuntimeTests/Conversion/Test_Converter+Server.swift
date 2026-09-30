@@ -32,7 +32,8 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         for quality in ["2", "-1", "nan", "inf"] {
             let headerFields: HTTPFields = [.accept: "application/json; q=\(quality)"]
             XCTAssertThrowsError(
-                try converter.extractAcceptHeaderIfPresent(in: headerFields) as [AcceptHeaderContentType<TestAcceptable>]
+                try converter.extractAcceptHeaderIfPresent(in: headerFields)
+                    as [AcceptHeaderContentType<TestAcceptable>]
             )
         }
     }
