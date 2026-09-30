@@ -154,7 +154,9 @@ extension URIKeyedDecodingContainer: KeyedDecodingContainerProtocol {
         case is UInt64.Type: return try decode(UInt64.self, forKey: key) as! T
         case is Date.Type: return try decoder.dateTranscoder.decode(String(_decodeValue(forKey: key))) as! T
         default:
-            decoder.push(.init(key))
+            // Only push the string value of the key, as keys e.g. in a string-keyed
+            // dictionary can have an integer value that doesn't represent an array index.
+            decoder.push(.init(stringValue: key.stringValue))
             defer { decoder.pop() }
             return try type.init(from: decoder)
         }
