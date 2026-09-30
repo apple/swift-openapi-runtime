@@ -56,9 +56,10 @@ public struct QualityValue: Sendable, Hashable {
 extension QualityValue: RawRepresentable {
     /// Creates a new `QualityValue` instance from a raw string value.
     ///
+    /// Returns `nil` if the string isn't a number between 0.0 and 1.0, inclusive.
     /// - Parameter rawValue: A string representing the quality value.
     public init?(rawValue: String) {
-        guard let doubleValue = Double(rawValue) else { return nil }
+        guard let doubleValue = Double(rawValue), doubleValue >= 0.0 && doubleValue <= 1.0 else { return nil }
         self.init(doubleValue: doubleValue)
     }
 
