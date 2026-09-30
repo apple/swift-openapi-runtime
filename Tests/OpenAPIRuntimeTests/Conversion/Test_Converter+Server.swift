@@ -28,6 +28,15 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         )
     }
 
+    func testExtractAccept_outOfRangeQuality() throws {
+        for quality in ["2", "-1", "nan", "inf"] {
+            let headerFields: HTTPFields = [.accept: "application/json; q=\(quality)"]
+            XCTAssertThrowsError(
+                try converter.extractAcceptHeaderIfPresent(in: headerFields) as [AcceptHeaderContentType<TestAcceptable>]
+            )
+        }
+    }
+
     // MARK: Miscs
 
     func testValidateAccept() throws {
