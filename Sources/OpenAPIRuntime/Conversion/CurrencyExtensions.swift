@@ -277,6 +277,20 @@ extension Converter {
         return try decoder.decode(T.self, from: data)
     }
 
+    /// Encodes a JSON value as one named, percent-escaped query item.
+    func convertQueryItemCodableToJSON<T: Encodable>(_ value: T, name: String) throws -> String {
+        let data = try queryFieldEncoder.encode(value)
+        let json = String(decoding: data, as: UTF8.self)
+        return try convertToURI(style: .form, explode: false, inBody: false, key: name, value: json)
+    }
+
+    /// Decodes one named, percent-escaped JSON query item if present.
+    func convertJSONQueryItemToCodable<T: Decodable>(_ query: Substring, name: String) throws -> T? {
+        let uriDecoder = URIDecoder(configuration: uriCoderConfiguration(style: .form, explode: false, inBody: false))
+        guard let json = try uriDecoder.decodeIfPresent(String.self, forKey: name, from: query) else { return nil }
+        return try decoder.decode(T.self, from: Data(json.utf8))
+    }
+
     // MARK: - Helpers for specific types of parameters
 
     /// Sets the provided header field into the header field storage.

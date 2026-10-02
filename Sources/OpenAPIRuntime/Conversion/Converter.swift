@@ -33,6 +33,9 @@ import Foundation
     /// JSON encoder used for header fields.
     internal var headerFieldEncoder: JSONEncoder
 
+    /// JSON encoder used for query fields.
+    internal var queryFieldEncoder: JSONEncoder
+
     /// Creates a new converter with the behavior specified by the configuration.
     public init(configuration: Configuration) {
         self.configuration = configuration
@@ -44,6 +47,10 @@ import Foundation
         self.headerFieldEncoder = JSONEncoder()
         self.headerFieldEncoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
         self.headerFieldEncoder.dateEncodingStrategy = .from(dateTranscoder: configuration.dateTranscoder)
+
+        self.queryFieldEncoder = JSONEncoder()
+        self.queryFieldEncoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
+        self.queryFieldEncoder.dateEncodingStrategy = .from(dateTranscoder: configuration.dateTranscoder)
 
         self.decoder = JSONDecoder()
         self.decoder.dateDecodingStrategy = .from(dateTranscoder: configuration.dateTranscoder)

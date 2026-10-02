@@ -187,6 +187,54 @@ extension Converter {
         )
     }
 
+    /// Retrieves and decodes one optional JSON-encoded query item.
+    /// - Parameters:
+    ///   - query: The full encoded query string, or `nil` if absent.
+    ///   - style: The parameter style supplied by generated code.
+    ///   - explode: The explode value supplied by generated code.
+    ///   - name: The name of the query item.
+    ///   - type: The type to decode.
+    /// - Returns: The decoded value, or `nil` if the item is absent.
+    /// - Throws: An error if the query item cannot be decoded.
+    public func getOptionalQueryItemAsJSON<T: Decodable>(
+        in query: Substring?,
+        style: ParameterStyle?,
+        explode: Bool?,
+        name: String,
+        as type: T.Type
+    ) throws -> T? {
+        try getOptionalQueryItem(
+            in: query,
+            style: style,
+            explode: explode,
+            name: name,
+            as: type,
+            convert: { query, _, _ in try convertJSONQueryItemToCodable(query, name: name) }
+        )
+    }
+
+    /// Retrieves and decodes one required JSON-encoded query item.
+    /// - Parameters:
+    ///   - query: The full encoded query string, or `nil` if absent.
+    ///   - style: The parameter style supplied by generated code.
+    ///   - explode: The explode value supplied by generated code.
+    ///   - name: The name of the query item.
+    ///   - type: The type to decode.
+    /// - Returns: The decoded value.
+    /// - Throws: An error if the item is missing or cannot be decoded.
+    public func getRequiredQueryItemAsJSON<T: Decodable>(
+        in query: Substring?,
+        style: ParameterStyle?,
+        explode: Bool?,
+        name: String,
+        as type: T.Type
+    ) throws -> T {
+        guard
+            let value = try getOptionalQueryItemAsJSON(in: query, style: style, explode: explode, name: name, as: type)
+        else { throw RuntimeError.missingRequiredQueryParameter(name) }
+        return value
+    }
+
     /// Retrieves and decodes an optional JSON-encoded request body and transforms it to a different type.
     ///
     /// - Parameters:

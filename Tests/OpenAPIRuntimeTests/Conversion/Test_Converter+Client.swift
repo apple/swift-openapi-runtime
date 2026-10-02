@@ -86,6 +86,75 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(request.soar_query, "search=2023-01-18T10%3A04%3A11Z&search=2023-01-18T10%3A04%3A11Z")
     }
 
+    func test_setQueryItemAsJSON_arrayOfObjects() throws {
+        struct Filter: Encodable {
+            let id: Int
+            let name: String
+        }
+        var request = testRequest
+        try converter.setQueryItemAsJSON(
+            in: &request,
+            style: .form,
+            explode: true,
+            name: "filters",
+            value: [Filter(id: 1, name: "a/b"), Filter(id: 2, name: "✓")]
+        )
+        XCTAssertEqual(
+            request.soar_query,
+            "filters=%5B%7B%22id%22%3A1%2C%22name%22%3A%22a%2Fb%22%7D%2C%7B%22id%22%3A2%2C%22name%22%3A%22%E2%9C%93%22%7D%5D"
+        )
+    }
+
+    func test_setQueryItemAsJSON_keepsQueryAndFragment() throws {
+        var request = HTTPRequest(soar_path: "/api?existing=1#fragment", method: .get)
+        try converter.setQueryItemAsJSON(in: &request, style: nil, explode: nil, name: "filter", value: ["a&b", "c=d"])
+        XCTAssertEqual(request.path, "/api?existing=1&filter=%5B%22a%26b%22%2C%22c%3Dd%22%5D#fragment")
+    }
+
+    func test_setQueryItemAsJSON_absent() throws {
+        var request = testRequest
+        try converter.setQueryItemAsJSON(in: &request, style: nil, explode: nil, name: "filter", value: nil as String?)
+        XCTAssertEqual(request.path, "/api")
+    }
+
+    func test_setQueryItemAsJSON_reservedCharactersRoundTrip() throws {
+        var request = testRequest
+        try converter.setQueryItemAsJSON(in: &request, style: .form, explode: true, name: "filter", value: "+/#/%")
+        XCTAssertEqual(request.soar_query, "filter=%22%2B%2F%23%2F%25%22")
+        let decoded = try converter.getRequiredQueryItemAsJSON(
+            in: request.soar_query,
+            style: .form,
+            explode: true,
+            name: "filter",
+            as: String.self
+        )
+        XCTAssertEqual(decoded, "+/#/%")
+    }
+
+    func test_setQueryItemAsJSON_usesConfiguredDateTranscoder() throws {
+        struct SecondsTranscoder: DateTranscoder {
+            func encode(_ date: Date) throws -> String { "seconds:\(Int(date.timeIntervalSince1970))" }
+            func decode(_ string: String) throws -> Date {
+                guard let seconds = Int(string.dropFirst("seconds:".count)) else {
+                    throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Invalid date"))
+                }
+                return Date(timeIntervalSince1970: TimeInterval(seconds))
+            }
+        }
+        let converter = Converter(configuration: .init(dateTranscoder: SecondsTranscoder()))
+        var request = testRequest
+        try converter.setQueryItemAsJSON(in: &request, style: .form, explode: true, name: "date", value: testDate)
+        XCTAssertEqual(request.soar_query, "date=%22seconds%3A1674036251%22")
+        let decoded = try converter.getRequiredQueryItemAsJSON(
+            in: request.soar_query,
+            style: .form,
+            explode: true,
+            name: "date",
+            as: Date.self
+        )
+        XCTAssertEqual(decoded, testDate)
+    }
+
     //    | client | set | request body | JSON | optional | setOptionalRequestBodyAsJSON |
     func test_setOptionalRequestBodyAsJSON_codable() async throws {
         var headerFields: HTTPFields = [:]
