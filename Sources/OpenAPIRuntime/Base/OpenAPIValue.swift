@@ -59,7 +59,7 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
     }
 
     /// Replaces the contained value with the given value after successful validation.
-    /// 
+    ///
     /// - Parameter newValue: A value of a JSON-compatible type, such as `String`,
     /// `[Any]`, and `[String: Any]`.
     /// - Throws: When the value is not supported.
@@ -382,7 +382,7 @@ public struct OpenAPIObjectContainer: Codable, Hashable, Sendable {
     }
 
     /// Replaces the contained value with the given value after successful validation.
-    /// 
+    ///
     /// - Parameter newValue: A dictionary with values of JSON-compatible types.
     /// - Throws: When the value is not supported.
     public mutating func setValue(validating newValue: [String: (any Sendable)?]) throws {
@@ -503,7 +503,7 @@ public struct OpenAPIArrayContainer: Codable, Hashable, Sendable {
     }
 
     /// Replaces the contained value with the given value after successful validation.
-    /// 
+    ///
     /// - Parameter newValue: An array with values of JSON-compatible types.
     /// - Throws: When the value is not supported.
     public mutating func setValue(validating newValue: [(any Sendable)?]) throws {
