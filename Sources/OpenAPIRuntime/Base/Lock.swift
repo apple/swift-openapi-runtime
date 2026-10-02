@@ -59,7 +59,7 @@ package final class Lock {
     fileprivate let mutex: UnsafeMutablePointer<SRWLOCK> = UnsafeMutablePointer.allocate(capacity: 1)
     #elseif os(FreeBSD) || os(OpenBSD)
     fileprivate let mutex: UnsafeMutablePointer<pthread_mutex_t?> = UnsafeMutablePointer.allocate(capacity: 1)
-    #elseif (compiler(<6.1) && !os(WASI)) || (compiler(>=6.1) && _runtime(_multithreaded))
+    #elseif _runtime(_multithreaded)
     fileprivate let mutex: UnsafeMutablePointer<pthread_mutex_t> = UnsafeMutablePointer.allocate(capacity: 1)
     #endif
 
@@ -67,7 +67,7 @@ package final class Lock {
     package init() {
         #if os(Windows)
         InitializeSRWLock(self.mutex)
-        #elseif (compiler(<6.1) && !os(WASI)) || (compiler(>=6.1) && _runtime(_multithreaded))
+        #elseif _runtime(_multithreaded)
         #if os(FreeBSD) || os(OpenBSD)
         var attr = pthread_mutexattr_t(bitPattern: 0)
         #else
@@ -97,7 +97,7 @@ package final class Lock {
     deinit {
         #if os(Windows)
         mutex.deallocate()
-        #elseif (compiler(<6.1) && !os(WASI)) || (compiler(>=6.1) && _runtime(_multithreaded))
+        #elseif _runtime(_multithreaded)
         let err = pthread_mutex_destroy(self.mutex)
         precondition(err == 0, "\(#function) failed in pthread_mutex with error \(err)")
         mutex.deallocate()
@@ -111,7 +111,7 @@ package final class Lock {
     package func lock() {
         #if os(Windows)
         AcquireSRWLockExclusive(self.mutex)
-        #elseif (compiler(<6.1) && !os(WASI)) || (compiler(>=6.1) && _runtime(_multithreaded))
+        #elseif _runtime(_multithreaded)
         let err = pthread_mutex_lock(self.mutex)
         precondition(err == 0, "\(#function) failed in pthread_mutex with error \(err)")
         #endif
@@ -124,7 +124,7 @@ package final class Lock {
     package func unlock() {
         #if os(Windows)
         ReleaseSRWLockExclusive(self.mutex)
-        #elseif (compiler(<6.1) && !os(WASI)) || (compiler(>=6.1) && _runtime(_multithreaded))
+        #elseif _runtime(_multithreaded)
         let err = pthread_mutex_unlock(self.mutex)
         precondition(err == 0, "\(#function) failed in pthread_mutex with error \(err)")
         #endif
