@@ -45,6 +45,7 @@ import CoreFoundation
 /// Define the structure of your types in the OpenAPI document instead.
 public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
 
+    /// The underlying stored value.
     private var _value: (any Sendable)?
 
     /// The underlying dynamic value.
@@ -57,21 +58,14 @@ public struct OpenAPIValueContainer: Codable, Hashable, Sendable {
         ) set { _value = newValue }
     }
 
-    /// Replaces the contained value with the given value after validating that
-    /// it consists of supported types.
+    /// Replaces the contained value with the given value after successful validation.
+    /// 
     /// - Parameter newValue: A value of a JSON-compatible type, such as `String`,
     /// `[Any]`, and `[String: Any]`.
     /// - Throws: When the value is not supported.
-    public mutating func setValidatedValue(_ newValue: (any Sendable)?) throws {
+    public mutating func setValue(validating newValue: (any Sendable)?) throws {
         self._value = try Self.tryCast(newValue)
     }
-
-    /// Replaces the contained value with the given value after validating that
-    /// it consists of supported types.
-    /// - Parameter newValue: A value of a JSON-compatible type, such as `String`,
-    /// `[Any]`, and `[String: Any]`.
-    /// - Throws: When the value is not supported.
-    public mutating func setValue(validating newValue: (any Sendable)?) throws { try setValidatedValue(newValue) }
 
     /// Creates a new container with the given validated value.
     /// - Parameter value: A value of a JSON-compatible type, such as `String`,
@@ -374,6 +368,7 @@ extension OpenAPIValueContainer: ExpressibleByFloatLiteral {
 /// Define the structure of your types in the OpenAPI document instead.
 public struct OpenAPIObjectContainer: Codable, Hashable, Sendable {
 
+    /// The underlying stored value.
     private var _value: [String: (any Sendable)?]
 
     /// The underlying dynamic dictionary value.
@@ -386,38 +381,12 @@ public struct OpenAPIObjectContainer: Codable, Hashable, Sendable {
         ) set { _value = newValue }
     }
 
-    /// Replaces the contained dictionary with the given dictionary after
-    /// validating that all of its values consist of supported types.
-    /// - Parameter newValue: A dictionary with values of JSON-compatible types.
-    /// - Throws: When the value is not supported.
-    public mutating func setValidatedValue(_ newValue: [String: (any Sendable)?]) throws {
-        self._value = try Self.tryCast(newValue)
-    }
-
-    /// Sets the value for the given key after validating that it consists of supported types.
-    /// - Parameters:
-    ///   - value: A value of a JSON-compatible type, or `nil`.
-    ///   - key: The key for the value.
-    /// - Throws: When the value is not supported.
-    public mutating func setValidatedValue(_ value: (any Sendable)?, forKey key: String) throws {
-        self._value[key] = try OpenAPIValueContainer.tryCast(value)
-    }
-
-    /// Replaces the contained dictionary with the given dictionary after
-    /// validating that all of its values consist of supported types.
+    /// Replaces the contained value with the given value after successful validation.
+    /// 
     /// - Parameter newValue: A dictionary with values of JSON-compatible types.
     /// - Throws: When the value is not supported.
     public mutating func setValue(validating newValue: [String: (any Sendable)?]) throws {
-        try setValidatedValue(newValue)
-    }
-
-    /// Sets the value for the given key after validating that it consists of supported types.
-    /// - Parameters:
-    ///   - value: A value of a JSON-compatible type, or `nil`.
-    ///   - key: The key for the value.
-    /// - Throws: When the value is not supported.
-    public mutating func setValue(validating value: (any Sendable)?, forKey key: String) throws {
-        try setValidatedValue(value, forKey: key)
+        self._value = try Self.tryCast(newValue)
     }
 
     /// Creates a new container with the given validated dictionary.
@@ -520,6 +489,7 @@ public struct OpenAPIObjectContainer: Codable, Hashable, Sendable {
 /// Define the structure of your types in the OpenAPI document instead.
 public struct OpenAPIArrayContainer: Codable, Hashable, Sendable {
 
+    /// The underlying stored value.
     private var _value: [(any Sendable)?]
 
     /// The underlying dynamic array value.
@@ -532,19 +502,13 @@ public struct OpenAPIArrayContainer: Codable, Hashable, Sendable {
         ) set { _value = newValue }
     }
 
-    /// Replaces the contained array with the given array after validating that
-    /// all of its elements consist of supported types.
+    /// Replaces the contained value with the given value after successful validation.
+    /// 
     /// - Parameter newValue: An array with values of JSON-compatible types.
     /// - Throws: When the value is not supported.
-    public mutating func setValidatedValue(_ newValue: [(any Sendable)?]) throws {
+    public mutating func setValue(validating newValue: [(any Sendable)?]) throws {
         self._value = try Self.tryCast(newValue)
     }
-
-    /// Replaces the contained array with the given array after validating that
-    /// all of its elements consist of supported types.
-    /// - Parameter newValue: An array with values of JSON-compatible types.
-    /// - Throws: When the value is not supported.
-    public mutating func setValue(validating newValue: [(any Sendable)?]) throws { try setValidatedValue(newValue) }
 
     /// Creates a new container with the given validated array.
     /// - Parameter value: An array value.

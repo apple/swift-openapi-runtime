@@ -14,8 +14,8 @@
 import XCTest
 @_spi(Generated) @testable import OpenAPIRuntime
 
+@available(*, deprecated)
 final class Test_Deprecated: Test_Runtime {
-    // Tests for deprecated code goes here.
 
     func testDeprecatedValueSetter_valueContainer() throws {
         var container = try OpenAPIValueContainer()
