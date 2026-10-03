@@ -341,6 +341,64 @@ final class Test_URICodingRoundtrip: Test_Runtime {
             )
         )
 
+        // A dictionary with a numeric-looking key, which must not be treated as an array index.
+        try _test(
+            ["5": "x"],
+            key: "keys",
+            .init(
+                formExplode: "5=x",
+                formUnexplode: "keys=5,x",
+                simpleExplode: "5=x",
+                simpleUnexplode: "5,x",
+                formDataExplode: "5=x",
+                formDataUnexplode: "keys=5,x",
+                deepObjectExplode: "keys%5B5%5D=x"
+            )
+        )
+        try _test(
+            ["0": "zero"],
+            key: "keys",
+            .init(
+                formExplode: "0=zero",
+                formUnexplode: "keys=0,zero",
+                simpleExplode: "0=zero",
+                simpleUnexplode: "0,zero",
+                formDataExplode: "0=zero",
+                formDataUnexplode: "keys=0,zero",
+                deepObjectExplode: "keys%5B0%5D=zero"
+            )
+        )
+
+        // A dictionary of non-primitive values with a numeric-looking key.
+        try _test(
+            ["7": SimpleEnum.red],
+            key: "keys",
+            .init(
+                formExplode: "7=red",
+                formUnexplode: "keys=7,red",
+                simpleExplode: "7=red",
+                simpleUnexplode: "7,red",
+                formDataExplode: "7=red",
+                formDataUnexplode: "keys=7,red",
+                deepObjectExplode: "keys%5B7%5D=red"
+            )
+        )
+
+        // A free-form object with a numeric-looking key.
+        try _test(
+            OpenAPIObjectContainer(unvalidatedValue: ["5": "x"]),
+            key: "keys",
+            .init(
+                formExplode: "5=x",
+                formUnexplode: "keys=5,x",
+                simpleExplode: "5=x",
+                simpleUnexplode: "5,x",
+                formDataExplode: "5=x",
+                formDataUnexplode: "keys=5,x",
+                deepObjectExplode: "keys%5B5%5D=x"
+            )
+        )
+
         // An empty dictionary.
         try _test(
             [:] as [String: String],
