@@ -33,7 +33,7 @@ import Foundation
     /// JSON encoder used for header fields.
     internal var headerFieldEncoder: JSONEncoder
 
-    /// JSON encoder used for query fields.
+    /// JSON encoder used for query items.
     internal var queryFieldEncoder: JSONEncoder
 
     /// Creates a new converter with the behavior specified by the configuration.

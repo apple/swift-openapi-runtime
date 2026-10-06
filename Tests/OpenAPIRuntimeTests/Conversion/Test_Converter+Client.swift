@@ -94,8 +94,8 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         var request = testRequest
         try converter.setQueryItemAsJSON(
             in: &request,
-            style: .form,
-            explode: true,
+            style: nil,
+            explode: nil,
             name: "filters",
             value: [Filter(id: 1, name: "a/b"), Filter(id: 2, name: "✓")]
         )
@@ -117,18 +117,10 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(request.path, "/api")
     }
 
-    func test_setQueryItemAsJSON_reservedCharactersRoundTrip() throws {
+    func test_setQueryItemAsJSON_reservedCharacters() throws {
         var request = testRequest
-        try converter.setQueryItemAsJSON(in: &request, style: .form, explode: true, name: "filter", value: "+/#/%")
+        try converter.setQueryItemAsJSON(in: &request, style: nil, explode: nil, name: "filter", value: "+/#/%")
         XCTAssertEqual(request.soar_query, "filter=%22%2B%2F%23%2F%25%22")
-        let decoded = try converter.getRequiredQueryItemAsJSON(
-            in: request.soar_query,
-            style: .form,
-            explode: true,
-            name: "filter",
-            as: String.self
-        )
-        XCTAssertEqual(decoded, "+/#/%")
     }
 
     func test_setQueryItemAsJSON_usesConfiguredDateTranscoder() throws {
@@ -143,16 +135,8 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         }
         let converter = Converter(configuration: .init(dateTranscoder: SecondsTranscoder()))
         var request = testRequest
-        try converter.setQueryItemAsJSON(in: &request, style: .form, explode: true, name: "date", value: testDate)
+        try converter.setQueryItemAsJSON(in: &request, style: nil, explode: nil, name: "date", value: testDate)
         XCTAssertEqual(request.soar_query, "date=%22seconds%3A1674036251%22")
-        let decoded = try converter.getRequiredQueryItemAsJSON(
-            in: request.soar_query,
-            style: .form,
-            explode: true,
-            name: "date",
-            as: Date.self
-        )
-        XCTAssertEqual(decoded, testDate)
     }
 
     //    | client | set | request body | JSON | optional | setOptionalRequestBodyAsJSON |

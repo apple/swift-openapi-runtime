@@ -290,8 +290,8 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         let query: Substring = "existing=1&filters=%5B%7B%22id%22%3A1%2C%22name%22%3A%22a%2Fb%22%7D%5D"
         let value = try converter.getRequiredQueryItemAsJSON(
             in: query,
-            style: .form,
-            explode: true,
+            style: nil,
+            explode: nil,
             name: "filters",
             as: [Filter].self
         )
