@@ -286,7 +286,7 @@ extension Converter {
     func convertQueryItemCodableToJSON<T: Encodable>(_ value: T, name: String) throws -> String {
         let data = try queryFieldEncoder.encode(value)
         let json = String(decoding: data, as: UTF8.self)
-        return try convertToURI(style: .form, explode: false, inBody: false, key: name, value: json)
+        return try convertToURI(style: .form, explode: true, inBody: false, key: name, value: json)
     }
 
     /// Decodes one named, percent-encoded JSON query item if present.
@@ -296,7 +296,7 @@ extension Converter {
     /// - Returns: The decoded value, or `nil` if the query item isn't present.
     /// - Throws: An error if decoding the query item or the JSON value fails.
     func convertJSONQueryItemToCodable<T: Decodable>(_ query: Substring, name: String) throws -> T? {
-        let uriDecoder = URIDecoder(configuration: uriCoderConfiguration(style: .form, explode: false, inBody: false))
+        let uriDecoder = URIDecoder(configuration: uriCoderConfiguration(style: .form, explode: true, inBody: false))
         guard let json = try uriDecoder.decodeIfPresent(String.self, forKey: name, from: query) else { return nil }
         return try decoder.decode(T.self, from: Data(json.utf8))
     }
