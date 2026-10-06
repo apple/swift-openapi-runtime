@@ -277,6 +277,30 @@ extension Converter {
         return try decoder.decode(T.self, from: data)
     }
 
+    /// Encodes a JSON value as one named, percent-encoded query item.
+    /// - Parameters:
+    ///   - value: The value to encode.
+    ///   - name: The name of the query item.
+    /// - Returns: A query item string in the form `name=value`, with the JSON value percent-encoded.
+    /// - Throws: An error if encoding the value to JSON or to the query item fails.
+    func convertQueryItemCodableToJSON<T: Encodable>(_ value: T, name: String) throws -> String {
+        let data = try queryFieldEncoder.encode(value)
+        let json = String(decoding: data, as: UTF8.self)
+        return try convertToURI(style: .form, explode: true, inBody: false, key: name, value: json)
+    }
+
+    /// Decodes one named, percent-encoded JSON query item if present.
+    /// - Parameters:
+    ///   - query: The raw query string to search.
+    ///   - name: The name of the query item.
+    /// - Returns: The decoded value, or `nil` if the query item isn't present.
+    /// - Throws: An error if decoding the query item or the JSON value fails.
+    func convertJSONQueryItemToCodable<T: Decodable>(_ query: Substring, name: String) throws -> T? {
+        let uriDecoder = URIDecoder(configuration: uriCoderConfiguration(style: .form, explode: true, inBody: false))
+        guard let json = try uriDecoder.decodeIfPresent(String.self, forKey: name, from: query) else { return nil }
+        return try decoder.decode(T.self, from: Data(json.utf8))
+    }
+
     // MARK: - Helpers for specific types of parameters
 
     /// Sets the provided header field into the header field storage.
