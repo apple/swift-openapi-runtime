@@ -18,13 +18,16 @@ public import HTTPTypes
 /// query string to `%20`, so that requests from clients that use
 /// `application/x-www-form-urlencoded` conventions decode correctly.
 ///
+/// - Important: Deprecated. The server now decodes `+` as a space in query
+///   items, so this middleware is no longer needed and can be removed.
+///
 /// The OpenAPI specification follows RFC 3986, which requires spaces in query
 /// strings to be percent-encoded as `%20`. However, many widely-used HTTP
 /// client libraries — including Python's `requests`, Java's `URLEncoder`,
 /// Scala's `sttp`, and JavaScript's `URLSearchParams` — encode spaces as `+`,
-/// following the `application/x-www-form-urlencoded` convention. Without this
-/// middleware, query parameters sent from such clients arrive at handlers with
-/// literal `+` characters instead of spaces.
+/// following the `application/x-www-form-urlencoded` convention. Previously,
+/// query parameters sent from such clients arrived at handlers with literal
+/// `+` characters instead of spaces.
 ///
 /// This middleware rewrites `+` to `%20` in the query portion of the request
 /// path before the request is parsed, so both encoding conventions produce the
@@ -41,6 +44,7 @@ public import HTTPTypes
 ///
 /// - Note: Only the query of the request is modified. The path, fragment, and
 ///   body are not touched.
+@available(*, deprecated, message: "`+` in query items is now decoded as a space by default; remove this middleware.")
 public struct QuerySpaceNormalizingMiddleware: ServerMiddleware {
     /// Creates a new middleware.
     public init() {}
