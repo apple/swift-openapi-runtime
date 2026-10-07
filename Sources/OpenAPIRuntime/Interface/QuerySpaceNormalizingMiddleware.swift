@@ -41,6 +41,7 @@ public import HTTPTypes
 ///
 /// - Note: Only the query of the request is modified. The path, fragment, and
 ///   body are not touched.
+@available(*, deprecated, message: "The server now decodes `+` in query items as a space; remove this middleware.")
 public struct QuerySpaceNormalizingMiddleware: ServerMiddleware {
     /// Creates a new middleware.
     public init() {}
