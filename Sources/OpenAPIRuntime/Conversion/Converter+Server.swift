@@ -139,7 +139,7 @@ extension Converter {
                     configuration: .init(
                         style: .init(style),
                         explode: explode,
-                        spaceEscapingCharacter: .percentEncoded,
+                        spaceEscapingCharacter: .plus,
                         dateTranscoder: configuration.dateTranscoder
                     )
                 )
@@ -177,7 +177,7 @@ extension Converter {
                     configuration: .init(
                         style: .init(style),
                         explode: explode,
-                        spaceEscapingCharacter: .percentEncoded,
+                        spaceEscapingCharacter: .plus,
                         dateTranscoder: configuration.dateTranscoder
                     )
                 )
