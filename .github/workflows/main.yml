@@ -75,6 +75,7 @@ jobs:
     with:
       runner_pool: nightly
       build_scheme: swift-openapi-runtime
+      swift_6_1_enabled: false
 
   release-builds:
     name: Release builds
