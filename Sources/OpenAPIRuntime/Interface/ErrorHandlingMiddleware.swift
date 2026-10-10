@@ -73,7 +73,8 @@ public struct ErrorHandlingMiddleware: ServerMiddleware {
 ///
 /// Conform your error type to this protocol to convert it to an `HTTPResponse` and ``HTTPBody``.
 ///
-/// Used by ``ErrorHandlingMiddleware``.
+/// You must provide ``ErrorHandlingMiddleware`` to `registerHandlers` in order for
+/// this value to get converted to the desired HTTP response.
 public protocol HTTPResponseConvertible {
 
     /// An HTTP status to return in the response.
@@ -94,4 +95,37 @@ extension HTTPResponseConvertible {
 
     // swift-format-ignore: AllPublicDeclarationsHaveDocumentation
     public var httpBody: OpenAPIRuntime.HTTPBody? { nil }
+}
+
+/// An concrete error type that represents a desired HTTP response to be returned by the server.
+///
+/// Throw this error in your API handler to return a specific undocumented HTTP response.
+///
+/// You must provide ``ErrorHandlingMiddleware`` to `registerHandlers` in order for
+/// this error to get converted to the desired HTTP response.
+public struct HTTPResponseError: Error, HTTPResponseConvertible {
+
+    /// An HTTP status to return in the response.
+    public var httpStatus: HTTPResponse.Status
+
+    /// The HTTP header fields of the response.
+    public var httpHeaderFields: HTTPTypes.HTTPFields
+
+    /// The body of the HTTP response.
+    public var httpBody: OpenAPIRuntime.HTTPBody?
+
+    /// Creates a new error.
+    /// - Parameters:
+    ///   - httpStatus: An HTTP status to return in the response.
+    ///   - httpHeaderFields: The HTTP header fields of the response.
+    ///   - httpBody: The body of the HTTP response.
+    public init(
+        httpStatus: HTTPResponse.Status,
+        httpHeaderFields: HTTPTypes.HTTPFields = [:],
+        httpBody: OpenAPIRuntime.HTTPBody? = nil
+    ) {
+        self.httpStatus = httpStatus
+        self.httpHeaderFields = httpHeaderFields
+        self.httpBody = httpBody
+    }
 }
