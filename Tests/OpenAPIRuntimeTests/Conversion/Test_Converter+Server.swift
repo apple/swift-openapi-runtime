@@ -186,6 +186,28 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         XCTAssertEqual(value, "foo")
     }
 
+    func test_getOptionalQueryItemAsURI_string_plusAsSpace() throws {
+        let value: String? = try converter.getOptionalQueryItemAsURI(
+            in: "search=foo+bar%20baz%2Bqux",
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: String.self
+        )
+        XCTAssertEqual(value, "foo bar baz+qux")
+    }
+
+    func test_getRequiredQueryItemAsURI_string_plusAsSpace() throws {
+        let value: String = try converter.getRequiredQueryItemAsURI(
+            in: "search=foo+bar%20baz%2Bqux",
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: String.self
+        )
+        XCTAssertEqual(value, "foo bar baz+qux")
+    }
+
     func test_getOptionalQueryItemAsURI_arrayOfStrings() throws {
         let query: Substring = "search=foo&search=bar"
         let value: [String]? = try converter.getOptionalQueryItemAsURI(
@@ -232,6 +254,18 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             as: [String].self
         )
         XCTAssertEqual(value, ["foo", "bar"])
+    }
+
+    func test_getRequiredQueryItemAsURI_arrayOfStrings_plusAsSpace() throws {
+        let query: Substring = "search=foo+bar&search=baz%2Bqux"
+        let value: [String] = try converter.getRequiredQueryItemAsURI(
+            in: query,
+            style: nil,
+            explode: nil,
+            name: "search",
+            as: [String].self
+        )
+        XCTAssertEqual(value, ["foo bar", "baz+qux"])
     }
 
     func test_getRequiredQueryItemAsURI_arrayOfStrings_unexploded() throws {
@@ -296,6 +330,17 @@ final class Test_ServerConverterExtensions: Test_Runtime {
             as: [Filter].self
         )
         XCTAssertEqual(value, [Filter(id: 1, name: "a/b")])
+    }
+
+    func test_getRequiredQueryItemAsJSON_plusAsSpace() throws {
+        let value = try converter.getRequiredQueryItemAsJSON(
+            in: "filter=%22foo+bar%2Bbaz%22",
+            style: nil,
+            explode: nil,
+            name: "filter",
+            as: String.self
+        )
+        XCTAssertEqual(value, "foo bar+baz")
     }
 
     func test_getOptionalQueryItemAsJSON_absent() throws {

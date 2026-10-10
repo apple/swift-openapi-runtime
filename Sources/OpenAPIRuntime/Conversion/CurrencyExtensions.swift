@@ -296,7 +296,14 @@ extension Converter {
     /// - Returns: The decoded value, or `nil` if the query item isn't present.
     /// - Throws: An error if decoding the query item or the JSON value fails.
     func convertJSONQueryItemToCodable<T: Decodable>(_ query: Substring, name: String) throws -> T? {
-        let uriDecoder = URIDecoder(configuration: uriCoderConfiguration(style: .form, explode: true, inBody: false))
+        let uriDecoder = URIDecoder(
+            configuration: .init(
+                style: .form,
+                explode: true,
+                spaceEscapingCharacter: .plus,
+                dateTranscoder: configuration.dateTranscoder
+            )
+        )
         guard let json = try uriDecoder.decodeIfPresent(String.self, forKey: name, from: query) else { return nil }
         return try decoder.decode(T.self, from: Data(json.utf8))
     }
