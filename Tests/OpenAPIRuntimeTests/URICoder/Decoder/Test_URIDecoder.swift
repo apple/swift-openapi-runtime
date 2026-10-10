@@ -119,6 +119,29 @@ final class Test_URIDecoder: Test_Runtime {
         }
     }
 
+    func testDecoding_freeformObjectWithNumericKey() throws {
+        let decoder = URIDecoder(configuration: .formExplode)
+        let decodedValue = try decoder.decode(OpenAPIObjectContainer.self, forKey: "filter", from: "5=x&name=y")
+        XCTAssertEqual(decodedValue, try .init(unvalidatedValue: ["5": "x", "name": "y"]))
+    }
+
+    func testDecoding_dictionaryOfEnumsWithNumericKey() throws {
+        enum Color: String, Decodable, Equatable { case red }
+        _test(
+            ["7": Color.red],
+            forKey: "keys",
+            from: .init(
+                formExplode: "7=red",
+                formUnexplode: "keys=7,red",
+                simpleExplode: "7=red",
+                simpleUnexplode: "7,red",
+                formDataExplode: "7=red",
+                formDataUnexplode: "keys=7,red",
+                deepObjectExplode: "keys%5B7%5D=red"
+            )
+        )
+    }
+
     func testDecoding_rootValue() throws {
         let decoder = URIDecoder(configuration: .formDataExplode)
         do {
