@@ -403,7 +403,8 @@ extension Converter {
         let fragmentStart = pathAndAll.firstIndex(of: "#") ?? pathAndAll.endIndex
         let fragment = pathAndAll[fragmentStart..<pathAndAll.endIndex]
 
-        let queryStart = pathAndAll.firstIndex(of: "?")
+        // A question mark inside the fragment doesn't start a query.
+        let queryStart = pathAndAll[..<fragmentStart].firstIndex(of: "?")
 
         let pathEnd = queryStart ?? fragmentStart
         let path = pathAndAll[pathAndAll.startIndex..<pathEnd]
