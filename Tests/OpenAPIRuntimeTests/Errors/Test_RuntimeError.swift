@@ -70,6 +70,39 @@ final class Test_RuntimeError: XCTestCase {
         XCTAssertEqual(response.0.status, .badGateway)
     }
 
+    func testRuntimeError_withUnexpectedAcceptHeader_returnsProblemDetails() async throws {
+        let server = UniversalServer(
+            handler: MockRuntimeErrorHandler(
+                failWithError: RuntimeError.unexpectedAcceptHeader(expected: "application/json", received: "text/plain")
+            ),
+            middlewares: [ErrorHandlingMiddleware()]
+        )
+        let response = try await server.handle(
+            request: .init(soar_path: "/", method: .post),
+            requestBody: MockHandler.requestBody,
+            metadata: .init(),
+            forOperation: "op",
+            using: { MockRuntimeErrorHandler.greet($0) },
+            deserializer: { request, body, metadata in
+                let body = try XCTUnwrap(body)
+                return try await String(collecting: body, upTo: 10)
+            },
+            serializer: { output, _ in fatalError() }
+        )
+        XCTAssertEqual(response.0.status, .notAcceptable)
+        XCTAssertEqual(response.0.headerFields[.contentType], "application/problem+json")
+
+        let httpBody = try XCTUnwrap(response.1)
+        let buffer = try await ArraySlice(collecting: httpBody, upTo: 2 * 1024 * 1024)
+        let jsonString = try XCTUnwrap(String(data: Data(buffer), encoding: .utf8))
+
+        let expectedJSON = #"""
+        {"details":"Unexpected Accept header: text\/plain","expected":"application\/json","received":"text\/plain","status":406,"title":"Unexpected Accept header","type":"about:blank"}
+        """#
+
+        XCTAssertEqual(jsonString, expectedJSON)
+    }
+
     func testDescriptions() async throws {
         let error: any Error = RuntimeError.transportFailed(PrintableError())
         XCTAssertEqual("\(error)", "Transport threw an error.")

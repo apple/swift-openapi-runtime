@@ -77,7 +77,7 @@ extension Converter {
             }
             if parsedSubstring.satisfies(acceptValue: parsedAcceptValue) { return }
         }
-        throw RuntimeError.unexpectedAcceptHeader(acceptHeader)
+        throw RuntimeError.unexpectedAcceptHeader(expected: substring, received: acceptHeader)
     }
     /// Retrieves and decodes a path parameter as a URI-encoded value of the specified type.
     ///
