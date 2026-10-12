@@ -326,21 +326,26 @@ extension URIParser {
     /// - Parameter escapedValue: An escaped string.
     /// - Returns: The provided string with escaping removed.
     private func unescapeValue(_ escapedValue: Raw) -> Raw {
-        Self.unescapeValue(escapedValue, spaceEscapingCharacter: configuration.spaceEscapingCharacter)
+        Self.unescapeValue(escapedValue, spaceUnescapingCharacters: configuration.spaceUnescapingCharacters)
     }
 
     /// Removes escaping from the provided string.
     /// - Parameters:
     ///   - escapedValue: An escaped string.
-    ///   - spaceEscapingCharacter: The character used to escape the space
-    ///     character.
+    ///   - spaceUnescapingCharacters: The characters treated as an escaped
+    ///     space character.
     /// - Returns: The provided string with escaping removed.
     private static func unescapeValue(
         _ escapedValue: Raw,
-        spaceEscapingCharacter: URICoderConfiguration.SpaceEscapingCharacter
+        spaceUnescapingCharacters: URICoderConfiguration.SpaceUnescapingCharacters
     ) -> Raw {
         // The inverse of URISerializer.computeSafeString.
-        let partiallyDecoded = escapedValue.replacingOccurrences(of: spaceEscapingCharacter.rawValue, with: " ")
+        // Replace plus before percent decoding, so that %2B stays a literal plus.
+        let partiallyDecoded: String
+        switch spaceUnescapingCharacters {
+        case .onlyPercentEncoded: partiallyDecoded = String(escapedValue)
+        case .percentEncodedAndPlus: partiallyDecoded = escapedValue.replacingOccurrences(of: "+", with: " ")
+        }
         return (partiallyDecoded.removingPercentEncoding() ?? "")[...]
     }
 }

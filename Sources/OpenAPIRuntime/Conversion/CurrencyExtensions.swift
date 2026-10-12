@@ -87,6 +87,7 @@ extension Converter {
             style: .init(style),
             explode: explode,
             spaceEscapingCharacter: inBody ? .plus : .percentEncoded,
+            spaceUnescapingCharacters: inBody ? .percentEncodedAndPlus : .onlyPercentEncoded,
             dateTranscoder: configuration.dateTranscoder
         )
     }
@@ -187,6 +188,7 @@ extension Converter {
                 style: .form,
                 explode: true,
                 spaceEscapingCharacter: .plus,
+                spaceUnescapingCharacters: .percentEncodedAndPlus,
                 dateTranscoder: configuration.dateTranscoder
             )
         )
@@ -205,6 +207,7 @@ extension Converter {
                 style: .form,
                 explode: true,
                 spaceEscapingCharacter: .plus,
+                spaceUnescapingCharacters: .percentEncodedAndPlus,
                 dateTranscoder: configuration.dateTranscoder
             )
         )
