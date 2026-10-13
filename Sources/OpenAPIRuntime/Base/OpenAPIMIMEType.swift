@@ -215,10 +215,15 @@ extension OpenAPIMIMEType {
             guard receivedType.lowercased() == expectedType.lowercased() else { return .incompatible(.type) }
             return .subtypeWildcard
         case .concrete(let expectedType, let expectedSubtype):
-            guard
-                receivedType.lowercased() == expectedType.lowercased()
-                    && receivedSubtype.lowercased() == expectedSubtype.lowercased()
-            else { return .incompatible(.subtype) }
+            let receivedTypeLowercased = receivedType.lowercased()
+            let expectedTypeLowercased = expectedType.lowercased()
+            guard receivedTypeLowercased == expectedTypeLowercased else { return .incompatible(.type) }
+
+            let receivedSubtypeLowercased = receivedSubtype.lowercased()
+            let expectedSubtypeLowercased = expectedSubtype.lowercased()
+            guard Self.subtypesMatch(receivedSubtypeLowercased, expectedSubtypeLowercased) else {
+                return .incompatible(.subtype)
+            }
 
             // A full concrete match, so also check parameters.
             // The rule is:
@@ -248,5 +253,44 @@ extension OpenAPIMIMEType {
             }
             return .typeAndSubtype(matchedParameterCount: matchedParameterCount)
         }
+    }
+
+    /// Returns the structured syntax suffix component of a subtype, if present.
+    /// For example, returns `"json"` for `"problem+json"`.
+    static func structuredSyntaxSuffix(of subtype: String) -> String? {
+        guard let plusIndex = subtype.lastIndex(of: "+") else { return nil }
+        let suffixStart = subtype.index(after: plusIndex)
+        guard suffixStart < subtype.endIndex else { return nil }
+        return String(subtype[suffixStart...])
+    }
+
+    /// Returns the structured syntax suffix of a wildcard subtype, if present.
+    /// For example, returns `"json"` for `"*+json"`.
+    static func structuredSyntaxWildcardSuffix(of subtype: String) -> String? {
+        guard subtype.hasPrefix("*+") else { return nil }
+        let suffixStart = subtype.index(subtype.startIndex, offsetBy: 2)
+        guard suffixStart < subtype.endIndex else { return nil }
+        return String(subtype[suffixStart...])
+    }
+
+    /// Returns whether two lowercased subtypes are compatible.
+    /// Supports exact matches, same-type structured syntax suffix matches
+    /// in either direction, and wildcard structured syntax suffixes.
+    static func subtypesMatch(_ lhs: String, _ rhs: String) -> Bool {
+        if lhs == rhs { return true }
+
+        if let lhsStructuredSyntaxWildcardSuffix = Self.structuredSyntaxWildcardSuffix(of: lhs) {
+            return rhs == lhsStructuredSyntaxWildcardSuffix
+                || Self.structuredSyntaxSuffix(of: rhs) == lhsStructuredSyntaxWildcardSuffix
+        }
+        if let rhsStructuredSyntaxWildcardSuffix = Self.structuredSyntaxWildcardSuffix(of: rhs) {
+            return lhs == rhsStructuredSyntaxWildcardSuffix
+                || Self.structuredSyntaxSuffix(of: lhs) == rhsStructuredSyntaxWildcardSuffix
+        }
+
+        let lhsStructuredSyntaxSuffix = Self.structuredSyntaxSuffix(of: lhs)
+        let rhsStructuredSyntaxSuffix = Self.structuredSyntaxSuffix(of: rhs)
+        return lhsStructuredSyntaxSuffix == rhs || rhsStructuredSyntaxSuffix == lhs
+            || (lhsStructuredSyntaxSuffix != nil && lhsStructuredSyntaxSuffix == rhsStructuredSyntaxSuffix)
     }
 }
