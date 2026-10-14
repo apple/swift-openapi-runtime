@@ -341,10 +341,10 @@ extension URIParser {
     ) -> Raw {
         // The inverse of URISerializer.computeSafeString.
         // Replace plus before percent decoding, so that %2B stays a literal plus.
-        let partiallyDecoded: String
+        let partiallyDecoded: Raw
         switch spaceUnescapingCharacters {
-        case .onlyPercentEncoded: partiallyDecoded = String(escapedValue)
-        case .percentEncodedAndPlus: partiallyDecoded = escapedValue.replacingOccurrences(of: "+", with: " ")
+        case .onlyPercentEncoded: partiallyDecoded = escapedValue
+        case .percentEncodedAndPlus: partiallyDecoded = escapedValue.replacingOccurrences(of: "+", with: " ")[...]
         }
         return (partiallyDecoded.removingPercentEncoding() ?? "")[...]
     }
