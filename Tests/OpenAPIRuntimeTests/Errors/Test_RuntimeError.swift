@@ -97,7 +97,7 @@ final class Test_RuntimeError: XCTestCase {
         let jsonString = try XCTUnwrap(String(data: Data(buffer), encoding: .utf8))
 
         let expectedJSON = #"""
-        {"details":"Unexpected Accept header: text\/plain","expected":"application\/json","received":"text\/plain","status":406,"title":"Unexpected Accept header","type":"about:blank"}
+        {"details":"Unexpected Accept header: text\/plain","expectedContentTypes":"application\/json","receivedContentTypes":"text\/plain","status":406,"title":"Unexpected Accept header","type":"https:\/\/swiftpackageindex.com\/apple\/swift-openapi-generator\/documentation\/swift-openapi-generator\/documentation\/problemdetails\/unexpected-accept-header"}
         """#
 
         XCTAssertEqual(jsonString, expectedJSON)

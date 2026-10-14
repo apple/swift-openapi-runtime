@@ -20,17 +20,40 @@ import Foundation
 
 /// A model representing RFC 9457 problem details for HTTP error responses.
 internal struct ProblemDetails: Encodable {
+    enum ProblemType {
+        case unexpectedAcceptHeader(expected: String, received: String)
+
+        var type: URL {
+            switch self {
+            case .unexpectedAcceptHeader:
+                URL(string: "https://swiftpackageindex.com/apple/swift-openapi-generator/documentation/swift-openapi-generator/documentation/problemdetails/unexpected-accept-header")!
+            }
+        }
+
+        var title: String {
+            switch self {
+            case .unexpectedAcceptHeader:
+                "Unexpected Accept header"
+            }
+        }
+
+        var extras: (any Encodable)? {
+            switch self {
+            case let .unexpectedAcceptHeader(expected, received):
+                ["expectedContentTypes": expected, "receivedContentTypes": received]
+            }
+        }
+    }
+
     static let encoder: JSONEncoder = {
         let encoder = JSONEncoder()
         encoder.outputFormatting = .sortedKeys
         return encoder
     }()
 
-    let type: String = "about:blank"
-    let status: Int
-    let title: String
+    let problemType: ProblemType
     let details: String
-    let extras: (any Encodable)?
+    let status: Int
 
     private enum CodingKeys: String, CodingKey {
         case type, status, title, details
@@ -38,12 +61,12 @@ internal struct ProblemDetails: Encodable {
 
     func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(type, forKey: .type)
+        try container.encode(problemType.type, forKey: .type)
         try container.encode(status, forKey: .status)
-        try container.encode(title, forKey: .title)
+        try container.encode(problemType.title, forKey: .title)
         try container.encode(details, forKey: .details)
 
-        if let extras {
+        if let extras = problemType.extras {
             try extras.encode(to: encoder)
         }
     }

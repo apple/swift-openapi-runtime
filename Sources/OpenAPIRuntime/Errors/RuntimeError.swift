@@ -179,27 +179,37 @@ extension RuntimeError: HTTPResponseConvertible {
     }
 
     var httpBody: HTTPBody? {
-        switch self {
-        case .invalidServerURL, .invalidServerVariableValue, .pathUnset, .invalidExpectedContentType, .unexpectedContentTypeHeader, .missingCoderForCustomContentType, .failedToDecodeStringConvertibleValue, .invalidAcceptSubstring, .invalidBase64String, .invalidHeaderFieldName, .malformedAcceptHeader, .missingMultipartBoundaryContentTypeParameter, .multipartBoundaryTooLong, .missingOrMalformedContentDispositionName, .missingRequiredHeaderField, .missingRequiredMultipartFormDataContentType, .missingRequiredQueryParameter, .missingRequiredPathParameter, .missingRequiredRequestBody, .unsupportedParameterStyle, .failedToParseRequest, .handlerFailed, .middlewareFailed, .missingRequiredResponseBody, .transportFailed, .unexpectedResponseStatus, .unexpectedResponseBody:
-            return nil
-        case .unexpectedAcceptHeader(let expected, let received):
-            let problemDetails = ProblemDetails(
-                status: self.httpStatus.code,
-                title: "Unexpected Accept header",
-                details: self.prettyDescription,
-                extras: ["expected": expected, "received": received]
-            )
+        if let problemDetails {
             let data = try? ProblemDetails.encoder.encode(problemDetails)
             return data.map(HTTPBody.init)
+        } else {
+            return nil
         }
     }
 
     var httpHeaderFields: HTTPFields {
+        if problemDetails != nil {
+            return [.contentType: "application/problem+json"]
+        } else {
+            return [:]
+        }
+    }
+}
+
+// MARK: - Problem details
+
+extension RuntimeError {
+    /// The problem details representation of the error.
+    var problemDetails: ProblemDetails? {
         switch self {
         case .invalidServerURL, .invalidServerVariableValue, .pathUnset, .invalidExpectedContentType, .unexpectedContentTypeHeader, .missingCoderForCustomContentType, .failedToDecodeStringConvertibleValue, .invalidAcceptSubstring, .invalidBase64String, .invalidHeaderFieldName, .malformedAcceptHeader, .missingMultipartBoundaryContentTypeParameter, .multipartBoundaryTooLong, .missingOrMalformedContentDispositionName, .missingRequiredHeaderField, .missingRequiredMultipartFormDataContentType, .missingRequiredQueryParameter, .missingRequiredPathParameter, .missingRequiredRequestBody, .unsupportedParameterStyle, .failedToParseRequest, .handlerFailed, .middlewareFailed, .missingRequiredResponseBody, .transportFailed, .unexpectedResponseStatus, .unexpectedResponseBody:
-            return [:]
-        case .unexpectedAcceptHeader:
-            return [.contentType: "application/problem+json"]
+            return nil
+        case let .unexpectedAcceptHeader(expected, received):
+            return ProblemDetails(
+                problemType: .unexpectedAcceptHeader(expected: expected, received: received),
+                details: prettyDescription,
+                status: httpStatus.code
+            )
         }
     }
 }
