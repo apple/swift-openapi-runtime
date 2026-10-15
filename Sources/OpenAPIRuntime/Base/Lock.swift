@@ -54,7 +54,7 @@ import wasi_pthread
 /// of lock is safe to use with `libpthread`-based threading models, such as the
 /// one used by NIO. On Windows, the lock is based on the substantially similar
 /// `SRWLOCK` type.
-package final class Lock {
+final class Lock {
     #if os(Windows)
     fileprivate let mutex: UnsafeMutablePointer<SRWLOCK> = UnsafeMutablePointer.allocate(capacity: 1)
     #elseif os(FreeBSD) || os(OpenBSD)
@@ -64,7 +64,7 @@ package final class Lock {
     #endif
 
     /// Create a new lock.
-    package init() {
+    init() {
         #if os(Windows)
         InitializeSRWLock(self.mutex)
         #elseif _runtime(_multithreaded)
@@ -108,7 +108,7 @@ package final class Lock {
     ///
     /// Whenever possible, consider using `withLock` instead of this method and
     /// `unlock`, to simplify lock handling.
-    package func lock() {
+    func lock() {
         #if os(Windows)
         AcquireSRWLockExclusive(self.mutex)
         #elseif _runtime(_multithreaded)
@@ -121,7 +121,7 @@ package final class Lock {
     ///
     /// Whenever possible, consider using `withLock` instead of this method and
     /// `lock`, to simplify lock handling.
-    package func unlock() {
+    func unlock() {
         #if os(Windows)
         ReleaseSRWLockExclusive(self.mutex)
         #elseif _runtime(_multithreaded)
@@ -138,14 +138,14 @@ package final class Lock {
     ///
     /// - Parameter body: The block to execute while holding the lock.
     /// - Returns: The value returned by the block.
-    @inlinable package func withLock<T>(_ body: () throws -> T) rethrows -> T {
+    @inlinable func withLock<T>(_ body: () throws -> T) rethrows -> T {
         self.lock()
         defer { self.unlock() }
         return try body()
     }
 
     // specialise Void return (for performance)
-    @inlinable package func withLockVoid(_ body: () throws -> Void) rethrows { try self.withLock(body) }
+    @inlinable func withLockVoid(_ body: () throws -> Void) rethrows { try self.withLock(body) }
 }
 
 /// A utility function that runs the body code only in debug builds, without
