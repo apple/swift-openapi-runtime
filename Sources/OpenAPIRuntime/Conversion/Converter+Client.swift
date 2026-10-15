@@ -46,6 +46,7 @@ extension Converter {
                 style: .simple,
                 explode: false,
                 spaceEscapingCharacter: .percentEncoded,
+                spaceUnescapingCharacters: .onlyPercentEncoded,
                 dateTranscoder: configuration.dateTranscoder
             )
         )
