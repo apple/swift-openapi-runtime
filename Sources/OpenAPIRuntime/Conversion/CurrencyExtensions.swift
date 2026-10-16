@@ -70,6 +70,22 @@ extension HTTPRequest {
     }
 }
 
+/// The part of an HTTP request where a URI-coded value appears.
+enum URICoderLocation {
+
+    /// A path parameter.
+    case path
+
+    /// A query item.
+    case query
+
+    /// A header field.
+    case headerField
+
+    /// A URL-encoded form body.
+    case formBody
+}
+
 extension Converter {
 
     // MARK: Converter helpers
@@ -78,16 +94,29 @@ extension Converter {
     /// - Parameters:
     ///   - style: A parameter style.
     ///   - explode: An explode value.
-    ///   - inBody: A Boolean value indicating whether the URI coder is being
-    ///     used for encoding a body URI. Specify `false` if used for a query,
-    ///     header, and so on.
+    ///   - location: The part of the request where the URI-coded value appears.
     /// - Returns: A new URI coder configuration.
-    func uriCoderConfiguration(style: ParameterStyle, explode: Bool, inBody: Bool) -> URICoderConfiguration {
-        .init(
+    func uriCoderConfiguration(style: ParameterStyle, explode: Bool, location: URICoderLocation)
+        -> URICoderConfiguration
+    {
+        let spaceEscapingCharacter: URICoderConfiguration.SpaceEscapingCharacter
+        let spaceUnescapingCharacters: URICoderConfiguration.SpaceUnescapingCharacters
+        switch location {
+        case .path, .headerField:
+            spaceEscapingCharacter = .percentEncoded
+            spaceUnescapingCharacters = .onlyPercentEncoded
+        case .query:
+            spaceEscapingCharacter = .percentEncoded
+            spaceUnescapingCharacters = .percentEncodedAndPlus
+        case .formBody:
+            spaceEscapingCharacter = .plus
+            spaceUnescapingCharacters = .percentEncodedAndPlus
+        }
+        return .init(
             style: .init(style),
             explode: explode,
-            spaceEscapingCharacter: inBody ? .plus : .percentEncoded,
-            spaceUnescapingCharacters: inBody ? .percentEncodedAndPlus : .onlyPercentEncoded,
+            spaceEscapingCharacter: spaceEscapingCharacter,
+            spaceUnescapingCharacters: spaceUnescapingCharacters,
             dateTranscoder: configuration.dateTranscoder
         )
     }
@@ -96,17 +125,21 @@ extension Converter {
     /// - Parameters:
     ///   - style: A parameter style.
     ///   - explode: An explode value.
-    ///   - inBody: A Boolean value indicating whether the URI coder is being
-    ///     used for encoding a body URI. Specify `false` if used for a query,
-    ///     header, and so on.
+    ///   - location: The part of the request that the URI-coded value appears in.
     ///   - key: The key to be encoded with the value.
     ///   - value: The value to be encoded.
     /// - Returns: A URI encoded string.
     /// - Throws: An error if encoding fails.
-    func convertToURI<T: Encodable>(style: ParameterStyle, explode: Bool, inBody: Bool, key: String, value: T) throws
-        -> String
-    {
-        let encoder = URIEncoder(configuration: uriCoderConfiguration(style: style, explode: explode, inBody: inBody))
+    func convertToURI<T: Encodable>(
+        style: ParameterStyle,
+        explode: Bool,
+        location: URICoderLocation,
+        key: String,
+        value: T
+    ) throws -> String {
+        let encoder = URIEncoder(
+            configuration: uriCoderConfiguration(style: style, explode: explode, location: location)
+        )
         let encodedString = try encoder.encode(value, forKey: key)
         return encodedString
     }
@@ -115,9 +148,7 @@ extension Converter {
     /// - Parameters:
     ///   - style: A parameter style.
     ///   - explode: An explode value.
-    ///   - inBody: A Boolean value indicating whether the URI coder is being
-    ///     used for encoding a body URI. Specify `false` if used for a query,
-    ///     header, and so on.
+    ///   - location: The part of the request that the URI-coded value appears in.
     ///   - key: The key for which the value was decoded.
     ///   - encodedValue: The encoded value to be decoded.
     /// - Returns: A decoded value.
@@ -125,11 +156,13 @@ extension Converter {
     func convertFromURI<T: Decodable>(
         style: ParameterStyle,
         explode: Bool,
-        inBody: Bool,
+        location: URICoderLocation,
         key: String,
         encodedValue: Substring
     ) throws -> T {
-        let decoder = URIDecoder(configuration: uriCoderConfiguration(style: style, explode: explode, inBody: inBody))
+        let decoder = URIDecoder(
+            configuration: uriCoderConfiguration(style: style, explode: explode, location: location)
+        )
         let value = try decoder.decode(T.self, forKey: key, from: encodedValue)
         return value
     }
@@ -183,15 +216,7 @@ extension Converter {
     /// - Returns: A decoded value.
     /// - Throws: An error if decoding from the URL-encoded form fails.
     func convertURLEncodedFormToCodable<T: Decodable>(_ body: HTTPBody) async throws -> T {
-        let decoder = URIDecoder(
-            configuration: .init(
-                style: .form,
-                explode: true,
-                spaceEscapingCharacter: .plus,
-                spaceUnescapingCharacters: .percentEncodedAndPlus,
-                dateTranscoder: configuration.dateTranscoder
-            )
-        )
+        let decoder = URIDecoder(configuration: uriCoderConfiguration(style: .form, explode: true, location: .formBody))
         let data = try await Data(collecting: body, upTo: .max)
         let uriString = Substring(decoding: data, as: UTF8.self)
         return try decoder.decode(T.self, from: uriString)
@@ -202,15 +227,7 @@ extension Converter {
     /// - Returns: The raw URL-encoded form body.
     /// - Throws: An error if encoding to URL-encoded form fails.
     func convertBodyCodableToURLFormData<T: Encodable>(_ value: T) throws -> HTTPBody {
-        let encoder = URIEncoder(
-            configuration: .init(
-                style: .form,
-                explode: true,
-                spaceEscapingCharacter: .plus,
-                spaceUnescapingCharacters: .percentEncodedAndPlus,
-                dateTranscoder: configuration.dateTranscoder
-            )
-        )
+        let encoder = URIEncoder(configuration: uriCoderConfiguration(style: .form, explode: true, location: .formBody))
         let encodedString = try encoder.encode(value, forKey: "")
         return HTTPBody(encodedString)
     }
@@ -289,7 +306,7 @@ extension Converter {
     func convertQueryItemCodableToJSON<T: Encodable>(_ value: T, name: String) throws -> String {
         let data = try queryFieldEncoder.encode(value)
         let json = String(decoding: data, as: UTF8.self)
-        return try convertToURI(style: .form, explode: true, inBody: false, key: name, value: json)
+        return try convertToURI(style: .form, explode: true, location: .query, key: name, value: json)
     }
 
     /// Decodes one named, percent-encoded JSON query item if present.
@@ -299,15 +316,7 @@ extension Converter {
     /// - Returns: The decoded value, or `nil` if the query item isn't present.
     /// - Throws: An error if decoding the query item or the JSON value fails.
     func convertJSONQueryItemToCodable<T: Decodable>(_ query: Substring, name: String) throws -> T? {
-        let uriDecoder = URIDecoder(
-            configuration: .init(
-                style: .form,
-                explode: true,
-                spaceEscapingCharacter: .percentEncoded,
-                spaceUnescapingCharacters: .percentEncodedAndPlus,
-                dateTranscoder: configuration.dateTranscoder
-            )
-        )
+        let uriDecoder = URIDecoder(configuration: uriCoderConfiguration(style: .form, explode: true, location: .query))
         guard let json = try uriDecoder.decodeIfPresent(String.self, forKey: name, from: query) else { return nil }
         return try decoder.decode(T.self, from: Data(json.utf8))
     }

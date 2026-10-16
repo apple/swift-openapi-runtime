@@ -41,15 +41,7 @@ extension Converter {
     /// - Throws: An error if rendering the path fails.
     public func renderedPath(template: String, parameters: [any Encodable]) throws -> String {
         var renderedString = template
-        let encoder = URIEncoder(
-            configuration: .init(
-                style: .simple,
-                explode: false,
-                spaceEscapingCharacter: .percentEncoded,
-                spaceUnescapingCharacters: .onlyPercentEncoded,
-                dateTranscoder: configuration.dateTranscoder
-            )
-        )
+        let encoder = URIEncoder(configuration: uriCoderConfiguration(style: .simple, explode: false, location: .path))
         for parameter in parameters {
             let value = try encoder.encode(parameter, forKey: "")
             if renderedString.contains("{}") {
@@ -84,7 +76,7 @@ extension Converter {
             name: name,
             value: value,
             convert: { value, style, explode in
-                try convertToURI(style: style, explode: explode, inBody: false, key: name, value: value)
+                try convertToURI(style: style, explode: explode, location: .query, key: name, value: value)
             }
         )
     }
