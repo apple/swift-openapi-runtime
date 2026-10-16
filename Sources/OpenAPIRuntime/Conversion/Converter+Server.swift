@@ -98,13 +98,7 @@ extension Converter {
             as: T.self,
             convert: { encodedString in
                 let decoder = URIDecoder(
-                    configuration: .init(
-                        style: .simple,
-                        explode: false,
-                        spaceEscapingCharacter: .percentEncoded,
-                        spaceUnescapingCharacters: .onlyPercentEncoded,
-                        dateTranscoder: configuration.dateTranscoder
-                    )
+                    configuration: uriCoderConfiguration(style: .simple, explode: false, location: .path)
                 )
                 let value = try decoder.decode(T.self, forKey: name, from: encodedString)
                 return value
@@ -137,13 +131,7 @@ extension Converter {
             as: type,
             convert: { query, style, explode in
                 let decoder = URIDecoder(
-                    configuration: .init(
-                        style: .init(style),
-                        explode: explode,
-                        spaceEscapingCharacter: .percentEncoded,
-                        spaceUnescapingCharacters: .onlyPercentEncoded,
-                        dateTranscoder: configuration.dateTranscoder
-                    )
+                    configuration: uriCoderConfiguration(style: style, explode: explode, location: .query)
                 )
                 let value = try decoder.decodeIfPresent(T.self, forKey: name, from: query)
                 return value
@@ -176,13 +164,7 @@ extension Converter {
             as: type,
             convert: { query, style, explode in
                 let decoder = URIDecoder(
-                    configuration: .init(
-                        style: .init(style),
-                        explode: explode,
-                        spaceEscapingCharacter: .percentEncoded,
-                        spaceUnescapingCharacters: .onlyPercentEncoded,
-                        dateTranscoder: configuration.dateTranscoder
-                    )
+                    configuration: uriCoderConfiguration(style: style, explode: explode, location: .query)
                 )
                 let value = try decoder.decode(T.self, forKey: name, from: query)
                 return value
