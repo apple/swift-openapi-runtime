@@ -40,7 +40,7 @@ struct URICoderConfiguration {
         case deepObject
     }
 
-    /// A character used to escape the space character.
+    /// A character used to escape the space character when encoding.
     enum SpaceEscapingCharacter: String {
 
         /// A percent encoded value for the space character.
@@ -50,6 +50,17 @@ struct URICoderConfiguration {
         case plus = "+"
     }
 
+    /// The characters treated as an escaped space character when decoding.
+    enum SpaceUnescapingCharacters {
+
+        /// Only the percent encoded value `%20` is decoded as a space.
+        case onlyPercentEncoded
+
+        /// Both the percent encoded value `%20` and the plus character `+`
+        /// are decoded as a space.
+        case percentEncodedAndPlus
+    }
+
     /// The variable expansion style.
     var style: Style
 
@@ -57,8 +68,11 @@ struct URICoderConfiguration {
     /// each value, as described by RFC 6570 and OpenAPI 3.0.4.
     var explode: Bool
 
-    /// The character used to escape the space character.
+    /// The character used to escape the space character when encoding.
     var spaceEscapingCharacter: SpaceEscapingCharacter
+
+    /// The characters treated as an escaped space character when decoding.
+    var spaceUnescapingCharacters: SpaceUnescapingCharacters
 
     /// The coder used for serializing the Date type.
     var dateTranscoder: any DateTranscoder

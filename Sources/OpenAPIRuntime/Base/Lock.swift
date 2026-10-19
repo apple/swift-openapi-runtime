@@ -54,20 +54,20 @@ import wasi_pthread
 /// of lock is safe to use with `libpthread`-based threading models, such as the
 /// one used by NIO. On Windows, the lock is based on the substantially similar
 /// `SRWLOCK` type.
-package final class Lock {
+final class Lock {
     #if os(Windows)
     fileprivate let mutex: UnsafeMutablePointer<SRWLOCK> = UnsafeMutablePointer.allocate(capacity: 1)
     #elseif os(FreeBSD) || os(OpenBSD)
     fileprivate let mutex: UnsafeMutablePointer<pthread_mutex_t?> = UnsafeMutablePointer.allocate(capacity: 1)
-    #elseif (compiler(<6.1) && !os(WASI)) || (compiler(>=6.1) && _runtime(_multithreaded))
+    #elseif _runtime(_multithreaded)
     fileprivate let mutex: UnsafeMutablePointer<pthread_mutex_t> = UnsafeMutablePointer.allocate(capacity: 1)
     #endif
 
     /// Create a new lock.
-    package init() {
+    init() {
         #if os(Windows)
         InitializeSRWLock(self.mutex)
-        #elseif (compiler(<6.1) && !os(WASI)) || (compiler(>=6.1) && _runtime(_multithreaded))
+        #elseif _runtime(_multithreaded)
         #if os(FreeBSD) || os(OpenBSD)
         var attr = pthread_mutexattr_t(bitPattern: 0)
         #else
@@ -97,7 +97,7 @@ package final class Lock {
     deinit {
         #if os(Windows)
         mutex.deallocate()
-        #elseif (compiler(<6.1) && !os(WASI)) || (compiler(>=6.1) && _runtime(_multithreaded))
+        #elseif _runtime(_multithreaded)
         let err = pthread_mutex_destroy(self.mutex)
         precondition(err == 0, "\(#function) failed in pthread_mutex with error \(err)")
         mutex.deallocate()
@@ -108,10 +108,10 @@ package final class Lock {
     ///
     /// Whenever possible, consider using `withLock` instead of this method and
     /// `unlock`, to simplify lock handling.
-    package func lock() {
+    func lock() {
         #if os(Windows)
         AcquireSRWLockExclusive(self.mutex)
-        #elseif (compiler(<6.1) && !os(WASI)) || (compiler(>=6.1) && _runtime(_multithreaded))
+        #elseif _runtime(_multithreaded)
         let err = pthread_mutex_lock(self.mutex)
         precondition(err == 0, "\(#function) failed in pthread_mutex with error \(err)")
         #endif
@@ -121,10 +121,10 @@ package final class Lock {
     ///
     /// Whenever possible, consider using `withLock` instead of this method and
     /// `lock`, to simplify lock handling.
-    package func unlock() {
+    func unlock() {
         #if os(Windows)
         ReleaseSRWLockExclusive(self.mutex)
-        #elseif (compiler(<6.1) && !os(WASI)) || (compiler(>=6.1) && _runtime(_multithreaded))
+        #elseif _runtime(_multithreaded)
         let err = pthread_mutex_unlock(self.mutex)
         precondition(err == 0, "\(#function) failed in pthread_mutex with error \(err)")
         #endif
@@ -138,14 +138,14 @@ package final class Lock {
     ///
     /// - Parameter body: The block to execute while holding the lock.
     /// - Returns: The value returned by the block.
-    @inlinable package func withLock<T>(_ body: () throws -> T) rethrows -> T {
+    @inlinable func withLock<T>(_ body: () throws -> T) rethrows -> T {
         self.lock()
         defer { self.unlock() }
         return try body()
     }
 
     // specialise Void return (for performance)
-    @inlinable package func withLockVoid(_ body: () throws -> Void) rethrows { try self.withLock(body) }
+    @inlinable func withLockVoid(_ body: () throws -> Void) rethrows { try self.withLock(body) }
 }
 
 /// A utility function that runs the body code only in debug builds, without

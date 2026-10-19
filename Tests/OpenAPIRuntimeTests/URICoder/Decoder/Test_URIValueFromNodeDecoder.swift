@@ -100,6 +100,7 @@ final class Test_URIValueFromNodeDecoder: Test_Runtime {
                     style: style,
                     explode: explode,
                     spaceEscapingCharacter: .percentEncoded,
+                    spaceUnescapingCharacters: .onlyPercentEncoded,
                     dateTranscoder: .iso8601
                 )
             )
