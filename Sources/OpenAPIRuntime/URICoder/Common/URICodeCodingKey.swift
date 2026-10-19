@@ -27,13 +27,6 @@ struct URICoderCodingKey {
     /// The value to use in an integer-indexed collection (e.g. an int-keyed
     /// dictionary).
     var intValue: Int?
-
-    /// Creates a new key with the same string and int value as the provided key.
-    /// - Parameter key: The key whose values to copy.
-    init(_ key: some CodingKey) {
-        self.stringValue = key.stringValue
-        self.intValue = key.intValue
-    }
 }
 
 extension URICoderCodingKey: CodingKey {
