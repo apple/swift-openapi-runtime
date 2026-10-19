@@ -50,6 +50,14 @@ final class Test_ClientConverterExtensions: Test_Runtime {
         XCTAssertEqual(request.soar_query, "search=h%25llo")
     }
 
+    func test_setQueryItemAsURI_questionMarkInFragment() throws {
+        var request = HTTPRequest(soar_path: "/api#frag?x", method: .get)
+        try converter.setQueryItemAsURI(in: &request, style: nil, explode: nil, name: "search", value: "foo")
+        XCTAssertEqual(request.path, "/api?search=foo#frag?x")
+        try converter.setQueryItemAsURI(in: &request, style: nil, explode: nil, name: "limit", value: 10)
+        XCTAssertEqual(request.path, "/api?search=foo&limit=10#frag?x")
+    }
+
     func test_setQueryItemAsURI_arrayOfStrings() throws {
         var request = testRequest
         try converter.setQueryItemAsURI(in: &request, style: nil, explode: nil, name: "search", value: ["foo", "bar"])
