@@ -77,5 +77,11 @@ final class Test_QualityValue: Test_Runtime {
         XCTAssertEqual(QualityValue(rawValue: "0.3")?.doubleValue, 0.3)
         XCTAssertEqual(QualityValue(rawValue: "0.54321")?.rawValue, "0.543")
         XCTAssertNil(QualityValue(rawValue: "hi"))
+        XCTAssertNil(QualityValue(rawValue: "2"))
+        XCTAssertNil(QualityValue(rawValue: "1.001"))
+        XCTAssertNil(QualityValue(rawValue: "-1"))
+        XCTAssertNil(QualityValue(rawValue: "nan"))
+        XCTAssertNil(QualityValue(rawValue: "inf"))
+        XCTAssertNil(QualityValue(rawValue: "-inf"))
     }
 }

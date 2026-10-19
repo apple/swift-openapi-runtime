@@ -113,7 +113,9 @@ extension Converter {
             in: &headerFields,
             name: name,
             value: value,
-            convert: { value in try convertToURI(style: .simple, explode: false, inBody: false, key: "", value: value) }
+            convert: { value in
+                try convertToURI(style: .simple, explode: false, location: .headerField, key: "", value: value)
+            }
         )
     }
 
@@ -145,7 +147,13 @@ extension Converter {
             name: name,
             as: type,
             convert: { encodedValue in
-                try convertFromURI(style: .simple, explode: false, inBody: false, key: "", encodedValue: encodedValue)
+                try convertFromURI(
+                    style: .simple,
+                    explode: false,
+                    location: .headerField,
+                    key: "",
+                    encodedValue: encodedValue
+                )
             }
         )
     }
@@ -167,7 +175,13 @@ extension Converter {
             name: name,
             as: type,
             convert: { encodedValue in
-                try convertFromURI(style: .simple, explode: false, inBody: false, key: "", encodedValue: encodedValue)
+                try convertFromURI(
+                    style: .simple,
+                    explode: false,
+                    location: .headerField,
+                    key: "",
+                    encodedValue: encodedValue
+                )
             }
         )
     }
