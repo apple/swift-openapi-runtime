@@ -44,7 +44,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
     // Headers
     case missingRequiredHeaderField(String)
     case unexpectedContentTypeHeader(expected: String, received: String)
-    case unexpectedAcceptHeader(String)
+    case unexpectedAcceptHeader(expected: String, received: String)
     case malformedAcceptHeader(String)
     case missingOrMalformedContentDispositionName
 
@@ -107,7 +107,7 @@ internal enum RuntimeError: Error, CustomStringConvertible, LocalizedError, Pret
         case .missingRequiredHeaderField(let name): return "The required header field named '\(name)' is missing."
         case .unexpectedContentTypeHeader(expected: let expected, received: let received):
             return "Unexpected content type, expected: \(expected), received: \(received)"
-        case .unexpectedAcceptHeader(let accept): return "Unexpected Accept header: \(accept)"
+        case .unexpectedAcceptHeader(_, let received): return "Unexpected Accept header: \(received)"
         case .malformedAcceptHeader(let accept): return "Malformed Accept header: \(accept)"
         case .missingOrMalformedContentDispositionName:
             return "Missing or malformed Content-Disposition header or it's missing a name."
@@ -175,6 +175,41 @@ extension RuntimeError: HTTPResponseConvertible {
         case .handlerFailed, .middlewareFailed, .missingRequiredResponseBody, .transportFailed,
             .unexpectedResponseStatus, .unexpectedResponseBody:
             .internalServerError
+        }
+    }
+
+    var httpBody: HTTPBody? {
+        if let problemDetails {
+            let data = try? ProblemDetails.encoder.encode(problemDetails)
+            return data.map(HTTPBody.init)
+        } else {
+            return nil
+        }
+    }
+
+    var httpHeaderFields: HTTPFields {
+        if problemDetails != nil {
+            return [.contentType: "application/problem+json"]
+        } else {
+            return [:]
+        }
+    }
+}
+
+// MARK: - Problem details
+
+extension RuntimeError {
+    /// The problem details representation of the error.
+    var problemDetails: ProblemDetails? {
+        switch self {
+        case .invalidServerURL, .invalidServerVariableValue, .pathUnset, .invalidExpectedContentType, .unexpectedContentTypeHeader, .missingCoderForCustomContentType, .failedToDecodeStringConvertibleValue, .invalidAcceptSubstring, .invalidBase64String, .invalidHeaderFieldName, .malformedAcceptHeader, .missingMultipartBoundaryContentTypeParameter, .multipartBoundaryTooLong, .missingOrMalformedContentDispositionName, .missingRequiredHeaderField, .missingRequiredMultipartFormDataContentType, .missingRequiredQueryParameter, .missingRequiredPathParameter, .missingRequiredRequestBody, .unsupportedParameterStyle, .failedToParseRequest, .handlerFailed, .middlewareFailed, .missingRequiredResponseBody, .transportFailed, .unexpectedResponseStatus, .unexpectedResponseBody:
+            return nil
+        case let .unexpectedAcceptHeader(expected, received):
+            return ProblemDetails(
+                problemType: .unexpectedAcceptHeader(expected: expected, received: received),
+                details: prettyDescription,
+                status: httpStatus.code
+            )
         }
     }
 }
