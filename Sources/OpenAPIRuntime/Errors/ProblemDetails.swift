@@ -22,7 +22,7 @@ import Foundation
 internal struct ProblemDetails: Encodable {
     /// The type of the problem, defining RFC 9457 fields common to all instances of that problem type.
     enum ProblemType {
-        case unexpectedAcceptHeader(expected: String, received: String)
+        case unexpectedAcceptHeader(expected: [String], received: [String])
 
         /// The unique URL that identifies the problem type.
         var type: URL {

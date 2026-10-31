@@ -73,7 +73,10 @@ final class Test_RuntimeError: XCTestCase {
     func testRuntimeError_withUnexpectedAcceptHeader_returnsProblemDetails() async throws {
         let server = UniversalServer(
             handler: MockRuntimeErrorHandler(
-                failWithError: RuntimeError.unexpectedAcceptHeader(expected: "application/json", received: "text/plain")
+                failWithError: RuntimeError.unexpectedAcceptHeader(
+                    expected: ["application/json"],
+                    received: ["text/html", "application/xhtml+xml", "application/xml"]
+                )
             ),
             middlewares: [ErrorHandlingMiddleware()]
         )
@@ -97,7 +100,7 @@ final class Test_RuntimeError: XCTestCase {
         let jsonString = try XCTUnwrap(String(data: Data(buffer), encoding: .utf8))
 
         let expectedJSON = #"""
-        {"detail":"Unexpected Accept header: text\/plain","expectedContentTypes":"application\/json","receivedContentTypes":"text\/plain","status":406,"title":"Unexpected Accept header","type":"https:\/\/swiftpackageindex.com\/apple\/swift-openapi-runtime\/documentation\/swift-openapi-runtime\/problemdetails\/unexpected-accept-header"}
+        {"detail":"Unexpected Accept header: text\/html, application\/xhtml+xml, application\/xml","expectedContentTypes":["application\/json"],"receivedContentTypes":["text\/html","application\/xhtml+xml","application\/xml"],"status":406,"title":"Unexpected Accept header","type":"https:\/\/swiftpackageindex.com\/apple\/swift-openapi-runtime\/documentation\/swift-openapi-runtime\/problemdetails\/unexpected-accept-header"}
         """#
 
         XCTAssertEqual(jsonString, expectedJSON)
