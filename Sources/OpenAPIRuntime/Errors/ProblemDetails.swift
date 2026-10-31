@@ -20,16 +20,19 @@ import Foundation
 
 /// A model representing RFC 9457 problem details for HTTP error responses.
 internal struct ProblemDetails: Encodable {
+    /// The type of the problem, defining RFC 9457 fields common to all instances of that problem type.
     enum ProblemType {
         case unexpectedAcceptHeader(expected: String, received: String)
 
+        /// The unique URL that identifies the problem type.
         var type: URL {
             switch self {
             case .unexpectedAcceptHeader:
-                URL(string: "https://swiftpackageindex.com/apple/swift-openapi-generator/documentation/swift-openapi-generator/documentation/problemdetails/unexpected-accept-header")!
+                URL(string:  "https://swiftpackageindex.com/apple/swift-openapi-runtime/documentation/swift-openapi-runtime/problemdetails/unexpected-accept-header")!
             }
         }
 
+        /// A short human-readable description of the problem type.
         var title: String {
             switch self {
             case .unexpectedAcceptHeader:
@@ -37,6 +40,7 @@ internal struct ProblemDetails: Encodable {
             }
         }
 
+        /// Additional data specific to the problem type.
         var extras: (any Encodable)? {
             switch self {
             case let .unexpectedAcceptHeader(expected, received):
@@ -51,12 +55,15 @@ internal struct ProblemDetails: Encodable {
         return encoder
     }()
 
+    /// The problem type.
     let problemType: ProblemType
-    let details: String
+    /// A human-readable explanation specific to this occurrence of the problem.
+    let detail: String
+    /// The HTTP status for this occurrence of the problem.
     let status: Int
 
     private enum CodingKeys: String, CodingKey {
-        case type, status, title, details
+        case type, status, title, detail
     }
 
     func encode(to encoder: any Encoder) throws {
@@ -64,7 +71,7 @@ internal struct ProblemDetails: Encodable {
         try container.encode(problemType.type, forKey: .type)
         try container.encode(status, forKey: .status)
         try container.encode(problemType.title, forKey: .title)
-        try container.encode(details, forKey: .details)
+        try container.encode(detail, forKey: .detail)
 
         if let extras = problemType.extras {
             try extras.encode(to: encoder)

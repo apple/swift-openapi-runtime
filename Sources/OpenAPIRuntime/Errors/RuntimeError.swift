@@ -207,7 +207,7 @@ extension RuntimeError {
         case let .unexpectedAcceptHeader(expected, received):
             return ProblemDetails(
                 problemType: .unexpectedAcceptHeader(expected: expected, received: received),
-                details: prettyDescription,
+                detail: prettyDescription,
                 status: httpStatus.code
             )
         }
