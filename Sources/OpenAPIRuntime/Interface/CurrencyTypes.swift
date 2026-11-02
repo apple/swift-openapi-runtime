@@ -46,8 +46,9 @@ extension HTTPRequest {
     /// The query substring of the request's path.
     @_spi(Generated) public var soar_query: Substring? {
         guard let path else { return nil }
-        guard let queryStart = path.firstIndex(of: "?") else { return nil }
+        // The query ends at the fragment, so a question mark inside the fragment doesn't start a query.
         let queryEnd = path.firstIndex(of: "#") ?? path.endIndex
+        guard let queryStart = path[..<queryEnd].firstIndex(of: "?") else { return nil }
         let query = path[path.index(after: queryStart)..<queryEnd]
         return query
     }
@@ -55,7 +56,8 @@ extension HTTPRequest {
     /// The request path, without any query or fragment portions.
     @_spi(Generated) public var soar_pathOnly: Substring {
         guard let path else { return ""[...] }
-        let pathEndIndex = path.firstIndex(of: "?") ?? path.firstIndex(of: "#") ?? path.endIndex
+        let fragmentStart = path.firstIndex(of: "#") ?? path.endIndex
+        let pathEndIndex = path[..<fragmentStart].firstIndex(of: "?") ?? fragmentStart
         return path[path.startIndex..<pathEndIndex]
     }
 }

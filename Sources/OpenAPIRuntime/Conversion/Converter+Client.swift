@@ -41,14 +41,7 @@ extension Converter {
     /// - Throws: An error if rendering the path fails.
     public func renderedPath(template: String, parameters: [any Encodable]) throws -> String {
         var renderedString = template
-        let encoder = URIEncoder(
-            configuration: .init(
-                style: .simple,
-                explode: false,
-                spaceEscapingCharacter: .percentEncoded,
-                dateTranscoder: configuration.dateTranscoder
-            )
-        )
+        let encoder = URIEncoder(configuration: uriCoderConfiguration(style: .simple, explode: false, location: .path))
         for parameter in parameters {
             let value = try encoder.encode(parameter, forKey: "")
             if renderedString.contains("{}") {
@@ -83,8 +76,33 @@ extension Converter {
             name: name,
             value: value,
             convert: { value, style, explode in
-                try convertToURI(style: style, explode: explode, inBody: false, key: name, value: value)
+                try convertToURI(style: style, explode: explode, location: .query, key: name, value: value)
             }
+        )
+    }
+
+    /// Sets a query item as one JSON-encoded value.
+    /// - Parameters:
+    ///   - request: The HTTP request to which the query item is added.
+    ///   - style: The parameter style supplied by generated code.
+    ///   - explode: The explode value supplied by generated code.
+    ///   - name: The name of the query item.
+    ///   - value: The value to encode, or `nil` to omit the query item.
+    /// - Throws: An error if the value cannot be encoded or added to the request.
+    public func setQueryItemAsJSON<T: Encodable>(
+        in request: inout HTTPRequest,
+        style: ParameterStyle?,
+        explode: Bool?,
+        name: String,
+        value: T?
+    ) throws {
+        try setEscapedQueryItem(
+            in: &request,
+            style: style,
+            explode: explode,
+            name: name,
+            value: value,
+            convert: { value, _, _ in try convertQueryItemCodableToJSON(value, name: name) }
         )
     }
 

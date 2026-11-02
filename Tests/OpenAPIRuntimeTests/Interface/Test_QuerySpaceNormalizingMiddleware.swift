@@ -17,7 +17,7 @@ import HTTPTypes
 import XCTest
 @_spi(Generated) @testable import OpenAPIRuntime
 
-final class Test_QuerySpaceNormalizingMiddleware: XCTestCase {
+@available(*, deprecated) final class Test_QuerySpaceNormalizingMiddleware: XCTestCase {
     static let middleware = QuerySpaceNormalizingMiddleware()
 
     func testPlusInQueryIsReplacedWithPercent20() async throws {

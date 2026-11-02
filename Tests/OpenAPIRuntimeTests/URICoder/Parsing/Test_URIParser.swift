@@ -503,6 +503,16 @@ final class Test_URIParser: Test_Runtime {
         )
     }
 
+    func testSpaceUnescaping() throws {
+        let input = "message=a+b%20c%2Bd"
+        let onlyPercentEncoded = try URIParser(configuration: .formExplode, data: input[...])
+            .parseRootAsPrimitive(rootKey: "message")
+        XCTAssertEqual(onlyPercentEncoded, .init(key: "message", value: "a+b c+d"))
+        let percentEncodedAndPlus = try URIParser(configuration: .formDataExplode, data: input[...])
+            .parseRootAsPrimitive(rootKey: "message")
+        XCTAssertEqual(percentEncodedAndPlus, .init(key: "message", value: "a b c+d"))
+    }
+
     struct Case {
         struct Variant {
             var name: String

@@ -29,12 +29,15 @@ extension URIKeyedEncodingContainer {
 
     /// Inserts the provided node into the underlying dictionary at
     /// the provided key.
+    ///
+    /// Only the string value of the key is used, as keys e.g. in a string-keyed
+    /// dictionary can have an integer value that doesn't represent an array index.
     /// - Parameters:
     ///   - node: The child node to insert.
     ///   - key: The key for the child node.
     /// - Throws: An error if inserting the child node into the underlying dictionary at the provided key fails.
     private func _insertValue(_ node: URIEncodedNode, atKey key: Key) throws {
-        try encoder.currentStackEntry.storage.insert(node, atKey: key)
+        try encoder.currentStackEntry.storage.insert(node, atKey: URICoderCodingKey(stringValue: key.stringValue))
     }
 
     /// Inserts the provided primitive value into the underlying dictionary at
@@ -126,7 +129,7 @@ extension URIKeyedEncodingContainer: KeyedEncodingContainerProtocol {
         case let value as Bool: try encode(value, forKey: key)
         case let value as Date: try _insertValue(.date(value), atKey: key)
         default:
-            encoder.push(key: .init(key), newStorage: .unset)
+            encoder.push(key: .init(stringValue: key.stringValue), newStorage: .unset)
             try value.encode(to: encoder)
             try encoder.pop()
         }

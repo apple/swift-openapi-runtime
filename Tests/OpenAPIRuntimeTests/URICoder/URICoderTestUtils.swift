@@ -22,6 +22,7 @@ extension URICoderConfiguration {
         style: .form,
         explode: true,
         spaceEscapingCharacter: .percentEncoded,
+        spaceUnescapingCharacters: .onlyPercentEncoded,
         dateTranscoder: defaultDateTranscoder
     )
 
@@ -29,6 +30,7 @@ extension URICoderConfiguration {
         style: .form,
         explode: false,
         spaceEscapingCharacter: .percentEncoded,
+        spaceUnescapingCharacters: .onlyPercentEncoded,
         dateTranscoder: defaultDateTranscoder
     )
 
@@ -36,6 +38,7 @@ extension URICoderConfiguration {
         style: .simple,
         explode: true,
         spaceEscapingCharacter: .percentEncoded,
+        spaceUnescapingCharacters: .onlyPercentEncoded,
         dateTranscoder: defaultDateTranscoder
     )
 
@@ -43,6 +46,7 @@ extension URICoderConfiguration {
         style: .simple,
         explode: false,
         spaceEscapingCharacter: .percentEncoded,
+        spaceUnescapingCharacters: .onlyPercentEncoded,
         dateTranscoder: defaultDateTranscoder
     )
 
@@ -50,6 +54,7 @@ extension URICoderConfiguration {
         style: .form,
         explode: true,
         spaceEscapingCharacter: .plus,
+        spaceUnescapingCharacters: .percentEncodedAndPlus,
         dateTranscoder: defaultDateTranscoder
     )
 
@@ -57,6 +62,7 @@ extension URICoderConfiguration {
         style: .form,
         explode: false,
         spaceEscapingCharacter: .plus,
+        spaceUnescapingCharacters: .percentEncodedAndPlus,
         dateTranscoder: defaultDateTranscoder
     )
 
@@ -64,6 +70,7 @@ extension URICoderConfiguration {
         style: .deepObject,
         explode: true,
         spaceEscapingCharacter: .percentEncoded,
+        spaceUnescapingCharacters: .onlyPercentEncoded,
         dateTranscoder: defaultDateTranscoder
     )
 }
