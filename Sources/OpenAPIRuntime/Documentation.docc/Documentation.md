@@ -79,6 +79,7 @@ You can also publish your transport or middleware as a Swift package to allow ot
 - ``ServerError``
 - ``UndocumentedPayload``
 - ``HTTPResponseConvertible``
+- <doc:ProblemDetails>
 
 ### HTTP Currency Types
 - ``HTTPBody``
