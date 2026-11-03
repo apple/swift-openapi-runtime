@@ -85,7 +85,7 @@ internal struct ProblemDetails: Encodable {
     let status: Int
 
     /// The coding keys for the standard RFC 9457 members.
-    private enum CodingKeys: String, CodingKey { 
+    private enum CodingKeys: String, CodingKey {
         case type
         case status
         case title
