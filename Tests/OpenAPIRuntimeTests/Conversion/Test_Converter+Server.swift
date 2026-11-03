@@ -101,6 +101,24 @@ final class Test_ServerConverterExtensions: Test_Runtime {
         }
     }
 
+    func testValidateAccept_notAcceptable_reportsContentTypes() throws {
+        let headers: HTTPFields = [.accept: "Text/HTML, application/xhtml+xml, application/xml;q=0.9, image/*;q=0.8"]
+        XCTAssertThrowsError(try converter.validateAcceptIfPresent("application/json", in: headers)) { error in
+            guard let error = error as? RuntimeError,
+                case .responseContentTypeNotAcceptable(let responseContentType, let acceptableContentTypes) = error
+            else {
+                XCTFail("Unexpected error: \(error)")
+                return
+            }
+            XCTAssertEqual(responseContentType, "application/json")
+            // Media ranges are lowercased and their parameters, such as quality values, are removed.
+            XCTAssertEqual(
+                acceptableContentTypes,
+                ["text/html", "application/xhtml+xml", "application/xml", "image/*"]
+            )
+        }
+    }
+
     // MARK: Converter helper methods
 
     //    | server | get | request path | URI | required | getPathParameterAsURI |

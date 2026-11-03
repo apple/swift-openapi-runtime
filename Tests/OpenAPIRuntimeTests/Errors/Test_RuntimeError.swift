@@ -70,12 +70,12 @@ final class Test_RuntimeError: XCTestCase {
         XCTAssertEqual(response.0.status, .badGateway)
     }
 
-    func testRuntimeError_withUnexpectedAcceptHeader_returnsProblemDetails() async throws {
+    func testRuntimeError_withResponseContentTypeNotAcceptable_returnsProblemDetails() async throws {
         let server = UniversalServer(
             handler: MockRuntimeErrorHandler(
-                failWithError: RuntimeError.unexpectedAcceptHeader(
-                    expected: ["application/json"],
-                    received: ["text/html", "application/xhtml+xml", "application/xml"]
+                failWithError: RuntimeError.responseContentTypeNotAcceptable(
+                    responseContentType: "application/json",
+                    acceptableContentTypes: ["text/html", "application/xhtml+xml", "application/xml"]
                 )
             ),
             middlewares: [ErrorHandlingMiddleware()]
@@ -100,8 +100,19 @@ final class Test_RuntimeError: XCTestCase {
         let jsonString = try XCTUnwrap(String(data: Data(buffer), encoding: .utf8))
 
         let expectedJSON = #"""
-        {"detail":"Unexpected Accept header: text\/html, application\/xhtml+xml, application\/xml","expectedContentTypes":["application\/json"],"receivedContentTypes":["text\/html","application\/xhtml+xml","application\/xml"],"status":406,"title":"Unexpected Accept header","type":"https:\/\/swiftpackageindex.com\/apple\/swift-openapi-runtime\/documentation\/swift-openapi-runtime\/problemdetails\/unexpected-accept-header"}
-        """#
+            {
+              "acceptableContentTypes" : [
+                "text/html",
+                "application/xhtml+xml",
+                "application/xml"
+              ],
+              "detail" : "Response content type not acceptable, content type: application/json, accepted: text/html, application/xhtml+xml, application/xml",
+              "responseContentType" : "application/json",
+              "status" : 406,
+              "title" : "Response content type not acceptable",
+              "type" : "https://swiftpackageindex.com/apple/swift-openapi-runtime/documentation/openapiruntime/response-content-type-not-acceptable"
+            }
+            """#
 
         XCTAssertEqual(jsonString, expectedJSON)
     }

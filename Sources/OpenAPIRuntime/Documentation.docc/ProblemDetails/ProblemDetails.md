@@ -6,7 +6,7 @@ A mechanism for reporting machine-readable details of server errors in HTTP resp
 
 ### Supported problem types
 
-- <doc:Unexpected-accept-header>
+- <doc:Response-content-type-not-acceptable>
 
 ## See Also
 
