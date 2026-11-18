@@ -40,4 +40,33 @@ final class Test_ServerError: XCTestCase {
             "Server encountered an error handling the operation \"op\", caused by \"User handler threw an error.\", underlying error: Just description."
         )
     }
+
+    func testPrintingRedactsSensitiveRequestValues() throws {
+        let upstreamError = RuntimeError.handlerFailed(PrintableError())
+        let error: any Error = ServerError(
+            operationID: "op",
+            request: .init(
+                soar_path: "/test?token=request-token&name=jane",
+                method: .get,
+                headerFields: [
+                    .init("Cookie")!: "session=request-secret",
+                    .init("X-Trace-ID")!: "trace-id",
+                ]
+            ),
+            requestBody: nil,
+            requestMetadata: .init(),
+            causeDescription: upstreamError.prettyDescription,
+            underlyingError: upstreamError.underlyingError ?? upstreamError,
+            httpStatus: .internalServerError,
+            httpHeaderFields: [:],
+            httpBody: nil
+        )
+
+        let description = "\(error)"
+        XCTAssertFalse(description.contains("request-token"))
+        XCTAssertFalse(description.contains("request-secret"))
+        XCTAssertTrue(description.contains("token=<redacted>"))
+        XCTAssertTrue(description.contains("cookie: <redacted>"))
+        XCTAssertTrue(description.contains("x-trace-id: trace-id"))
+    }
 }

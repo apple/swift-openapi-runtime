@@ -35,4 +35,39 @@ final class Test_ClientError: XCTestCase {
             "Client encountered an error invoking the operation \"op\", caused by \"Transport threw an error.\", underlying error: Just description."
         )
     }
+
+    func testPrintingRedactsSensitiveRequestAndResponseValues() throws {
+        let upstreamError = RuntimeError.transportFailed(PrintableError())
+        let error: any Error = ClientError(
+            operationID: "op",
+            operationInput: "test",
+            request: .init(
+                soar_path: "/test?access_token=request-token&name=jane",
+                method: .get,
+                headerFields: [
+                    .init("Authorization")!: "Bearer request-secret",
+                    .init("X-Trace-ID")!: "trace-id",
+                ]
+            ),
+            response: .init(
+                status: .ok,
+                headerFields: [
+                    .init("Set-Cookie")!: "session=response-secret",
+                    .init("X-Request-ID")!: "request-id",
+                ]
+            ),
+            causeDescription: upstreamError.prettyDescription,
+            underlyingError: upstreamError.underlyingError ?? upstreamError
+        )
+
+        let description = "\(error)"
+        XCTAssertFalse(description.contains("request-token"))
+        XCTAssertFalse(description.contains("request-secret"))
+        XCTAssertFalse(description.contains("response-secret"))
+        XCTAssertTrue(description.contains("access_token=<redacted>"))
+        XCTAssertTrue(description.contains("authorization: <redacted>"))
+        XCTAssertTrue(description.contains("set-cookie: <redacted>"))
+        XCTAssertTrue(description.contains("x-trace-id: trace-id"))
+        XCTAssertTrue(description.contains("x-request-id: request-id"))
+    }
 }
