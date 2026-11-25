@@ -10,109 +10,81 @@ on:
     - cron: "0 8,20 * * *"
 
 jobs:
-  unit-tests:
-    name: Unit tests
-    uses: apple/swift-nio/.github/workflows/unit_tests.yml@main
+  tests:
+    name: Tests
+    uses: swiftlang/github-workflows/.github/workflows/package_test.yml@0.0.19
     with:
-      linux_5_10_enabled: false
-      linux_6_1_enabled: false
-      linux_6_2_arguments_override: "--explicit-target-dependency-import-check error"
-      linux_6_3_arguments_override: "--explicit-target-dependency-import-check error"
-      linux_6_4_arguments_override: "--explicit-target-dependency-import-check error"
-      linux_nightly_next_arguments_override: "--explicit-target-dependency-import-check error"
-      linux_nightly_main_arguments_override: "--explicit-target-dependency-import-check error"
-      windows_6_1_enabled: false
-      windows_6_2_enabled: true
-      windows_6_3_enabled: true
-      windows_6_4_enabled: true
-      windows_nightly_next_enabled: true
-      windows_nightly_main_enabled: true
-      windows_6_2_arguments_override: "--explicit-target-dependency-import-check error"
-      windows_6_3_arguments_override: "--explicit-target-dependency-import-check error"
-      windows_6_4_arguments_override: "--explicit-target-dependency-import-check error"
-      windows_nightly_next_arguments_override: "--explicit-target-dependency-import-check error"
-      windows_nightly_main_arguments_override: "--explicit-target-dependency-import-check error"
-
-  construct-integration-test-matrix:
-    name: Construct integration matrix
-    runs-on: ubuntu-latest
-    outputs:
-      integration-test-matrix: '${{ steps.generate-matrix.outputs.integration-test-matrix }}'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - id: generate-matrix
-        run: echo "integration-test-matrix=$(curl -s https://raw.githubusercontent.com/apple/swift-nio/main/scripts/generate_matrix.sh | bash)" >> "$GITHUB_OUTPUT"
-        env:
-          MATRIX_LINUX_SETUP_COMMAND: apt-get update -y && apt-get install -yq jq && git config --global --add safe.directory /swift-openapi-runtime
-          MATRIX_LINUX_COMMAND: ./scripts/run-integration-test.sh
-          MATRIX_LINUX_6_1_ENABLED: false
-          MATRIX_LINUX_NIGHTLY_MAIN_ENABLED: false
+      # Linux and Windows run Swift current-2, current-1, current, nightly-release and nightly-main (the default
+      # version lists; the minimum version is auto-detected from Package.swift). Debug-Test replaces the former
+      # "Unit tests" jobs and Release-Build the former "Release builds" jobs. The flags are part of the Debug-Test
+      # command rather than linux_version_overrides, as the overrides would also apply to Release-Build.
+      linux_command: |
+        Debug-Test: swift test --explicit-target-dependency-import-check error
+        Release-Build: swift build -c release
+      windows_command: |
+        Debug-Test: swift test --explicit-target-dependency-import-check error
+        Release-Build: swift build -c release
+      # Run Windows builds in the Swift Windows container images, as the swift-nio workflows did.
+      windows_use_docker: true
+      macos_runner_pool: nightly
+      # The Swift toolchains plus the latest Xcode beta, as the former macOS tests job ran.
+      macos_swift_versions: '["current-2", "current-1", "current"]'
+      macos_xcode_versions: '["latest-beta"]'
+      xcode_scheme: swift-openapi-runtime
+      xcode_targets: |
+        macOS:
+          build: true
+        Catalyst:
+          build: true
+        iOS:
+          build: true
+        watchOS:
+          build: true
+        tvOS:
+          build: true
+        visionOS:
+          build: true
+      linux_static_sdk_versions: '["current", "nightly-main"]'
+      android_sdk_versions: '["nightly-main"]'
+      android_sdk_build_triples: '["aarch64-unknown-linux-android28"]'
+      android_emulator_test_triples: '[]'
+      enable_wasm_sdk_build: false
+      enable_embedded_wasm_sdk_build: false
+      enable_cxx_interop: false
+      enable_macos_swiftly: false
+      enable_freebsd: false
 
   integration-test:
     name: Integration test
-    needs: construct-integration-test-matrix
-    uses: apple/swift-nio/.github/workflows/swift_test_matrix.yml@main
+    uses: swiftlang/github-workflows/.github/workflows/package_test.yml@0.0.19
     with:
-      name: "Integration test"
-      matrix_string: '${{ needs.construct-integration-test-matrix.outputs.integration-test-matrix }}'
-
-  static-sdk:
-    name: Static SDK
-    # Workaround https://github.com/nektos/act/issues/1875
-    uses: apple/swift-nio/.github/workflows/static_sdk.yml@main
-
-  android-sdk:
-    name: Android Swift SDK
-    # Workaround https://github.com/nektos/act/issues/1875
-    uses: apple/swift-nio/.github/workflows/android_swift_sdk.yml@main
-
-  macos-tests:
-    name: macOS tests
-    uses: apple/swift-nio/.github/workflows/macos_tests.yml@main
-    with:
-      runner_pool: nightly
-      build_scheme: swift-openapi-runtime
-      swift_6_1_enabled: false
-
-  release-builds:
-    name: Release builds
-    uses: apple/swift-nio/.github/workflows/release_builds.yml@main
-    with:
-      windows_6_1_enabled: false
-      windows_6_2_enabled: true
-      windows_6_3_enabled: true
-      windows_6_4_enabled: true
-      windows_nightly_next_enabled: true
-      windows_nightly_main_enabled: true
-
-  construct-linkage-test-matrix:
-    name: Construct linkage matrix
-    runs-on: ubuntu-latest
-    outputs:
-      linkage-test-matrix: '${{ steps.generate-matrix.outputs.linkage-test-matrix }}'
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - id: generate-matrix
-        run: echo "linkage-test-matrix=$(curl -s https://raw.githubusercontent.com/apple/swift-nio/main/scripts/generate_matrix.sh | bash)" >> "$GITHUB_OUTPUT"
-        env:
-          MATRIX_LINUX_SETUP_COMMAND: apt-get update -y && apt-get install -yq jq && git config --global --add safe.directory /swift-openapi-runtime
-          MATRIX_LINUX_COMMAND: ./scripts/run-linkage-test.sh
-          MATRIX_LINUX_5_10_ENABLED: false
-          MATRIX_LINUX_6_0_ENABLED: false
-          MATRIX_LINUX_6_1_ENABLED: false
-          MATRIX_LINUX_NIGHTLY_NEXT_ENABLED: false
-          MATRIX_LINUX_NIGHTLY_MAIN_ENABLED: false
+      name: "integration-test"
+      linux_swift_versions: '["current-2", "current-1", "current", "nightly-release"]'
+      linux_setup_command: "command -v jq >/dev/null || (sudo apt-get update -y && sudo apt-get install -yq jq)"
+      linux_command: ./scripts/run-integration-test.sh
+      enable_macos: false
+      enable_macos_swiftly: false
+      enable_windows: false
+      enable_linux_static_sdk_build: false
+      enable_wasm_sdk_build: false
+      enable_embedded_wasm_sdk_build: false
+      enable_android_sdk_build: false
+      enable_cxx_interop: false
+      enable_freebsd: false
 
   linkage-test:
     name: Linkage test
-    needs: construct-linkage-test-matrix
-    uses: apple/swift-nio/.github/workflows/swift_test_matrix.yml@main
+    uses: swiftlang/github-workflows/.github/workflows/package_test.yml@0.0.19
     with:
-      name: "Linkage test"
-      matrix_string: '${{ needs.construct-linkage-test-matrix.outputs.linkage-test-matrix }}'
+      name: "linkage-test"
+      linux_swift_versions: '["current-2", "current-1", "current"]'
+      linux_command: ./scripts/run-linkage-test.sh
+      enable_macos: false
+      enable_macos_swiftly: false
+      enable_windows: false
+      enable_linux_static_sdk_build: false
+      enable_wasm_sdk_build: false
+      enable_embedded_wasm_sdk_build: false
+      enable_android_sdk_build: false
+      enable_cxx_interop: false
+      enable_freebsd: false
